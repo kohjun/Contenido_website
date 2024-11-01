@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Login</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="container">
+    <h1>Club Event Management</h1>
+    <p>Please log in with Kakao to access event information.</p>
+    <button onclick="loginWithKakao()">Login with Kakao</button>
+    <button onclick="logout()">Logout</button>
+  </div>
+
+  <script>
+    function loginWithKakao() {
+      window.location.href = '/auth/kakao'; // Redirect to Kakao login
+    }
+    
+    function logout() {
+      window.location.href = '/auth/logout'; // Redirect to logout route
+    }
+  </script>
+</body>
+</html>
