@@ -30,6 +30,17 @@ router.post('/:id/report', async (req, res) => {
     res.status(500).json({ message: 'Error updating report', error });
   }
 });
+// Create a new event (restricted to staff)
+router.post('/', async (req, res) => {
+  if (req.isAuthenticated() && req.user.role === 'staff') {
+      const { title, date } = req.body;
+      const event = new Event({ title, date });
+      await event.save();
+      res.status(201).json({ message: 'Event created successfully' });
+  } else {
+      res.status(403).json({ message: 'Forbidden' });
+  }
+});
 
 // Get all verified users
 router.get('/participants/users', async (req, res) => {

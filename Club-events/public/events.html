@@ -1,22 +1,54 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
+<!DOCTYPE html><html lang="en"><head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Events</title>
-  <link rel="stylesheet" href="styles.css" />
-</head>
-<body>
+  <link rel="stylesheet" href="styles.css" /></head><body>
   <div class="container">
     <h1>Upcoming Events</h1>
     <div id="events-list"></div>
-    
-    <!-- Button to go to the Participation Status page -->
-    <button onclick="window.location.href='participation-status.html'">Check Participation Status</button>
-    
-    <!-- Button to go back to the Home (index.html) -->
-    <button onclick="window.location.href='index.html'">Home</button>
+
+    <!-- Button to post a new event, visible only to operational staff -->
+    <div id="post-event-section" style="display: none;">
+      <button onclick="openEventForm()">Post New Event</button>
+    </div>
+
+    <!-- Event form, hidden by default -->
+    <div id="event-form" style="display: none;">
+      <h2>Submit New Event</h2>
+      <input type="text" id="event-title" placeholder="Event Title" required>
+      <input type="date" id="event-date" required>
+      <button onclick="submitEvent()">Submit Event</button>
+    </div>
   </div>
   <script src="js/events.js"></script>
-</body>
-</html>
+  <script>
+    async function checkUserRole() {
+      const response = await fetch('/auth/user-role');
+      const data = await response.json();
+      
+      if (data.role === 'staff') {
+        document.getElementById('post-event-section').style.display = 'block';
+      }
+    }
+
+    function openEventForm() {
+      document.getElementById('event-form').style.display = 'block';
+    }
+
+    async function submitEvent() {
+      const title = document.getElementById('event-title').value;
+      const date = document.getElementById('event-date').value;
+
+      await fetch('/events', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title, date })
+      });
+
+      alert('Event submitted!');
+      document.getElementById('event-form').style.display = 'none';
+      checkEvents();
+    }
+
+    document.addEventListener('DOMContentLoaded', checkUserRole);
+  </script></body></html>
