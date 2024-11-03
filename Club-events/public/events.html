@@ -1,54 +1,71 @@
-<!DOCTYPE html><html lang="en"><head>
+<!DOCTYPE html>
+<html lang="en">
+<head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Events</title>
-  <link rel="stylesheet" href="styles.css" /></head><body>
+  <link rel="stylesheet" href="/css/styles.css" />
+
+</head>
+<body>
   <div class="container">
-    <h1>Upcoming Events</h1>
+    <h1>진행중인 이벤트</h1>
+    
+    <!-- Section for listing events -->
     <div id="events-list"></div>
 
-    <!-- Button to post a new event, visible only to operational staff -->
+    <!-- Button to check participation status, available to all users -->
+    <button onclick="checkParticipationStatus()">참가자 상태 확인</button>
+
+    <!-- Conditional section for operational staff to post new events -->
     <div id="post-event-section" style="display: none;">
-      <button onclick="openEventForm()">Post New Event</button>
+      <button onclick="openEventForm()">정규 이벤트 작성</button>
     </div>
 
-    <!-- Event form, hidden by default -->
+    <!-- Event submission form, hidden by default, only for staff -->
     <div id="event-form" style="display: none;">
-      <h2>Submit New Event</h2>
-      <input type="text" id="event-title" placeholder="Event Title" required>
-      <input type="date" id="event-date" required>
-      <button onclick="submitEvent()">Submit Event</button>
+      <h2>새로운 이벤트 작성</h2>
+      주제  <input type="text" id="event-title" placeholder="Event Title" required><br>
+      장소(주소)  <input type="text" id="event-place" required placeholder="Place"><br>
+      참가 인원 <input type="text" id="event-participants"  placeholder = "Number of participants" required><br><br> 
+      시간 <input type="date" id="event-date" required>
+      시작
+      <input type="time" ide="event-time" required>
+      종료
+      <input type="time" ide="event-time" required><br><br>
+      <textarea cols="50" rows="25" ></textarea>
+      <button class="submit-button" onclick="submitEvent()">이벤트 제출</button>
     </div>
+
+    <!-- Home button for all users -->
+    <button onclick="window.location.href='index.html'">Home</button>
   </div>
-  <script src="js/events.js"></script>
+
+  <script src="/js/events.js"></script>
   <script>
+    // Function to check the user's role
     async function checkUserRole() {
-      const response = await fetch('/auth/user-role');
-      const data = await response.json();
-      
-      if (data.role === 'staff') {
-        document.getElementById('post-event-section').style.display = 'block';
+      try {
+        const response = await fetch('/auth/user-role');
+        const data = await response.json();
+        console.log('User role:', data.role); // 현재 역할 확인 로그
+
+        if (data.role === 'staff') {
+          document.getElementById('post-event-section').style.display = 'block';
+        }
+      } catch (error) {
+        console.error('Error fetching user role:', error);
       }
     }
 
+
+    // Function to open the event form
     function openEventForm() {
       document.getElementById('event-form').style.display = 'block';
     }
 
-    async function submitEvent() {
-      const title = document.getElementById('event-title').value;
-      const date = document.getElementById('event-date').value;
-
-      await fetch('/events', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title, date })
-      });
-
-      alert('Event submitted!');
-      document.getElementById('event-form').style.display = 'none';
-      checkEvents();
-    }
-
+    // Initialize role check on page load
     document.addEventListener('DOMContentLoaded', checkUserRole);
-  </script></body></html>
+  </script>
+</body>
+</html>

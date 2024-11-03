@@ -1,35 +1,54 @@
-// config/passportConfig.js
-require('dotenv').config({ path: './.env' }); // Load .env file from the root directory
-console.log('KAKAO_CLIENT_ID from app.js:', process.env.KAKAO_CLIENT_ID); // Debugging line to check if it loads
+require('dotenv').config();
 const KakaoStrategy = require('passport-kakao').Strategy;
 const User = require('../models/User');
+
 module.exports = (passport) => {
   passport.use(
     new KakaoStrategy(
       {
         clientID: process.env.KAKAO_CLIENT_ID,
         callbackURL: process.env.KAKAO_CALLBACK_URL,
+        scope: ['profile_nickname', 'profile_image', 'account_email'], // Match enabled scopes in your Kakao settings
+        passReqToCallback: true,
       },
-      async (accessToken, refreshToken, profile, done) => {
+      async (req, accessToken, refreshToken, profile, done) => {
         try {
-          // Extract the required information from the Kakao profile
+          // Extract user data from Kakao profile
           const kakaoId = profile.id;
-          const displayName = profile._json.properties.nickname;  // profile_nickname
-          const profileImage = profile._json.properties.profile_image;  // profile_image
+          const displayName = profile._json.properties.nickname;
+          const profileImage = profile._json.properties.profile_image || null;
+          const email = profile._json.kakao_account?.email;
 
-          // Check if the user exists in the database
-          let user = await User.findOne({ kakaoId });
-          if (!user) {
-            // Create a new user if they don't exist
+          if (!email) {
+            console.error("Error: Kakao did not provide an email.");
+            return done(new Error('Email is required but was not provided by Kakao.'), null);
+          }
+
+          // Find or create user by email
+          let user = await User.findOne({ email });
+          if (user) {
+            // Update existing user data if necessary
+            user.displayName = displayName;
+            user.kakaoId = kakaoId; // Store Kakao ID
+            user.isVerified = true;
+            if (profileImage) user.profileImage = profileImage;
+
+            await user.save();
+          } else {
+            // Create a new user if none exists
             user = await User.create({
-              kakaoId,
+              email,
               displayName,
               profileImage,
+              kakaoId,
               isVerified: true,
+              role: 'participant',
             });
           }
+
           return done(null, user);
         } catch (err) {
+          console.error("Error during user login:", err);
           return done(err, null);
         }
       }

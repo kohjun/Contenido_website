@@ -1,6 +1,8 @@
 const express = require('express');
 const Event = require('../models/Event');
 const User = require('../models/User');
+// Placeholder for future authentication middleware
+// const authenticateToken = require('../middleware/authMiddleware');
 const router = express.Router();
 
 // Get events for the next two months
@@ -30,23 +32,30 @@ router.post('/:id/report', async (req, res) => {
     res.status(500).json({ message: 'Error updating report', error });
   }
 });
-// Create a new event (restricted to staff)
+
+// Create a new event (restricted to staff in the future)
 router.post('/', async (req, res) => {
-  if (req.isAuthenticated() && req.user.role === 'staff') {
-      const { title, date } = req.body;
-      const event = new Event({ title, date });
-      await event.save();
-      res.status(201).json({ message: 'Event created successfully' });
-  } else {
-      res.status(403).json({ message: 'Forbidden' });
+  // Placeholder for future role-based authorization
+  // if (req.user && req.user.role === 'staff') {
+  const { title, date } = req.body;
+
+  try {
+    const event = new Event({ title, date });
+    await event.save();
+    res.status(201).json({ message: 'Event created successfully' });
+  } catch (error) {
+    res.status(500).json({ message: 'Error creating event', error });
   }
+  // } else {
+  //     res.status(403).json({ message: 'Forbidden' });
+  // }
 });
 
 // Get all verified users
 router.get('/participants/users', async (req, res) => {
   try {
     const users = await User.find({ isVerified: true });
-    
+
     // Return only the necessary fields
     const userData = users.map(user => ({
       id: user._id,
