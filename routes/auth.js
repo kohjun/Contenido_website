@@ -1,3 +1,4 @@
+// routes/auth.js
 const express = require('express');
 const passport = require('passport');
 const jwt = require('jsonwebtoken');
@@ -7,6 +8,7 @@ const KAKAO_CLIENT_ID = process.env.KAKAO_CLIENT_ID;
 const LOGOUT_REDIRECT_URI = 'http://localhost:3000/auth/final-logout';
 const JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret';
 const router = express.Router();
+
 // Initiate Kakao login
 router.get('/kakao', passport.authenticate('kakao'));
 
@@ -18,18 +20,19 @@ router.get(
     try {
       const profile = req.user;
       const email = profile.email;
-      const displayName = profile.displayName; // Add displayName
+      const displayName = profile.displayName;
+      const profileImage = profile.profileImage; // Include profileImage
 
       // Generate JWT token with all user details
       const token = jwt.sign(
-        { id: profile._id, role: profile.role, displayName, email },
+        { id: profile._id, role: profile.role, displayName, email, profileImage: profile.profileImage || '/images/basic_Image.png' },
         JWT_SECRET,
         { expiresIn: '1h' }
       );
+      
 
       // Send the token in a secure cookie
       res.cookie('jwt', token, { httpOnly: true, secure: process.env.NODE_ENV === 'production' });
-
       res.redirect('/events.html'); // Redirect to events page after login
     } catch (error) {
       console.error("Error during user login:", error);

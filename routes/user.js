@@ -13,10 +13,12 @@ router.get('/info', authenticateToken, (req, res) => {
     res.setHeader('Expires', '0');
     res.setHeader('Surrogate-Control', 'no-store');
 
+    // Provide profileImage with a default fallback
     res.json({
       nickname: req.user.displayName,
       email: req.user.email,
-      role: req.user.role
+      role: req.user.role,
+      profileImage: req.user.profileImage || '/images/basic_Image.png' // Default to basic image
     });
   } else {
     res.status(401).json({ message: 'Unauthorized' });
@@ -24,15 +26,16 @@ router.get('/info', authenticateToken, (req, res) => {
 });
 
 
+
+
 router.get('/user-role', authenticateToken, (req, res) => {
-    console.log('Authenticated user role:', req.user?.role); // 사용자 역할 확인
-  
-    if (req.isAuthenticated()) {
-      res.json({ role: req.user.role });
-    } else {
-      res.status(401).json({ message: 'Unauthorized' });
-    }
-  });
-  
+  console.log('Authenticated user role:', req.user?.role); // Log the user's role for debugging
+
+  if (req.user) {
+    res.json({ role: req.user.role });
+  } else {
+    res.status(401).json({ message: 'Unauthorized' });
+  }
+});
 
 module.exports = router;

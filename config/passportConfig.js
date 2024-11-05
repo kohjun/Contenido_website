@@ -1,3 +1,4 @@
+//config/passportConfig.js
 require('dotenv').config();
 const KakaoStrategy = require('passport-kakao').Strategy;
 const User = require('../models/User');
@@ -8,7 +9,7 @@ module.exports = (passport) => {
       {
         clientID: process.env.KAKAO_CLIENT_ID,
         callbackURL: process.env.KAKAO_CALLBACK_URL,
-        scope: ['profile_nickname', 'profile_image', 'account_email'], // Match enabled scopes in your Kakao settings
+        scope: ['profile_nickname', 'profile_image', 'account_email'], // Ensure these scopes are enabled in Kakao developer console
         passReqToCallback: true,
       },
       async (req, accessToken, refreshToken, profile, done) => {
@@ -16,7 +17,7 @@ module.exports = (passport) => {
           // Extract user data from Kakao profile
           const kakaoId = profile.id;
           const displayName = profile._json.properties.nickname;
-          const profileImage = profile._json.properties.profile_image || null;
+          const profileImage = profile._json.properties.profile_image || '/images/basic_Image.png';
           const email = profile._json.kakao_account?.email;
 
           if (!email) {
