@@ -5,16 +5,26 @@ const User = require('../models/User');
 // const authenticateToken = require('../middleware/authMiddleware');
 const router = express.Router();
 
-// Get events for the next two months
+// Get all events
 router.get('/', async (req, res) => {
-  const twoMonthsAgo = new Date();
-  twoMonthsAgo.setMonth(twoMonthsAgo.getMonth() - 2);
-
   try {
-    const events = await Event.find({ date: { $gte: twoMonthsAgo } });
+    const events = await Event.find();
     res.json(events);
   } catch (error) {
     res.status(500).json({ message: 'Error fetching events', error });
+  }
+});
+
+// Get a specific event by ID
+router.get('/:id', async (req, res) => {
+  try {
+    const event = await Event.findById(req.params.id);
+    if (!event) {
+      return res.status(404).json({ message: 'Event not found' });
+    }
+    res.json(event);
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching event', error });
   }
 });
 
@@ -33,23 +43,19 @@ router.post('/:id/report', async (req, res) => {
   }
 });
 
-// Create a new event (restricted to staff in the future)
+// Create a new event
 router.post('/', async (req, res) => {
-  // Placeholder for future role-based authorization
-  // if (req.user && req.user.role === 'staff') {
-  const { title, date } = req.body;
+  const { title, date, place, participants, startTime, endTime, participation_fee, contents } = req.body;
 
   try {
-    const event = new Event({ title, date });
+    const event = new Event({ title, date, place, participants, startTime, endTime, participation_fee, contents });
     await event.save();
     res.status(201).json({ message: 'Event created successfully' });
   } catch (error) {
     res.status(500).json({ message: 'Error creating event', error });
   }
-  // } else {
-  //     res.status(403).json({ message: 'Forbidden' });
-  // }
 });
+
 
 // Get all verified users
 router.get('/participants/users', async (req, res) => {

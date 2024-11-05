@@ -23,6 +23,10 @@ h1 {
   font-weight: bold;
   color: #333;
 }
+.half-width {
+  width: 15%;
+  box-sizing: border-box; /* Ensures padding doesn’t add to total width */
+}
 
 /* User Information Display - Top Right Corner */
 .user-info {
