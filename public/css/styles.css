@@ -6,6 +6,73 @@ body {
   margin: 0;
   padding: 0;
 }
+/* Title Container */
+.title-container {
+  text-align: center;
+  margin-top: 1rem;
+  margin-bottom: 2rem;
+}
+
+/* Subtitle Styling */
+.subtitle {
+  font-size: 1.2rem;
+  color: #555;
+  letter-spacing: 1px;
+  font-style: italic;
+  margin: 0;
+}
+
+/* Main Title Styling */
+.main-title {
+  font-size: 2.5rem;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  background: linear-gradient(90deg, #ffeb00, #ffd600); /* Gradient effect */
+  -webkit-background-clip: text;
+  color: transparent;
+  margin: 0.5rem 0;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* Button Styles */
+button {
+  display: block;
+  width: 80%;
+  max-width: 250px;
+  padding: 0.8rem;
+  font-size: 1rem;
+  margin: 1rem auto;
+  background-color: #ffeb00;
+  border: none;
+  border-radius: 20px; /* More rounded shape */
+  cursor: pointer;
+  font-weight: bold;
+  transition: background-color 0.3s, transform 0.2s;
+}
+
+button:hover {
+  background-color: #ffd600;
+  transform: translateY(-2px); /* Adds a subtle hover lift */
+}
+
+/* Style for the Kakao Login Button */
+.kakao-login-button {
+  background-color: #ffeb00;
+  color: #333;
+  font-size: 1rem;
+  width: 50%;
+  max-width: 200px;
+  border-radius: 50px;
+  font-weight: bold;
+  margin: 1rem auto;
+  transition: background-color 0.3s, transform 0.2s;
+}
+
+.kakao-login-button:hover {
+  background-color: #ffd600;
+  transform: translateY(-2px);
+}
 
 /* Main Container */
 .container {
