@@ -1,0 +1,77 @@
+<!-- public/staff.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Staff - Event Management</title>
+  <link rel="stylesheet" href="/css/styles.css" />
+</head>
+<body>
+  <div class="container">
+    <h1>새로운 이벤트 작성</h1>
+
+    <!-- Event submission form -->
+    <div id="event-form">
+      <label>주제</label>
+      <input type="text" id="event-title" placeholder="Event Title" required><br>
+      <label>장소(주소)</label>
+      <input type="text" id="event-place" required placeholder="Place"><br>
+      <label>참가 인원</label>
+      <input type="number" id="event-participants" placeholder="Number of participants" required><br>
+      <label>날짜</label>
+      <input type="date" id="event-date" required><br>
+      <label>시작 시간</label>
+      <input type="time" id="event-start-time" required><br>
+      <label>종료 시간</label>
+      <input type="time" id="event-end-time" required><br><br>
+      <label>참가비</label>
+      <input type="text" id="event-participation-fee" required>원<br><br>
+      <textarea id="event-contents" required cols="70" rows="10" placeholder="Event details"></textarea>
+      <button onclick="submitEvent()">이벤트 제출</button>
+    </div>
+    <!-- Event Report Submission Form -->
+    <div id="report-form">
+        <h2>이벤트 결과 보고서</h2>
+    
+        <!-- Event Dropdown for Selecting Title -->
+        <label for="report-event">이벤트 선택:</label>
+        <select id="report-event" required>
+        <option value="">이벤트 선택...</option>
+        </select>
+    
+        <!-- Week Selection Radio Buttons -->
+        <fieldset>
+        <legend>주차 선택:</legend>
+        <label><input type="radio" name="week" value="1" required> 1주차</label>
+        <label><input type="radio" name="week" value="2"> 2주차</label>
+        <label><input type="radio" name="week" value="3"> 3주차</label>
+        <label><input type="radio" name="week" value="4"> 4주차</label>
+        </fieldset>
+    
+        <!-- Participant List with Checkboxes -->
+        <fieldset>
+        <legend>참가자 선택:</legend>
+        <div id="participant-list"></div>
+        </fieldset>
+    
+        <!-- Report Submission Button -->
+        <button onclick="submitReport()">보고서 제출</button>
+    </div>
+    
+    <script src="/js/events.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+        loadReportFormOptions();
+        });
+    </script>
+  
+
+
+    <!-- Button to go back to events page -->
+    <button onclick="window.location.href='events.html'">진행중인 이벤트</button>
+  </div>
+
+  <script src="/js/events.js"></script>
+</body>
+</html>

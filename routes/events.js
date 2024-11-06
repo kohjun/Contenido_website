@@ -1,9 +1,12 @@
+//routes/events.js
 const express = require('express');
 const Event = require('../models/Event');
 const User = require('../models/User');
-// Placeholder for future authentication middleware
-// const authenticateToken = require('../middleware/authMiddleware');
 const router = express.Router();
+const authenticateToken = require('../middleware/authMiddleware');
+
+
+// GET 요청
 
 // Get all events
 router.get('/', async (req, res) => {
@@ -27,54 +30,6 @@ router.get('/:id', async (req, res) => {
     res.status(500).json({ message: 'Error fetching event', error });
   }
 });
-
-// Submit event participation report
-router.post('/:id/report', async (req, res) => {
-  const eventId = req.params.id;
-  const { participants } = req.body; // Expect array of participant IDs
-
-  try {
-    await Event.findByIdAndUpdate(eventId, {
-      resultReport: { participants },
-    });
-    res.status(200).json({ message: 'Report updated successfully' });
-  } catch (error) {
-    res.status(500).json({ message: 'Error updating report', error });
-  }
-});
-
-// Create a new event
-router.post('/', async (req, res) => {
-  const { title, date, place, participants, startTime, endTime, participation_fee, contents } = req.body;
-
-  try {
-    const event = new Event({ title, date, place, participants, startTime, endTime, participation_fee, contents });
-    await event.save();
-    res.status(201).json({ message: 'Event created successfully' });
-  } catch (error) {
-    res.status(500).json({ message: 'Error creating event', error });
-  }
-});
-
-
-// Get all verified users
-router.get('/participants/users', async (req, res) => {
-  try {
-    const users = await User.find({ isVerified: true });
-
-    // Return only the necessary fields
-    const userData = users.map(user => ({
-      id: user._id,
-      displayName: user.displayName,
-      profileImage: user.profileImage,
-    }));
-
-    res.json(userData);
-  } catch (error) {
-    res.status(500).json({ message: 'Error fetching users', error });
-  }
-});
-
 // Get participation status for all events
 router.get('/participants/status', async (req, res) => {
   try {
@@ -94,5 +49,90 @@ router.get('/participants/status', async (req, res) => {
     res.status(500).json({ message: 'Error fetching participant status', error });
   }
 });
+
+
+// POST 요청
+
+// Submit event participation report (consolidated)
+router.post('/:id/report', async (req, res) => {
+  const { week, participants } = req.body;
+
+  try {
+    // Update each participant's status for the chosen week to "O"
+    const updates = participants.map(participantId => 
+      User.findByIdAndUpdate(participantId, {
+        [`status.week${week}`]: 'O' // Dynamically update the specific week field
+      })
+    );
+
+    // Execute all updates in parallel
+    await Promise.all(updates);
+
+    res.status(200).json({ message: 'Report updated successfully' });
+  } catch (error) {
+    console.error('Error updating report:', error);
+    res.status(500).json({ message: 'Error updating report', error });
+  }
+});
+
+// Create a new event
+router.post('/', authenticateToken, async (req, res) => {
+  const { title, date, place, participants, startTime, endTime, participation_fee, contents } = req.body;
+
+  try {
+    const event = new Event({
+      title,
+      date,
+      place,
+      participants,
+      startTime,
+      endTime,
+      participation_fee,
+      contents,
+      creator: req.user.id, // Set creator from the authenticated user
+    });
+    
+    await event.save();
+    res.status(201).json({ message: 'Event created successfully' });
+  } catch (error) {
+    console.error("Error creating event:", error);
+    res.status(500).json({ message: 'Error creating event', error: error.message });
+  }
+});
+
+
+
+
+
+ //DELETE 요청
+
+// Cancel an event
+router.delete('/:id', authenticateToken, async (req, res) => {
+  try {
+    const event = await Event.findById(req.params.id);
+    if (!event) {
+      return res.status(404).json({ message: 'Event not found' });
+    }
+
+    console.log("Event creator ID:", event.creator); // Log event creator ID
+    console.log("Authenticated user ID:", req.user.id); // Log authenticated user ID
+
+    if (event.creator.toString() !== req.user.id) {
+      return res.status(403).json({ message: 'You are not authorized to cancel this event' });
+    }
+
+    await event.deleteOne();
+    res.status(200).json({ message: 'Event canceled successfully' });
+  } catch (error) {
+    console.error('Error canceling event:', error);
+    res.status(500).json({ message: 'Error canceling event', error });
+  }
+});
+
+
+
+
+
+
 
 module.exports = router;

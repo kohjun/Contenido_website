@@ -1,40 +1,48 @@
-// Fetches participant status from the server and displays it in a table format
+// public/js/participation.js
 async function fetchUserStatus() {
   try {
-    const response = await fetch('/events/participants/users'); // Fetch user data
+    // Updated URL to use the correct endpoint
+    const response = await fetch('/user/participants/users');
+    console.log('Response Status:', response.status);
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! Status: ${response.status}`);
+    }
+
     const users = await response.json();
+    console.log('Fetched users:', users);
 
     const statusList = document.getElementById('status-list');
-    if (!statusList) return; // Ensure the element exists
+    if (!statusList) return;
 
     // Clear previous content
     statusList.innerHTML = '';
 
-    // Create a table to display user data
+    // Create a table
     const table = document.createElement('table');
     table.innerHTML = `
       <tr>
         <th>프로필 사진</th>
         <th>이름</th>
-        <th>[A-1]<br>불,원소,흙</th>
-        <th>[B-1]<br>달려라 운동회</th>
-        <th>[C-1]<br>야구볼 캐치</th>
-        <th>[OT]<br>신입생 환영회</th>
-        <th>연말 행사</th>
-        <th>연말 행사</th>
-        
-        
-
+        <th>1주차</th>
+        <th>2주차</th>
+        <th>3주차</th>
+        <th>4주차</th>
       </tr>
     `;
 
     // Populate table rows with user data
     users.forEach(user => {
       const row = document.createElement('tr');
-      const profileImage = user.profileImage || '/images/default-profile.png';
+      const profileImage = user.profileImage || '/images/basic_Image.png';
+
       row.innerHTML = `
         <td><img src="${profileImage}" alt="${user.displayName}" width="50" height="50" /></td>
         <td>${user.displayName}</td>
+        <td>${user.status.week1 || 'X'}</td>
+        <td>${user.status.week2 || 'X'}</td>
+        <td>${user.status.week3 || 'X'}</td>
+        <td>${user.status.week4 || 'X'}</td>
       `;
       table.appendChild(row);
     });
@@ -49,8 +57,5 @@ async function fetchUserStatus() {
 
 // Run fetchUserStatus when the document is ready
 document.addEventListener('DOMContentLoaded', () => {
-  const statusList = document.getElementById('status-list');
-  if (statusList) {
-    fetchUserStatus();
-  }
+  fetchUserStatus();
 });

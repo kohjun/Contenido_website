@@ -1,3 +1,4 @@
+//middleware/authMiddlewares.js
 const jwt = require('jsonwebtoken');
 const JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret';
 
@@ -14,9 +15,8 @@ const authenticateToken = (req, res, next) => {
       console.log('Token verification failed', err);
       return res.status(403).json({ message: 'Forbidden' });
     }
-
-    console.log('Decoded user from JWT:', user); // Log the decoded user
-
+  
+    console.log('Decoded user from JWT:', user); // Log the decoded user for verification
     req.user = user; // Set the decoded user info in req.user
     next();
   });

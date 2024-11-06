@@ -44,6 +44,12 @@ module.exports = (passport) => {
               kakaoId,
               isVerified: true,
               role: 'participant',
+              status: {  // Initialize status field with default values
+                week1: 'X',
+                week2: 'X',
+                week3: 'X',
+                week4: 'X'
+              }
             });
           }
 
@@ -66,3 +72,4 @@ module.exports = (passport) => {
     }
   });
 };
+
