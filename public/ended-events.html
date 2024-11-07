@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>종료된 이벤트</title>
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+  <div class="container">
+    <h1>종료된 이벤트</h1>
+    <table border="1">
+      <thead>
+        <tr>
+          <th>이벤트 ID</th>
+          <th>이벤트 제목</th>
+          <th>날짜</th>
+        </tr>
+      </thead>
+      <tbody id="ended-events-list">
+        <!-- JavaScript will populate this -->
+      </tbody>
+    </table>
+    <button onclick="window.location.href='events.html'">진행중인 이벤트</button>
+  </div>
+  <script>
+    // Populate ended events dynamically from localStorage or server
+    const endedEventsList = document.getElementById("ended-events-list");
+
+    function renderEndedEvents() {
+        endedEvents.forEach(event => {
+            const row = document.createElement("tr");
+            row.innerHTML = `
+              <td>${event.id}</td>
+              <td>${event.title}</td>
+              <td>${event.date}</td>
+            `;
+            endedEventsList.appendChild(row);
+        });
+    }
+
+    document.addEventListener("DOMContentLoaded", renderEndedEvents);
+  </script>
+</body>
+</html>

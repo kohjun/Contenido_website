@@ -19,27 +19,50 @@ router.get(
   async (req, res) => {
     try {
       const profile = req.user;
-      const email = profile.email;
-      const displayName = profile.displayName;
-      const profileImage = profile.profileImage; // Include profileImage
+      const isNewUser = !profile.isAdditionalInfoComplete; // 새로운 사용자인지 확인
+      const redirectUrl = isNewUser ? '/additional-info.html' : '/events.html';
 
-      // Generate JWT token with all user details
+      // JWT 생성
       const token = jwt.sign(
-        { id: profile._id, role: profile.role, displayName, email, profileImage: profile.profileImage || '/images/basic_Image.png' },
+        { id: profile._id, role: profile.role, displayName: profile.displayName, email: profile.email },
         JWT_SECRET,
         { expiresIn: '1h' }
       );
-      
 
-      // Send the token in a secure cookie
       res.cookie('jwt', token, { httpOnly: true, secure: process.env.NODE_ENV === 'production' });
-      res.redirect('/events.html'); // Redirect to events page after login
+      res.redirect(redirectUrl);
     } catch (error) {
       console.error("Error during user login:", error);
       res.redirect('/');
     }
   }
 );
+router.post('/additional-info', authenticateToken, async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // 추가 정보 저장
+    user.name = req.body.name;
+    user.gender = req.body.gender;
+    user.birthDate = req.body.birthDate;
+    user.phonenumber = req.body.phonenumber;
+    user.isAdditionalInfoComplete = true;
+
+    await user.save();
+
+    // 성공적으로 저장되면 리디렉션 URL 제공
+    res.status(200).json({ message: 'Additional info saved successfully', redirectUrl: '/events.html' });
+  } catch (error) {
+    console.error('Error saving additional info:', error);
+    res.status(500).json({ message: 'Error saving additional info' });
+  }
+});
+
+
+
 
 
 router.get('/user-role', authenticateToken, (req, res) => {

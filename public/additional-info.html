@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>추가 정보 입력</title>
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+  <div class="container">
+    <h1>추가 정보 입력</h1>
+    <form id="additional-info-form">
+      <label for="name">이름</label>
+      <input type="text" id="name" name="name" required placeholder="이름을 입력하세요"><br>
+      
+      <label for="gender">성별</label>
+      <select id="gender" name="gender" required>
+        <option value="male">남성</option>
+        <option value="female">여성</option>
+        <option value="other">기타</option>
+      </select><br>
+
+      <label for="birthDate">생년월일</label>
+      <input type="date" id="birthDate" name="birthDate" required><br>
+
+      <label for="phonenumber">전화번호</label>
+      <input type="text" id="phonenumber" name="phonenumber" placeholder="010-1234-5678" required />
+
+
+      <button type="submit">저장</button>
+    </form>
+  </div>
+  <script>
+    document.querySelector('#additional-info-form').addEventListener('submit', async (event) => {
+  event.preventDefault();
+
+  const name = document.getElementById('name').value;
+  const gender = document.getElementById('gender').value;
+  const birthDate = document.getElementById('birthDate').value;
+  const phonenumber = document.getElementById('phonenumber').value;
+
+  try {
+    const response = await fetch('/auth/additional-info', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, gender, birthDate, phonenumber })
+    });
+
+    const result = await response.json();
+
+    if (response.ok && result.redirectUrl) {
+      alert('추가 정보가 성공적으로 저장되었습니다.');
+      window.location.href = result.redirectUrl;  // 리디렉션 URL 사용
+    } else {
+      console.error('Failed to save additional info:', result.message);
+      alert(result.message);
+    }
+  } catch (error) {
+    console.error('Error saving additional info:', error);
+    alert('추가 정보를 저장하는 중 문제가 발생했습니다.');
+  }
+});
+
+  </script>
+</body>
+</html>

@@ -8,6 +8,8 @@ const passport = require('passport');
 const session = require('express-session');
 const cookieParser = require('cookie-parser');
 const app = express();
+const path = require('path');
+
 
 // Passport configuration
 require('./config/passportConfig')(passport);

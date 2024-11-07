@@ -13,7 +13,12 @@ const userSchema = new mongoose.Schema({
     week2: { type: String, default: 'X' },
     week3: { type: String, default: 'X' },
     week4: { type: String, default: 'X' }
-  }
+  },
+  name: { type: String },
+  gender: { type: String, enum: ['male', 'female', 'other'] },
+  birthDate: { type: Date },
+  isAdditionalInfoComplete: { type: Boolean, default: false },
+  phonenumber: { type: String }, // 전화번호 필드 추가
 });
 
 module.exports = mongoose.model('User', userSchema);

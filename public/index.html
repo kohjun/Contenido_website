@@ -99,7 +99,7 @@
           const userEmail = document.getElementById('user-email');
           const userRole = document.getElementById('user-role');
           const userImage = document.getElementById('user-image');
-
+          
           userNickname.innerText = data.nickname;
           userEmail.innerText = data.email.replace(/^(.{3,})(.{4})(@.*)$/, '$1****$3');
           userRole.innerText = `Role: ${data.role}`;

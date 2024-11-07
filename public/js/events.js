@@ -1,6 +1,5 @@
 // public/js/events.js
 let userId;
-
 async function fetchUserId() {
   try {
     const response = await fetch('/user/info');
@@ -11,68 +10,86 @@ async function fetchUserId() {
     console.error('Error fetching user ID:', error);
   }
 }
-// Fetches events from the server and displays them
+
+
+
 async function fetchEvents() {
   try {
     const response = await fetch('/events');
     const events = await response.json();
-    const eventsList = document.getElementById('events-list');
 
-    // Clear the list in case of re-render
+    const eventsList = document.getElementById('events-list');
+    if (!eventsList) {
+      console.warn("Element with id 'events-list' not found.");
+      return;
+    }
+
     eventsList.innerHTML = `
       <table>
-        <tr>
-          <th>주제</th>
-          <th>날짜</th>
-          <th>장소</th>
-          <th>참가 인원</th>
-          <th>시작 시간</th>
-          <th>종료 시간</th>
-          <th>참가비</th>
-          <th>내용</th>
-          <th>취소</th> <!-- Empty header for cancel button -->
-        </tr>
+        <thead>
+          <tr>
+            <th>주제</th>
+            <th>날짜</th>
+            <th>장소</th>
+            <th>참가 인원</th>
+            <th>시작 시간</th>
+            <th>종료 시간</th>
+            <th>참가비</th>
+            <th>내용</th>
+            <th>취소</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
       </table>
     `;
 
-    const table = eventsList.querySelector('table');
+    const tableBody = eventsList.querySelector('tbody');
 
-    // Loop through each event and create table rows
+    if (events.length === 0) {
+      eventsList.innerHTML += '<p>현재 진행중인 이벤트가 없습니다.</p>';
+      return;
+    }
+
     events.forEach(event => {
       const row = document.createElement('tr');
       row.innerHTML = `
         <td>${event.title}</td>
         <td>${new Date(event.date).toLocaleDateString()}</td>
         <td>${event.place}</td>
-        <td>${event.participants}명</td>
+        <td>${event.participants.length}명</td>
         <td>${event.startTime}</td>
         <td>${event.endTime}</td>
-        <td>${event.participation_fee}원</td>
+        <td>${event.participation_fee.toLocaleString()}원</td>
         <td><a href="#" onclick="openContentWindow('${event._id}')">보기</a></td>
+        <td>
+          <img src="/images/event-cancel-icon.png" 
+               alt="Cancel Event" 
+               style="cursor: pointer; width: 16px;" 
+               onclick="handleCancelEvent('${event._id}', '${event.creator}')">
+        </td>
       `;
 
-      // Only add the cancel button if the user is the creator
-      if (event.creator === userId) { // Assume userId is the ID of the currently logged-in user
-        const cancelCell = document.createElement('td');
-        const cancelButton = document.createElement('img');
-        cancelButton.src = '/images/event-cancel-icon.png';
-        cancelButton.alt = 'Cancel Event';
-        cancelButton.style.cursor = 'pointer';
-        cancelButton.width="10";
-        
-        cancelButton.onclick = () => cancelEvent(event._id); // Call cancelEvent with the event ID
-        cancelCell.appendChild(cancelButton);
-        row.appendChild(cancelCell);
-      } else {
-        row.appendChild(document.createElement('td')); // Empty cell for non-creators
-      }
-
-      table.appendChild(row);
+      tableBody.appendChild(row);
     });
+
   } catch (error) {
     console.error('Error fetching events:', error);
   }
 }
+
+
+
+// Handle cancel event with authorization check
+async function handleCancelEvent(eventId, eventCreator) {
+  if (eventCreator === userId) { // eventCreator가 문자열로 전달되는지 확인
+    await cancelEvent(eventId);
+  } else {
+    alert('이벤트를 취소할 권한이 없습니다.');
+  }
+}
+
+
+
 
 
 
@@ -91,7 +108,16 @@ async function submitEvent() {
     const response = await fetch('/events', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ title, place, participants, date, startTime, endTime, participation_fee, contents })
+      body: JSON.stringify({
+        title,
+        place,
+        participants,
+        date,
+        startTime,
+        endTime,
+        participation_fee,
+        contents
+      })
     });
 
     if (response.ok) {
@@ -104,6 +130,7 @@ async function submitEvent() {
     console.error('Error submitting event:', error);
   }
 }
+
 
 // Function to open a new window with the event contents
 async function openContentWindow(eventId) {
@@ -160,6 +187,7 @@ async function loadReportFormOptions() {
     const participants = await participantsResponse.json();
     const participantList = document.getElementById('participant-list');
 
+    participantList.innerHTML = ''; // Clear existing options
     participants.forEach(participant => {
       const checkbox = document.createElement('input');
       checkbox.type = 'checkbox';
@@ -180,6 +208,7 @@ async function loadReportFormOptions() {
     console.error('Error loading report form options:', error);
   }
 }
+
 
 // Submit the report to update the participation status
 async function submitReport() {
@@ -205,13 +234,32 @@ async function submitReport() {
 
     if (response.ok) {
       alert('보고서 제출 완료!');
-      // Reload participation status to show updates
-      fetchUserStatus(); // Refreshes the participant table with updated data
+      await markEventAsEnded(eventId); // 이벤트 종료
+      fetchEvents(); // 이벤트 목록 갱신
     } else {
       console.error('Failed to submit report:', await response.json());
     }
   } catch (error) {
     console.error('Error submitting report:', error);
+  }
+}
+
+
+// Mark event as ended
+async function markEventAsEnded(eventId) {
+  try {
+    const response = await fetch(`/events/${eventId}/end`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to mark event as ended');
+    }
+
+    console.log(`Event ${eventId} marked as ended`);
+  } catch (error) {
+    console.error('Error marking event as ended:', error);
   }
 }
 
@@ -235,13 +283,34 @@ async function cancelEvent(eventId) {
     console.error('Error canceling event:', error);
   }
 }
+
 // Redirect to participation status page
 function checkParticipationStatus() {
   window.location.href = '/participation-status.html';
 }
+async function checkUserRole() {
+  try {
+    const response = await fetch('/user/user-role');
+    const data = await response.json();
+
+    const staffButton = document.getElementById('staff-button-container');
+    if (!staffButton) {
+      console.warn("Element 'staff-button-container' not found");
+      return;
+    }
+
+    if (data.role === 'staff') {
+      staffButton.style.display = 'block';
+    }
+  } catch (error) {
+    console.error('Error fetching user role:', error);
+  }
+}
+
 
 // Run fetchEvents when the document is ready
 document.addEventListener('DOMContentLoaded', async () => {
-  await fetchUserId(); // Fetch user ID before loading events
-  fetchEvents(); // Then load events
+  await fetchUserId(); // Ensure userId is fetched before fetching events
+ fetchEvents();
+ checkUserRole();
 });

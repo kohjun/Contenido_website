@@ -1,4 +1,3 @@
-<!-- public/staff.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -14,11 +13,11 @@
     <!-- Event submission form -->
     <div id="event-form">
       <label>주제</label>
-      <input type="text" id="event-title" placeholder="Event Title" required><br>
+      <input type="text" id="event-title" placeholder="이벤트 제목" required><br>
       <label>장소(주소)</label>
-      <input type="text" id="event-place" required placeholder="Place"><br>
+      <input type="text" id="event-place" required placeholder="장소"><br>
       <label>참가 인원</label>
-      <input type="number" id="event-participants" placeholder="Number of participants" required><br>
+      <input type="number" id="event-participants" placeholder="숫자만 표기" required><br>
       <label>날짜</label>
       <input type="date" id="event-date" required><br>
       <label>시작 시간</label>
@@ -26,10 +25,11 @@
       <label>종료 시간</label>
       <input type="time" id="event-end-time" required><br><br>
       <label>참가비</label>
-      <input type="text" id="event-participation-fee" required>원<br><br>
-      <textarea id="event-contents" required cols="70" rows="10" placeholder="Event details"></textarea>
+      <input type="text" id="event-participation-fee" required placeholder="숫자만 표기"><br><br>
+      <textarea id="event-contents" required cols="70" rows="10" placeholder="이벤트 내용"></textarea>
       <button onclick="submitEvent()">이벤트 제출</button>
     </div>
+
     <!-- Event Report Submission Form -->
     <div id="report-form">
         <h2>이벤트 결과 보고서</h2>
@@ -37,23 +37,26 @@
         <!-- Event Dropdown for Selecting Title -->
         <label for="report-event">이벤트 선택:</label>
         <select id="report-event" required>
-        <option value="">이벤트 선택...</option>
+          <option value="">이벤트 선택...</option>
         </select>
     
-        <!-- Week Selection Radio Buttons -->
-        <fieldset>
-        <legend>주차 선택:</legend>
-        <label><input type="radio" name="week" value="1" required> 1주차</label>
-        <label><input type="radio" name="week" value="2"> 2주차</label>
-        <label><input type="radio" name="week" value="3"> 3주차</label>
-        <label><input type="radio" name="week" value="4"> 4주차</label>
-        </fieldset>
+        <!-- Week Selection & Participant Selection Row -->
+        <div class="form-row">
+          <!-- Week Selection Radio Buttons -->
+          <fieldset class="form-item">
+            <legend>주차 선택:</legend>
+            <label><input type="radio" name="week" value="1" required> 1주차</label>
+            <label><input type="radio" name="week" value="2"> 2주차</label>
+            <label><input type="radio" name="week" value="3"> 3주차</label>
+            <label><input type="radio" name="week" value="4"> 4주차</label>
+          </fieldset>
     
-        <!-- Participant List with Checkboxes -->
-        <fieldset>
-        <legend>참가자 선택:</legend>
-        <div id="participant-list"></div>
-        </fieldset>
+          <!-- Participant List with Checkboxes -->
+          <fieldset class="form-item">
+            <legend>참가자 선택:</legend>
+            <div id="participant-list"></div>
+          </fieldset>
+        </div>
     
         <!-- Report Submission Button -->
         <button onclick="submitReport()">보고서 제출</button>
@@ -65,13 +68,9 @@
         loadReportFormOptions();
         });
     </script>
-  
-
 
     <!-- Button to go back to events page -->
     <button onclick="window.location.href='events.html'">진행중인 이벤트</button>
   </div>
-
-  <script src="/js/events.js"></script>
 </body>
 </html>

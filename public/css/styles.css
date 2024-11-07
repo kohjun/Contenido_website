@@ -1,11 +1,27 @@
 /* Global Styles */
 body {
-  font-family: Arial, sans-serif;
+  font-family: 'Arial', sans-serif;
   background-color: #f4f4f4;
   color: #333;
   margin: 0;
   padding: 0;
+  line-height: 1.6;
 }
+
+h1, h2, h3, h4, h5, h6 {
+  margin: 0;
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+}
+
 /* Title Container */
 .title-container {
   text-align: center;
@@ -13,7 +29,6 @@ body {
   margin-bottom: 2rem;
 }
 
-/* Subtitle Styling */
 .subtitle {
   font-size: 1.2rem;
   color: #555;
@@ -22,21 +37,20 @@ body {
   margin: 0;
 }
 
-/* Main Title Styling */
 .main-title {
   font-size: 2.5rem;
   font-weight: bold;
   text-transform: uppercase;
   letter-spacing: 2px;
-  background: linear-gradient(90deg, #ffeb00, #ffd600); /* Gradient effect */
+  background: linear-gradient(90deg, #ffeb00, #ffd600);
   -webkit-background-clip: text;
   color: transparent;
   margin: 0.5rem 0;
   text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
 }
 
-/* Button Styles */
-button {
+/* Buttons - Unified Styles */
+button, .kakao-login-button, .submit-button {
   display: block;
   width: 80%;
   max-width: 250px;
@@ -44,34 +58,23 @@ button {
   font-size: 1rem;
   margin: 1rem auto;
   background-color: #ffeb00;
+  color: #333;
   border: none;
-  border-radius: 20px; /* More rounded shape */
+  border-radius: 50px; /* Consistent rounded design */
   cursor: pointer;
   font-weight: bold;
   transition: background-color 0.3s, transform 0.2s;
 }
 
-button:hover {
+button:hover, .kakao-login-button:hover, .submit-button:hover {
   background-color: #ffd600;
-  transform: translateY(-2px); /* Adds a subtle hover lift */
+  transform: translateY(-3px);
 }
 
-/* Style for the Kakao Login Button */
 .kakao-login-button {
-  background-color: #ffeb00;
-  color: #333;
-  font-size: 1rem;
   width: 50%;
   max-width: 200px;
-  border-radius: 50px;
-  font-weight: bold;
-  margin: 1rem auto;
-  transition: background-color 0.3s, transform 0.2s;
-}
-
-.kakao-login-button:hover {
-  background-color: #ffd600;
-  transform: translateY(-2px);
+  font-size: 0.9rem;
 }
 
 /* Main Container */
@@ -80,22 +83,41 @@ button:hover {
   margin: 2rem auto;
   padding: 2rem;
   background: #fff;
-  border-radius: 8px;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  border-radius: 12px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
 }
 
-/* Header */
-h1 {
-  text-align: center;
+/* Forms */
+.form-group {
+  margin-bottom: 1.5rem;
+  text-align: left;
+}
+
+label {
+  display: block;
+  font-size: 1rem;
   font-weight: bold;
-  color: #333;
-}
-.half-width {
-  width: 15%;
-  box-sizing: border-box; /* Ensures padding doesn’t add to total width */
+  margin-bottom: 0.5rem;
+  color: #555;
 }
 
-/* User Information Display - Top Right Corner */
+input, select, textarea {
+  width: 100%;
+  padding: 0.8rem;
+  font-size: 1rem;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  box-sizing: border-box;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+input:focus, select:focus, textarea:focus {
+  border-color: #ffeb00;
+  outline: none;
+  box-shadow: 0 0 5px rgba(255, 235, 0, 0.5);
+}
+
+/* User Information Display */
 .user-info {
   position: fixed;
   top: 20px;
@@ -124,63 +146,57 @@ h1 {
   border: 2px solid #fff;
 }
 
-/* Button Styles */
-button {
-  display: block;
-  width: 100%;
-  padding: 1rem;
-  font-size: 1rem;
-  margin-top: 1rem;
-  background-color: #ffeb00;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: background-color 0.3s;
-}
-
-button:hover {
-  background-color: #ffd600;
-}
-.kakao-login-button {
-  width: 50%; /* 50% width of the parent */
-  max-width: 200px; /* Optional: Limit max width */
-  padding: 0.8rem;
-  font-size: 0.9rem;
-  background-color: #ffeb00;
-  color: #333;
-  border-radius: 50px; /* Rounded shape */
-  font-weight: bold;
-  cursor: pointer;
-  transition: background-color 0.3s;
-  margin: 1rem auto; /* Center the button */
-}
-.submit-button{
-  width: 50%; /* 50% width of the parent */
-  max-width: 200px; /* Optional: Limit max width */
-  padding: 0.8rem;
-  font-size: 0.9rem;
-  color: #333;
-  border-radius: 50px; /* Rounded shape */
-  font-weight: bold;
-  cursor: pointer;
-  transition: background-color 0.3s;
-  margin: 1rem auto; /* Center the button */
-  background-color:#ffeb00;
-}
-.kakao-login-button:hover {
-  background-color: #ffd600;
-}
 /* Table Styles */
 table {
   width: 100%;
   border-collapse: collapse;
   margin-top: 1rem;
+  background: #fff;
+  border-radius: 8px; /* Rounded corners for the table */
+  overflow: hidden;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
 }
 
 th, td {
-  padding: 0.5rem;
+  padding: 0.8rem;
   border: 1px solid #ddd;
   text-align: center;
+}
+
+th {
+  background: #ffeb00;
+  color: #333;
+  font-weight: bold;
+  text-transform: uppercase; /* Uppercase for column titles */
+}
+
+td {
+  background: #f9f9f9;
+  transition: background 0.3s ease;
+}
+
+td:hover {
+  background: #fffae5; /* Highlight row on hover */
+}
+
+/* Cancel button styles */
+td img {
+  cursor: pointer;
+  width: 20px; /* Slightly bigger for better visibility */
+  transition: transform 0.2s ease;
+}
+
+td img:hover {
+  transform: scale(1.2); /* Enlarge on hover */
+}
+
+/* Add zebra stripes for alternate rows */
+tbody tr:nth-child(odd) td {
+  background: #fdfdfd;
+}
+
+tbody tr:nth-child(even) td {
+  background: #f5f5f5;
 }
 
 /* Event and Status Section */
@@ -191,4 +207,41 @@ th, td {
 
 .event h3, .status h3 {
   margin: 0;
+}
+/* Flexbox layout for aligning week and participant selection */
+.form-row {
+  display: flex;
+  justify-content: space-between; /* Space between week and participant sections */
+  gap: 2rem; 
+}
+
+.form-item {
+  flex: 1; 
+}
+
+fieldset {
+  border: none; /* Remove default fieldset border */
+  padding: 0;
+  margin: 0;
+}
+
+legend {
+  font-weight: bold;
+  margin-bottom: 0.5rem;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .container {
+    padding: 1.5rem;
+  }
+
+  .submit-button {
+    width: 100%;
+  }
+
+  .user-info {
+    width: 180px;
+    font-size: 0.75rem;
+  }
 }
