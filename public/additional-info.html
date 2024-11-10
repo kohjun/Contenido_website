@@ -3,64 +3,33 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>추가 정보 입력</title>
+  <title>이벤트 내용 수정</title>
   <link rel="stylesheet" href="/css/styles.css">
 </head>
 <body>
   <div class="container">
-    <h1>추가 정보 입력</h1>
-    <form id="additional-info-form">
-      <label for="name">이름</label>
-      <input type="text" id="name" name="name" required placeholder="이름을 입력하세요"><br>
-      
-      <label for="gender">성별</label>
-      <select id="gender" name="gender" required>
-        <option value="male">남성</option>
-        <option value="female">여성</option>
-        <option value="other">기타</option>
-      </select><br>
+    <h1>이벤트 내용</h1>
 
-      <label for="birthDate">생년월일</label>
-      <input type="date" id="birthDate" name="birthDate" required><br>
+    <p>제목: <span id="event-title"></span></p>
+    <p>장소: <span id="event-place"></span></p>
+    <p>날짜: <span id="event-date"></span></p>
+    <p>참가 인원: <span id="event-participants"></span></p>
+    <p>시작 시간: <span id="event-start-time"></span></p>
+    <p>종료 시간: <span id="event-end-time"></span></p>
+    <p>참가비: <span id="event-fee"></span></p>
+    <p>내용: <span id="event-contents"></span></p>
 
-      <label for="phonenumber">전화번호</label>
-      <input type="text" id="phonenumber" name="phonenumber" placeholder="010-1234-5678" required />
+    <!-- Modify Button -->
+    <button id="modify-button" onclick="enableEdit()">수정하기</button>
 
-
-      <button type="submit">저장</button>
-    </form>
+    <!-- Confirmation Buttons (Initially Hidden) -->
+    <div id="confirmation-buttons" style="display: none;">
+      <button id="confirm-button" onclick="submitEdit()">확인</button>
+      <button id="cancel-button" onclick="cancelEdit()">취소</button>
+    </div>
+    <button onclick="window.location.href='events.html'">진행중인 이벤트</button>
   </div>
-  <script>
-    document.querySelector('#additional-info-form').addEventListener('submit', async (event) => {
-  event.preventDefault();
 
-  const name = document.getElementById('name').value;
-  const gender = document.getElementById('gender').value;
-  const birthDate = document.getElementById('birthDate').value;
-  const phonenumber = document.getElementById('phonenumber').value;
-
-  try {
-    const response = await fetch('/auth/additional-info', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name, gender, birthDate, phonenumber })
-    });
-
-    const result = await response.json();
-
-    if (response.ok && result.redirectUrl) {
-      alert('추가 정보가 성공적으로 저장되었습니다.');
-      window.location.href = result.redirectUrl;  // 리디렉션 URL 사용
-    } else {
-      console.error('Failed to save additional info:', result.message);
-      alert(result.message);
-    }
-  } catch (error) {
-    console.error('Error saving additional info:', error);
-    alert('추가 정보를 저장하는 중 문제가 발생했습니다.');
-  }
-});
-
-  </script>
+  <script src="/js/modify-event.js"></script>
 </body>
 </html>

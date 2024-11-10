@@ -6,7 +6,7 @@ const authenticateToken = require('../middleware/authMiddleware'); // Ensure thi
 const User = require('../models/User');
 const KAKAO_CLIENT_ID = process.env.KAKAO_CLIENT_ID;
 const LOGOUT_REDIRECT_URI = 'http://localhost:3000/auth/final-logout';
-const JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret';
+const JWT_SECRET = process.env.JWT_SECRET || 'hR68lDjbrA';
 const router = express.Router();
 
 // Initiate Kakao login
@@ -19,8 +19,9 @@ router.get(
   async (req, res) => {
     try {
       const profile = req.user;
-      const isNewUser = !profile.isAdditionalInfoComplete; // 새로운 사용자인지 확인
-      const redirectUrl = isNewUser ? '/additional-info.html' : '/events.html';
+
+      // 디버깅: 프로필 확인
+      console.log('User Profile:', profile);
 
       // JWT 생성
       const token = jwt.sign(
@@ -30,9 +31,9 @@ router.get(
       );
 
       res.cookie('jwt', token, { httpOnly: true, secure: process.env.NODE_ENV === 'production' });
-      res.redirect(redirectUrl);
+      res.redirect('/events.html');
     } catch (error) {
-      console.error("Error during user login:", error);
+      console.error('Error during user login:', error);
       res.redirect('/');
     }
   }

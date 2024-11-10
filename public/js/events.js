@@ -56,11 +56,11 @@ async function fetchEvents() {
         <td>${event.title}</td>
         <td>${new Date(event.date).toLocaleDateString()}</td>
         <td>${event.place}</td>
-        <td>${event.participants.length}명</td>
+        <td>${event.participants  }명</td>
         <td>${event.startTime}</td>
         <td>${event.endTime}</td>
         <td>${event.participation_fee.toLocaleString()}원</td>
-        <td><a href="#" onclick="openContentWindow('${event._id}')">보기</a></td>
+        <td><a href="#" onclick="openContentWindow('${event._id}')"><strong>보기</strong></a></td>
         <td>
           <img src="/images/event-cancel-icon.png" 
                alt="Cancel Event" 
@@ -76,18 +76,6 @@ async function fetchEvents() {
     console.error('Error fetching events:', error);
   }
 }
-
-
-
-// Handle cancel event with authorization check
-async function handleCancelEvent(eventId, eventCreator) {
-  if (eventCreator === userId) { // eventCreator가 문자열로 전달되는지 확인
-    await cancelEvent(eventId);
-  } else {
-    alert('이벤트를 취소할 권한이 없습니다.');
-  }
-}
-
 
 
 
@@ -132,42 +120,15 @@ async function submitEvent() {
 }
 
 
-// Function to open a new window with the event contents
+// Redirect to additional-info.html with event ID in query string
 async function openContentWindow(eventId) {
   try {
-    const response = await fetch(`/events/${eventId}`);
-    const event = await response.json();
-
-    // Open a new window and write the contents
-    const contentWindow = window.open('', '_blank', 'width=600,height=400');
-    contentWindow.document.write(`
-      <html>
-      <head>
-        <title>${event.title}</title>
-        <style>
-          body { font-family: Arial, sans-serif; margin: 20px; }
-          h1 { font-size: 1.5em; }
-          p { white-space: pre-wrap; }
-        </style>
-      </head>
-      <body>
-        <h1>${event.title}</h1>
-        <p><strong>날짜:</strong> ${new Date(event.date).toLocaleDateString()}</p>
-        <p><strong>장소:</strong> ${event.place}</p>
-        <p><strong>참가 인원:</strong> ${event.participants}</p>
-        <p><strong>시작 시간:</strong> ${event.startTime}</p>
-        <p><strong>종료 시간:</strong> ${event.endTime}</p>
-        <p><strong>참가비:</strong> ${event.participation_fee}</p>
-        <hr>
-        <p>${event.contents}</p>
-      </body>
-      </html>
-    `);
-    contentWindow.document.close(); // Close the document to finish writing
+    window.location.href = `additional-info.html?id=${eventId}`;
   } catch (error) {
-    console.error('Error fetching event contents:', error);
+    console.error('Error opening event content window:', error);
   }
 }
+
 // Fetch events for the dropdown in the report form
 async function loadReportFormOptions() {
   try {
@@ -265,6 +226,15 @@ async function markEventAsEnded(eventId) {
 
 // 이벤트 삭제
 async function cancelEvent(eventId) {
+  // 사용자에게 삭제 확인 메시지 표시
+  const isConfirmed = confirm('정말로 이벤트를 삭제하시겠습니까?');
+
+  if (!isConfirmed) {
+    // 사용자가 취소를 선택한 경우
+    alert('이벤트 삭제가 취소되었습니다.');
+    return;
+  }
+
   try {
     const response = await fetch(`/events/${eventId}`, {
       method: 'DELETE',
@@ -284,6 +254,14 @@ async function cancelEvent(eventId) {
   }
 }
 
+// Handle cancel event with authorization check
+async function handleCancelEvent(eventId, eventCreator) {
+  if (eventCreator === userId) { // eventCreator가 문자열로 전달되는지 확인
+    await cancelEvent(eventId);
+  } else {
+    alert('이벤트를 취소할 권한이 없습니다.');
+  }
+}
 // Redirect to participation status page
 function checkParticipationStatus() {
   window.location.href = '/participation-status.html';

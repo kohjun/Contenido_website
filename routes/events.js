@@ -41,7 +41,7 @@ router.get('/participants/status', async (req, res) => {
 // Get a specific event by ID
 router.get('/:id', async (req, res) => {
   try {
-    const event = await Event.findById(req.params.id);
+    const event = await Event.findById(req.params.id).populate('creator', '_id');
     if (!event) {
       return res.status(404).json({ message: 'Event not found' });
     }
@@ -147,6 +147,57 @@ router.delete('/:id', authenticateToken, async (req, res) => {
     res.status(500).json({ message: 'Error canceling event', error });
   }
 });
+
+
+
+// PUT 요청
+
+// Update event content using PUT
+router.put('/update-content', authenticateToken, async (req, res) => {
+  const { eventId, title, place, date, participants, startTime, endTime, participation_fee, contents } = req.body;
+
+  if (!eventId) {
+    return res.status(400).json({ message: 'Event ID is required' });
+  }
+
+  try {
+    const event = await Event.findById(eventId);
+    if (!event) {
+      return res.status(404).json({ message: 'Event not found' });
+    }
+
+    // 현재 사용자가 이벤트 생성자인지 확인
+    if (event.creator.toString() !== req.user.id) {
+      return res.status(403).json({ message: 'You are not authorized to modify this event' });
+    }
+
+    // 필드 업데이트
+    event.title = title || event.title;
+    event.place = place || event.place;
+
+    // 날짜는 Date 객체로 변환
+    if (date) {
+      event.date = new Date(date);
+    }
+
+    event.participants = participants || event.participants;
+    event.startTime = startTime || event.startTime;
+    event.endTime = endTime || event.endTime;
+    event.participation_fee = participation_fee || event.participation_fee;
+    event.contents = contents || event.contents;
+
+    console.log('Updated Event:', event); // 디버깅: 업데이트된 이벤트 데이터 확인
+
+    await event.save();
+    res.status(200).json({ message: 'Event content updated successfully' });
+  } catch (error) {
+    res.status(500).json({ message: 'Error updating event content', error });
+  }
+});
+
+
+
+
 
 
 module.exports = router;

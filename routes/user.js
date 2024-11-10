@@ -16,10 +16,11 @@
 
       // Provide profileImage with a default fallback
       res.json({
+        id: req.user.id, // User ID 반환
         nickname: req.user.displayName,
         email: req.user.email,
         role: req.user.role,
-        profileImage: req.user.profileImage || '/images/basic_Image.png' // Default to basic image
+        profileImage: req.user.profileImage || '/images/basic_Image.png'
       });
     } else {
       res.status(401).json({ message: 'Unauthorized' });

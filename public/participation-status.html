@@ -3,21 +3,28 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>콘테니도 이벤트 참가자 현황</title>
+  <title>참가자 상태 검색</title>
   <link rel="stylesheet" href="/css/styles.css" />
 </head>
 <body>
   <div class="container">
-    
     <h1>참가자 상태</h1>
-    <div id="status-list"></div>
-    <br><br><br><br><br><br>
-    <!-- Button to go back to the Upcoming Events page -->
-    <button onclick="window.location.href='events.html'">진행중인 이벤트</button>
     
-    <!-- Button to go back to the Home (index.html) -->
+    <!-- Search bar for participant name -->
+    <div>
+      <label for="participant-search">참가자 검색:</label>
+      <input type="text" id="participant-search" placeholder="이름 입력">
+      <button onclick="searchParticipant()">검색</button>
+    </div>
+
+    <!-- Participant status list -->
+    <div id="status-list" style="max-height: 500px; overflow-y: auto; margin-top: 20px;"></div>
+
+    <!-- Buttons for navigation -->
+    <button onclick="window.location.href='events.html'">진행중인 이벤트</button>
     <button onclick="window.location.href='index.html'">Home</button>
   </div>
+
   <script src="js/participation.js"></script>
 </body>
 </html>

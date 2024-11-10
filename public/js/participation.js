@@ -1,17 +1,11 @@
-// public/js/participation.js
 async function fetchUserStatus() {
   try {
-    // Updated URL to use the correct endpoint
     const response = await fetch('/user/participants/users');
-    console.log('Response Status:', response.status);
-
     if (!response.ok) {
       throw new Error(`HTTP error! Status: ${response.status}`);
     }
 
     const users = await response.json();
-    console.log('Fetched users:', users);
-
     const statusList = document.getElementById('status-list');
     if (!statusList) return;
 
@@ -20,6 +14,7 @@ async function fetchUserStatus() {
 
     // Create a table
     const table = document.createElement('table');
+    table.id = 'participant-table'; // Add an ID to the table for reference
     table.innerHTML = `
       <tr>
         <th>프로필 사진</th>
@@ -32,12 +27,11 @@ async function fetchUserStatus() {
     `;
 
     // Populate table rows with user data
-    users.forEach(user => {
+    users.forEach((user, index) => {
       const row = document.createElement('tr');
-      const profileImage = user.profileImage || '/images/basic_Image.png';
-
+      row.id = `participant-row-${index}`; // Add a unique ID for each row
       row.innerHTML = `
-        <td><img src="${profileImage}" alt="${user.displayName}" width="50" height="50" /></td>
+        <td><img src="${user.profileImage}" alt="${user.displayName}" width="50" height="50" /></td>
         <td>${user.displayName}</td>
         <td>${user.status.week1 || 'X'}</td>
         <td>${user.status.week2 || 'X'}</td>
@@ -47,13 +41,49 @@ async function fetchUserStatus() {
       table.appendChild(row);
     });
 
-    // Append the table to the status list
     statusList.appendChild(table);
   } catch (error) {
     console.error('Error fetching user data:', error);
     document.getElementById('status-list').innerHTML = '<p class="error">Failed to load participant data. Please try again later.</p>';
   }
 }
+
+// Search for a participant by name and scroll to their row
+function searchParticipant() {
+  const searchInput = document.getElementById('participant-search').value.trim().toLowerCase();
+  const rows = document.querySelectorAll('#participant-table tr');
+
+  if (!searchInput) {
+    alert('검색할 이름을 입력하세요.');
+    return;
+  }
+
+  let found = false;
+
+  rows.forEach((row, index) => {
+    if (index === 0) return; // Skip header row
+
+    const nameCell = row.cells[1];
+    if (nameCell && nameCell.textContent.toLowerCase().includes(searchInput)) {
+      row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      row.style.backgroundColor = 'yellow'; // Highlight the row temporarily
+      setTimeout(() => (row.style.backgroundColor = ''), 2000); // Remove highlight after 2 seconds
+      found = true;
+    }
+  });
+
+  if (!found) {
+    alert('검색한 이름을 찾을 수 없습니다.');
+  }
+}
+
+// Add event listener to search field for "Enter" key press
+document.getElementById('participant-search').addEventListener('keydown', (event) => {
+  if (event.key === 'Enter') {
+    event.preventDefault(); // Prevent form submission if within a form
+    searchParticipant(); // Call search function
+  }
+});
 
 // Run fetchUserStatus when the document is ready
 document.addEventListener('DOMContentLoaded', () => {
