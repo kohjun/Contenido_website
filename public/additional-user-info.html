@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>추가 정보 입력</title>
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+  <div class="container">
+    <h1>추가 정보 입력</h1>
+    <form id="additional-info-form">
+      <label for="name">이름:</label>
+      <input type="text" id="name" name="name" required>
+
+      <label for="gender">성별:</label>
+      <select id="gender" name="gender" required>
+        <option value="male">남성</option>
+        <option value="female">여성</option>
+        <option value="other">기타</option>
+      </select>
+
+      <label for="birthDate">생년월일:</label>
+      <input type="date" id="birthDate" name="birthDate" required>
+
+      <label for="phonenumber">전화번호:</label>
+      <input type="tel" id="phonenumber" name="phonenumber" placeholder="010-1234-5678" required>
+
+      <button type="submit">제출</button>
+    </form>
+  </div>
+
+  <script>
+    document.getElementById('additional-info-form').addEventListener('submit', async function (e) {
+      e.preventDefault();
+
+      const formData = {
+        name: document.getElementById('name').value,
+        gender: document.getElementById('gender').value,
+        birthDate: document.getElementById('birthDate').value,
+        phonenumber: document.getElementById('phonenumber').value,
+      };
+
+      try {
+        const response = await fetch('/auth/additional-info', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(formData),
+        });
+
+        const result = await response.json();
+
+        if (response.ok) {
+          alert(result.message);
+          window.location.href = result.redirectUrl || '/events.html'; // 리디렉션 경로
+        } else {
+          alert(`에러: ${result.message}`);
+        }
+      } catch (error) {
+        console.error('Error submitting additional info:', error);
+        alert('추가 정보 제출 중 문제가 발생했습니다.');
+      }
+    });
+  </script>
+</body>
+</html>
