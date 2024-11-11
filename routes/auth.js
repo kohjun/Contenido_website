@@ -23,6 +23,10 @@ router.get(
       // 디버깅: 프로필 확인
       console.log('User Profile:', profile);
 
+      // 추가 정보 입력 여부 확인
+      const isNewUser = !profile.isAdditionalInfoComplete; // 추가 정보 입력 여부 확인
+      const redirectUrl = isNewUser ? '/additional-info.html' : '/events.html';
+
       // JWT 생성
       const token = jwt.sign(
         { id: profile._id, role: profile.role, displayName: profile.displayName, email: profile.email },
@@ -31,7 +35,7 @@ router.get(
       );
 
       res.cookie('jwt', token, { httpOnly: true, secure: process.env.NODE_ENV === 'production' });
-      res.redirect('/events.html');
+      res.redirect(redirectUrl); // 적절한 페이지로 리디렉션
     } catch (error) {
       console.error('Error during user login:', error);
       res.redirect('/');
