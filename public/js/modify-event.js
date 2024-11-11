@@ -105,8 +105,6 @@ async function submitEdit() {
   }
   
   
-  
-  
 
 
 // Cancel editing and restore original content

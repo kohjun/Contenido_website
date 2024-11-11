@@ -38,6 +38,23 @@ router.get('/participants/status', async (req, res) => {
   }
 });
 
+router.get('/ended', async (req, res) => {
+  try {
+    const endedEvents = await Event.find({ isEnded: true }); // 종료된 이벤트 검색
+    res.json(endedEvents); // 정상적으로 데이터를 반환
+  } catch (error) {
+    console.error('Error fetching ended events:', error.message); // 로그 개선
+    res.status(500).json({
+      message: 'Error fetching ended events',
+      error: error.message,
+    });
+  }
+});
+
+
+
+
+
 // Get a specific event by ID
 router.get('/:id', async (req, res) => {
   try {
@@ -67,7 +84,7 @@ router.post('/', authenticateToken, async (req, res) => {
       endTime,
       participation_fee,
       contents,
-      creator: req.user.id, // Set creator from the authenticated user
+      creator: req.user.id, // Ensure this is correctly set
     });
 
     await event.save();
@@ -76,6 +93,7 @@ router.post('/', authenticateToken, async (req, res) => {
     res.status(500).json({ message: 'Error creating event', error: error.message });
   }
 });
+
 
 
 // Submit event participation report (consolidated)
@@ -87,17 +105,30 @@ router.post('/:id/report', authenticateToken, async (req, res) => {
   }
 
   try {
+    const event = await Event.findById(req.params.id);
+
+    if (!event) {
+      return res.status(404).json({ message: 'Event not found' });
+    }
+
+    // 업데이트 로직: 사용자 상태 업데이트
     const updates = participants.map(participantId =>
       User.findByIdAndUpdate(participantId, {
         [`status.week${week}`]: 'O',
       })
     );
     await Promise.all(updates);
-    res.status(200).json({ message: 'Report updated successfully' });
+
+    // 이벤트 종료 플래그 설정
+    event.isEnded = true;
+    await event.save();
+
+    res.status(200).json({ message: 'Report updated and event marked as ended' });
   } catch (error) {
-    res.status(500).json({ message: 'Error updating report', error });
+    res.status(500).json({ message: 'Error updating report or ending event', error });
   }
 });
+
 
 async function findEventById(eventId, res, throwError = false) {
   const event = await Event.findById(eventId);
@@ -126,7 +157,6 @@ router.post('/:id/end', authenticateToken, async (req, res) => {
 // DELETE 요청
 
 // Cancel an event
-// Cancel an event
 router.delete('/:id', authenticateToken, async (req, res) => {
   try {
     const event = await Event.findById(req.params.id);
@@ -134,19 +164,23 @@ router.delete('/:id', authenticateToken, async (req, res) => {
       return res.status(404).json({ message: 'Event not found' });
     }
 
-    const user = await User.findById(req.user.id);
+    console.log('Logged-in User ID:', req.user.id);
+    console.log('Event Creator ID:', event.creator);
 
-    // Check if user is both the creator and has staff role
-    if (event.creator.toString() !== req.user.id || user.role !== 'staff') {
+    // Check if user is the creator or has the staff role
+    if (event.creator.toString() !== req.user.id && req.user.role !== 'staff') {
       return res.status(403).json({ message: 'You are not authorized to cancel this event' });
     }
 
     await event.deleteOne();
     res.status(200).json({ message: 'Event canceled successfully' });
   } catch (error) {
+    console.error('Error canceling event:', error);
     res.status(500).json({ message: 'Error canceling event', error });
   }
 });
+
+
 
 
 

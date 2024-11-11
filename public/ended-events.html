@@ -39,7 +39,35 @@
         });
     }
 
-    document.addEventListener("DOMContentLoaded", renderEndedEvents);
+    document.addEventListener("DOMContentLoaded", async () => {
+    try {
+      const response = await fetch('/events/ended');
+      if (!response.ok) {
+        throw new Error('Failed to fetch ended events');
+      }
+
+      const endedEvents = await response.json();
+      updateEndedEventsTable(endedEvents);
+    } catch (error) {
+      console.error('Error loading ended events:', error);
+    }
+  });
+
+  function updateEndedEventsTable(endedEvents) {
+    const endedEventsList = document.getElementById("ended-events-list");
+    endedEventsList.innerHTML = ""; // 기존 항목 제거
+
+    endedEvents.forEach(event => {
+      const row = document.createElement("tr");
+      row.innerHTML = `
+        <td>${event._id}</td>
+        <td>${event.title}</td>
+        <td>${new Date(event.date).toLocaleDateString()}</td>
+      `;
+      endedEventsList.appendChild(row);
+    });
+  }
+
   </script>
 </body>
 </html>
