@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>이벤트 후기</title>
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+  <div class="container">
+    <h1>이벤트 후기 작성</h1>
+
+    <div id="event-info">
+      <p><strong>제목:</strong> <span id="event-title"></span></p>
+      <p><strong>날짜:</strong> <span id="event-date"></span></p>
+      <p><strong>장소:</strong> <span id="event-place"></span></p>
+      <p><strong>최종 참가자:</strong> <span id="event-participants"></span></p>
+    </div>
+
+    <!-- Review Form -->
+    <form id="review-form" style="display: none;">
+      <label for="rating">별점:</label>
+      <select id="rating" name="rating" required>
+        <option value="1">1점</option>
+        <option value="2">2점</option>
+        <option value="3">3점</option>
+        <option value="4">4점</option>
+        <option value="5">5점</option>
+      </select>
+      <br>
+      <label for="comment">후기:</label>
+      <textarea id="comment" name="comment" rows="4" required></textarea>
+      <br>
+      <button type="submit">후기 등록</button>
+    </form>
+
+    <!-- Existing Reviews -->
+    <div id="existing-reviews">
+      <h2>작성된 후기</h2>
+      <!-- Reviews will be dynamically added here -->
+    </div>
+
+    <button onclick="window.location.href='ended-events.html'">종료된 이벤트로 돌아가기</button>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+      const eventId = new URLSearchParams(window.location.search).get('id');
+
+      try {
+        // Load event info
+        const response = await fetch(`/events/${eventId}`);
+        if (!response.ok) {
+          throw new Error('Failed to load event information');
+        }
+        const event = await response.json();
+
+        document.getElementById('event-title').textContent = event.title;
+        document.getElementById('event-date').textContent = new Date(event.date).toLocaleDateString();
+        document.getElementById('event-place').textContent = event.place;
+        document.getElementById('event-participants').textContent = `${event.finalParticipants.length}명`;
+
+        // Fetch user info
+        const userResponse = await fetch('/user/info');
+        if (!userResponse.ok) {
+          throw new Error('Failed to fetch user information');
+        }
+        const user = await userResponse.json();
+
+        // Check if the user is allowed to submit a review
+        if (event.finalParticipants.includes(user.id)) {
+          document.getElementById('review-form').style.display = 'block';
+        }
+
+        // Load existing reviews
+        const reviewsResponse = await fetch(`/events/${eventId}/reviews`);
+        if (!reviewsResponse.ok) {
+          throw new Error('Failed to load reviews');
+        }
+        const reviews = await reviewsResponse.json();
+        updateReviews(reviews);
+
+      } catch (error) {
+        console.error('Error loading event or reviews:', error);
+        alert('데이터를 불러오는 중 문제가 발생했습니다.');
+      }
+    });
+
+    function updateReviews(reviews) {
+      const reviewsContainer = document.getElementById('existing-reviews');
+      reviewsContainer.innerHTML = '<h2>작성된 후기</h2>'; // 기존 항목 초기화
+
+      if (reviews.length === 0) {
+        reviewsContainer.innerHTML += '<p>아직 작성된 후기가 없습니다.</p>';
+        return;
+      }
+
+      reviews.forEach(review => {
+        const reviewElement = document.createElement('div');
+        reviewElement.classList.add('review');
+        reviewElement.innerHTML = `
+          <p><strong>${review.userId?.displayName || '익명'}</strong>: ${review.rating}점</p>
+          <p>${review.comment}</p>
+        `;
+        reviewsContainer.appendChild(reviewElement);
+      });
+    }
+
+    document.getElementById('review-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const eventId = new URLSearchParams(window.location.search).get('id');
+      const rating = document.getElementById('rating').value;
+      const comment = document.getElementById('comment').value;
+
+      try {
+        const response = await fetch(`/events/${eventId}/review`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ rating, comment })
+        });
+
+        if (response.ok) {
+          alert('후기가 성공적으로 등록되었습니다.');
+          const newReview = await response.json();
+          updateReviews([newReview]); // 새로운 후기 추가
+          document.getElementById('review-form').reset(); // 폼 초기화
+        } else {
+          const errorData = await response.json();
+          alert(`후기 등록 실패: ${errorData.message}`);
+        }
+      } catch (error) {
+        console.error('Error submitting review:', error);
+        alert('후기 등록 중 문제가 발생했습니다.');
+      }
+    });
+  </script>
+</body>
+</html>

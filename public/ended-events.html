@@ -15,6 +15,7 @@
           <th>이벤트 ID</th>
           <th>이벤트 제목</th>
           <th>날짜</th>
+          <th>후기</th>
         </tr>
       </thead>
       <tbody id="ended-events-list">
@@ -23,51 +24,47 @@
     </table>
     <button onclick="window.location.href='events.html'">진행중인 이벤트</button>
   </div>
+
   <script>
-    // Populate ended events dynamically from localStorage or server
-    const endedEventsList = document.getElementById("ended-events-list");
-
-    function renderEndedEvents() {
-        endedEvents.forEach(event => {
-            const row = document.createElement("tr");
-            row.innerHTML = `
-              <td>${event.id}</td>
-              <td>${event.title}</td>
-              <td>${event.date}</td>
-            `;
-            endedEventsList.appendChild(row);
-        });
-    }
-
     document.addEventListener("DOMContentLoaded", async () => {
-    try {
-      const response = await fetch('/events/ended');
-      if (!response.ok) {
-        throw new Error('Failed to fetch ended events');
+      try {
+        const response = await fetch('/events/ended');
+        if (!response.ok) {
+          throw new Error('Failed to fetch ended events');
+        }
+
+        const endedEvents = await response.json();
+        updateEndedEventsTable(endedEvents);
+      } catch (error) {
+        console.error('Error loading ended events:', error);
+        alert('종료된 이벤트를 불러오는 중 문제가 발생했습니다.');
+      }
+    });
+
+    function updateEndedEventsTable(endedEvents) {
+      const endedEventsList = document.getElementById("ended-events-list");
+      endedEventsList.innerHTML = ""; // 기존 항목 제거
+
+      if (endedEvents.length === 0) {
+        endedEventsList.innerHTML = '<tr><td colspan="4">종료된 이벤트가 없습니다.</td></tr>';
+        return;
       }
 
-      const endedEvents = await response.json();
-      updateEndedEventsTable(endedEvents);
-    } catch (error) {
-      console.error('Error loading ended events:', error);
+      endedEvents.forEach(event => {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td>${event._id}</td>
+          <td>${event.title}</td>
+          <td>${new Date(event.date).toLocaleDateString()}</td>
+          <td><button onclick="redirectToReviewPage('${event._id}')">후기 작성</button></td>
+        `;
+        endedEventsList.appendChild(row);
+      });
     }
-  });
 
-  function updateEndedEventsTable(endedEvents) {
-    const endedEventsList = document.getElementById("ended-events-list");
-    endedEventsList.innerHTML = ""; // 기존 항목 제거
-
-    endedEvents.forEach(event => {
-      const row = document.createElement("tr");
-      row.innerHTML = `
-        <td>${event._id}</td>
-        <td>${event.title}</td>
-        <td>${new Date(event.date).toLocaleDateString()}</td>
-      `;
-      endedEventsList.appendChild(row);
-    });
-  }
-
+    function redirectToReviewPage(eventId) {
+      window.location.href = `event-review.html?id=${eventId}`;
+    }
   </script>
 </body>
 </html>

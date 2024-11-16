@@ -42,7 +42,7 @@ img {
   font-weight: bold;
   text-transform: uppercase;
   letter-spacing: 2px;
-  background: linear-gradient(90deg, #ffeb00, #ffd600);
+  background: linear-gradient(90deg, #73b5f8,#0C84FE );
   -webkit-background-clip: text;
   color: transparent;
   margin: 0.5rem 0;
@@ -57,7 +57,7 @@ button, .kakao-login-button, .submit-button {
   padding: 0.8rem;
   font-size: 1rem;
   margin: 1rem auto;
-  background-color: #ffeb00;
+  background-color: #73b5f8;
   color: #333;
   border: none;
   border-radius: 50px; /* Consistent rounded design */
@@ -67,7 +67,7 @@ button, .kakao-login-button, .submit-button {
 }
 
 button:hover, .kakao-login-button:hover, .submit-button:hover {
-  background-color: #ffd600;
+  background-color: #0C84FE;
   transform: translateY(-3px);
 }
 
@@ -112,9 +112,9 @@ input, select, textarea {
 }
 
 input:focus, select:focus, textarea:focus {
-  border-color: #ffeb00;
+  border-color: #70abe6;
   outline: none;
-  box-shadow: 0 0 5px rgba(255, 235, 0, 0.5);
+  box-shadow: 0 0 5px #0C84FE(255, 235, 0, 0.5);
 }
 
 /* User Information Display */
@@ -164,7 +164,7 @@ th, td {
 }
 
 th {
-  background: #ffeb00;
+  background: #73b5f8;
   color: #333;
   font-weight: bold;
   text-transform: uppercase; /* Uppercase for column titles */
