@@ -19,8 +19,9 @@ async function loadEventContent(eventId) {
 
     const userResponse = await fetch('/user/info');
     const user = await userResponse.json();
+  
 
-    if (event.creator === user.id) {
+    if (event.creator === user.id&&user.role === "staff") {
       document.getElementById('modify-button').style.display = 'block';
     } else {
       document.getElementById('modify-button').style.display = 'none';
@@ -33,6 +34,7 @@ async function loadEventContent(eventId) {
 
 // Enable editing of all event fields
 function enableEdit() {
+
     const fields = [
       { id: 'event-title', type: 'text', key: 'title' },
       { id: 'event-place', type: 'text', key: 'place' },

@@ -18,7 +18,7 @@ router.get('/', async (req, res) => {
   } catch (error) {
     res.status(500).json({ message: 'Error fetching events', error });
   }
-});
+}); 
 
 
 // Get participation status for all events

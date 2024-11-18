@@ -136,6 +136,11 @@ async function loadReportFormOptions() {
     const events = await response.json();
 
     const eventDropdown = document.getElementById('report-event');
+    if (!eventDropdown) {
+      console.error("Dropdown element with ID 'report-event' not found.");
+      return;
+    }
+
     events.forEach(event => {
       const option = document.createElement('option');
       option.value = event._id;
@@ -146,10 +151,18 @@ async function loadReportFormOptions() {
     // Fetch participants for checkboxes
     const participantsResponse = await fetch('/user/participants/users');
     const participants = await participantsResponse.json();
+
     const participantList = document.getElementById('participant-list');
+    if (!participantList) {
+      console.error("Element with ID 'participant-list' not found.");
+      return;
+    }
 
     participantList.innerHTML = ''; // Clear existing options
     participants.forEach(participant => {
+      const div = document.createElement('div');
+      div.className = 'participant-item'; // Assign class for CSS styling
+
       const checkbox = document.createElement('input');
       checkbox.type = 'checkbox';
       checkbox.value = participant.id; // Set value to participant ID
@@ -159,7 +172,6 @@ async function loadReportFormOptions() {
       label.htmlFor = checkbox.id;
       label.textContent = participant.displayName;
 
-      const div = document.createElement('div');
       div.appendChild(checkbox);
       div.appendChild(label);
 
@@ -173,18 +185,33 @@ async function loadReportFormOptions() {
 
 // Submit the report to update the participation status
 async function submitReport() {
-  const eventId = document.getElementById('report-event').value;
-  const selectedWeek = document.querySelector('input[name="week"]:checked').value;
+  const eventDropdown = document.getElementById('report-event');
+  const selectedEventId = eventDropdown ? eventDropdown.value : null;
+
+  const selectedWeekInput = document.querySelector('input[name="week"]:checked');
+  const selectedWeek = selectedWeekInput ? selectedWeekInput.value : null;
+
   const selectedParticipants = Array.from(document.querySelectorAll('#participant-list input:checked'))
     .map(checkbox => checkbox.value);
 
-  if (!eventId || !selectedWeek || selectedParticipants.length === 0) {
-    alert('모든 필드를 채워 주세요.');
+  // 값이 모두 올바르게 선택되었는지 확인
+  if (!selectedEventId) {
+    alert('이벤트를 선택하세요.');
+    return;
+  }
+
+  if (!selectedWeek) {
+    alert('주차를 선택하세요.');
+    return;
+  }
+
+  if (selectedParticipants.length === 0) {
+    alert('최소 한 명의 참가자를 선택하세요.');
     return;
   }
 
   try {
-    const response = await fetch(`/events/${eventId}/report`, {
+    const response = await fetch(`/events/${selectedEventId}/report`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -195,15 +222,19 @@ async function submitReport() {
 
     if (response.ok) {
       alert('보고서 제출 완료!');
-      await markEventAsEnded(eventId); // 이벤트 종료
+      await markEventAsEnded(selectedEventId); // 이벤트 종료
       fetchEvents(); // 이벤트 목록 갱신
     } else {
-      console.error('Failed to submit report:', await response.json());
+      const errorData = await response.json();
+      console.error('Failed to submit report:', errorData);
+      alert('보고서 제출에 실패했습니다.');
     }
   } catch (error) {
     console.error('Error submitting report:', error);
+    alert('보고서를 제출하는 중 오류가 발생했습니다.');
   }
 }
+
 
 
 // Mark event as ended
@@ -256,12 +287,25 @@ async function cancelEvent(eventId) {
 
 // Handle cancel event with authorization check
 async function handleCancelEvent(eventId, eventCreator) {
-  if (eventCreator === userId) { // eventCreator가 문자열로 전달되는지 확인
-    await cancelEvent(eventId);
-  } else {
-    alert('이벤트를 취소할 권한이 없습니다.');
+  try {
+    // Fetch user role to confirm the user is a staff member
+    const response = await fetch('/user/user-role');
+    const data = await response.json();
+    const userRole = data.role; // 역할 가져오기
+
+    if (eventCreator === userId && userRole === 'staff') {
+      // 사용자가 이벤트 생성자이면서 staff인 경우
+      await cancelEvent(eventId);
+    } else if (userRole !== 'staff') {
+      alert('이벤트를 취소할 권한이 없습니다. (권한: 일반 사용자)');
+    } else {
+      alert('이벤트 생성자가 아니므로 취소할 수 없습니다.');
+    }
+  } catch (error) {
+    console.error('Error checking role or canceling event:', error);
   }
 }
+
 // Redirect to participation status page
 function checkParticipationStatus() {
   window.location.href = '/participation-status.html';

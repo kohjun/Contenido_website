@@ -39,6 +39,7 @@ app.use(passport.session());
 app.use('/auth', require('./routes/auth'));
 app.use('/events', require('./routes/events'));
 app.use('/user', require('./routes/user'));
+app.use('/reviews', require('./routes/reviews'));
 
 // Start the server
 app.listen(3000, () => {

@@ -18,7 +18,11 @@ const userSchema = new mongoose.Schema({
   gender: { type: String, enum: ['male', 'female', 'other'] },
   birthDate: { type: Date },
   isAdditionalInfoComplete: { type: Boolean, default: false },
-  phonenumber: { type: String }, // 전화번호 필드 추가
+  phonenumber: { type: String },
+  createdEvents: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Event' }], // 생성한 이벤트
+  participatedEvents: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Event' }], // 참가한 이벤트
+  reviews: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Review' }] // 작성한 후기
 });
+
 
 module.exports = mongoose.model('User', userSchema);

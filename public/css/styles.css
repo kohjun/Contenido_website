@@ -11,6 +11,92 @@ body {
 h1, h2, h3, h4, h5, h6 {
   margin: 0;
 }
+/* 참가자 리스트 그리드 스타일 */
+.participant-grid {
+  display: flex;
+  flex-wrap: wrap; /* 가로 배치 후 자동 줄바꿈 */
+  gap: 1px; /* 참가자 간의 간격 */
+}
+
+/* Week Section Styling */
+.week-section {
+  background-color: #e7f3ff;
+  border: 1px solid #b3d9ff;
+  padding: 1rem;
+  border-radius: 10px;
+  margin-bottom: 1rem;
+}
+
+/* Week Selection Styling */
+.week-selection-horizontal {
+  display: flex;
+  justify-content: space-between; /* 각 주차 간격 */
+  gap: 1rem; /* 주차 선택 간격 조정 */
+}
+
+.week-selection-horizontal label {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-weight: bold;
+  padding: 10px;
+  border: 1px solid #b3d9ff; /* 주차 구분 경계선 */
+  border-radius: 8px;
+  background-color: #ffffff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+  transition: transform 0.2s ease, background-color 0.3s;
+}
+
+.week-selection-horizontal label:hover {
+  background-color: #cce7ff; /* 호버 시 색상 변경 */
+  transform: translateY(-3px); /* 살짝 들어올림 효과 */
+}
+
+.week-selection-horizontal input[type="radio"] {
+  margin-bottom: 5px;
+}
+
+/* Participant Section Styling */
+.participant-section {
+  background-color: #e7f3ff;
+  border: 1px solid #b3d9ff;
+  padding: 1.5rem;
+  border-radius: 10px;
+}
+.participant-item label {
+  display: inline-block;
+  margin-left: 5px;
+  font-size: 0.8rem;
+}
+
+.participant-item {
+  display: inline-block; /* 가로로 배치 */
+  margin-right: 10px; /* 각 참가자 간 간격 */
+  padding: 8px 5px;
+  background-color: #ffffff;
+  border: 1px solid #b3d9ff; /* 각 항목에 테두리 */
+  border-radius: 8px;
+}
+
+.participant-item:hover {
+  transform: translateY(-2px);
+  background-color: #fef6e7;
+}
+
+input[type="checkbox"] {
+  cursor: pointer;
+  margin-right: 10px;
+}
+
+
+.participant-item:hover {
+  background-color: #eef6ff; /* 호버 시 배경 색상 */
+}
+
+input[type="checkbox"] {
+  cursor: pointer;
+}
 
 a {
   text-decoration: none;

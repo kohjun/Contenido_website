@@ -9,12 +9,11 @@ module.exports = (passport) => {
       {
         clientID: process.env.KAKAO_CLIENT_ID,
         callbackURL: process.env.KAKAO_CALLBACK_URL,
-        scope: ['profile_nickname', 'profile_image', 'account_email'], // Ensure these scopes are enabled in Kakao developer console
+        scope: ['profile_nickname', 'profile_image', 'account_email'],
         passReqToCallback: true,
       },
       async (req, accessToken, refreshToken, profile, done) => {
         try {
-          // Extract user data from Kakao profile
           const kakaoId = profile.id;
           const displayName = profile._json.properties.nickname;
           const profileImage = profile._json.properties.profile_image || '/images/basic_Image.png';
@@ -22,21 +21,18 @@ module.exports = (passport) => {
 
           if (!email) {
             console.error("Error: Kakao did not provide an email.");
-            return done(new Error('Email is required but was not provided by Kakao.'), null);
+            return done(null, false, { message: 'Email is required.' });
           }
 
-          // Find or create user by email
           let user = await User.findOne({ email });
+
           if (user) {
-            // Update existing user data if necessary
             user.displayName = displayName;
-            user.kakaoId = kakaoId; // Store Kakao ID
-            user.isVerified = true;
+            user.kakaoId = kakaoId;
             if (profileImage) user.profileImage = profileImage;
 
             await user.save();
           } else {
-            // Create a new user if none exists
             user = await User.create({
               email,
               displayName,
@@ -44,12 +40,12 @@ module.exports = (passport) => {
               kakaoId,
               isVerified: true,
               role: 'participant',
-              status: {  // Initialize status field with default values
+              status: {
                 week1: 'X',
                 week2: 'X',
                 week3: 'X',
-                week4: 'X'
-              }
+                week4: 'X',
+              },
             });
           }
 
@@ -72,4 +68,3 @@ module.exports = (passport) => {
     }
   });
 };
-

@@ -5,13 +5,14 @@ const eventSchema = new mongoose.Schema({
   title: String,
   date: Date,
   place: String,
-  participants: [String],
+  participants: [String], // (참여인원의 수)
   startTime: String,
   endTime: String,
   participation_fee: Number,
   contents: String,
   creator: mongoose.Schema.Types.ObjectId,
-  isEnded: { type: Boolean, default: false } // 종료 여부
+  isEnded: { type: Boolean, default: false }, // 종료 여부
+  finalparticipants : // 참가한 사람들을 저장
 });
 
 module.exports = mongoose.model('Event', eventSchema);

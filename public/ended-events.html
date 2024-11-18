@@ -1,65 +1,64 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>종료된 이벤트</title>
-  <link rel="stylesheet" href="/css/styles.css">
+  <link rel="stylesheet" href="/css/styles.css" />
 </head>
 <body>
   <div class="container">
     <h1>종료된 이벤트</h1>
-    <table border="1">
-      <thead>
-        <tr>
-          <th>이벤트 ID</th>
-          <th>이벤트 제목</th>
-          <th>날짜</th>
-          <th>후기</th>
-        </tr>
-      </thead>
-      <tbody id="ended-events-list">
-        <!-- JavaScript will populate this -->
-      </tbody>
-    </table>
+    <div id="ended-events-list"></div>
+
+    <!-- Home button -->
     <button onclick="window.location.href='events.html'">진행중인 이벤트</button>
   </div>
 
   <script>
-    document.addEventListener("DOMContentLoaded", async () => {
+    document.addEventListener('DOMContentLoaded', async () => {
       try {
         const response = await fetch('/events/ended');
-        if (!response.ok) {
-          throw new Error('Failed to fetch ended events');
+        if (!response.ok) throw new Error('Failed to fetch ended events');
+
+        const events = await response.json();
+        const eventsList = document.getElementById('ended-events-list');
+
+        if (events.length === 0) {
+          eventsList.innerHTML = '<p>종료된 이벤트가 없습니다.</p>';
+          return;
         }
 
-        const endedEvents = await response.json();
-        updateEndedEventsTable(endedEvents);
+        eventsList.innerHTML = `
+          <table>
+            <thead>
+              <tr>
+                <th>주제</th>
+                <th>날짜</th>
+                <th>장소</th>
+                <th>후기 작성</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${events.map(eventToRow).join('')}
+            </tbody>
+          </table>
+        `;
       } catch (error) {
-        console.error('Error loading ended events:', error);
-        alert('종료된 이벤트를 불러오는 중 문제가 발생했습니다.');
+        console.error('Error fetching ended events:', error);
+        document.getElementById('ended-events-list').innerHTML = '<p>종료된 이벤트를 불러오는 중 문제가 발생했습니다.</p>';
       }
     });
 
-    function updateEndedEventsTable(endedEvents) {
-      const endedEventsList = document.getElementById("ended-events-list");
-      endedEventsList.innerHTML = ""; // 기존 항목 제거
-
-      if (endedEvents.length === 0) {
-        endedEventsList.innerHTML = '<tr><td colspan="4">종료된 이벤트가 없습니다.</td></tr>';
-        return;
-      }
-
-      endedEvents.forEach(event => {
-        const row = document.createElement("tr");
-        row.innerHTML = `
-          <td>${event._id}</td>
+    function eventToRow(event) {
+      return `
+        <tr>
           <td>${event.title}</td>
           <td>${new Date(event.date).toLocaleDateString()}</td>
+          <td>${event.place}</td>
           <td><button onclick="redirectToReviewPage('${event._id}')">후기 작성</button></td>
-        `;
-        endedEventsList.appendChild(row);
-      });
+        </tr>
+      `;
     }
 
     function redirectToReviewPage(eventId) {
