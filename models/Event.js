@@ -12,7 +12,7 @@ const eventSchema = new mongoose.Schema({
   contents: String,
   creator: mongoose.Schema.Types.ObjectId,
   isEnded: { type: Boolean, default: false }, // 종료 여부
-  finalparticipants : // 참가한 사람들을 저장
+  
 });
 
 module.exports = mongoose.model('Event', eventSchema);
