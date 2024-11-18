@@ -56,7 +56,7 @@ async function fetchEvents() {
         <td>${event.title}</td>
         <td>${new Date(event.date).toLocaleDateString()}</td>
         <td>${event.place}</td>
-        <td>${event.participants  }명</td>
+        <td>${event.participants}명</td>
         <td>${event.startTime}</td>
         <td>${event.endTime}</td>
         <td>${event.participation_fee.toLocaleString()}원</td>
@@ -76,8 +76,6 @@ async function fetchEvents() {
     console.error('Error fetching events:', error);
   }
 }
-
-
 
 
 
@@ -224,6 +222,7 @@ async function submitReport() {
       alert('보고서 제출 완료!');
       await markEventAsEnded(selectedEventId); // 이벤트 종료
       fetchEvents(); // 이벤트 목록 갱신
+      window.location.href="events.html";
     } else {
       const errorData = await response.json();
       console.error('Failed to submit report:', errorData);

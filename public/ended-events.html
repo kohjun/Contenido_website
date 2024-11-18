@@ -36,7 +36,9 @@
                 <th>주제</th>
                 <th>날짜</th>
                 <th>장소</th>
-                <th>후기 작성</th>
+                <th>참가인원</th>
+                <th>참가비</th>
+                <th>후기</th>
               </tr>
             </thead>
             <tbody>
@@ -56,6 +58,8 @@
           <td>${event.title}</td>
           <td>${new Date(event.date).toLocaleDateString()}</td>
           <td>${event.place}</td>
+          <td>${event.finalParticipants?.length || 0}명</td>
+          <td>${event.participation_fee.toLocaleString()}원</td>
           <td><button onclick="redirectToReviewPage('${event._id}')">후기 작성</button></td>
         </tr>
       `;

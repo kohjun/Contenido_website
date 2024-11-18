@@ -24,6 +24,7 @@ router.get('/', async (req, res) => {
 });
 
 // Submit a new review
+
 router.post('/', authenticateToken, async (req, res) => {
   const { eventId, rating, comment, isAnonymous } = req.body;
 
@@ -37,8 +38,8 @@ router.post('/', authenticateToken, async (req, res) => {
       return res.status(404).json({ message: 'Event not found' });
     }
 
-    // 이벤트 참가자 확인 (복구)
-    if (!event.participants.includes(req.user.id)) {
+    // 참가자 여부 확인 (finalParticipants가 String 배열이므로 includes 사용)
+    if (!event.finalParticipants.includes(req.user.id)) {
       return res.status(403).json({ message: 'Only participants can submit reviews' });
     }
 
@@ -47,15 +48,19 @@ router.post('/', authenticateToken, async (req, res) => {
       eventId,
       rating,
       comment,
-      isAnonymous: !!isAnonymous, // Ensure it's boolean
+      isAnonymous: !!isAnonymous
     });
 
     await review.save();
     res.status(201).json({ message: 'Review submitted successfully' });
   } catch (error) {
+    console.error('Error submitting review:', error);
     res.status(500).json({ message: 'Error submitting review', error: error.message });
   }
 });
+
+
+
 
 
 
