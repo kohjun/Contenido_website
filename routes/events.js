@@ -2,6 +2,7 @@
 const express = require('express');
 const Event = require('../models/Event');
 const User = require('../models/User');
+const Review = require('../models/review');
 const router = express.Router();
 const authenticateToken = require('../middleware/authMiddleware');
 
@@ -111,7 +112,12 @@ router.post('/:id/report', authenticateToken, async (req, res) => {
       return res.status(404).json({ message: 'Event not found' });
     }
 
-    // 업데이트 로직: 사용자 상태 업데이트
+    // 최종 참가자 목록에 String 값으로 추가
+    event.finalParticipants = participants.map(String); // String으로 변환하여 저장
+    event.isEnded = true; // 이벤트 종료 설정
+    await event.save();
+
+    // User 스키마의 주차별 참여 상태 업데이트
     const updates = participants.map(participantId =>
       User.findByIdAndUpdate(participantId, {
         [`status.week${week}`]: 'O',
@@ -119,13 +125,10 @@ router.post('/:id/report', authenticateToken, async (req, res) => {
     );
     await Promise.all(updates);
 
-    // 이벤트 종료 플래그 설정
-    event.isEnded = true;
-    await event.save();
-
-    res.status(200).json({ message: 'Report updated and event marked as ended' });
+    res.status(200).json({ message: 'Report submitted and event marked as ended' });
   } catch (error) {
-    res.status(500).json({ message: 'Error updating report or ending event', error });
+    console.error('Error submitting report:', error);
+    res.status(500).json({ message: 'Error submitting report', error: error.message });
   }
 });
 
