@@ -4,12 +4,15 @@ const Event = require('../models/Event');
 const User = require('../models/User');
 const Review = require('../models/review');
 const router = express.Router();
+const mongoose = require('mongoose');
 const authenticateToken = require('../middleware/authMiddleware');
 
 // GET 요청
+mongoose.connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
+  .then(() => console.log('MongoDB connected'))
+  .catch((error) => console.error('MongoDB connection error:', error));
 
 // Get all events
-// routes/events.js
 router.get('/', async (req, res) => {
   try {
     const events = await Event.find({ isEnded: false }).populate('creator', 'displayName email'); 

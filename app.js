@@ -42,6 +42,8 @@ app.use('/user', require('./routes/user'));
 app.use('/reviews', require('./routes/reviews'));
 
 // Start the server
-app.listen(3000, () => {
-    console.log('Server running on http://localhost:3000');
+const PORT = process.env.PORT || 3000; // 환경 변수로 포트를 설정
+const BASE_URL = process.env.BASE_URL || 'http://localhost'; // 환경 변수로 BASE_URL 설정
+app.listen(PORT, () => {
+    console.log(`Server is running on ${BASE_URL}:${PORT}`);
 });
