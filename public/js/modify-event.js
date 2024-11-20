@@ -1,3 +1,4 @@
+//public/js/modify-event.js
 let originalData = {}; // Store original content for cancellation
 
 // Function to load event content dynamically

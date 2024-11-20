@@ -1,4 +1,5 @@
 async function fetchUserStatus() {
+  //public/js/participation.js
   try {
     const response = await fetch('/user/participants/users');
     if (!response.ok) {
