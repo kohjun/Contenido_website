@@ -4,19 +4,15 @@ const Event = require('../models/Event');
 const User = require('../models/User');
 const Review = require('../models/review');
 const router = express.Router();
-const mongoose = require('mongoose');
 const authenticateToken = require('../middleware/authMiddleware');
 
-// GET 요청
-mongoose.connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
-  .then(() => console.log('MongoDB connected'))
-  .catch((error) => console.error('MongoDB connection error:', error));
+// GET 요청 //
 
-// Get all events
+
+// 모든 이벤트 확인하기
 router.get('/', async (req, res) => {
   try {
     const events = await Event.find({ isEnded: false }).populate('creator', 'displayName email'); 
-    // 'displayName email'은 반환하고자 하는 사용자 정보 필드 (선택사항)
     
     res.json(events);
   } catch (error) {
@@ -25,7 +21,7 @@ router.get('/', async (req, res) => {
 }); 
 
 
-// Get participation status for all events
+// 모든 이벤트에 대한 참가자 상태 확인 하기
 router.get('/participants/status', async (req, res) => {
   try {
     const events = await Event.find({}).populate('participants');
@@ -42,12 +38,13 @@ router.get('/participants/status', async (req, res) => {
   }
 });
 
+// 종료된 이벤트 확인하기
 router.get('/ended', async (req, res) => {
   try {
-    const endedEvents = await Event.find({ isEnded: true }); // 종료된 이벤트 검색
-    res.json(endedEvents); // 정상적으로 데이터를 반환
+    const endedEvents = await Event.find({ isEnded: true }); 
+    res.json(endedEvents); 
   } catch (error) {
-    console.error('Error fetching ended events:', error.message); // 로그 개선
+    console.error('Error fetching ended events:', error.message);
     res.status(500).json({
       message: 'Error fetching ended events',
       error: error.message,
@@ -59,7 +56,7 @@ router.get('/ended', async (req, res) => {
 
 
 
-// Get a specific event by ID
+// 특정 이벤트 확인하기
 router.get('/:id', async (req, res) => {
   try {
     const event = await Event.findById(req.params.id).populate('creator', '_id');
@@ -72,9 +69,10 @@ router.get('/:id', async (req, res) => {
   }
 });
 
-// POST 요청
+// POST 요청 //
 
-// Create a new event
+
+// 새로운 이벤트 만들기
 router.post('/', authenticateToken, async (req, res) => {
   const { title, date, place, participants, startTime, endTime, participation_fee, contents } = req.body;
 
@@ -100,7 +98,7 @@ router.post('/', authenticateToken, async (req, res) => {
 
 
 
-// Submit event participation report (consolidated)
+// 결과 보고서 제출
 router.post('/:id/report', authenticateToken, async (req, res) => {
   const { week, participants } = req.body;
 
@@ -115,12 +113,11 @@ router.post('/:id/report', authenticateToken, async (req, res) => {
       return res.status(404).json({ message: 'Event not found' });
     }
 
-    // 최종 참가자 목록에 String 값으로 추가
-    event.finalParticipants = participants.map(String); // String으로 변환하여 저장
-    event.isEnded = true; // 이벤트 종료 설정
+
+    event.finalParticipants = participants.map(String); 
+    event.isEnded = true; 
     await event.save();
 
-    // User 스키마의 주차별 참여 상태 업데이트
     const updates = participants.map(participantId =>
       User.findByIdAndUpdate(participantId, {
         [`status.week${week}`]: 'O',
@@ -146,7 +143,7 @@ async function findEventById(eventId, res, throwError = false) {
   return event;
 }
 
-// Mark an event as ended
+// 이벤트 종료하기
 router.post('/:id/end', authenticateToken, async (req, res) => {
   try {
     const event = await findEventById(req.params.id, res);
@@ -160,9 +157,50 @@ router.post('/:id/end', authenticateToken, async (req, res) => {
   }
 });
 
-// DELETE 요청
+// 이벤트 신청하기
+router.post('/:id/apply', authenticateToken, async (req, res) => {
+  try {
+    const event = await Event.findById(req.params.id);
 
-// Cancel an event
+    if (!event) {
+      return res.status(404).json({ message: 'Event not found' });
+    }
+
+    // 모집 마감 확인
+    if (new Date() > event.applicationDeadline) {
+      return res.status(400).json({ message: 'Application period has ended' });
+    }
+
+    // 중복 신청 확인
+    if (event.appliedParticipants.includes(req.user.id)) {
+      return res.status(400).json({ message: 'You have already applied' });
+    }
+
+    // 모집 인원 초과 확인
+    if (event.appliedParticipants.length >= event.participants) {
+      return res.status(400).json({ message: 'Event is already full' });
+    }
+
+    // 신청자 추가
+    event.appliedParticipants.push(req.user.id);
+    await event.save();
+
+    res.status(200).json({ message: 'Application successful' });
+  } catch (error) {
+    console.error('Error applying for event:', error);
+    res.status(500).json({ message: 'Error applying for event', error });
+  }
+});
+
+
+
+
+
+
+// DELETE 요청 //
+
+
+// 이벤트 삭제하기
 router.delete('/:id', authenticateToken, async (req, res) => {
   try {
     const event = await Event.findById(req.params.id);
@@ -192,7 +230,7 @@ router.delete('/:id', authenticateToken, async (req, res) => {
 
 // PUT 요청
 
-// Update event content using PUT
+// 이벤트 내용 수정하기
 router.put('/update-content', authenticateToken, async (req, res) => {
   const { eventId, title, place, date, participants, startTime, endTime, participation_fee, contents } = req.body;
 
@@ -206,16 +244,16 @@ router.put('/update-content', authenticateToken, async (req, res) => {
       return res.status(404).json({ message: 'Event not found' });
     }
 
-    // 현재 사용자가 이벤트 생성자인지 확인
+    
     if (event.creator.toString() !== req.user.id) {
       return res.status(403).json({ message: 'You are not authorized to modify this event' });
     }
 
-    // 필드 업데이트
+    
     event.title = title || event.title;
     event.place = place || event.place;
 
-    // 날짜는 Date 객체로 변환
+    
     if (date) {
       event.date = new Date(date);
     }
@@ -226,7 +264,7 @@ router.put('/update-content', authenticateToken, async (req, res) => {
     event.participation_fee = participation_fee || event.participation_fee;
     event.contents = contents || event.contents;
 
-    console.log('Updated Event:', event); // 디버깅: 업데이트된 이벤트 데이터 확인
+    console.log('Updated Event:', event); 
 
     await event.save();
     res.status(200).json({ message: 'Event content updated successfully' });
