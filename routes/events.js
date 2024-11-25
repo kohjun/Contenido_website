@@ -9,7 +9,6 @@ const authenticateToken = require('../middleware/authMiddleware');
 // GET 요청
 
 // Get all events
-// routes/events.js
 router.get('/', async (req, res) => {
   try {
     const events = await Event.find({ isEnded: false }).populate('creator', 'displayName email'); 
@@ -68,6 +67,43 @@ router.get('/:id', async (req, res) => {
     res.status(500).json({ message: 'Error fetching event', error });
   }
 });
+
+
+router.get('/:id/participants', authenticateToken, async (req, res) => {
+  try {
+    const event = await Event.findById(req.params.id);
+    if (!event) {
+      return res.status(404).json({ message: 'Event not found' });
+    }
+
+    // 스태프 권한 확인
+    if (event.creator !== req.user.id && req.user.role !== 'staff') {
+      return res.status(403).json({ message: 'Unauthorized to view participants' });
+    }
+
+    // 각 참가자의 데이터를 User 모델에서 개별 조회
+    const participants = await Promise.all(
+      event.appliedParticipants.map(async participantId => {
+        const user = await User.findById(participantId).select('name gender');
+        return user
+          ? { name: user.name, gender: user.gender }
+          : { name: 'Unknown', gender: 'No Gender' }; // 사용자 정보가 없는 경우 기본값
+      })
+    );
+
+    res.json({
+      title: event.title,
+      date: event.date,
+      participants
+    });
+  } catch (error) {
+    console.error('Error fetching participants:', error);
+    res.status(500).json({ message: 'Internal server error', error });
+  }
+});
+
+
+
 
 // POST 요청
 
@@ -157,6 +193,64 @@ router.post('/:id/end', authenticateToken, async (req, res) => {
   }
 });
 
+// 이벤트 신청하기
+router.post('/:id/apply', authenticateToken, async (req, res) => {
+  try {
+    const event = await Event.findById(req.params.id);
+
+    if (!event) {
+      return res.status(404).json({ message: 'Event not found' });
+    }
+
+    // 모집 인원 초과 확인
+    if (event.appliedParticipants.length >= event.participants) {
+      return res.status(400).json({ message: 'Event is already full' });
+    }
+
+    // 중복 신청 확인
+    if (event.appliedParticipants.includes(req.user.id)) {
+      return res.status(400).json({ message: 'You have already applied' });
+    }
+
+    // 신청 추가
+    event.appliedParticipants.push(req.user.id);
+    await event.save();
+
+    res.status(200).json({ message: 'Application successful' });
+  } catch (error) {
+    console.error('Error applying for event:', error);
+    res.status(500).json({ message: 'Error applying for event', error });
+  }
+});
+
+//이벤트 신청 취소하기
+router.post('/:id/cancel-application', authenticateToken, async (req, res) => {
+  try {
+    const event = await Event.findById(req.params.id);
+
+    if (!event) {
+      return res.status(404).json({ message: 'Event not found' });
+    }
+
+    // 신청 여부 확인
+    if (!event.appliedParticipants.includes(req.user.id)) {
+      return res.status(400).json({ message: 'You have not applied for this event' });
+    }
+
+    // 신청 제거
+    event.appliedParticipants = event.appliedParticipants.filter(
+      participant => participant.toString() !== req.user.id
+    );
+    await event.save();
+
+    res.status(200).json({ message: 'Application canceled successfully' });
+  } catch (error) {
+    console.error('Error canceling application:', error);
+    res.status(500).json({ message: 'Error canceling application', error });
+  }
+});
+
+
 // DELETE 요청
 
 // Cancel an event
@@ -182,6 +276,10 @@ router.delete('/:id', authenticateToken, async (req, res) => {
     res.status(500).json({ message: 'Error canceling event', error });
   }
 });
+
+
+
+
 
 
 

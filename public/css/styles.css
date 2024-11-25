@@ -1,416 +1,420 @@
-/* Global Styles */
-body {
-  font-family: 'Arial', sans-serif;
-  background-color: #f4f4f4;
-  color: #333;
-  margin: 0;
-  padding: 0;
-  line-height: 1.6;
-}
+  /* Global Styles */
+  body {
+    font-family: 'Arial', sans-serif;
+    background-color: #f4f4f4;
+    color: #333;
+    margin: 0;
+    padding: 0;
+    line-height: 1.6;
+  }
 
-h1, h2, h3, h4, h5, h6 {
-  margin: 0;
-}
-/* 참가자 리스트 그리드 스타일 */
-.participant-grid {
-  display: flex;
-  flex-wrap: wrap; /* 가로 배치 후 자동 줄바꿈 */
-  gap: 1px; /* 참가자 간의 간격 */
-}
+  h1, h2, h3, h4, h5, h6 {
+    margin: 0;
+  }
+  /* 참가자 리스트 그리드 스타일 */
+  .participant-grid {
+    display: flex;
+    flex-wrap: wrap; /* 가로 배치 후 자동 줄바꿈 */
+    gap: 1px; /* 참가자 간의 간격 */
+  }
 
-/* Week Section Styling */
-.week-section {
-  background-color: #e7f3ff;
-  border: 1px solid #b3d9ff;
-  padding: 1rem;
-  border-radius: 10px;
-  margin-bottom: 1rem;
-}
+  /* %주차 스타일 */
+  .week-section {
+    background-color: #e7f3ff;
+    border: 1px solid #b3d9ff;
+    padding: 1rem;
+    border-radius: 10px;
+    margin-bottom: 1rem;
+  }
+  .week-selection-horizontal {
+    display: flex;
+    justify-content: space-between; /* 각 주차 간격 */
+    gap: 1rem; /* 주차 선택 간격 조정 */
+  }
+  .week-selection-horizontal label {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    font-weight: bold;
+    padding: 10px;
+    border: 1px solid #b3d9ff; /* 주차 구분 경계선 */
+    border-radius: 8px;
+    background-color: #ffffff;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    cursor: pointer;
+    transition: transform 0.2s ease, background-color 0.3s;
+  }
 
-/* Week Selection Styling */
-.week-selection-horizontal {
-  display: flex;
-  justify-content: space-between; /* 각 주차 간격 */
-  gap: 1rem; /* 주차 선택 간격 조정 */
-}
+  .week-selection-horizontal label:hover {
+    background-color: #cce7ff; /* 호버 시 색상 변경 */
+    transform: translateY(-3px); /* 살짝 들어올림 효과 */
+  }
 
-.week-selection-horizontal label {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  font-weight: bold;
-  padding: 10px;
-  border: 1px solid #b3d9ff; /* 주차 구분 경계선 */
-  border-radius: 8px;
-  background-color: #ffffff;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  cursor: pointer;
-  transition: transform 0.2s ease, background-color 0.3s;
-}
+  .week-selection-horizontal input[type="radio"] {
+    margin-bottom: 5px;
+  }
 
-.week-selection-horizontal label:hover {
-  background-color: #cce7ff; /* 호버 시 색상 변경 */
-  transform: translateY(-3px); /* 살짝 들어올림 효과 */
-}
-
-.week-selection-horizontal input[type="radio"] {
-  margin-bottom: 5px;
-}
-
-/* Participant Section Styling */
-.participant-section {
-  background-color: #e7f3ff;
-  border: 1px solid #b3d9ff;
-  padding: 1.5rem;
-  border-radius: 10px;
-}
-.participant-item label {
-  display: inline-block;
-  margin-left: 5px;
-  font-size: 0.8rem;
-}
-
-.participant-item {
-  display: inline-block; /* 가로로 배치 */
-  margin-right: 10px; /* 각 참가자 간 간격 */
-  padding: 8px 5px;
-  background-color: #ffffff;
-  border: 1px solid #b3d9ff; /* 각 항목에 테두리 */
-  border-radius: 8px;
-}
-
-.participant-item:hover {
-  transform: translateY(-2px);
-  background-color: #fef6e7;
-}
-
-input[type="checkbox"] {
-  cursor: pointer;
-  margin-right: 10px;
-}
-
-
-.participant-item:hover {
-  background-color: #eef6ff; /* 호버 시 배경 색상 */
-}
-
-input[type="checkbox"] {
-  cursor: pointer;
-}
-
-a {
-  text-decoration: none;
-  color: inherit;
-}
-
-img {
-  max-width: 100%;
-  height: auto;
-}
-
-/* Title Container */
-.title-container {
-  text-align: center;
-  margin-top: 1rem;
-  margin-bottom: 2rem;
-}
-
-.subtitle {
-  font-size: 1.2rem;
-  color: #555;
-  letter-spacing: 1px;
-  font-style: italic;
-  margin: 0;
-}
-
-.main-title {
-  font-size: 2.5rem;
-  font-weight: bold;
-  text-transform: uppercase;
-  letter-spacing: 2px;
-  background: linear-gradient(90deg, #73b5f8,#0C84FE );
-  -webkit-background-clip: text;
-  color: transparent;
-  margin: 0.5rem 0;
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
-}
-
-/* Buttons - Unified Styles */
-button, .kakao-login-button, .submit-button {
-  display: block;
-  width: 80%; /* 기존 80%에서 60%로 줄임 */
-  max-width: 200px; /* 버튼 최대 크기를 조금 더 줄임 */
-  padding: 0.8rem;
-  font-size: 1rem;
-  margin: 1rem auto;
-  background-color: #73b5f8;
-  color: #333;
-  border: none;
-  border-radius: 50px; 
-  cursor: pointer;
-  font-weight: bold;
-  transition: background-color 0.3s, transform 0.2s;
-}
-
-button:hover, .kakao-login-button:hover, .submit-button:hover {
-  background-color: #0C84FE;
-  transform: translateY(-3px);
-}
-
-.kakao-login-button {
-  width: 70%;
-  max-width: 200px;
-  font-size: 0.9rem;
-}
-
-/* Main Container */
-.container {
-  max-width: 600px;
-  margin: 2rem auto;
-  padding: 2rem;
-  background: #fff;
-  border-radius: 12px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-}
-
-/* Forms */
-.form-group {
-  margin-bottom: 1.5rem;
-  text-align: left;
-}
-
-label {
-  display: block;
-  font-size: 1rem;
-  font-weight: bold;
-  margin-bottom: 0.5rem;
-  color: #555;
-}
-
-input, select, textarea {
-  width: 100%;
-  padding: 0.8rem;
-  font-size: 1rem;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  box-sizing: border-box;
-  transition: border-color 0.3s ease, box-shadow 0.3s ease;
-}
-
-input:focus, select:focus, textarea:focus {
-  border-color: #70abe6;
-  outline: none;
-  box-shadow: 0 0 5px #0C84FE(255, 235, 0, 0.5);
-}
-
-/* User Information Display */
-.user-info {
-  position: fixed;
-  top: 20px;
-  right: 20px;
-  background: #333;
-  color: #fff;
-  padding: 0.8rem;
-  border-radius: 12px;
-  box-shadow: 0 0 8px rgba(0, 0, 0, 0.3);
-  text-align: right;
-  width: 220px;
-  font-size: 0.85rem;
-}
-
-.user-info p {
-  margin: 0.3rem 0;
-  font-size: 0.9rem;
-  color: #ddd;
-}
-
-.user-info img {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  margin-bottom: 0.5rem;
-  border: 2px solid #fff;
-}
-
-/* Table Styles */
-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 1rem;
-  background: #fff;
-  border-radius: 8px; /* Rounded corners for the table */
-  overflow: hidden;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-}
-
-th, td {
-  padding: 0.8rem;
-  border: 1px solid #ddd;
-  text-align: center;
-}
-
-th {
-  background: #73b5f8;
-  color: #333;
-  font-weight: bold;
-  text-transform: uppercase; /* Uppercase for column titles */
-}
-
-td {
-  background: #f9f9f9;
-  transition: background 0.3s ease;
-}
-
-td:hover {
-  background: #fffae5; /* Highlight row on hover */
-}
-
-/* Cancel button styles */
-td img {
-  cursor: pointer;
-  width: 20px; /* Slightly bigger for better visibility */
-  transition: transform 0.2s ease;
-}
-
-td img:hover {
-  transform: scale(1.2); /* Enlarge on hover */
-}
-
-/* Add zebra stripes for alternate rows */
-tbody tr:nth-child(odd) td {
-  background: #fdfdfd;
-}
-
-tbody tr:nth-child(even) td {
-  background: #f5f5f5;
-}
-
-/* Event and Status Section */
-.event, .status {
-  border-bottom: 1px solid #ddd;
-  padding: 1rem 0;
-}
-
-.event h3, .status h3 {
-  margin: 0;
-}
-/* Flexbox layout for aligning week and participant selection */
-.form-row {
-  display: flex;
-  justify-content: space-between; /* Space between week and participant sections */
-  gap: 2rem; 
-}
-
-.form-item {
-  flex: 1; 
-}
-
-fieldset {
-  border: none; /* Remove default fieldset border */
-  padding: 0;
-  margin: 0;
-}
-
-legend {
-  font-weight: bold;
-  margin-bottom: 0.5rem;
-}
-
-/* Responsive Design */
-@media (max-width: 768px) {
-  .container {
+  /* 참가자 스타일 */
+  .participant-section {
+    background-color: #e7f3ff;
+    border: 1px solid #b3d9ff;
     padding: 1.5rem;
+    border-radius: 10px;
+  }
+  .participant-item label {
+    display: inline-block;
+    margin-left: 5px;
+    font-size: 0.8rem;
   }
 
-  .submit-button {
+  .participant-item {
+    display: inline-block; /* 가로로 배치 */
+    margin-right: 10px; /* 각 참가자 간 간격 */
+    padding: 8px 5px;
+    background-color: #ffffff;
+    border: 1px solid #b3d9ff; /* 각 항목에 테두리 */
+    border-radius: 8px;
+  }
+
+  .participant-item:hover {
+    transform: translateY(-2px);
+    background-color: #fef6e7;
+  }
+
+  input[type="checkbox"] {
+    cursor: pointer;
+    margin-right: 10px;
+  }
+
+
+  .participant-item:hover {
+    background-color: #eef6ff; /* 호버 시 배경 색상 */
+  }
+
+  input[type="checkbox"] {
+    cursor: pointer;
+  }
+
+  a {
+    text-decoration: none;
+    color: inherit;
+  }
+
+  img {
+    max-width: 100%;
+    height: auto;
+  }
+
+  /* 제목 컨테이너 */
+  .title-container {
+    text-align: center;
+    margin-top: 1rem;
+    margin-bottom: 2rem;
+  }
+
+  .subtitle {
+    font-size: 1.2rem;
+    color: #555;
+    letter-spacing: 1px;
+    font-style: italic;
+    margin: 0;
+  }
+
+  .main-title {
+    font-size: 2.5rem;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    background: linear-gradient(90deg, #73b5f8,#0C84FE );
+    -webkit-background-clip: text;
+    color: transparent;
+    margin: 0.5rem 0;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+  }
+
+  /* 버튼 스타일 */
+  button, .kakao-login-button, .submit-button {
+    display: block;
+    width: 80%; /* 기존 80%에서 60%로 줄임 */
+    max-width: 200px; /* 버튼 최대 크기를 조금 더 줄임 */
+    padding: 0.8rem;
+    font-size: 1rem;
+    margin: 1rem auto;
+    background-color: #73b5f8;
+    color: #333;
+    border: none;
+    border-radius: 50px; 
+    cursor: pointer;
+    font-weight: bold;
+    transition: background-color 0.3s, transform 0.2s;
+  }
+
+  button:hover, .kakao-login-button:hover, .submit-button:hover {
+    background-color: #0C84FE;
+    transform: translateY(-3px);
+  }
+
+  .kakao-login-button {
     width: 70%;
+    max-width: 200px;
+    font-size: 0.9rem;
   }
 
+  /* 메인 컨테이너 */
+  .container {
+    max-width: 700px;
+    margin: 2rem auto;
+    padding: 2rem;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  }
+
+  /* 폼 */
+  .form-group {
+    margin-bottom: 1.5rem;
+    text-align: left;
+  }
+
+  label {
+    display: block;
+    font-size: 1rem;
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+    color: #555;
+  }
+
+  input, select, textarea {
+    width: 100%;
+    padding: 0.8rem;
+    font-size: 1rem;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    box-sizing: border-box;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  }
+
+  input:focus, select:focus, textarea:focus {
+    border-color: #70abe6;
+    outline: none;
+    box-shadow: 0 0 5px #0C84FE(255, 235, 0, 0.5);
+  }
+
+  /* User Information Display */
   .user-info {
-    width: 180px;
-    font-size: 0.75rem;
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: #333;
+    color: #fff;
+    padding: 0.8rem;
+    border-radius: 12px;
+    box-shadow: 0 0 8px rgba(0, 0, 0, 0.3);
+    text-align: right;
+    width: 220px;
+    font-size: 0.85rem;
   }
-}
 
-/* 후기 */
-/* 후기 제목 스타일 */
-h2 {
-  font-size: 1.8rem;
-  color: #555;
-  margin-bottom: 1rem;
-  border-top: 2px solid #ddd;
-  padding-bottom: 0.3rem;
-}
+  .user-info p {
+    margin: 0.3rem 0;
+    font-size: 0.9rem;
+    color: #ddd;
+  }
 
-/* 후기 리스트 스타일 */
-.review {
-  background: #fff;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  padding: 1rem;
-  margin-bottom: 1rem;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
-}
+  .user-info img {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    margin-bottom: 0.5rem;
+    border: 2px solid #fff;
+  }
 
-.review strong {
-  font-size: 1rem;
-  color: #333;
-}
+  /* 표 스타일 */
+  table {
+    width: 100%;
+    table-layout: auto; /* 열 너비를 자동으로 조정 */
+    border-collapse: collapse;
+    margin-top: 1rem;
+    background: #fff;
+    border-radius: 8px; /* Rounded corners for the table */
+    overflow: hidden;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  }
 
-.review p {
-  margin: 0.5rem 0;
-  color: #666;
-}
+  th, td {
+    padding: 0.8rem;
+    border: 1px solid #ddd;
+    text-align: center;
+    word-wrap: break-word; /* 텍스트 줄바꿈 */
+  }
 
-.review em {
-  font-size: 0.85rem;
-  color: #999;
-}
+  th {
+    background: #73b5f8;
+    color: #333;
+    font-weight: bold;
+    text-transform: uppercase; /* Uppercase for column titles */
+  }
 
-/* 후기 작성 폼 스타일 */
-#review-form {
-  background: #fff;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  padding: 1.5rem;
-  margin-top: 1rem;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
-}
+  td {
+    background: #f9f9f9;
+    transition: background 0.3s ease;
+  }
 
-#review-form label {
-  font-weight: bold;
-  color: #555;
-  margin-top: 0.5rem;
-  display: block;
-}
+  td:hover {
+    background: #fffae5; /* Highlight row on hover */
+  }
 
-#review-form select, 
-#review-form textarea, 
-#review-form input[type="checkbox"] {
-  margin-top: 0.5rem;
-  width: 100%;
-  padding: 0.6rem;
-  font-size: 1rem;
-  border: 1px solid #ddd;
-  border-radius: 5px;
-  box-sizing: border-box;
-}
+  /* 취소 버튼 스타일 */
+  td img {
+    cursor: pointer;
+    width: 20px; /* Slightly bigger for better visibility */
+    transition: transform 0.2s ease;
+  }
 
-#review-form button {
-  background: #b3d9ff;
-  color: #333;
-  font-weight: bold;
-  border: none;
-  padding: 0.8rem 1rem; /* 너비가 줄어들면서 패딩을 조정 */
-  border-radius: 5px;
-  margin-top: 1rem;
-  cursor: pointer;
-  width: 80%; /* 동일하게 60%로 설정 */
-  max-width: 200px; 
-  transition: background 0.3s ease, transform 0.2s ease;
-}
+  td img:hover {
+    transform: scale(1.2); /* Enlarge on hover */
+  }
 
-#review-form button:hover {
-  background: #1f86ec;
-  transform: translateY(-2px);
-}
+  /* Add zebra stripes for alternate rows */
+  tbody tr:nth-child(odd) td {
+    background: #fdfdfd;
+  }
+
+  tbody tr:nth-child(even) td {
+    background: #f5f5f5;
+  }
+
+  /* 이벤트와 상태 스타일 */
+  .event, .status {
+    border-bottom: 1px solid #ddd;
+    padding: 1rem 0;
+  }
+
+  .event h3, .status h3 {
+    margin: 0;
+  }
+  /* Flexbox layout for aligning week and participant selection */
+  .form-row {
+    display: flex;
+    justify-content: space-between; /* Space between week and participant sections */
+    gap: 2rem; 
+  }
+
+  .form-item {
+    flex: 1; 
+  }
+
+  fieldset {
+    border: none; /* Remove default fieldset border */
+    padding: 0;
+    margin: 0;
+  }
+
+  legend {
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+  }
+
+  /* Responsive Design */
+  @media (max-width: 768px) {
+    .container {
+      padding: 1.5rem;
+      overflow-x: auto; /* 모바일에서도 가로 스크롤 가능 */
+    }
+
+    .submit-button {
+      width: 70%;
+    }
+
+    .user-info {
+      width: 180px;
+      font-size: 0.75rem;
+    }
+    table {
+      display: block; /* 표를 블록 요소로 변경 */
+      overflow-x: auto; /* 스크롤 가능 */
+    }
+  }
+
+  /* 후기 */
+  /* 후기 제목 스타일 */
+  h2 {
+    font-size: 1.8rem;
+    color: #555;
+    margin-bottom: 1rem;
+    border-top: 2px solid #ddd;
+    padding-bottom: 0.3rem;
+  }
+
+  /* 후기 리스트 스타일 */
+  .review {
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+  }
+
+  .review strong {
+    font-size: 1rem;
+    color: #333;
+  }
+
+  .review p {
+    margin: 0.5rem 0;
+    color: #666;
+  }
+
+  .review em {
+    font-size: 0.85rem;
+    color: #999;
+  }
+
+  /* 후기 작성 폼 스타일 */
+  #review-form {
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin-top: 1rem;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+  }
+
+  #review-form label {
+    font-weight: bold;
+    color: #555;
+    margin-top: 0.5rem;
+    display: block;
+  }
+
+  #review-form select, 
+  #review-form textarea, 
+  #review-form input[type="checkbox"] {
+    margin-top: 0.5rem;
+    width: 100%;
+    padding: 0.6rem;
+    font-size: 1rem;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    box-sizing: border-box;
+  }
+
+  #review-form button {
+    background: #b3d9ff;
+    color: #333;
+    font-weight: bold;
+    border: none;
+    padding: 0.8rem 1rem; /* 너비가 줄어들면서 패딩을 조정 */
+    border-radius: 5px;
+    margin-top: 1rem;
+    cursor: pointer;
+    width: 80%; /* 동일하게 60%로 설정 */
+    max-width: 200px; 
+    transition: background 0.3s ease, transform 0.2s ease;
+  }
+
+  #review-form button:hover {
+    background: #1f86ec;
+    transform: translateY(-2px);
+  }

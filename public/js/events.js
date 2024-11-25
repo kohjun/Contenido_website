@@ -11,6 +11,25 @@ async function fetchUserId() {
   }
 }
 
+async function checkUserRole() {
+  try {
+    const response = await fetch('/user/user-role');
+    const data = await response.json();
+
+    const staffButton = document.getElementById('staff-button-container');
+    if (!staffButton) {
+      console.warn("Element 'staff-button-container' not found");
+      return;
+    }
+
+    if (data.role === 'staff') {
+      staffButton.style.display = 'block';
+    }
+  } catch (error) {
+    console.error('Error fetching user role:', error);
+  }
+}
+
 
 
 async function fetchEvents() {
@@ -31,12 +50,11 @@ async function fetchEvents() {
             <th>주제</th>
             <th>날짜</th>
             <th>장소</th>
-            <th>참가 인원</th>
-            <th>시작 시간</th>
-            <th>종료 시간</th>
+            <th>참가 현황</th>
+            <th>시간</th>
             <th>참가비</th>
+            <th>신청</th>
             <th>내용</th>
-            <th>취소</th>
           </tr>
         </thead>
         <tbody></tbody>
@@ -50,32 +68,49 @@ async function fetchEvents() {
       return;
     }
 
+    // 현재 사용자 정보 가져오기
+    const userResponse = await fetch('/user/info');
+    const currentUser = await userResponse.json();
+
     events.forEach(event => {
+      const isFull = event.appliedParticipants.length >= event.participants;
+      const hasApplied = event.appliedParticipants.includes(currentUser.id);
+
       const row = document.createElement('tr');
+
       row.innerHTML = `
         <td>${event.title}</td>
         <td>${new Date(event.date).toLocaleDateString()}</td>
         <td>${event.place}</td>
-        <td>${event.participants}명</td>
-        <td>${event.startTime}</td>
-        <td>${event.endTime}</td>
+        <td>${event.appliedParticipants.length} / ${event.participants}</td>
+        <td>${event.startTime}~${event.endTime}</td>
         <td>${event.participation_fee.toLocaleString()}원</td>
+        <td>
+          ${
+            hasApplied
+              ? `<button onclick="cancelApplication('${event._id}')">신청취소</button>` // 신청한 사용자는 "신청취소" 버튼 표시
+              : isFull
+              ? '<button disabled>마감</button>' // 신청하지 않았고 마감된 경우
+              : `<button onclick="applyForEvent('${event._id}')">신청하기</button>` // 신청하지 않았고 마감되지 않은 경우
+          }
+        </td>
         <td><a href="#" onclick="openContentWindow('${event._id}')"><strong>보기</strong></a></td>
         <td>
           <img src="/images/event-cancel-icon.png" 
                alt="Cancel Event" 
-               style="cursor: pointer; width: 16px;" 
+               style="cursor: pointer; width: 60px;" 
                onclick="handleCancelEvent('${event._id}', '${event.creator}')">
         </td>
       `;
 
       tableBody.appendChild(row);
     });
-
   } catch (error) {
     console.error('Error fetching events:', error);
   }
 }
+
+
 
 
 
@@ -127,7 +162,7 @@ async function openContentWindow(eventId) {
   }
 }
 
-// Fetch events for the dropdown in the report form
+
 async function loadReportFormOptions() {
   try {
     const response = await fetch('/events');
@@ -146,7 +181,6 @@ async function loadReportFormOptions() {
       eventDropdown.appendChild(option);
     });
 
-    // Fetch participants for checkboxes
     const participantsResponse = await fetch('/user/participants/users');
     const participants = await participantsResponse.json();
 
@@ -181,7 +215,7 @@ async function loadReportFormOptions() {
 }
 
 
-// Submit the report to update the participation status
+// 결과 보고서 제출
 async function submitReport() {
   const eventDropdown = document.getElementById('report-event');
   const selectedEventId = eventDropdown ? eventDropdown.value : null;
@@ -236,7 +270,7 @@ async function submitReport() {
 
 
 
-// Mark event as ended
+// 이벤트 종료 표시
 async function markEventAsEnded(eventId) {
   try {
     const response = await fetch(`/events/${eventId}/end`, {
@@ -284,7 +318,7 @@ async function cancelEvent(eventId) {
   }
 }
 
-// Handle cancel event with authorization check
+// 이벤트 취소 핸들링
 async function handleCancelEvent(eventId, eventCreator) {
   try {
     // Fetch user role to confirm the user is a staff member
@@ -304,34 +338,82 @@ async function handleCancelEvent(eventId, eventCreator) {
     console.error('Error checking role or canceling event:', error);
   }
 }
-
-// Redirect to participation status page
-function checkParticipationStatus() {
-  window.location.href = '/participation-status.html';
-}
-async function checkUserRole() {
+async function loadEventDetails(eventId) {
   try {
-    const response = await fetch('/user/user-role');
-    const data = await response.json();
+    const response = await fetch(`/events/${eventId}`);
+    const event = await response.json();
 
-    const staffButton = document.getElementById('staff-button-container');
-    if (!staffButton) {
-      console.warn("Element 'staff-button-container' not found");
-      return;
+    const isApplied = event.appliedParticipants.includes(currentUserId);
+    const button = document.getElementById('apply-button');
+
+    if (isApplied) {
+      button.textContent = '신청 취소';
+      button.onclick = () => cancelApplication(eventId);
+    } else {
+      button.textContent = '신청하기';
+      button.onclick = () => applyForEvent(eventId);
     }
 
-    if (data.role === 'staff') {
-      staffButton.style.display = 'block';
+    document.getElementById('event-details').innerHTML = `
+      <p>제목: ${event.title}</p>
+      <p>장소: ${event.place}</p>
+      <p>날짜: ${new Date(event.date).toLocaleDateString()}</p>
+      <p>내용: ${event.contents}</p>
+      <p>참가 현황: ${event.appliedParticipants.length} / ${event.participants}</p>
+    `;
+  } catch (error) {
+    console.error('Error loading event details:', error);
+    alert('이벤트 정보를 불러오는 중 문제가 발생했습니다.');
+  }
+}
+
+async function applyForEvent(eventId) {
+  try {
+    const response = await fetch(`/events/${eventId}/apply`, { method: 'POST' });
+
+    if (response.ok) {
+      alert('신청이 완료되었습니다.');
+      fetchEvents(); // 이벤트 목록 다시 로드
+    } else {
+      const error = await response.json();
+      alert(`신청 실패: ${error.message}`);
     }
   } catch (error) {
-    console.error('Error fetching user role:', error);
+    console.error('Error applying for event:', error);
+    alert('신청 중 문제가 발생했습니다.');
+  }
+}
+async function cancelApplication(eventId) {
+  try {
+    const response = await fetch(`/events/${eventId}/cancel-application`, { method: 'POST' });
+
+    if (response.ok) {
+      alert('신청이 취소되었습니다.');
+      fetchEvents(); // 이벤트 목록 다시 로드
+    } else {
+      const error = await response.json();
+      alert(`취소 실패: ${error.message}`);
+    }
+  } catch (error) {
+    console.error('Error canceling application:', error);
+    alert('취소 중 문제가 발생했습니다.');
   }
 }
 
 
+// 참가상태 리디렉션
+function checkParticipationStatus() {
+  window.location.href = '/participation-status.html';
+}
+
+
+
+
+
+
 // Run fetchEvents when the document is ready
 document.addEventListener('DOMContentLoaded', async () => {
-  await fetchUserId(); // Ensure userId is fetched before fetching events
- fetchEvents();
- checkUserRole();
+  await fetchUserId(); 
+  await fetchEvents();
+  checkUserRole();
 });
