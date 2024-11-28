@@ -29,9 +29,10 @@ async function fetchEventStatus() {
         
         return `
         <tr>
+    
           <td>${participant.name}</td>
           <td>${genderDisplay}</td>
-          <td>참가 확정</td>
+          <td>${participant.phonenumber}</td>
         </tr>
       `})
       .join('');

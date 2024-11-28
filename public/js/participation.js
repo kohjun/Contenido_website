@@ -1,55 +1,68 @@
 async function fetchUserStatus() {
-  //public/js/participation.js
   try {
+    // 서버로부터 참가자 데이터 요청
     const response = await fetch('/user/participants/users');
     if (!response.ok) {
       throw new Error(`HTTP error! Status: ${response.status}`);
     }
 
     const users = await response.json();
-    const statusList = document.getElementById('status-list');
-    if (!statusList) return;
 
-    // Clear previous content
-    statusList.innerHTML = '';
+    // 활성 사용자 필터링
+    const activeUsers = users.filter((user) => user.active === true);
 
-    // Create a table
-    const table = document.createElement('table');
-    table.id = 'participant-table'; // Add an ID to the table for reference
-    table.innerHTML = `
-      <tr>
-        <th>프로필 사진</th>
-        <th>이름</th>
-        <th>1주차</th>
-        <th>2주차</th>
-        <th>3주차</th>
-        <th>4주차</th>
-      </tr>
-    `;
+    // 활성 사용자가 없을 경우 처리
+    if (activeUsers.length === 0) {
+      document.getElementById('status-list').innerHTML = '<p>참가자가 없습니다.</p>';
+      return;
+    }
 
-    // Populate table rows with user data
-    users.forEach((user, index) => {
-      const row = document.createElement('tr');
-      row.id = `participant-row-${index}`; // Add a unique ID for each row
-      row.innerHTML = `
-        <td><img src="${user.profileImage}" alt="${user.displayName}" width="50" height="50" /></td>
-        <td>${user.displayName}</td>
-        <td>${user.status.week1 || 'X'}</td>
-        <td>${user.status.week2 || 'X'}</td>
-        <td>${user.status.week3 || 'X'}</td>
-        <td>${user.status.week4 || 'X'}</td>
-      `;
-      table.appendChild(row);
-    });
-
-    statusList.appendChild(table);
+    // 테이블 업데이트
+    updateParticipantTable(activeUsers);
   } catch (error) {
     console.error('Error fetching user data:', error);
     document.getElementById('status-list').innerHTML = '<p class="error">Failed to load participant data. Please try again later.</p>';
   }
 }
 
-// Search for a participant by name and scroll to their row
+// 참가자 테이블 업데이트
+function updateParticipantTable(users) {
+  const statusList = document.getElementById('status-list');
+  if (!statusList) return;
+
+  // 기존 내용 초기화
+  statusList.innerHTML = '';
+
+  // 테이블 생성
+  const table = document.createElement('table');
+  table.id = 'participant-table';
+  table.innerHTML = `
+    <tr>
+      <th>프로필 사진</th>
+      <th>이름</th>
+      <th>1주차</th>
+      <th>2주차</th>
+      <th>3주차</th>
+      <th>4주차</th>
+    </tr>
+  `;
+
+  users.forEach((user, index) => {
+    const row = document.createElement('tr');
+    row.id = `participant-row-${index}`;
+    row.innerHTML = `
+      <td><img src="${user.profileImage}" alt="${user.displayName}" width="50" height="50" /></td>
+      <td>${user.displayName}</td>
+      <td>${user.status.week1 || 'X'}</td>
+      <td>${user.status.week2 || 'X'}</td>
+      <td>${user.status.week3 || 'X'}</td>
+      <td>${user.status.week4 || 'X'}</td>
+    `;
+    table.appendChild(row);
+  });
+
+  statusList.appendChild(table);
+}
 function searchParticipant() {
   const searchInput = document.getElementById('participant-search').value.trim().toLowerCase();
   const rows = document.querySelectorAll('#participant-table tr');
@@ -85,8 +98,19 @@ document.getElementById('participant-search').addEventListener('keydown', (event
     searchParticipant(); // Call search function
   }
 });
+// 현재 날짜 표시
+function displayCurrentDate() {
+  const currentDateDiv = document.getElementById('current-date');
+  if (!currentDateDiv) return;
 
-// Run fetchUserStatus when the document is ready
+  const today = new Date();
+  const year = today.getFullYear();
+  const month = String(today.getMonth() + 1).padStart(2, '0');
+  currentDateDiv.textContent = `${year}년 ${month}월`;
+}
+
+// 초기화
 document.addEventListener('DOMContentLoaded', () => {
-  fetchUserStatus();
+  fetchUserStatus(); // 참가자 상태 불러오기
+  displayCurrentDate(); // 현재 날짜 표시
 });

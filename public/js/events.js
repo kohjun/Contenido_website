@@ -55,6 +55,7 @@ async function fetchEvents() {
             <th>참가비</th>
             <th>신청</th>
             <th>내용</th>
+            <th>삭제</th>
           </tr>
         </thead>
         <tbody></tbody>
@@ -91,14 +92,16 @@ async function fetchEvents() {
               ? `<button onclick="cancelApplication('${event._id}')">신청취소</button>` // 신청한 사용자는 "신청취소" 버튼 표시
               : isFull
               ? '<button disabled>마감</button>' // 신청하지 않았고 마감된 경우
-              : `<button onclick="applyForEvent('${event._id}')">신청하기</button>` // 신청하지 않았고 마감되지 않은 경우
+              : `<button onclick="applyForEvent('${event._id}')" >신청하기</button>` // 신청하지 않았고 마감되지 않은 경우
           }
         </td>
-        <td><a href="#" onclick="openContentWindow('${event._id}')"><strong>보기</strong></a></td>
+        <td><a href="#" onclick="openContentWindow('${event._id}')">
+        <img src ="/images/info-check.png" alt="Check Event" style =" cursor: pointer; width: 100px;">
+        </a></td>
         <td>
           <img src="/images/event-cancel-icon.png" 
                alt="Cancel Event" 
-               style="cursor: pointer; width: 60px;" 
+               style="cursor: pointer; width: 30px;" 
                onclick="handleCancelEvent('${event._id}', '${event.creator}')">
         </td>
       `;
@@ -114,7 +117,7 @@ async function fetchEvents() {
 
 
 
-// Function to submit a new event
+// 새로운 이벤트 등록
 async function submitEvent() {
   const title = document.getElementById('event-title').value;
   const place = document.getElementById('event-place').value;
@@ -146,9 +149,11 @@ async function submitEvent() {
       window.location.href = 'events.html'; // Redirect to events page after submission
     } else {
       console.error('Error:', await response.json());
+      alert("입력란을 모두 입력해주세요.");
     }
   } catch (error) {
     console.error('Error submitting event:', error);
+    
   }
 }
 

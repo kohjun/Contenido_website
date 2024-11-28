@@ -14,6 +14,7 @@ const userSchema = new mongoose.Schema({
     week3: { type: String, default: 'X' },
     week4: { type: String, default: 'X' }
   },
+  active: {type: Boolean, default:true },
   name: { type: String },
   gender: { type: String, enum: ['male', 'female', 'other'] },
   birthDate: { type: Date },

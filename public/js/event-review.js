@@ -34,7 +34,7 @@ async function fetchCurrentUserId() {
     }
     } catch (error) {
     console.error('Error fetching current user ID:', error);
-    alert('로그인 정보를 불러오는 중 문제가 발생했습니다.');
+    
     }
 }
 

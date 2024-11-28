@@ -1,6 +1,12 @@
   /* Global Styles */
+  @font-face {
+    font-family: 'GmarketSansMedium';
+    src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_2001@1.1/GmarketSansMedium.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+  }
   body {
-    font-family: 'Arial', sans-serif;
+    font-family: 'GmarketSansMedium', sans-serif;
     background-color: #f4f4f4;
     color: #333;
     margin: 0;
@@ -20,8 +26,8 @@
 
   /* %주차 스타일 */
   .week-section {
-    background-color: #e7f3ff;
-    border: 1px solid #b3d9ff;
+    background-color: #ffffff;
+    border: 1px solid #0A84FE;
     padding: 1rem;
     border-radius: 10px;
     margin-bottom: 1rem;
@@ -31,13 +37,14 @@
     justify-content: space-between; /* 각 주차 간격 */
     gap: 1rem; /* 주차 선택 간격 조정 */
   }
+
   .week-selection-horizontal label {
     display: flex;
     flex-direction: column;
     align-items: center;
     font-weight: bold;
     padding: 10px;
-    border: 1px solid #b3d9ff; /* 주차 구분 경계선 */
+    border: 1px solid #0A84FE; /* 주차 구분 경계선 */
     border-radius: 8px;
     background-color: #ffffff;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
@@ -46,7 +53,8 @@
   }
 
   .week-selection-horizontal label:hover {
-    background-color: #cce7ff; /* 호버 시 색상 변경 */
+    background-color: #eef6ff; /* 호버 시 색상 변경 */
+    
     transform: translateY(-3px); /* 살짝 들어올림 효과 */
   }
 
@@ -56,8 +64,8 @@
 
   /* 참가자 스타일 */
   .participant-section {
-    background-color: #e7f3ff;
-    border: 1px solid #b3d9ff;
+    background-color: #ffffff;
+    border: 1px solid #0A84FE;
     padding: 1.5rem;
     border-radius: 10px;
   }
@@ -72,13 +80,13 @@
     margin-right: 10px; /* 각 참가자 간 간격 */
     padding: 8px 5px;
     background-color: #ffffff;
-    border: 1px solid #b3d9ff; /* 각 항목에 테두리 */
+    border: 1px solid #0A84FE; /* 각 항목에 테두리 */
     border-radius: 8px;
   }
 
   .participant-item:hover {
-    transform: translateY(-2px);
-    background-color: #fef6e7;
+    transform: translateY(-3px);
+    background-color: #eef6ff;
   }
 
   input[type="checkbox"] {
@@ -87,10 +95,7 @@
   }
 
 
-  .participant-item:hover {
-    background-color: #eef6ff; /* 호버 시 배경 색상 */
-  }
-
+  
   input[type="checkbox"] {
     cursor: pointer;
   }
@@ -114,9 +119,10 @@
 
   .subtitle {
     font-size: 1.2rem;
-    color: #555;
+    font-family: 'GmarketSansMedium', sans-serif;
+    color: #0A84FE;
     letter-spacing: 1px;
-    font-style: italic;
+    
     margin: 0;
   }
 
@@ -125,7 +131,7 @@
     font-weight: bold;
     text-transform: uppercase;
     letter-spacing: 2px;
-    background: linear-gradient(90deg, #73b5f8,#0C84FE );
+    background: linear-gradient(90deg, #73b5f8,#0A84FE);
     -webkit-background-clip: text;
     color: transparent;
     margin: 0.5rem 0;
@@ -133,31 +139,72 @@
   }
 
   /* 버튼 스타일 */
-  button, .kakao-login-button, .submit-button {
-    display: block;
+  button, .submit-button {
+    display: flex; /* Flexbox 활성화 */
+    justify-content: center; /* 가로 방향 중앙 정렬 */
+    align-items: center; /* 세로 방향 중앙 정렬 */
+    font-family: 'GmarketSansMedium', sans-serif;
     width: 80%; /* 기존 80%에서 60%로 줄임 */
     max-width: 200px; /* 버튼 최대 크기를 조금 더 줄임 */
     padding: 0.8rem;
     font-size: 1rem;
     margin: 1rem auto;
-    background-color: #73b5f8;
-    color: #333;
-    border: none;
+    background-color: #ffffff;
+    color: #0A84FE;
+    border-color: #0A84FE;
     border-radius: 50px; 
     cursor: pointer;
     font-weight: bold;
     transition: background-color 0.3s, transform 0.2s;
   }
 
-  button:hover, .kakao-login-button:hover, .submit-button:hover {
+
+  button:hover, .submit-button:hover {
     background-color: #0C84FE;
+    color:#ffffff;
     transform: translateY(-3px);
   }
 
-  .kakao-login-button {
+  #kakao-login-button {
     width: 70%;
+    font-family: 'GmarketSansMedium', sans-serif;
     max-width: 200px;
     font-size: 0.9rem;
+    padding: 0.8rem;
+    background-color: none;
+    color: #666;
+    border: none;
+    border-radius: none;
+    cursor: pointer;
+    text-align: center;
+    display: none;
+    transition: background-color 0.3s, transform 0.2s;
+  }
+  #kakao-login-button:hover {
+    background-color: #999;
+    color: #ffffff;
+    transform: translateY(-3px); /* Hover effect */
+  }
+  /* 로그아웃 버튼 스타일 */
+  #logout-button {
+    width: 70%;
+    font-family: 'GmarketSansMedium', sans-serif;
+    max-width: 200px;
+    font-size: 0.9rem;
+    padding: 0.8rem;
+    background-color: none;
+    color: #666;
+    border: none;
+    border-radius: none;
+    cursor: pointer;
+    text-align: center;
+    display: none;
+    transition: background-color 0.3s, transform 0.2s;
+  }
+  #logout-button:hover {
+    background-color: #999;
+    color: #ffffff;
+    transform: translateY(-3px); /* Hover effect */
   }
 
   /* 메인 컨테이너 */
@@ -188,7 +235,7 @@
     width: 100%;
     padding: 0.8rem;
     font-size: 1rem;
-    border: 1px solid #ddd;
+    border: 1px solid #0A84FE;
     border-radius: 8px;
     box-sizing: border-box;
     transition: border-color 0.3s ease, box-shadow 0.3s ease;
@@ -228,6 +275,18 @@
     margin-bottom: 0.5rem;
     border: 2px solid #fff;
   }
+  /* Styling for the current date */
+  #current-date {
+    
+    
+    text-align: left;
+    margin-top: 10px; 
+    font-size: 2rem; 
+    color: #272626;
+    
+    
+  }
+  
 
   /* 표 스타일 */
   table {
@@ -243,26 +302,38 @@
 
   th, td {
     padding: 0.8rem;
-    border: 1px solid #ddd;
+    border: 1px solid #ffffff;
     text-align: center;
     word-wrap: break-word; /* 텍스트 줄바꿈 */
+    border-color:#ddd;
   }
 
   th {
-    background: #73b5f8;
+    background: #ffffff;
     color: #333;
+    
     font-weight: bold;
     text-transform: uppercase; /* Uppercase for column titles */
+    
+  }
+
+  #participant-table td{
+    padding: 0.8rem;
+    border: 1px solid #ffffff;
+    text-align: center;
+    word-wrap: break-word; /* 텍스트 줄바꿈 */
+    border-color:#ddd;
+  }
+  #participant-table td:hover{
+    background-color: #bcd9f7;
   }
 
   td {
-    background: #f9f9f9;
+    background: #ffffff;
     transition: background 0.3s ease;
+    
   }
 
-  td:hover {
-    background: #fffae5; /* Highlight row on hover */
-  }
 
   /* 취소 버튼 스타일 */
   td img {
@@ -275,14 +346,6 @@
     transform: scale(1.2); /* Enlarge on hover */
   }
 
-  /* Add zebra stripes for alternate rows */
-  tbody tr:nth-child(odd) td {
-    background: #fdfdfd;
-  }
-
-  tbody tr:nth-child(even) td {
-    background: #f5f5f5;
-  }
 
   /* 이벤트와 상태 스타일 */
   .event, .status {
@@ -398,23 +461,4 @@
     border: 1px solid #ddd;
     border-radius: 5px;
     box-sizing: border-box;
-  }
-
-  #review-form button {
-    background: #b3d9ff;
-    color: #333;
-    font-weight: bold;
-    border: none;
-    padding: 0.8rem 1rem; /* 너비가 줄어들면서 패딩을 조정 */
-    border-radius: 5px;
-    margin-top: 1rem;
-    cursor: pointer;
-    width: 80%; /* 동일하게 60%로 설정 */
-    max-width: 200px; 
-    transition: background 0.3s ease, transform 0.2s ease;
-  }
-
-  #review-form button:hover {
-    background: #1f86ec;
-    transform: translateY(-2px);
   }

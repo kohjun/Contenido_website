@@ -84,10 +84,10 @@ router.get('/:id/participants', authenticateToken, async (req, res) => {
     // 각 참가자의 데이터를 User 모델에서 개별 조회
     const participants = await Promise.all(
       event.appliedParticipants.map(async participantId => {
-        const user = await User.findById(participantId).select('name gender');
+        const user = await User.findById(participantId).select('name gender phonenumber');
         return user
-          ? { name: user.name, gender: user.gender }
-          : { name: 'Unknown', gender: 'No Gender' }; // 사용자 정보가 없는 경우 기본값
+          ? { name: user.name, gender: user.gender, phonenumber: user.phonenumber }
+          : { name: 'Unknown', gender: 'No Gender', phonenumber : 'Unknown' }; // 사용자 정보가 없는 경우 기본값
       })
     );
 

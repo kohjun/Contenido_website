@@ -17,10 +17,23 @@
   
   <div class="container">
     <div class="title-container">
-      <p class="subtitle">리얼 버라이어티 연합 동아리</p>
+      <p class="subtitle">리얼 버라이어티<br> 연합 동아리</p>
       <h1 class="main-title">CONTENIDO</h1>
       <img src="/images/Conteindo_Image.jpg" width="200" height="200" alt="Content Image" />
     </div>
+    
+
+    <div>
+      <button ><a href="/콘테니도 동아리 회칙(2024-06-09 개정).pdf" target="_blank">
+        동아리 회칙</button>
+      </a>
+      
+      <button onclick="OnEvents()">진행중인 이벤트</button>
+      <button onclick="checkParticipationStatus()">참가자 상태</button>
+      
+    </div>
+    <button id="kakao-login-button" class="kakao-login-button" onclick="loginWithKakao()">Login with Kakao</button>
+    <button id="logout-button" style="display: none;" onclick="logout()">Logout</button>
     <div style="text-align: center; margin-top: 2rem;">
       <a href="https://m.youtube.com/@CONTENIDO-f6w" target="_blank" rel="noopener noreferrer" style="text-decoration: none;">
         <img src="/images/youtube-icon.png" alt="YouTube Icon" style="width: 50px; height: 60px;" />
@@ -29,24 +42,14 @@
       <a href="https://www.instagram.com/contenido__o?igsh=NDRocG93MTB4MDJn" target="_blank" rel="noopener noreferrer" style="text-decoration: none;">
         <img src="/images/instagram-icon.png" alt="Instagram Icon" style="width: 75px; height: 60px; " />
       </a><br>
-      <a href="/콘테니도 동아리 회칙(2024-06-09 개정).pdf" target="_blank" style="color:darkgrey">
-        동아리 회칙 보기
-      </a>
-      
-    </div>
-    <br>
-
-    <!-- Main controls section -->
-    <div>
-      <button id="kakao-login-button" class="kakao-login-button" onclick="loginWithKakao()">Login with Kakao</button>
-      <button id="logout-button" style="display: none;" onclick="logout()">로그아웃</button>
-      <button onclick="OnEvents()">진행중인 이벤트</button>
-      <button onclick="checkParticipationStatus()">참가자 상태 확인</button>
     </div>
   </div>
-
+  
   <!-- Footer section -->
   
+    
+  
+
 
   <script>
     function checkParticipationStatus() {
