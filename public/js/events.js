@@ -373,6 +373,13 @@ async function loadEventDetails(eventId) {
 }
 
 async function applyForEvent(eventId) {
+  const isConfirmed = confirm('이벤트 당일 일주일 전부터 신청취소 시 경고1회가 주어집니다. 신청하시겠습니까?');
+
+  if (!isConfirmed) {
+    // 사용자가 취소를 선택한 경우
+    alert('신청이 취소되었습니다.');
+    return;
+  }
   try {
     const response = await fetch(`/events/${eventId}/apply`, { method: 'POST' });
 

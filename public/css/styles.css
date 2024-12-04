@@ -113,17 +113,21 @@
   /* 제목 컨테이너 */
   .title-container {
     text-align: center;
+    
     margin-top: 1rem;
     margin-bottom: 2rem;
   }
-
+  dot {
+    text-emphasis-style : filled;
+  }
   .subtitle {
     font-size: 1.2rem;
     font-family: 'GmarketSansMedium', sans-serif;
+    line-height: 1.2;
     color: #0A84FE;
-    letter-spacing: 1px;
-    
+    letter-spacing: -0.5px;
     margin: 0;
+    
   }
 
   .main-title {
@@ -144,8 +148,8 @@
     justify-content: center; /* 가로 방향 중앙 정렬 */
     align-items: center; /* 세로 방향 중앙 정렬 */
     font-family: 'GmarketSansMedium', sans-serif;
-    width: 80%; /* 기존 80%에서 60%로 줄임 */
-    max-width: 200px; /* 버튼 최대 크기를 조금 더 줄임 */
+    width: 90%;
+    max-width: 240px; /* 버튼 최대 크기를 조금 더 줄임 */
     padding: 0.8rem;
     font-size: 1rem;
     margin: 1rem auto;
