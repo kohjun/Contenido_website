@@ -5,7 +5,7 @@ const jwt = require('jsonwebtoken');
 const authenticateToken = require('../middleware/authMiddleware'); // Ensure this middleware is availabl
 const User = require('../models/User');
 const KAKAO_CLIENT_ID = process.env.KAKAO_CLIENT_ID;
-const LOGOUT_REDIRECT_URI = 'http://localhost:3000/auth/final-logout';
+const LOGOUT_REDIRECT_URI = 'LOGOUT_REDIRECT_URI=https://www.contenido.kr/auth/final-logout'; 
 const JWT_SECRET = process.env.JWT_SECRET || 'hR68lDjbrA';
 const router = express.Router();
 

@@ -45,6 +45,6 @@ app.use('/reviews', require('./routes/reviews'));
 const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, () => {
-    console.log(`Server running on http://175.45.204.84:${PORT}`);
+    console.log(`Server running on https://www.contenido.kr:${PORT}`);
 });
 
