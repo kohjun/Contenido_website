@@ -2,7 +2,7 @@
 const express = require('express');
 const Event = require('../models/Event');
 const User = require('../models/User');
-const Review = require('../models/Review');
+const Review = require('../models/review');
 const router = express.Router();
 const authenticateToken = require('../middleware/authMiddleware');
 

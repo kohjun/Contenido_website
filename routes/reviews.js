@@ -1,6 +1,6 @@
 // routes/review.js
 const express = require('express');
-const Review = require('../models/Review');
+const Review = require('../models/review');
 const Event = require('../models/Event');
 const authenticateToken = require('../middleware/authMiddleware');
 const router = express.Router();
