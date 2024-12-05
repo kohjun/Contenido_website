@@ -90,7 +90,7 @@ async function fetchEvents() {
                 ? '<button disabled>마감</button>' // 마감된 경우
                 : isActive
                   ? `<button onclick="applyForEvent('${event._id}')">신청하기</button>` // active=true인 경우 신청 버튼
-                  : '<button disabled>비활동</button>' // active=false인 경우
+                  : '<button disabled>신청불가</button>' // active=false인 경우
           }
         </td>
         <td><a href="#" onclick="openContentWindow('${event._id}')">
