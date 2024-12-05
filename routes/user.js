@@ -42,13 +42,12 @@
       res.setHeader('Pragma', 'no-cache');
       res.setHeader('Expires', '0');
       res.setHeader('Surrogate-Control', 'no-store');
-
-    
       res.json({
         id: req.user.id, 
         nickname: req.user.displayName,
         email: req.user.email,
         role: req.user.role,
+        active : req.user.active,
         profileImage: req.user.profileImage || '/images/basic_Image.png'
       });
     } else {

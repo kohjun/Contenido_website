@@ -21,7 +21,6 @@ async function checkUserRole() {
       console.warn("Element 'staff-button-container' not found");
       return;
     }
-
     if (data.role === 'staff') {
       staffButton.style.display = 'block';
     }
@@ -29,8 +28,6 @@ async function checkUserRole() {
     console.error('Error fetching user role:', error);
   }
 }
-
-
 
 async function fetchEvents() {
   try {
@@ -76,9 +73,8 @@ async function fetchEvents() {
     events.forEach(event => {
       const isFull = event.appliedParticipants.length >= event.participants;
       const hasApplied = event.appliedParticipants.includes(currentUser.id);
-
+      const isActive = currentUser.active;
       const row = document.createElement('tr');
-
       row.innerHTML = `
         <td>${event.title}</td>
         <td>${new Date(event.date).toLocaleDateString()}</td>
@@ -89,10 +85,12 @@ async function fetchEvents() {
         <td>
           ${
             hasApplied
-              ? `<button onclick="cancelApplication('${event._id}')">신청취소</button>` // 신청한 사용자는 "신청취소" 버튼 표시
+              ? `<button onclick="cancelApplication('${event._id}')">신청취소</button>` // 이미 신청한 경우
               : isFull
-              ? '<button disabled>마감</button>' // 신청하지 않았고 마감된 경우
-              : `<button onclick="applyForEvent('${event._id}')" >신청하기</button>` // 신청하지 않았고 마감되지 않은 경우
+                ? '<button disabled>마감</button>' // 마감된 경우
+                : isActive
+                  ? `<button onclick="applyForEvent('${event._id}')">신청하기</button>` // active=true인 경우 신청 버튼
+                  : '<button disabled>비활동</button>' // active=false인 경우
           }
         </td>
         <td><a href="#" onclick="openContentWindow('${event._id}')">
@@ -343,6 +341,7 @@ async function handleCancelEvent(eventId, eventCreator) {
     console.error('Error checking role or canceling event:', error);
   }
 }
+
 async function loadEventDetails(eventId) {
   try {
     const response = await fetch(`/events/${eventId}`);
@@ -381,6 +380,8 @@ async function applyForEvent(eventId) {
     return;
   }
   try {
+
+
     const response = await fetch(`/events/${eventId}/apply`, { method: 'POST' });
 
     if (response.ok) {
