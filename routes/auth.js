@@ -6,7 +6,7 @@ const authenticateToken = require('../middleware/authMiddleware'); // Ensure thi
 const User = require('../models/User');
 const KAKAO_CLIENT_ID = process.env.KAKAO_CLIENT_ID;
 const LOGOUT_REDIRECT_URI = 'https://www.contenido.kr/auth/final-logout'; 
-const JWT_SECRET = process.env.JWT_SECRET || 'hR68lDjbrA';
+const JWT_SECRET = process.env.JWT_SECRET;
 const router = express.Router();
 
 // Initiate Kakao login
