@@ -5,7 +5,7 @@ const Event = require('../models/Event');
 const authenticateToken = require('../middleware/authMiddleware');
 const router = express.Router();
 
-// Get reviews for an event
+// 한 이벤트의 모든 리뷰 확인
 router.get('/', async (req, res) => {
   const { eventId } = req.query;
 
@@ -24,8 +24,7 @@ router.get('/', async (req, res) => {
   }
 });
 
-// Submit a new review
-
+// 새로운 리뷰 작성
 router.post('/', authenticateToken, async (req, res) => {
   const { eventId, rating, comment, isAnonymous } = req.body;
 
@@ -60,12 +59,7 @@ router.post('/', authenticateToken, async (req, res) => {
   }
 });
 
-
-
-
-
-
-// Delete a review
+// 리뷰 삭제
 router.delete('/:id', authenticateToken, async (req, res) => {
   console.log(`Delete request for review ID: ${req.params.id}`); // 요청 ID 로깅
 

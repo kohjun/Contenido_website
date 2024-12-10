@@ -29,9 +29,6 @@
       console.error('Error during monthly user status update:', error);
     }
   });
-  
-
-
 
   // 유저 정보 얻기
   router.get('/info', authenticateToken, (req, res) => {

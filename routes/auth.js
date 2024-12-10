@@ -9,10 +9,10 @@ const LOGOUT_REDIRECT_URI = 'https://www.contenido.kr/auth/final-logout';
 const JWT_SECRET = process.env.JWT_SECRET;
 const router = express.Router();
 
-// Initiate Kakao login
+// 카카오 로그인 초기화
 router.get('/kakao', passport.authenticate('kakao'));
 
-// Kakao callback to handle login and generate JWT token
+// JWT 토큰 생성 및 카카오 로그인 콜백 핸들링
 router.get(
   '/kakao/callback',
   passport.authenticate('kakao', { failureRedirect: '/' }),
@@ -49,6 +49,7 @@ router.get(
   }
 );
 
+// 회원가입 추가 정보 입력
 router.post('/additional-info', authenticateToken, async (req, res) => {
   try {
     const user = await User.findById(req.user.id);
@@ -72,11 +73,7 @@ router.post('/additional-info', authenticateToken, async (req, res) => {
   }
 });
 
-
-
-
-
-
+// 사용자 역할 검증
 router.get('/user-role', authenticateToken, (req, res) => {
   if (req.user) {
       res.json({ role: req.user.role });
@@ -84,14 +81,15 @@ router.get('/user-role', authenticateToken, (req, res) => {
       res.status(401).json({ message: 'Unauthorized' });
   }
 });
-// Logout and clear JWT cookie
+
+// 카카오톡 로그아웃  및 리디렉션
 router.get('/logout', (req, res) => {
   const kakaoLogoutUrl = `https://kauth.kakao.com/oauth/logout?client_id=${KAKAO_CLIENT_ID}&logout_redirect_uri=${LOGOUT_REDIRECT_URI}`;
   res.redirect(kakaoLogoutUrl);
 });
 
 
-// Final local logout route to clear JWT and session cookie
+// 세션 쿠키 및 JWT 토큰 제거, 최종 로그아웃
 router.get('/final-logout', (req, res) => {
   res.clearCookie('jwt');
   res.clearCookie('connect.sid');
@@ -100,6 +98,5 @@ router.get('/final-logout', (req, res) => {
      res.redirect('/index.html');
   });
 });
-
 
 module.exports = router;

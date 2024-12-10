@@ -8,11 +8,10 @@ const authenticateToken = require('../middleware/authMiddleware');
 
 // GET 요청
 
-// Get all events
+// 모든 이벤트 확인
 router.get('/', async (req, res) => {
   try {
     const events = await Event.find({ isEnded: false }).populate('creator', 'displayName email'); 
-    // 'displayName email'은 반환하고자 하는 사용자 정보 필드 (선택사항)
     
     res.json(events);
   } catch (error) {
@@ -21,7 +20,7 @@ router.get('/', async (req, res) => {
 }); 
 
 
-// Get participation status for all events
+// 참가자 상태 확인
 router.get('/participants/status', async (req, res) => {
   try {
     const events = await Event.find({}).populate('participants');
@@ -38,6 +37,8 @@ router.get('/participants/status', async (req, res) => {
   }
 });
 
+
+// 종료된 이벤트 정보 확인
 router.get('/ended', async (req, res) => {
   try {
     const endedEvents = await Event.find({ isEnded: true }); // 종료된 이벤트 검색
@@ -51,11 +52,7 @@ router.get('/ended', async (req, res) => {
   }
 });
 
-
-
-
-
-// Get a specific event by ID
+// 특정 이벤트 정보 확인 
 router.get('/:id', async (req, res) => {
   try {
     const event = await Event.findById(req.params.id).populate('creator', '_id');
@@ -68,7 +65,7 @@ router.get('/:id', async (req, res) => {
   }
 });
 
-
+// 참가 신청한 참가자의 정보 확인
 router.get('/:id/participants', authenticateToken, async (req, res) => {
   try {
     const event = await Event.findById(req.params.id);
@@ -102,12 +99,8 @@ router.get('/:id/participants', authenticateToken, async (req, res) => {
   }
 });
 
-
-
-
 // POST 요청
-
-// Create a new event
+// 새로운 이벤트 등록
 router.post('/', authenticateToken, async (req, res) => {
   const { title, date, place, participants, startTime, endTime, participation_fee, contents } = req.body;
 
@@ -132,8 +125,7 @@ router.post('/', authenticateToken, async (req, res) => {
 });
 
 
-
-// Submit event participation report (consolidated)
+// 이벤트 결과 보고서 제출
 router.post('/:id/report', authenticateToken, async (req, res) => {
   const { week, participants } = req.body;
 
@@ -179,7 +171,7 @@ async function findEventById(eventId, res, throwError = false) {
   return event;
 }
 
-// Mark an event as ended
+// 이벤트 종료 표시
 router.post('/:id/end', authenticateToken, async (req, res) => {
   try {
     const event = await findEventById(req.params.id, res);
@@ -250,10 +242,8 @@ router.post('/:id/cancel-application', authenticateToken, async (req, res) => {
   }
 });
 
-
 // DELETE 요청
-
-// Cancel an event
+// 이벤트 삭제
 router.delete('/:id', authenticateToken, async (req, res) => {
   try {
     const event = await Event.findById(req.params.id);
@@ -277,17 +267,8 @@ router.delete('/:id', authenticateToken, async (req, res) => {
   }
 });
 
-
-
-
-
-
-
-
-
 // PUT 요청
-
-// Update event content using PUT
+// 이벤트 내용 수정하기
 router.put('/update-content', authenticateToken, async (req, res) => {
   const { eventId, title, place, date, participants, startTime, endTime, participation_fee, contents } = req.body;
 
@@ -329,10 +310,6 @@ router.put('/update-content', authenticateToken, async (req, res) => {
     res.status(500).json({ message: 'Error updating event content', error });
   }
 });
-
-
-
-
 
 
 module.exports = router;

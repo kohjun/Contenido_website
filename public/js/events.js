@@ -342,35 +342,6 @@ async function handleCancelEvent(eventId, eventCreator) {
   }
 }
 
-async function loadEventDetails(eventId) {
-  try {
-    const response = await fetch(`/events/${eventId}`);
-    const event = await response.json();
-
-    const isApplied = event.appliedParticipants.includes(currentUserId);
-    const button = document.getElementById('apply-button');
-
-    if (isApplied) {
-      button.textContent = '신청 취소';
-      button.onclick = () => cancelApplication(eventId);
-    } else {
-      button.textContent = '신청하기';
-      button.onclick = () => applyForEvent(eventId);
-    }
-
-    document.getElementById('event-details').innerHTML = `
-      <p>제목: ${event.title}</p>
-      <p>장소: ${event.place}</p>
-      <p>날짜: ${new Date(event.date).toLocaleDateString()}</p>
-      <p>내용: ${event.contents}</p>
-      <p>참가 현황: ${event.appliedParticipants.length} / ${event.participants}</p>
-    `;
-  } catch (error) {
-    console.error('Error loading event details:', error);
-    alert('이벤트 정보를 불러오는 중 문제가 발생했습니다.');
-  }
-}
-
 async function applyForEvent(eventId) {
   const isConfirmed = confirm('이벤트 당일 일주일 전부터 신청취소 시 경고1회가 주어집니다. 신청하시겠습니까?');
 
@@ -396,6 +367,7 @@ async function applyForEvent(eventId) {
     alert('신청 중 문제가 발생했습니다.');
   }
 }
+
 async function cancelApplication(eventId) {
   try {
     const response = await fetch(`/events/${eventId}/cancel-application`, { method: 'POST' });
@@ -418,7 +390,6 @@ async function cancelApplication(eventId) {
 function checkParticipationStatus() {
   window.location.href = '/participation-status.html';
 }
-
 
 
 
