@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Officer Page</title>
+    <link rel="stylesheet" href="/css/office.css" />
+    
+</head>
+<body>
+    <!-- 사이드바 컨테이너 -->
+    <div id="sidebar-container"></div>
+
+    <!-- 메인 컨텐츠 -->
+    <main class="main-content" id="main-content">
+        <h1>Officer Page</h1>
+        <p style="margin-top: 1rem;">Officer 페이지 컨텐츠가 들어갈 영역입니다.</p>
+    </main>
+
+    <!-- 먼저 sidebar.js를 로드 -->
+    <script src="/js/office/sidebar.js"></script>
+    
+    <!-- 그 다음 초기화 스크립트 실행 -->
+    <script>
+        // DOM이 로드된 후 실행
+        document.addEventListener('DOMContentLoaded', function() {
+          // sidebar.js가 모듈이 아닌 일반 스크립트로 로드되므로 전역 Sidebar 객체 사용
+          const container = document.getElementById('sidebar-container');
+          Sidebar.init(container);
+
+          // 사이드바 토글 시 메인 컨텐츠 여백 조정
+          const mainContent = document.getElementById('main-content');
+          document.querySelector('.org-toggle-btn').addEventListener('click', () => {
+              mainContent.classList.toggle('sidebar-collapsed');
+          });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>내 정보</title>
+  <link rel="stylesheet" href="/css/mypage.css" />
+</head>
+
+<body>
+
+  <div class="container">
+    <!-- 내 정보 페이지 제목 -->
+    <h3>기본 정보</h3>
+
+    <!-- 사용자 정보 -->
+    <div class="user-info" id="user-info" style="display: none;">
+      <img src="/images/basic_Image.png" style="text-align: center;" alt="User Profile" id="user-image" />
+      <p> <strong id="user-name"> </strong></p>
+      <p id="user-nickname"></p>
+      <p id="user-email"></p>
+      <p id="user-gender"></p>
+      <p id="user-phonenumber"></p>
+      <p id="user-role"></p>
+      <p id="user-active"></p>
+    </div>
+    <h3> 진행중인 이벤트 참가 현황</h3>
+
+    <h3> 참가한 종료 이벤트</h3>
+
+    <h3> 내 리뷰 </h3>
+
+    <h3> </h3>
+    <div class=""></div>
+    <div class="button-container">
+      <button onclick="OnEvents()">진행중인 이벤트</button>
+      <button onclick="checkParticipationStatus()">참가자 상태 확인</button>
+      <a href="index.html"> <button >Home</button></a>
+    </div>
+
+
+
+  <!-- Script -->
+  <script src ="js/mypage.js"></script>
+
+</body>
+</html>

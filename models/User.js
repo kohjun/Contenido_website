@@ -14,7 +14,7 @@ const userSchema = new mongoose.Schema({
   }, // 역할 추가
   department: { 
     type: String, 
-    enum: ['operations', 'promotion', 'planning'], 
+    enum: ['operation', 'promotion', 'planning'], 
     required: function () { return this.role === 'staff'; } 
   }, // 부서 (staff 전용)
   team: { 

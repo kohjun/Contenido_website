@@ -94,12 +94,12 @@ async function fetchEvents() {
           }
         </td>
         <td><a href="#" onclick="openContentWindow('${event._id}')">
-        <img src ="/images/info-check.png" alt="Check Event" style =" cursor: pointer; width: 100px;">
+        <img src ="/images/info-check.png" alt="Check Event" style =" cursor: pointer; width: 10;">
         </a></td>
         <td>
           <img src="/images/event-cancel-icon.png" 
                alt="Cancel Event" 
-               style="cursor: pointer; width: 30px;" 
+               style="cursor: pointer; width: 10;" 
                onclick="handleCancelEvent('${event._id}', '${event.creator}')">
         </td>
       `;

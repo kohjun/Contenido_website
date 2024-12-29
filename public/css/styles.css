@@ -14,8 +14,9 @@
     line-height: 1.6;
   }
 
-  h1, h2, h3, h4, h5, h6 {
-    margin: 0;
+  h1, h2{
+    text-align: center;
+    
   }
   /* 참가자 리스트 그리드 스타일 */
   .participant-grid {
@@ -212,6 +213,7 @@
   }
 
   /* 메인 컨테이너 */
+
   .container {
     max-width: 700px;
     margin: 2rem auto;
@@ -219,7 +221,45 @@
     background: #fff;
     border-radius: 12px;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    position: relative; /* Ensure the button is positioned relative to this container */
   }
+  
+  /* 토글 버튼 스타일 */
+.toggle-btn {
+  position: absolute;
+  top: 1rem;
+  left: 1rem;
+  background: #fff;
+  color: #0A84FE;
+  padding: 0.5rem;
+  font-size: 1.5rem;
+  border:none;
+  width: 50px;
+  height: 40px;
+  cursor: pointer;
+  z-index: 1001; /* 다른 요소들 위에 오도록 설정 */
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.toggle-btn:hover {
+  background-color: #0A84FE; /* 호버 시 색상 변경 */
+  transform: scale(1.05); /* 살짝 커지는 효과 */
+}
+
+/* 토글 버튼 활성화 상태 스타일 */
+.toggle-btn.active {
+  background-color: #0A84FE; /* 활성화된 상태에서 색상 변경 */
+  transform: scale(1.1); /* 활성화 상태에서 버튼 크기 확대 */
+}
+
+/* 반응형 디자인 */
+@media (max-width: 768px) {
+  .toggle-btn {
+    font-size: 1.2rem; /* 모바일 화면에서는 글씨 크기 조정 */
+    top: 0.5rem;
+    left: 0.5rem;
+  }
+}
 
   /* 폼 */
   .form-group {
@@ -291,6 +331,34 @@
     
   }
   
+  /* Sidebar styles */
+.sidebar {
+  position: fixed;
+  top: 0;
+  left: -250px; /* Sidebar starts hidden (off-screen) */
+  height: 100%;
+  width: 250px;
+  background-color: #fff;
+  border-right: 1px solid #ddd;
+  box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+  overflow-x: hidden;
+  transition: left 0.3s ease-in-out; /* Smooth slide animation */
+  z-index: 1000;
+}
+
+.sidebar a {
+  padding: 15px 20px;
+  text-decoration: none;
+  font-size: 18px;
+  
+  display: block;
+}
+
+.sidebar a:hover {
+  background-color: #f4f4f4;
+}
+
+
 
   /* 표 스타일 */
   table {
@@ -466,3 +534,31 @@
     border-radius: 5px;
     box-sizing: border-box;
   }
+
+
+
+
+
+  /* 스크롤바 전체 */
+::-webkit-scrollbar {
+  width: 12px; /* 스크롤바의 너비 */
+  height: 12px; /* 가로 스크롤바의 높이 */
+}
+
+/* 스크롤바 배경 */
+::-webkit-scrollbar-track {
+  background: #f1f1f1; /* 스크롤바 배경 색 */
+  border-radius: 10px; /* 모서리 둥글게 */
+}
+
+/* 스크롤바 핸들(움직이는 부분) */
+::-webkit-scrollbar-thumb {
+  background: #888; /* 핸들 색 */
+  border-radius: 10px; /* 핸들의 모서리 둥글게 */
+  border: 3px solid #f1f1f1; /* 핸들 주변에 여백을 만들기 위한 경계 */
+}
+
+/* 스크롤바 핸들이 마우스와 상호작용할 때 */
+::-webkit-scrollbar-thumb:hover {
+  background: #555; /* 마우스를 올렸을 때 색 */
+}

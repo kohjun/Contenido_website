@@ -3,19 +3,20 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Login</title>
+  <title>콘테니도</title>
+  <link rel="icon" href="/images/Contenido_Logo.ico" type="image/x-icon">
   <link rel="stylesheet" href="/css/styles.css" />
 </head>
+
 <body>
+
   <!-- User Info section positioned at the top-right -->
-  <div class="user-info" id="user-info" style="display: none;">
-    <img src="/images/basic_Image.png" style="text-align: center;"alt="User Profile" id="user-image" />
-    <p><strong id="user-nickname"></strong></p>
-    <p id="user-email"></p>
-    <p id="user-role"></p>
-  </div>
+  
   
   <div class="container">
+    <!-- Toggle Button -->
+    <button id="toggle-btn" class="toggle-btn" onclick="toggleSidebar()">☰</button>
+
     <div class="title-container">
       <p class="subtitle"><strong><dot>리얼</dot> 버라이어티<br>연합 동아리</strong></p>
       <br><br>
@@ -23,14 +24,10 @@
     </div>
     <br>
 
-    <div>
-      <button ><a href="/콘테니도 동아리 회칙(2024-06-09 개정).pdf" target="_blank">
-        동아리 회칙 보기</button>
-      </a>
-      
+    <div> 
+      <button >메뉴얼 보기</button>
       <button onclick="OnEvents()">진행중인 이벤트</button>
       <button onclick="checkParticipationStatus()">참가자 상태 확인</button>
-  
     </div>
 
     <button id="kakao-login-button" class="kakao-login-button" onclick="loginWithKakao()">Login with Kakao</button>
@@ -46,6 +43,23 @@
     </div>
   </div>
   
+  <!-- aside section -->
+  <aside>
+    <!-- Sidebar Section -->
+    <div id="sidebar" class="sidebar">
+      <div>
+        <a href="office.html" id="staffPageLink"><h3>운영진 페이지</h3></a>
+        <a><h3>참가자</h3></a>
+        <ul>         
+          <li> <a href="mypage.html">마이페이지</a></li>
+          <li> <a href="">참가자 랭킹</a></li>
+        </ul>
+        
+        <a href="" onclick="alert('추후 확장 예정입니다!')"><h3>동아리 모집(예정)</h3></a>
+
+      </div>
+    </div>
+  </aside>
   <!-- Footer section -->
   
     
@@ -53,6 +67,8 @@
 
 
   <script>
+
+    
     function checkParticipationStatus() {
       window.location.href = '/participation-status.html';
     }
@@ -83,43 +99,28 @@
     function OnEvents() {
       window.location.href = '/events.html';
     }
-
+    function OnOfficer() {
+      window.location.href = '/officer.html';
+    }
     function logout() {
       window.location.href = '/auth/logout';
     }
 
-    async function fetchUserInfo() {
-      try {
-        const response = await fetch('/user/info');
-        if (response.status === 401) {
-          console.log("User is not logged in.");
-          document.getElementById('user-info').style.display = 'none';
-          return;
-        }
+    
+    function toggleSidebar() {
+  const sidebar = document.getElementById("sidebar");
+  const toggleBtn = document.getElementById("sidebar-toggle-btn");
 
-        const data = await response.json();
-        console.log("Fetched data:", data);
+  if (sidebar.style.left === "0px") {
+    sidebar.style.left = "-250px"; // Hide sidebar
+    
+  } else {
+    sidebar.style.left = "0px"; // Show sidebar
+  
+  }
+}
 
-        if (data.nickname && data.email && data.role) {
-          const userInfoDiv = document.getElementById('user-info');
-          const userNickname = document.getElementById('user-nickname');
-          const userEmail = document.getElementById('user-email');
-          const userRole = document.getElementById('user-role');
-          const userImage = document.getElementById('user-image');
-          
-          userNickname.innerText = data.nickname;
-          userEmail.innerText = data.email.replace(/^(.{3,})(.{4})(@.*)$/, '$1****$3');
-          userRole.innerText = `Role: ${data.role}`;
-          userInfoDiv.style.display = 'block';
 
-          userImage.src = data.profileImage || '/images/basic_Image.png';
-        }
-      } catch (error) {
-        console.error('Error fetching user info:', error);
-      }
-    }
-
-    document.addEventListener('DOMContentLoaded', fetchUserInfo);
   </script>
 </body>
 </html>

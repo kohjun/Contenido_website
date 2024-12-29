@@ -1,0 +1,103 @@
+@font-face {
+    font-family: 'GmarketSansMedium';
+    src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_2001@1.1/GmarketSansMedium.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+  }
+  body {
+    font-family: 'GmarketSansMedium', sans-serif;
+    background-color: #f4f4f4;
+    color: #333;
+    margin: 0;
+    padding: 0;
+    line-height: 1.6;
+  }
+
+  h1, h2{
+    text-align: center;
+    
+  }
+  /* 버튼 스타일 */
+  button, .submit-button {
+    display: flex; /* Flexbox 활성화 */
+    justify-content: center; /* 가로 방향 중앙 정렬 */
+    align-items: center; /* 세로 방향 중앙 정렬 */
+    font-family: 'GmarketSansMedium', sans-serif;
+    width: 90%;
+    max-width: 240px; /* 버튼 최대 크기를 조금 더 줄임 */
+    padding: 0.8rem;
+    font-size: 1rem;
+    margin: 1rem auto;
+    background-color: #ffffff;
+    color: #0A84FE;
+    border-color: #0A84FE;
+    border-radius: 50px; 
+    cursor: pointer;
+    font-weight: bold;
+    transition: background-color 0.3s, transform 0.2s;
+  }
+
+
+  button:hover, .submit-button:hover {
+    background-color: #0C84FE;
+    color:#ffffff;
+    transform: translateY(-3px);
+  }
+  /* 메인 컨테이너 */
+  .container {
+    max-width: 700px;
+    margin: 2rem auto;
+    padding: 2rem;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  }
+
+
+/* User Information Display */
+.user-info {
+
+    background: #fff;
+    color: #0A84FE;
+    padding: 0.8rem;
+    border-radius: 12px;
+    text-align: left;
+    width: 220px;
+    font-size: 0.85rem;
+  }
+
+  .user-info p {
+    margin: 0.3rem 0;
+    font-size: 0.9rem;
+    color: #333;
+  }
+
+  .user-info img {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    margin-bottom: 0.5rem;
+    border: 2px solid #fff;
+  }
+  /* Styling for the current date */
+  #current-date {
+    
+    
+    text-align: left;
+    margin-top: 10px; 
+    font-size: 2rem; 
+    color: #272626;
+    
+  }
+
+
+
+
+  /* 반응형 디자인 */
+@media (max-width: 768px) {
+    .toggle-btn {
+      font-size: 1.2rem; /* 모바일 화면에서는 글씨 크기 조정 */
+      top: 0.5rem;
+      left: 0.5rem;
+    }
+  }
