@@ -1,94 +1,37 @@
-인사팀 페이지입니다
-
 <!DOCTYPE html>
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>인사팀 관리 페이지</title>
-    <link rel="stylesheet" href="/css/styles.css">
-    <style>
-        .role-buttons {
-            margin: 20px 0;
-        }
-        .role-buttons button {
-            margin-right: 10px;
-            padding: 10px 20px;
-        }
-        .active-button {
-            background-color: #4CAF50;
-            color: white;
-        }
-        .user-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-        }
-        .user-table th, .user-table td {
-            border: 1px solid #ddd;
-            padding: 8px;
-            text-align: left;
-        }
-        .user-table th {
-            background-color: #f4f4f4;
-        }
-        .profile-image {
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-        }
-        .toggle-switch {
-            position: relative;
-            display: inline-block;
-            width: 60px;
-            height: 34px;
-        }
-        .toggle-switch input {
-            opacity: 0;
-            width: 0;
-            height: 0;
-        }
-        .slider {
-            position: absolute;
-            cursor: pointer;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: #ccc;
-            transition: .4s;
-            border-radius: 34px;
-        }
-        .slider:before {
-            position: absolute;
-            content: "";
-            height: 26px;
-            width: 26px;
-            left: 4px;
-            bottom: 4px;
-            background-color: white;
-            transition: .4s;
-            border-radius: 50%;
-        }
-        input:checked + .slider {
-            background-color: #2196F3;
-        }
-        input:checked + .slider:before {
-            transform: translateX(26px);
-        }
-    </style>
+    <title>인사팀 관리</title>
+    <link rel="stylesheet" href="/css/hr.css">
 </head>
 <body>
     <div class="container">
         <h1>인사팀 관리 페이지</h1>
+        <p>경고횟수 바꾸기 + 역할 변경 (예정) </p>
         
         <div class="role-buttons">
-            <button onclick="showUsersByRole('participant')" class="active-button">Participant</button>
-            <button onclick="showUsersByRole('staff')">Staff</button>
-            <button onclick="showUsersByRole('starter')">Starter</button>
+            <button class="role-button active" onclick="showUsersByRole('all', true)" data-role="all">전체</button>
+            <button class="role-button" onclick="showUsersByRole('participant', true)" data-role="participant">참가자</button>
+            <button class="role-button" onclick="showUsersByRole('officer', true)" data-role="officer">운영진</button>
+            <button class="role-button" onclick="showUsersByRole('starter', true)" data-role="starter">스타터</button>
+            <button class="role-button" onclick="showUsersByRole('guest', true)" data-role="guest">게스트</button>
         </div>
-
-        <div id="user-table-container">
+        <!-- 검색 폼 추가 -->
+        <div class="search-container">
+            <select id="search-option">
+                <option value="displayName">이름</option>
+                <option value="warnings">경고횟수</option>
+                <option value="active">활성상태</option>
+                <option value="role">역할</option>
+                <option value="gender">성별</option>
+            </select>
+            <input type="text" id="search-input" placeholder="검색어를 입력하세요">
+            <button onclick="searchUsers()">검색</button>
+            <button onclick="resetSearch()">초기화</button>
+        </div>
+        <div id="user-list">
             <table class="user-table">
                 <thead>
                     <tr>
@@ -101,112 +44,15 @@
                         <th>활성상태</th>
                     </tr>
                 </thead>
-                <tbody id="user-table-body">
-                    <!-- JavaScript will populate this -->
-                </tbody>
+                <tbody id="user-table-body"></tbody>
             </table>
+            <div id="pagination"></div>
         </div>
 
-        <div class="navigation-buttons">
-            <button onclick="window.location.href='events.html'">진행중인 이벤트</button>
-            <button onclick="window.location.href='index.html'">Home</button>
-        </div>
+        
     </div>
 
-    <script>
-        let currentRole = 'participant';
-        let users = [];
-
-        // 페이지 로드 시 사용자 데이터 가져오기
-        document.addEventListener('DOMContentLoaded', () => {
-            fetchUsers();
-        });
-
-        // 사용자 데이터 가져오기
-        async function fetchUsers() {
-            try {
-                const response = await fetch('/user/participants/users');
-                users = await response.json();
-                showUsersByRole(currentRole);
-            } catch (error) {
-                console.error('Error fetching users:', error);
-            }
-        }
-
-        // 역할별 사용자 표시
-        function showUsersByRole(role) {
-            currentRole = role;
-            
-            // 버튼 스타일 업데이트
-            document.querySelectorAll('.role-buttons button').forEach(button => {
-                button.classList.remove('active-button');
-                if (button.textContent.toLowerCase() === role.toLowerCase()) {
-                    button.classList.add('active-button');
-                }
-            });
-
-            // 해당 역할의 사용자만 필터링
-            const filteredUsers = users.filter(user => user.role === role);
-            
-            // 테이블 내용 업데이트
-            const tableBody = document.getElementById('user-table-body');
-            tableBody.innerHTML = filteredUsers.map(user => `
-                <tr>
-                    <td><img src="${user.profileImage}" alt="Profile" class="profile-image"></td>
-                    <td>${user.displayName}</td>
-                    <td>${user.role}</td>
-                    <td>${user.gender || '-'}</td>
-                    <td>${user.warnings || 0}</td>
-                    <td>${calculateParticipationCount(user.status)}</td>
-                    <td>
-                        <label class="toggle-switch">
-                            <input type="checkbox" ${user.active ? 'checked' : ''} 
-                                   onchange="toggleUserActive('${user.id}', this.checked)">
-                            <span class="slider"></span>
-                        </label>
-                    </td>
-                </tr>
-            `).join('');
-        }
-
-        // 참가 횟수 계산
-        function calculateParticipationCount(status) {
-            if (!status) return 0;
-            return Object.values(status).filter(week => week === 'O').length;
-        }
-
-        // 활성 상태 토글
-        async function toggleUserActive(userId, active) {
-            try {
-                const response = await fetch(`/user/toggle-active/${userId}`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ active })
-                });
-
-                if (response.ok) {
-                    // 사용자 데이터 업데이트
-                    users = users.map(user => 
-                        user.id === userId ? { ...user, active } : user
-                    );
-                } else {
-                    // 토글 실패 시 체크박스 원래 상태로 되돌리기
-                    const checkbox = document.querySelector(`input[onchange*="${userId}"]`);
-                    if (checkbox) {
-                        checkbox.checked = !active;
-                    }
-                }
-            } catch (error) {
-                console.error('Error toggling user active status:', error);
-                // 에러 발생 시 체크박스 원래 상태로 되돌리기
-                const checkbox = document.querySelector(`input[onchange*="${userId}"]`);
-                if (checkbox) {
-                    checkbox.checked = !active;
-                }
-            }
-        }
-    </script>
+    <!-- JavaScript 파일 로드 -->
+    <script src="/js/office/hr.js"></script>
 </body>
 </html>

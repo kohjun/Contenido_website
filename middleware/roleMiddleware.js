@@ -27,7 +27,7 @@ const authorizeRoles = (...allowedRoles) => {
       try {
         const creatorId = await getResourceCreatorId(req);
         
-        if (req.user.role === 'staff' || creatorId?.toString() === req.user.id) {
+        if (req.user.role === 'officer' || creatorId?.toString() === req.user.id) {
           next();
         } else {
           res.status(403).json({ 

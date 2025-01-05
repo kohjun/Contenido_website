@@ -10,18 +10,22 @@
 <body>
   <div class="calendar-container">
     <h1>이벤트 캘린더</h1>
-    <div id="current-date"></div>
-    <div id="calendar"></div>
+    
+    
     <div class="controls">
+      <button id="prev-week" class="nav-button"> < </button>
+      <div id="current-date"></div>
+      <button id="next-week" class="nav-button"> > </button>
+    </div>
+    <div id="calendar"></div>
+    <div class="extra-controls">
       <button id="change-view">주/월</button>
-      <button id="prev-week"> < </button>
       <button id="this-week">Today</button>
-      <button id="next-week"> > </button>
     </div>
   </div>
   <div class="navigation-buttons">
     <button onclick="window.location.href='events.html'">진행중인 이벤트</button>
-    <button onclick="window.location.href='event-staff.html'">이벤트 관리(기획부 전용)</button>
+    <button onclick="window.location.href='event-staff.html'">이벤트 관리</button>
     <button onclick="window.location.href='index.html'">Home</button>
   </div>
   <script src="https://uicdn.toast.com/calendar/latest/toastui-calendar.min.js"></script>

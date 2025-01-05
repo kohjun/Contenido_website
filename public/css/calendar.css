@@ -28,12 +28,34 @@ body {
 }
 
 .controls {
-  margin-bottom: 20px;
   display: flex;
-  gap: 10px;
+  align-items: center;
   justify-content: center;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+.controls .nav-button {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 50%; /* 동그란 버튼 */
+  background-color: #f4f4f4;
+  font-size: 18px;
+  cursor: pointer;
+  transition: all 0.3s;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+.controls .nav-button:hover {
+  background-color: #e0e0e0;
+  transform: scale(1.1); /* 호버 시 약간 커지는 효과 */
 }
 
+.controls .nav-button:active {
+  background-color: #d6d6d6;
+}
 button {
   padding: 10px 20px;
   font-size: 16px;
@@ -51,10 +73,42 @@ button:hover {
 #current-date {
   font-size: 24px;
   font-weight: bold;
-  margin: 20px 0;
   text-align: center;
+  flex: 1;
+}
+#change-view {
+  padding: 10px 20px;
+  font-size: 16px;
+  font-weight: bold;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  background-color: #ffffff;
+  color: #666;
+  cursor: pointer;
+  transition: all 0.3s;
 }
 
+#change-view:hover {
+  background-color: #0288d1;
+  color:#ffffff;
+}
+
+#this-week {
+  padding: 10px 20px;
+  font-size: 16px;
+  font-weight: bold;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  background-color: #ffffff;
+  color: #666;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+#this-week:hover {
+  background-color: #0288d1;
+  color:#ffffff;
+}
 .navigation-buttons {
   display: flex;
   gap: 10px;

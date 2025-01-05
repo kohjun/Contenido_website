@@ -22,7 +22,7 @@ async function loadEventContent(eventId) {
     const user = await userResponse.json();
   
 
-    if (event.creator === user.id&&user.role === "staff") {
+    if (event.creator === user.id&&user.role === "officer") {
       document.getElementById('modify-button').style.display = 'block';
     } else {
       document.getElementById('modify-button').style.display = 'none';

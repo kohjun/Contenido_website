@@ -9,24 +9,24 @@ const userSchema = new mongoose.Schema({
   isVerified: { type: Boolean, default: true },
   role: { 
     type: String, 
-    enum: ['participant', 'starter', 'staff'], 
-    default: 'participant' 
+    enum: ['participant', 'starter', 'officer','guest'], 
+    default: 'guest' 
   }, // 역할 추가
   department: { 
     type: String, 
     enum: ['operation', 'promotion', 'planning'], 
-    required: function () { return this.role === 'staff'; } 
-  }, // 부서 (staff 전용)
+    required: function () { return this.role === 'officer'; } 
+  }, // 부서 (officer 전용)
   team: { 
     type: String, 
     required: function () { 
-      return this.role === 'staff' && !this.isDepartmentHead; 
+      return this.role === 'officer' && !this.isDepartmentHead; 
     } 
-  }, // 팀 (staff이고 부장이 아닌 경우 필수)
+  }, // 팀 (officer이고 부장이 아닌 경우 필수)
   isDepartmentHead: { 
     type: Boolean, 
     default: false, 
-    required: function () { return this.role === 'staff'; } 
+    required: function () { return this.role === 'officer'; } 
   }, // 부장 여부
   status: {
     week1: { type: String, default: 'X' },
@@ -34,7 +34,7 @@ const userSchema = new mongoose.Schema({
     week3: { type: String, default: 'X' },
     week4: { type: String, default: 'X' }
   },
-  active: { type: Boolean, default: true },
+  active: { type: Boolean, default: false },
   name: { type: String },
   gender: { type: String, enum: ['male', 'female', 'other'] },
   birthDate: { type: Date },
@@ -45,9 +45,9 @@ const userSchema = new mongoose.Schema({
   reviews: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Review' }] // 작성한 후기
 });
 
-// 커스텀 검증: staff 역할일 때 부서 및 조건 확인
+// 커스텀 검증: officer 역할일 때 부서 및 조건 확인
 userSchema.pre('save', function (next) {
-  if (this.role === 'staff') {
+  if (this.role === 'officer') {
     if (!this.department) {
       return next(new Error('부서가 없습니다다'));
     }

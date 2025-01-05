@@ -19,7 +19,7 @@ const Sidebar = (function() {
           <a href="#" class="org-menu-item" data-team="operationTeam">
             <div class="org-menu-item-content">
               <div class="org-menu-item-label"><strong>운영팀</strong></div>
-              <div class="org-menu-item-description">부서간 소통통 및 일정 관리</div>
+              <div class="org-menu-item-description">부서간 소통 및 일정 관리</div>
             </div>
           </a>
           <a href="#" class="org-menu-item" data-team="cooperationTeam">
@@ -31,7 +31,7 @@ const Sidebar = (function() {
           <a href="#" class="org-menu-item" data-team="HumanResourceTeam">
             <div class="org-menu-item-content">
               <div class="org-menu-item-label"><strong>인사팀</strong></div>
-              <div class="org-menu-item-description">운영진, 참가자 규칙 및 입출관리</div>
+              <div class="org-menu-item-description">인사 규칙 및 입출관리</div>
             </div>
           </a>
           <a href="#" class="org-menu-item" data-team="financeTeam">
@@ -54,20 +54,20 @@ const Sidebar = (function() {
         <div class="org-submenu">
           <a href="#" class="org-menu-item" data-team="marketingTeam">
             <div class="org-menu-item-content">
-              <div class="org-menu-item-label"><strong>마케팅팀</strong></div>
+              <div class="org-menu-item-label"><strong>홍보팀</strong></div>
               <div class="org-menu-item-description">동아리 모집, 인스타, 서포터즈 관리</div>
             </div>
           </a>
           <a href="#" class="org-menu-item" data-team="designTeam">
             <div class="org-menu-item-content">
               <div class="org-menu-item-label"><strong>디자인팀</strong></div>
-              <div class="org-menu-item-description">포스터, 로고, 웹사이트UX/UI 디자인</div>
+              <div class="org-menu-item-description">포스터, 로고, UX/UI 디자인</div>
             </div>
           </a>
           <a href="#" class="org-menu-item" data-team="videoTeam">
             <div class="org-menu-item-content">
               <div class="org-menu-item-label"><strong>영상제작팀</strong></div>
-              <div class="org-menu-item-description">상위 이벤트, 동아리 소개 영상 관리</div>
+              <div class="org-menu-item-description">이벤트, 정기모임 등 영상 관리</div>
             </div>
           </a>
         </div>
@@ -82,6 +82,12 @@ const Sidebar = (function() {
         </a>
         
         <div class="org-submenu">
+          <a href="#" class="org-menu-item" data-team="PlanningTeam">
+            <div class="org-menu-item-content">
+              <div class="org-menu-item-label"><strong>기획팀</strong></div>
+              <div class="org-menu-item-description">기획 활동 기록 및 일정 관리</div>
+            </div>
+          </a>
           <a href="#" class="org-menu-item" data-team="regularTeam">
             <div class="org-menu-item-content">
               <div class="org-menu-item-label"><strong>정기모임팀</strong></div>
@@ -114,10 +120,13 @@ const Sidebar = (function() {
         url: '/office_marketing.html'
       },
       HumanResourceTeam: {
-        url: '/office_HR.html'
+        url: '/office_hr.html'
       },
       cooperationTeam: {
         url: '/office_cooperation.html'
+      },
+      PlanningTeam: {
+        url: '/office_planning.html'
       },
       financeTeam: {
         url: '/office_finance.html'
@@ -144,13 +153,55 @@ const Sidebar = (function() {
         const response = await fetch(pageConfig.url);
         const html = await response.text();
         mainContent.innerHTML = html;
+        // 운영부
+        //1. 운영팀
+
+        //2. 대외협력팀
+
+        //3. 인사팀
+        if (pageId === 'HumanResourceTeam') {
+          // hr.js 스크립트가 이미 있다면 제거
+          const existingHRScript = document.querySelector('script[src="/js/office/hr.js"]');
+          if (existingHRScript) {
+            existingHRScript.remove();
+          }
     
-        // 스태프팀 페이지일 경우 캘린더 초기화
+          // hr.js 새로 로드
+          await new Promise((resolve, reject) => {
+            const hrScript = document.createElement('script');
+            hrScript.src = '/js/office/hr.js';
+            hrScript.onload = resolve;
+            hrScript.onerror = reject;
+            document.body.appendChild(hrScript);
+          });
+    
+          // 사용자 데이터 로드 함수 호출
+          if (typeof loadUsers === 'function') {
+            loadUsers();
+          }
+        }
+
+        //4. 재무팀
+        
+
+        // 홍보부
+        //5. 마케팅팀
+
+        //6. 디자인팀
+
+        //7. 영상제작팀
+
+        //기획부
+        //8. 기획팀
+        
+        //9. 정기모임팀
+
+        //10.스태프팀
         if (pageId === 'staffTeam') {
-          // 1. 기존 초기화 상태 리셋
+          
           window.calendarInitialized = false;
     
-          // 2. TOAST UI Calendar CSS 로드
+          // TOAST UI Calendar CSS 로드
           if (!document.querySelector('link[href*="toastui-calendar.min.css"]')) {
             const link = document.createElement('link');
             link.rel = 'stylesheet';
@@ -158,7 +209,7 @@ const Sidebar = (function() {
             document.head.appendChild(link);
           }
     
-          // 3. TOAST UI Calendar JS 로드
+          // TOAST UI Calendar JS 로드
           if (!window.tui?.Calendar) {
             await new Promise((resolve, reject) => {
               const script = document.createElement('script');
@@ -169,13 +220,13 @@ const Sidebar = (function() {
             });
           }
     
-          // 4. 기존 calendar.js 스크립트 제거
+          // 기존 calendar.js 스크립트 제거
           const existingScript = document.querySelector('script[src="/js/calendar.js"]');
           if (existingScript) {
             existingScript.remove();
           }
     
-          // 5. calendar.js 새로 로드
+          //calendar.js 새로 로드
           await new Promise((resolve, reject) => {
             const calendarScript = document.createElement('script');
             calendarScript.src = '/js/calendar.js';
@@ -184,6 +235,8 @@ const Sidebar = (function() {
             document.body.appendChild(calendarScript);
           });
         }
+
+        
       } catch (error) {
         console.error('Error loading page:', error);
       }

@@ -21,7 +21,7 @@ async function checkUserRole() {
       console.warn("Element 'staff-button-container' not found");
       return;
     }
-    if (data.role === 'staff') {
+    if (data.role === 'officer') {
       staffButton.style.display = 'block';
     }
   } catch (error) {
@@ -329,10 +329,10 @@ async function handleCancelEvent(eventId, eventCreator) {
     const data = await response.json();
     const userRole = data.role; // 역할 가져오기
 
-    if (eventCreator === userId && userRole === 'staff') {
+    if (eventCreator === userId && userRole === 'officer') {
       // 사용자가 이벤트 생성자이면서 staff인 경우
       await cancelEvent(eventId);
-    } else if (userRole !== 'staff') {
+    } else if (userRole !== 'officer') {
       alert('이벤트를 취소할 권한이 없습니다. (권한: 일반 사용자)');
     } else {
       alert('이벤트 생성자가 아니므로 취소할 수 없습니다.');

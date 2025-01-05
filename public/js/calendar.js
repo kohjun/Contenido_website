@@ -8,7 +8,7 @@ if (!window.calendarInitialized) {
       defaultView: 'month',
       month: {
         dayNames: ['일', '월', '화', '수', '목', '금', '토'],
-        isAlways6Weeks: false,
+        isAlways6Weeks: true,
       },
       calendars: [
         {

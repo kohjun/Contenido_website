@@ -78,23 +78,30 @@
   
 
 
-  // 참가자 데이터 조회
+// 참가자 데이터 조회
 router.get('/participants/users', async (req, res) => {
   try {
-    const users = await User.find({ isVerified: true }); // 인증된 유저만 가져오기
+    const users = await User.find({ isVerified: true })
+      .select('displayName profileImage status active role gender warnings'); // 필요한 필드들을 선택
+    
     const userData = users.map(user => ({
       id: user._id,
       displayName: user.displayName,
       profileImage: user.profileImage || '/images/basic_Image.png',
       status: user.status || { week1: 'X', week2: 'X', week3: 'X', week4: 'X' },
       active: user.active,
+      role: user.role,
+      gender: user.gender || '-',
+      warnings: user.warnings || 0
     }));
+
     res.status(200).json(userData);
   } catch (error) {
     console.error('Error fetching users:', error.message);
     res.status(500).json({ message: 'Error fetching users', error: error.message });
   }
 });
+
 
   // 유저의 역할 검증
   router.get('/user-role', authenticateToken, (req, res) => {

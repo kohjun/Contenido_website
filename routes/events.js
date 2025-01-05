@@ -75,7 +75,7 @@ router.get('/calendar', async (req, res) => {
 // 참가자 상태 확인 - staff만 접근 가능
 router.get('/participants/status', 
   authenticateToken,
-  authorizeRoles('staff'),
+  authorizeRoles('officer'),
   async (req, res) => {
     try {
       const events = await Event.find({}).populate('participants');
@@ -92,10 +92,10 @@ router.get('/participants/status',
     }
 });
 
-// 종료된 이벤트 정보 확인 - staff만 접근 가능
+// 종료된 이벤트 정보 확인 - officer 접근 가능
 router.get('/ended', 
   authenticateToken,
-  authorizeRoles('staff'),
+  authorizeRoles('officer'),
   async (req, res) => {
     try {
       const endedEvents = await Event.find({ isEnded: true });
@@ -122,7 +122,7 @@ router.get('/:id', async (req, res) => {
   }
 });
 
-// 참가자 정보 확인 - 이벤트 생성자나 staff만 접근 가능
+// 참가자 정보 확인 - 이벤트 생성자나 officer만 접근 가능
 router.get('/:id/participants', 
   authenticateToken,
   authorizeOwnerOrStaff(async (req) => {
@@ -157,10 +157,10 @@ router.get('/:id/participants',
 });
 
 // POST 요청
-// 새로운 이벤트 등록 - staff만 가능
+// 새로운 이벤트 등록 - officer만 가능
 router.post('/', 
   authenticateToken,
-  authorizeRoles('staff'),
+  authorizeRoles('officer'),
   async (req, res) => {
     const { title, date, place, participants, startTime, endTime, participation_fee, contents } = req.body;
 
@@ -187,7 +187,7 @@ router.post('/',
 // 이벤트 결과 보고서 제출 - staff만 가능
 router.post('/:id/report', 
   authenticateToken,
-  authorizeRoles('staff'),
+  authorizeRoles('officer'),
   async (req, res) => {
     const { week, participants } = req.body;
 
