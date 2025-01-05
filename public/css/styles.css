@@ -1,362 +1,315 @@
-  /* Global Styles */
-  @font-face {
-    font-family: 'GmarketSansMedium';
-    src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_2001@1.1/GmarketSansMedium.woff') format('woff');
-    font-weight: normal;
-    font-style: normal;
-  }
-  body {
-    font-family: 'GmarketSansMedium', sans-serif;
-    background-color: #f4f4f4;
-    color: #333;
-    margin: 0;
-    padding: 0;
-    line-height: 1.6;
-  }
-
-  h1, h2{
-    text-align: center;
-    
-  }
-  /* 참가자 리스트 그리드 스타일 */
-  .participant-grid {
-    display: flex;
-    flex-wrap: wrap; /* 가로 배치 후 자동 줄바꿈 */
-    gap: 1px; /* 참가자 간의 간격 */
-  }
-
-  /* %주차 스타일 */
-  .week-section {
-    background-color: #ffffff;
-    border: 1px solid #0A84FE;
-    padding: 1rem;
-    border-radius: 10px;
-    margin-bottom: 1rem;
-  }
-  .week-selection-horizontal {
-    display: flex;
-    justify-content: space-between; /* 각 주차 간격 */
-    gap: 1rem; /* 주차 선택 간격 조정 */
-  }
-
-  .week-selection-horizontal label {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    font-weight: bold;
-    padding: 10px;
-    border: 1px solid #0A84FE; /* 주차 구분 경계선 */
-    border-radius: 8px;
-    background-color: #ffffff;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    cursor: pointer;
-    transition: transform 0.2s ease, background-color 0.3s;
-  }
-
-  .week-selection-horizontal label:hover {
-    background-color: #eef6ff; /* 호버 시 색상 변경 */
-    
-    transform: translateY(-3px); /* 살짝 들어올림 효과 */
-  }
-
-  .week-selection-horizontal input[type="radio"] {
-    margin-bottom: 5px;
-  }
-
-  /* 참가자 스타일 */
-  .participant-section {
-    background-color: #ffffff;
-    border: 1px solid #0A84FE;
-    padding: 1.5rem;
-    border-radius: 10px;
-  }
-  .participant-item label {
-    display: inline-block;
-    margin-left: 5px;
-    font-size: 0.8rem;
-  }
-
-  .participant-item {
-    display: inline-block; /* 가로로 배치 */
-    margin-right: 10px; /* 각 참가자 간 간격 */
-    padding: 8px 5px;
-    background-color: #ffffff;
-    border: 1px solid #0A84FE; /* 각 항목에 테두리 */
-    border-radius: 8px;
-  }
-
-  .participant-item:hover {
-    transform: translateY(-3px);
-    background-color: #eef6ff;
-  }
-
-  input[type="checkbox"] {
-    cursor: pointer;
-    margin-right: 10px;
-  }
-
-
-  
-  input[type="checkbox"] {
-    cursor: pointer;
-  }
-
-  a {
-    text-decoration: none;
-    color: inherit;
-  }
-
-  img {
-    max-width: 100%;
-    height: auto;
-  }
-
-  /* 제목 컨테이너 */
-  .title-container {
-    text-align: center;
-    
-    margin-top: 1rem;
-    margin-bottom: 2rem;
-  }
-  dot {
-    text-emphasis-style : filled;
-  }
-  .subtitle {
-    font-size: 1.2rem;
-    font-family: 'GmarketSansMedium', sans-serif;
-    line-height: 1.2;
-    color: #0A84FE;
-    letter-spacing: -0.5px;
-    margin: 0;
-    
-  }
-
-  .main-title {
-    font-size: 2.5rem;
-    font-weight: bold;
-    text-transform: uppercase;
-    letter-spacing: 2px;
-    background: linear-gradient(90deg, #73b5f8,#0A84FE);
-    -webkit-background-clip: text;
-    color: transparent;
-    margin: 0.5rem 0;
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
-  }
-
-  /* 버튼 스타일 */
-  button, .submit-button {
-    display: flex; /* Flexbox 활성화 */
-    justify-content: center; /* 가로 방향 중앙 정렬 */
-    align-items: center; /* 세로 방향 중앙 정렬 */
-    font-family: 'GmarketSansMedium', sans-serif;
-    width: 90%;
-    max-width: 240px; /* 버튼 최대 크기를 조금 더 줄임 */
-    padding: 0.8rem;
-    font-size: 1rem;
-    margin: 1rem auto;
-    background-color: #ffffff;
-    color: #0A84FE;
-    border-color: #0A84FE;
-    border-radius: 50px; 
-    cursor: pointer;
-    font-weight: bold;
-    transition: background-color 0.3s, transform 0.2s;
-  }
-
-
-  button:hover, .submit-button:hover {
-    background-color: #0C84FE;
-    color:#ffffff;
-    transform: translateY(-3px);
-  }
-
-  #kakao-login-button {
-    width: 70%;
-    font-family: 'GmarketSansMedium', sans-serif;
-    max-width: 200px;
-    font-size: 0.9rem;
-    padding: 0.8rem;
-    background-color: none;
-    color: #666;
-    border: none;
-    border-radius: none;
-    cursor: pointer;
-    text-align: center;
-    display: none;
-    transition: background-color 0.3s, transform 0.2s;
-  }
-  #kakao-login-button:hover {
-    background-color: #999;
-    color: #ffffff;
-    transform: translateY(-3px); /* Hover effect */
-  }
-  /* 로그아웃 버튼 스타일 */
-  #logout-button {
-    width: 70%;
-    font-family: 'GmarketSansMedium', sans-serif;
-    max-width: 200px;
-    font-size: 0.9rem;
-    padding: 0.8rem;
-    background-color: none;
-    color: #666;
-    border: none;
-    border-radius: none;
-    cursor: pointer;
-    text-align: center;
-    display: none;
-    transition: background-color 0.3s, transform 0.2s;
-  }
-  #logout-button:hover {
-    background-color: #999;
-    color: #ffffff;
-    transform: translateY(-3px); /* Hover effect */
-  }
-
-  /* 메인 컨테이너 */
-
-  .container {
-    max-width: 700px;
-    margin: 2rem auto;
-    padding: 2rem;
-    background: #fff;
-    border-radius: 12px;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-    position: relative; /* Ensure the button is positioned relative to this container */
-  }
-  
-  /* 토글 버튼 스타일 */
-.toggle-btn {
-  position: absolute;
-  top: 1rem;
-  left: 1rem;
-  background: #fff;
-  color: #0A84FE;
-  padding: 0.5rem;
-  font-size: 1.5rem;
-  border:none;
-  width: 50px;
-  height: 40px;
-  cursor: pointer;
-  z-index: 1001; /* 다른 요소들 위에 오도록 설정 */
-  transition: background-color 0.3s ease, transform 0.2s ease;
+/* Global Styles */
+@font-face {
+  font-family: 'GmarketSansMedium';
+  src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_2001@1.1/GmarketSansMedium.woff') format('woff');
+  font-weight: normal;
+  font-style: normal;
 }
-
-.toggle-btn:hover {
-  background-color: #0A84FE; /* 호버 시 색상 변경 */
-  transform: scale(1.05); /* 살짝 커지는 효과 */
-}
-
-/* 토글 버튼 활성화 상태 스타일 */
-.toggle-btn.active {
-  background-color: #0A84FE; /* 활성화된 상태에서 색상 변경 */
-  transform: scale(1.1); /* 활성화 상태에서 버튼 크기 확대 */
-}
-
-/* 반응형 디자인 */
-@media (max-width: 768px) {
-  .toggle-btn {
-    font-size: 1.2rem; /* 모바일 화면에서는 글씨 크기 조정 */
-    top: 0.5rem;
-    left: 0.5rem;
-  }
-}
-
-  /* 폼 */
-  .form-group {
-    margin-bottom: 1.5rem;
-    text-align: left;
-  }
-
-  label {
-    display: block;
-    font-size: 1rem;
-    font-weight: bold;
-    margin-bottom: 0.5rem;
-    color: #555;
-  }
-
-  input, select, textarea {
-    width: 100%;
-    padding: 0.8rem;
-    font-size: 1rem;
-    border: 1px solid #0A84FE;
-    border-radius: 8px;
-    box-sizing: border-box;
-    transition: border-color 0.3s ease, box-shadow 0.3s ease;
-  }
-
-  input:focus, select:focus, textarea:focus {
-    border-color: #70abe6;
-    outline: none;
-    box-shadow: 0 0 5px #0C84FE(255, 235, 0, 0.5);
-  }
-
-  /* User Information Display */
-  .user-info {
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    background: #333;
-    color: #fff;
-    padding: 0.8rem;
-    border-radius: 12px;
-    box-shadow: 0 0 8px rgba(0, 0, 0, 0.3);
-    text-align: right;
-    width: 220px;
-    font-size: 0.85rem;
-  }
-
-  .user-info p {
-    margin: 0.3rem 0;
-    font-size: 0.9rem;
-    color: #ddd;
-  }
-
-  .user-info img {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    margin-bottom: 0.5rem;
-    border: 2px solid #fff;
-  }
-  /* Styling for the current date */
-  #current-date {
-    
-    
-    text-align: left;
-    margin-top: 10px; 
-    font-size: 2rem; 
-    color: #272626;
-    
-    
-  }
-  
-  /* Sidebar styles */
-.sidebar {
-  position: fixed;
-  top: 0;
-  left: -250px; /* Sidebar starts hidden (off-screen) */
-  height: 100%;
-  width: 250px;
-  background-color: #fff;
-  border-right: 1px solid #ddd;
-  box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
-  overflow-x: hidden;
-  transition: left 0.3s ease-in-out; /* Smooth slide animation */
-  z-index: 1000;
-}
-
-.sidebar a {
-  padding: 15px 20px;
-  text-decoration: none;
-  font-size: 18px;
-  
-  display: block;
-}
-
-.sidebar a:hover {
+body {
+  font-family: 'GmarketSansMedium', sans-serif;
   background-color: #f4f4f4;
+  color: #333;
+  margin: 0;
+  padding: 0;
+  line-height: 1.6;
 }
+
+h1, h2{
+  text-align: center;
+  
+}
+/* 참가자 리스트 그리드 스타일 */
+.participant-grid {
+  display: flex;
+  flex-wrap: wrap; /* 가로 배치 후 자동 줄바꿈 */
+  gap: 1px; /* 참가자 간의 간격 */
+}
+
+/* %주차 스타일 */
+.week-section {
+  background-color: #ffffff;
+  border: 1px solid #0A84FE;
+  padding: 1rem;
+  border-radius: 10px;
+  margin-bottom: 1rem;
+}
+.week-selection-horizontal {
+  display: flex;
+  justify-content: space-between; /* 각 주차 간격 */
+  gap: 1rem; /* 주차 선택 간격 조정 */
+}
+
+.week-selection-horizontal label {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-weight: bold;
+  padding: 10px;
+  border: 1px solid #0A84FE; /* 주차 구분 경계선 */
+  border-radius: 8px;
+  background-color: #ffffff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+  transition: transform 0.2s ease, background-color 0.3s;
+}
+
+.week-selection-horizontal label:hover {
+  background-color: #eef6ff; /* 호버 시 색상 변경 */
+  
+  transform: translateY(-3px); /* 살짝 들어올림 효과 */
+}
+
+.week-selection-horizontal input[type="radio"] {
+  margin-bottom: 5px;
+}
+
+/* 참가자 스타일 */
+.participant-section {
+  background-color: #ffffff;
+  border: 1px solid #0A84FE;
+  padding: 1.5rem;
+  border-radius: 10px;
+}
+.participant-item label {
+  display: inline-block;
+  margin-left: 5px;
+  font-size: 0.8rem;
+}
+
+.participant-item {
+  display: inline-block; /* 가로로 배치 */
+  margin-right: 10px; /* 각 참가자 간 간격 */
+  padding: 8px 5px;
+  background-color: #ffffff;
+  border: 1px solid #0A84FE; /* 각 항목에 테두리 */
+  border-radius: 8px;
+}
+
+.participant-item:hover {
+  transform: translateY(-3px);
+  background-color: #eef6ff;
+}
+
+input[type="checkbox"] {
+  cursor: pointer;
+  margin-right: 10px;
+}
+
+
+
+input[type="checkbox"] {
+  cursor: pointer;
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+}
+
+/* 제목 컨테이너 */
+.title-container {
+  text-align: center;
+  
+  margin-top: 1rem;
+  margin-bottom: 2rem;
+}
+dot {
+  text-emphasis-style : filled;
+}
+.subtitle {
+  font-size: 1.2rem;
+  font-family: 'GmarketSansMedium', sans-serif;
+  line-height: 1.2;
+  color: #0A84FE;
+  letter-spacing: -0.5px;
+  margin: 0;
+  
+}
+
+.main-title {
+  font-size: 2.5rem;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  background: linear-gradient(90deg, #73b5f8,#0A84FE);
+  -webkit-background-clip: text;
+  color: transparent;
+  margin: 0.5rem 0;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* 버튼 스타일 */
+button, .submit-button {
+  display: flex; /* Flexbox 활성화 */
+  justify-content: center; /* 가로 방향 중앙 정렬 */
+  align-items: center; /* 세로 방향 중앙 정렬 */
+  font-family: 'GmarketSansMedium', sans-serif;
+  width: 90%;
+  max-width: 240px; /* 버튼 최대 크기를 조금 더 줄임 */
+  padding: 0.8rem;
+  font-size: 1rem;
+  margin: 1rem auto;
+  background-color: #ffffff;
+  color: #0A84FE;
+  border-color: #0A84FE;
+  border-radius: 50px; 
+  cursor: pointer;
+  font-weight: bold;
+  transition: background-color 0.3s, transform 0.2s;
+}
+
+
+button:hover, .submit-button:hover {
+  background-color: #0C84FE;
+  color:#ffffff;
+  transform: translateY(-3px);
+}
+
+#kakao-login-button {
+  width: 70%;
+  font-family: 'GmarketSansMedium', sans-serif;
+  max-width: 200px;
+  font-size: 0.9rem;
+  padding: 0.8rem;
+  background-color: none;
+  color: #666;
+  border: none;
+  border-radius: none;
+  cursor: pointer;
+  text-align: center;
+  display: none;
+  transition: background-color 0.3s, transform 0.2s;
+}
+#kakao-login-button:hover {
+  background-color: #999;
+  color: #ffffff;
+  transform: translateY(-3px); /* Hover effect */
+}
+/* 로그아웃 버튼 스타일 */
+#logout-button {
+  width: 70%;
+  font-family: 'GmarketSansMedium', sans-serif;
+  max-width: 200px;
+  font-size: 0.9rem;
+  padding: 0.8rem;
+  background-color: none;
+  color: #666;
+  border: none;
+  border-radius: none;
+  cursor: pointer;
+  text-align: center;
+  display: none;
+  transition: background-color 0.3s, transform 0.2s;
+}
+#logout-button:hover {
+  background-color: #999;
+  color: #ffffff;
+  transform: translateY(-3px); /* Hover effect */
+}
+
+/* 메인 컨테이너 */
+
+.container {
+  max-width: 700px;
+  margin: 2rem auto;
+  padding: 2rem;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  position: relative; /* Ensure the button is positioned relative to this container */
+}
+.container .nav-container {
+  /* container 내부의 nav에 대한 스타일 */
+  padding: 15px;
+  border-bottom: 1px solid #eee;
+}
+
+.container .sticky-top {
+    position: sticky; /* fixed 대신 sticky 사용 가능 */
+    top: 0;
+}
+
+.container .sticky-bottom {
+    position: sticky;
+    bottom: 0;
+}
+
+
+/* 폼 */
+.form-group {
+  margin-bottom: 1.5rem;
+  text-align: left;
+}
+
+label {
+  display: block;
+  font-size: 1rem;
+  font-weight: bold;
+  margin-bottom: 0.5rem;
+  color: #555;
+}
+
+input, select, textarea {
+  width: 100%;
+  padding: 0.8rem;
+  font-size: 1rem;
+  border: 1px solid #0A84FE;
+  border-radius: 8px;
+  box-sizing: border-box;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+input:focus, select:focus, textarea:focus {
+  border-color: #70abe6;
+  outline: none;
+  box-shadow: 0 0 5px #0C84FE(255, 235, 0, 0.5);
+}
+
+/* User Information Display */
+.user-info {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background: #333;
+  color: #fff;
+  padding: 0.8rem;
+  border-radius: 12px;
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.3);
+  text-align: right;
+  width: 220px;
+  font-size: 0.85rem;
+}
+
+.user-info p {
+  margin: 0.3rem 0;
+  font-size: 0.9rem;
+  color: #ddd;
+}
+
+.user-info img {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  margin-bottom: 0.5rem;
+  border: 2px solid #fff;
+}
+/* Styling for the current date */
+#current-date {
+  
+  
+  text-align: left;
+  margin-top: 10px; 
+  font-size: 2rem; 
+  color: #272626;
+  
+  
+}
+
 
 
 

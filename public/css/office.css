@@ -17,12 +17,12 @@
     background-color: #f9fafb;
   }
   .org-header a {
-    color: inherit; /* 기본 글자 색상을 상속 */
+    color: #0A84FE; /* 기본 글자 색상을 상속 */
     text-decoration: none; /* 밑줄 제거 */
   }
   
   .org-header a:visited {
-    color: inherit; /* 방문한 링크 색상을 초기화 */
+    color: #0A84FE; /* 방문한 링크 색상을 초기화 */
     text-decoration: none; /* 밑줄 제거 */
   }
   

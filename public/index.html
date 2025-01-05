@@ -1,126 +1,98 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>콘테니도</title>
-  <link rel="icon" href="/images/Contenido_Logo.ico" type="image/x-icon">
-  <link rel="stylesheet" href="/css/styles.css" />
-</head>
+  <!DOCTYPE html>
+  <html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>콘테니도</title>
+    <link rel="icon" href="/images/Contenido_Logo.ico" type="image/x-icon">
+    <link rel="stylesheet" href="/css/styles.css" />
+  </head>
 
-<body>
-
-  <!-- User Info section positioned at the top-right -->
-  
-  
-  <div class="container">
-    <!-- Toggle Button -->
-    <button id="toggle-btn" class="toggle-btn" onclick="toggleSidebar()">☰</button>
-
-    <div class="title-container">
-      <p class="subtitle"><strong><dot>리얼</dot> 버라이어티<br>연합 동아리</strong></p>
-      <br><br>
-      <img src="/images/Conteindo_Image.png" width="270" height="270" alt="Content Image" style="margin-left:20px" />
-    </div>
-    <br>
-
-    <div> 
-      <button >메뉴얼 보기</button>
-      <button onclick="OnEvents()">진행중인 이벤트</button>
-      <button onclick="checkParticipationStatus()">참가자 상태 확인</button>
-    </div>
-
-    <button id="kakao-login-button" class="kakao-login-button" onclick="loginWithKakao()">Login with Kakao</button>
-    <button id="logout-button" style="display: none;" onclick="logout()">로그아웃</button>
-    <div style="text-align: center; margin-top: 2rem;">
-      <a href="https://m.youtube.com/@CONTENIDO-f6w" target="_blank" rel="noopener noreferrer" style="text-decoration: none;">
-        <img src="/images/youtube-icon.png" alt="YouTube Icon" style="width: 50px; height: 50px;" />
-      </a>
+  <body>
     
-      <a href="https://www.instagram.com/contenido__o?igsh=NDRocG93MTB4MDJn" target="_blank" rel="noopener noreferrer" style="text-decoration: none;">
-        <img src="/images/instagram-icon.png" alt="Instagram Icon" style="width: 50px; height: 50px; " />
-      </a><br>
-    </div>
-  </div>
+    <!-- User Info section positioned at the top-right -->
+    
+    
+    <div class="container">
+      <div class="title-container">
+        <p class="subtitle"><strong><dot>리얼</dot> 버라이어티<br>연합 동아리</strong></p>
+        <br><br>
+        <img src="/images/Conteindo_Image.png" width="270" height="270" alt="Content Image" style="margin-left:20px" />
+      </div>
   
-  <!-- aside section -->
-  <aside>
-    <!-- Sidebar Section -->
-    <div id="sidebar" class="sidebar">
-      <div>
-        <a href="office.html" id="staffPageLink"><h3>운영진 페이지</h3></a>
-        <a><h3>참가자</h3></a>
-        <ul>         
-          <li> <a href="mypage.html">마이페이지</a></li>
-          <li> <a href="">참가자 랭킹</a></li>
-        </ul>
-        
-        <a href="" onclick="alert('추후 확장 예정입니다!')"><h3>동아리 모집(예정)</h3></a>
+      <br>
 
+      <div> 
+        <button >메뉴얼 보기</button>
+        <button onclick="OnEvents()">이벤트 신청</button>
+      <!-- <button onclick="checkParticipationStatus()">참가자 상태 확인</button>-->  
+        <button>👑 동아리 랭킹 👑</button>
+      </div>
+
+      <button id="kakao-login-button" class="kakao-login-button" onclick="loginWithKakao()">Login with Kakao</button>
+      <button id="logout-button" style="display: none;" onclick="logout()">로그아웃</button>
+      <div style="text-align: center; margin-top: 2rem;">
+        <a href="https://m.youtube.com/@CONTENIDO-f6w" target="_blank" rel="noopener noreferrer" style="text-decoration: none;">
+          <img src="/images/youtube-icon.png" alt="YouTube Icon" style="width: 55px; height: 55px;" />
+        </a>
+        <a href="https://www.instagram.com/contenido__o?igsh=NDRocG93MTB4MDJn" target="_blank" rel="noopener noreferrer" style="text-decoration: none;">
+          <img src="/images/instagram-icon.png" alt="Instagram Icon" style="width: 55px; height: 55px; " />
+        </a>
       </div>
     </div>
-  </aside>
-  <!-- Footer section -->
-  
     
-  
-
-
-  <script>
+   
+    <!-- Footer section -->
+    
+      
+    
 
     
-    function checkParticipationStatus() {
-      window.location.href = '/participation-status.html';
-    }
+    <script>
 
-    async function updateButtonVisibility() {
-      try {
-        const response = await fetch('/user/info');
-        if (response.status === 200) {
-          document.getElementById('kakao-login-button').style.display = 'none';
-          document.getElementById('logout-button').style.display = 'block';
-        } else {
+      
+      function checkParticipationStatus() {
+        window.location.href = '/participation-status.html';
+      }
+
+      async function updateButtonVisibility() {
+        try {
+          const response = await fetch('/user/info');
+          if (response.status === 200) {
+            document.getElementById('kakao-login-button').style.display = 'none';
+            document.getElementById('logout-button').style.display = 'block';
+          } else {
+            document.getElementById('kakao-login-button').style.display = 'block';
+            document.getElementById('logout-button').style.display = 'none';
+          }
+        } catch (error) {
+          console.error('Error checking login status:', error);
           document.getElementById('kakao-login-button').style.display = 'block';
           document.getElementById('logout-button').style.display = 'none';
         }
-      } catch (error) {
-        console.error('Error checking login status:', error);
-        document.getElementById('kakao-login-button').style.display = 'block';
-        document.getElementById('logout-button').style.display = 'none';
       }
-    }
 
-    document.addEventListener('DOMContentLoaded', updateButtonVisibility);
+      document.addEventListener('DOMContentLoaded', updateButtonVisibility);
 
-    function loginWithKakao() {
-      window.location.href = '/auth/kakao';
-    }
+      function loginWithKakao() {
+        window.location.href = '/auth/kakao';
+      }
 
-    function OnEvents() {
-      window.location.href = '/events.html';
-    }
-    function OnOfficer() {
-      window.location.href = '/officer.html';
-    }
-    function logout() {
-      window.location.href = '/auth/logout';
-    }
+      function OnEvents() {
+        window.location.href = '/events.html';
+      }
+      function OnOfficer() {
+        window.location.href = '/officer.html';
+      }
+      function logout() {
+        window.location.href = '/auth/logout';
+      }
 
+      
     
-    function toggleSidebar() {
-  const sidebar = document.getElementById("sidebar");
-  const toggleBtn = document.getElementById("sidebar-toggle-btn");
-
-  if (sidebar.style.left === "0px") {
-    sidebar.style.left = "-250px"; // Hide sidebar
-    
-  } else {
-    sidebar.style.left = "0px"; // Show sidebar
-  
-  }
-}
 
 
-  </script>
-</body>
-</html>
+    </script>
+  <script src="/js/partitions/nav-injector.js"></script>
+  </body>
+  </html>

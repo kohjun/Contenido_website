@@ -1,0 +1,85 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+@font-face {
+  font-family: 'GmarketSansMedium';
+  src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_2001@1.1/GmarketSansMedium.woff') format('woff');
+  font-weight: normal;
+  font-style: normal;
+}
+body {
+  font-family: 'GmarketSansMedium', sans-serif !important;
+  margin: 0;
+  padding: 20px;
+}
+
+.calendar-container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+#calendar {
+  height: 600px;
+  margin-bottom: 20px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+}
+
+.controls {
+  margin-bottom: 20px;
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+}
+
+button {
+  padding: 10px 20px;
+  font-size: 16px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  background-color: #f4f4f4;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+button:hover {
+  background-color: #e0e0e0;
+}
+
+#current-date {
+  font-size: 24px;
+  font-weight: bold;
+  margin: 20px 0;
+  text-align: center;
+}
+
+.navigation-buttons {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+h1 {
+  text-align: center;
+  color: #333;
+  margin-bottom: 30px;
+}
+
+/* 반응형 디자인 */
+@media screen and (max-width: 768px) {
+  .calendar-container {
+    padding: 10px;
+  }
+
+  .controls {
+    flex-wrap: wrap;
+  }
+
+  .controls button {
+    flex: 1;
+    min-width: 80px;
+  }
+}

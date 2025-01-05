@@ -13,20 +13,16 @@
     <div id="events-list"></div>
     <br>
     <!-- Button to check participation status -->
-    <button onclick="checkParticipationStatus()">참가자 상태 확인</button>
+    <button onclick="checkParticipationStatus()">참가자 현황</button>
 
-    <!-- New button to go to staff page for event management -->
-    <div id="staff-button-container" style="display: none;">
-      <button onclick="window.location.href='event-staff.html'">이벤트 관리 (스태프)</button>
-    </div>
-
-    <button onclick="window.location.href='ended-events.html'">종료된 이벤트</button>
+    <button onclick="window.location.href='calendar.html'">이벤트 캘린더</button>
+    <button onclick="window.location.href='ended-events.html'">종료된 이벤트</button><br><br>
 
     <!-- Home button -->
-    <button onclick="window.location.href='index.html'">Home</button>
   </div>
 
   <!-- Include events.js which already calls checkUserRole -->
   <script src="/js/events.js"></script>
+  <script src="/js/partitions/nav-injector.js"></script>
 </body>
 </html>

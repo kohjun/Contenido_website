@@ -30,6 +30,27 @@
     }
   });
 
+  // 유저 활성 상태 토글
+  router.post('/toggle-active/:userId', authenticateToken, async (req, res) => {
+    try {
+      const { userId } = req.params;
+      const { active } = req.body;
+
+      const user = await User.findById(userId);
+      if (!user) {
+        return res.status(404).json({ message: 'User not found' });
+      }
+
+      user.active = active;
+      await user.save();
+
+      res.status(200).json({ message: 'User active status updated successfully' });
+    } catch (error) {
+      console.error('Error toggling user active status:', error);
+      res.status(500).json({ message: 'Error updating user active status' });
+    }
+  });
+
   // 유저 정보 얻기
   router.get('/info', authenticateToken, (req, res) => {
     console.log('User from JWT:', req.user); 
