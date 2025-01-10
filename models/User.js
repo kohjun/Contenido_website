@@ -9,7 +9,7 @@ const userSchema = new mongoose.Schema({
   isVerified: { type: Boolean, default: true },
   role: { 
     type: String, 
-    enum: ['participant', 'starter', 'officer','guest'], 
+    enum: ['participant', 'starter', 'officer','guest','admin'], 
     default: 'guest' 
   }, // 역할 추가
   department: { 
@@ -28,6 +28,10 @@ const userSchema = new mongoose.Schema({
     default: false, 
     required: function () { return this.role === 'officer'; } 
   }, // 부장 여부
+  warningCount:{
+    type: Number,
+    default: 0,
+  },
   status: {
     week1: { type: String, default: 'X' },
     week2: { type: String, default: 'X' },

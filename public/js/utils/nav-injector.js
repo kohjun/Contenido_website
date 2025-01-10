@@ -18,26 +18,24 @@ const navStyles = `
     transition: left 0.3s ease;
     z-index: 1001;
     padding-left: 30px;
-    
-    
 }
 
 .sidebar h3 {
-    font-size: 20px; /* 글씨 크기 증가 */
-    margin: 25px 0; /* 상하 마진 증가 */
-    font-weight: 500; /* 글씨 두께 조정 */
+    font-size: 20px;
+    margin: 25px 0;
+    font-weight: 500;
     color: rgba(0, 0, 0, 1);
 }
 
 .sidebar ul {
     list-style: none;
-    padding-left: 25px; /* 들여쓰기 증가 */
-    margin: 20px 0; /* 상하 마진 추가 */
+    padding-left: 25px;
+    margin: 20px 0;
 }
 
 .sidebar li {
-    margin: 15px 0; /* 항목 간 간격 증가 */
-    font-size: 16px; /* 글씨 크기 증가 */
+    margin: 15px 0;
+    font-size: 16px;
 }
 
 .sidebar a {
@@ -50,7 +48,6 @@ const navStyles = `
     color: #0A84FE;
 }
 
-/* 상단 네비게이션 스타일 */
 .custom-top-nav {
     display: flex;
     align-items: center;
@@ -59,43 +56,27 @@ const navStyles = `
     border-bottom: 1px solid #eee;
 }
 
-/* 토글 버튼 스타일 */
 .toggle-btn {
-  position: absolute;
-  top: 1rem;
-  left: 1rem;
-  background: #fff;
-  color: #0A84FE;
-  padding: 0.5rem;
-  font-size: 1.5rem;
-  border:none;
-  width: 50px;
-  height: 40px;
-  cursor: pointer;
-  z-index: 1001; /* 다른 요소들 위에 오도록 설정 */
-  transition: background-color 0.3s ease, transform 0.2s ease;
+    position: absolute;
+    top: 1rem;
+    left: 1rem;
+    background: #fff;
+    color: #0A84FE;
+    padding: 0.5rem;
+    font-size: 1.5rem;
+    border: none;
+    width: 50px;
+    height: 40px;
+    cursor: pointer;
+    z-index: 1001;
+    transition: background-color 0.3s ease, transform 0.2s ease;
 }
 
 .toggle-btn:hover {
-  background-color: #0A84FE; /* 호버 시 색상 변경 */
-  transform: scale(1.05); /* 살짝 커지는 효과 */
+    background-color: #0A84FE;
+    transform: scale(1.05);
 }
 
-/* 토글 버튼 활성화 상태 스타일 */
-.toggle-btn.active {
-  background-color: #0A84FE; /* 활성화된 상태에서 색상 변경 */
-  transform: scale(1.1); /* 활성화 상태에서 버튼 크기 확대 */
-}
-
-/* 반응형 디자인 */
-@media (max-width: 768px) {
-  .toggle-btn {
-    font-size: 1.2rem; /* 모바일 화면에서는 글씨 크기 조정 */
-    top: 0.5rem;
-    left: 0.5rem;
-  }
-}
-/* 하단 네비게이션 스타일 */
 .custom-bottom-nav {
     position: absolute;
     bottom: 0;
@@ -134,26 +115,19 @@ const navStyles = `
     color: #333;
 }
 
-
-
-.custom-nav-button.active span {
-    color: #666;
-}
-
 @media (max-width: 768px) {
     .custom-nav-icon {
         font-size: 20px;
     }
-    
     .custom-nav-button span {
         font-size: 11px;
     }
-    
     .custom-bottom-nav {
         height: 55px;
     }
-}
-`;
+}`;
+
+
 
 // 사이드바 HTML
 const sidebarHTML = `

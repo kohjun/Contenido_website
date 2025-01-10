@@ -4,7 +4,7 @@ const User = require('../models/User');
 const Review = require('../models/Review');
 const router = express.Router();
 const authenticateToken = require('../middleware/authMiddleware');
-const { authorizeRoles, authorizeOwnerOrStaff, requireActiveUser } = require('../middleware/roleMiddleware');
+const { authorizeRoles, requireActiveUser } = require('../middleware/roleMiddleware');
 
 // GET 요청
 // 모든 이벤트 확인 - 인증 불필요
@@ -16,6 +16,7 @@ router.get('/', async (req, res) => {
     res.status(500).json({ message: 'Error fetching events', error });
   }
 });
+
 // 캘린더용 이벤트 포맷 - 인증 불필요
 router.get('/calendar', async (req, res) => {
   try {
@@ -75,7 +76,7 @@ router.get('/calendar', async (req, res) => {
 // 참가자 상태 확인 - staff만 접근 가능
 router.get('/participants/status', 
   authenticateToken,
-  authorizeRoles('officer'),
+  authorizeRoles('officer','admin'),
   async (req, res) => {
     try {
       const events = await Event.find({}).populate('participants');
@@ -92,10 +93,10 @@ router.get('/participants/status',
     }
 });
 
-// 종료된 이벤트 정보 확인 - officer 접근 가능
+// 종료된 이벤트 정보 확인 - officer,participant,starter 접근 가능
 router.get('/ended', 
   authenticateToken,
-  authorizeRoles('officer'),
+  authorizeRoles('officer','participant','starter','admin'),
   async (req, res) => {
     try {
       const endedEvents = await Event.find({ isEnded: true });
@@ -122,46 +123,56 @@ router.get('/:id', async (req, res) => {
   }
 });
 
-// 참가자 정보 확인 - 이벤트 생성자나 officer만 접근 가능
+// 참가자 정보 확인 - 이벤트 생성자&& officer만 접근 가능
 router.get('/:id/participants', 
   authenticateToken,
-  authorizeOwnerOrStaff(async (req) => {
-    const event = await Event.findById(req.params.id);
-    return event?.creator;
-  }),
-  async (req, res) => {
-    try {
-      const event = await Event.findById(req.params.id);
-      if (!event) {
-        return res.status(404).json({ message: 'Event not found' });
-      }
+  authorizeRoles('officer','admin'),
+    async (req, res) => {
+        try {
+            const event = await Event.findById(req.params.id);
+            if (!event) {
+                return res.status(404).json({ message: 'Event not found' });
+            }
 
-      const participants = await Promise.all(
-        event.appliedParticipants.map(async participantId => {
-          const user = await User.findById(participantId).select('name gender phonenumber');
-          return user
-            ? { name: user.name, gender: user.gender, phonenumber: user.phonenumber }
-            : { name: 'Unknown', gender: 'No Gender', phonenumber: 'Unknown' };
-        })
-      );
+            // creator 체크
+            if (event.creator.toString() !== req.user.id) {
+                return res.status(403).json({ 
+                    message: 'Only event creator can access participants info' 
+                });
+            }
 
-      res.json({
-        title: event.title,
-        date: event.date,
-        participants
-      });
-    } catch (error) {
-      console.error('Error fetching participants:', error);
-      res.status(500).json({ message: 'Internal server error', error });
+            const participants = await Promise.all(
+                event.appliedParticipants.map(async participantId => {
+                    const user = await User.findById(participantId).select('name gender phonenumber');
+                    return user
+                        ? { name: user.name, gender: user.gender, phonenumber: user.phonenumber }
+                        : { name: 'Unknown', gender: 'No Gender', phonenumber: 'Unknown' };
+                })
+            );
+
+            res.json({
+                title: event.title,
+                date: event.date,
+                participants
+            });
+        } catch (error) {
+            console.error('Error fetching participants:', error);
+            res.status(500).json({ message: 'Internal server error', error });
+        }
     }
-});
+);
 
 // POST 요청
 // 새로운 이벤트 등록 - officer만 가능
 router.post('/', 
   authenticateToken,
-  authorizeRoles('officer'),
+  authorizeRoles('officer','admin'),
   async (req, res) => {
+    if (req.user.department !== 'planning') {
+      return res.status(403).json({ 
+        message: '기획부만 이벤트 생성이 가능합니다.' 
+      });
+    }
     const { title, date, place, participants, startTime, endTime, participation_fee, contents } = req.body;
 
     try {
@@ -184,17 +195,21 @@ router.post('/',
     }
 });
 
-// 이벤트 결과 보고서 제출 - staff만 가능
+// 이벤트 결과 보고서 제출 - /officer/planning 가능
 router.post('/:id/report', 
   authenticateToken,
-  authorizeRoles('officer'),
+  authorizeRoles('officer','admin'),
   async (req, res) => {
     const { week, participants } = req.body;
 
     if (!week || !Array.isArray(participants) || participants.length === 0) {
       return res.status(400).json({ message: 'Invalid input: week or participants missing' });
     }
-
+    if (req.user.department !== 'plaaning') {
+      return res.status(403).json({ 
+        message: '기획부만 제출 가능합니다.' 
+      });
+    }
     try {
       const event = await Event.findById(req.params.id);
       if (!event) {
@@ -219,11 +234,11 @@ router.post('/:id/report',
     }
 });
 
-// 이벤트 신청 - active 상태인 participant만 가능
+// 이벤트 신청 - active 상태인 participant,starter,officer 가능
 router.post('/:id/apply', 
   authenticateToken,
-  authorizeRoles('participant'),
   requireActiveUser,
+  authorizeRoles('participant', 'starter', 'officer','admin'),
   async (req, res) => {
     try {
       const event = await Event.findById(req.params.id);
@@ -249,10 +264,10 @@ router.post('/:id/apply',
     }
 });
 
-// 이벤트 신청 취소 - participant만 가능
+// 이벤트 신청 취소 - 'participant','starter','officer' 가능
 router.post('/:id/cancel-application', 
   authenticateToken,
-  authorizeRoles('participant'),
+  authorizeRoles('participant','starter','officer','admin'),
   async (req, res) => {
     try {
       const event = await Event.findById(req.params.id);
@@ -277,65 +292,75 @@ router.post('/:id/cancel-application',
 });
 
 // DELETE 요청
-// 이벤트 삭제 - 생성자나 staff만 가능
+// 이벤트 삭제 - 생성자 && officer만 가능
 router.delete('/:id', 
   authenticateToken,
-  authorizeOwnerOrStaff(async (req) => {
-    const event = await Event.findById(req.params.id);
-    return event?.creator;
-  }),
-  async (req, res) => {
-    try {
-      const event = await Event.findById(req.params.id);
-      if (!event) {
-        return res.status(404).json({ message: 'Event not found' });
-      }
+  authorizeRoles('officer','admin'),
+    async (req, res) => {
+        try {
+            const event = await Event.findById(req.params.id);
+            if (!event) {
+                return res.status(404).json({ message: 'Event not found' });
+            }
 
-      await event.deleteOne();
-      res.status(200).json({ message: 'Event canceled successfully' });
-    } catch (error) {
-      console.error('Error canceling event:', error);
-      res.status(500).json({ message: 'Error canceling event', error });
+            // creator 체크
+            if (event.creator.toString() !== req.user.id) {
+                return res.status(403).json({ 
+                    message: 'Only event creator can delete this event' 
+                });
+            }
+
+            await event.deleteOne();
+            res.status(200).json({ message: 'Event canceled successfully' });
+        } catch (error) {
+            console.error('Error canceling event:', error);
+            res.status(500).json({ message: 'Error canceling event', error });
+        }
     }
-});
+);
 
 // PUT 요청
-// 이벤트 내용 수정 - 생성자나 staff만 가능
+// 이벤트 내용 수정 - 생성자 && officer만 가능
 router.put('/update-content', 
   authenticateToken,
-  authorizeOwnerOrStaff(async (req) => {
-    const event = await Event.findById(req.body.eventId);
-    return event?.creator;
-  }),
-  async (req, res) => {
-    const { eventId, title, place, date, participants, startTime, endTime, participation_fee, contents } = req.body;
+  authorizeRoles('officer','admin'),
+    async (req, res) => {
+        const { eventId, title, place, date, participants, startTime, endTime, participation_fee, contents } = req.body;
 
-    if (!eventId) {
-      return res.status(400).json({ message: 'Event ID is required' });
+        if (!eventId) {
+            return res.status(400).json({ message: 'Event ID is required' });
+        }
+
+        try {
+            const event = await Event.findById(eventId);
+            if (!event) {
+                return res.status(404).json({ message: 'Event not found' });
+            }
+
+            // creator 체크
+            if (event.creator.toString() !== req.user.id) {
+                return res.status(403).json({ 
+                    message: 'Only event creator can modify this event' 
+                });
+            }
+
+            event.title = title || event.title;
+            event.place = place || event.place;
+            if (date) {
+                event.date = new Date(date);
+            }
+            event.participants = participants || event.participants;
+            event.startTime = startTime || event.startTime;
+            event.endTime = endTime || event.endTime;
+            event.participation_fee = participation_fee || event.participation_fee;
+            event.contents = contents || event.contents;
+
+            await event.save();
+            res.status(200).json({ message: 'Event content updated successfully' });
+        } catch (error) {
+            res.status(500).json({ message: 'Error updating event content', error });
+        }
     }
-
-    try {
-      const event = await Event.findById(eventId);
-      if (!event) {
-        return res.status(404).json({ message: 'Event not found' });
-      }
-
-      event.title = title || event.title;
-      event.place = place || event.place;
-      if (date) {
-        event.date = new Date(date);
-      }
-      event.participants = participants || event.participants;
-      event.startTime = startTime || event.startTime;
-      event.endTime = endTime || event.endTime;
-      event.participation_fee = participation_fee || event.participation_fee;
-      event.contents = contents || event.contents;
-
-      await event.save();
-      res.status(200).json({ message: 'Event content updated successfully' });
-    } catch (error) {
-      res.status(500).json({ message: 'Error updating event content', error });
-    }
-});
+);
 
 module.exports = router;

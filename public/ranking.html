@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>동아리 활동 랭킹</title>
+    <link rel="stylesheet" href="/css/ranking.css" />   
+</head>
+<body onload="showEventRanking()">
+    <div class="main-container">
+        <h1>동아리 활동 랭킹</h1>
+        <div class="container">
+            <div class="button-container">
+                <button id="eventRankingBtn" onclick="showEventRanking()">이벤트 랭킹</button>
+                
+                <button id="participantRankingBtn" onclick="showParticipantRanking()">참가자 랭킹</button>
+            </div>
+            <div id="main-container">
+                <!-- Rankings will be displayed here -->
+            </div>
+        
+        
+        </div>
+        
+    </div>
+    
+
+    <script>
+        function showEventRanking() {
+            const container = document.getElementById('main-container');
+            container.innerHTML = `
+                <h2>Event Ranking</h2>
+                <table>
+                    <tr>
+                        <th>랭크</th>
+                        <th>스태프팀</th>
+                        <th>Event Name</th>
+                        <th>참가인원</th>
+                        <th>평균 별점</th>
+                    </tr>
+                    <tr>
+                        <td>1</td>
+                        <td>A-1</td>
+                        <td>쭈꾸미 게임</td>
+                        <td>42</td>
+                        <td>4.7</td>
+                    </tr>
+                    <tr>
+                        <td>2</td>
+                        <td>B</td>
+                        <td>다함께 차</td>
+                        <td>29</td>
+                        <td>3.9</td>
+                    </tr>
+                    <!-- Add more rows as needed -->
+                </table>
+            `;
+            setSelectedButton('eventRankingBtn');
+        }
+
+        function showParticipantRanking() {
+            const container = document.getElementById('main-container');
+            container.innerHTML = `
+                <h2>Participant Ranking</h2>
+                <table>
+                    <tr>
+                        <th>Rank</th>
+                        <th>Participant Name</th>
+                        <th>활동 횟수</th>
+                    </tr>
+                    <tr>
+                        <td>1</td>
+                        <td>홍길동A</td>
+                        <td>12</td>
+                    </tr>
+                    <tr>
+                        <td>2</td>
+                        <td>홍길동 B</td>
+                        <td>9</td>
+                    </tr>
+                    <!-- Add more rows as needed -->
+                </table>
+            `;
+            setSelectedButton('participantRankingBtn');
+        }
+
+        function setSelectedButton(buttonId) {
+            document.getElementById('eventRankingBtn').classList.remove('selected');
+            document.getElementById('participantRankingBtn').classList.remove('selected');
+            document.getElementById(buttonId).classList.add('selected');
+        }
+    </script>
+    
+</body>
+<script src="/js/utils/nav-injector.js"></script>
+</html>

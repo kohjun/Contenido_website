@@ -110,49 +110,76 @@ const Sidebar = (function() {
   
     // 팀별 페이지 설정
     const pageConfigs = {
-      staffTeam: {
-        url: '/calendar.html'
-      },
-      operationTeam: {
-        url: '/office_operation.html'
-      },
-      marketingTeam: {
-        url: '/office_marketing.html'
-      },
-      HumanResourceTeam: {
-        url: '/office_hr.html'
-      },
-      cooperationTeam: {
-        url: '/office_cooperation.html'
-      },
-      PlanningTeam: {
-        url: '/office_planning.html'
-      },
-      financeTeam: {
-        url: '/office_finance.html'
-      },
-      designTeam: {
-        url: '/office_design.html'
-      },
-      videoTeam: {
-        url: '/office_video.html'
-      },
-      regularTeam: {
-        url: '/office_regular.html'
-      }
-      // 다른 팀들의 페이지 URL도 여기에 추가
+      operationTeam: { url: '/office_operation.html' },
+      cooperationTeam: { url: '/office_cooperation.html' },
+      HumanResourceTeam: { url: '/office_hr.html' },
+      financeTeam: { url: '/office_finance.html' },
+      marketingTeam: { url: '/office_marketing.html' },
+      designTeam: { url: '/office_design.html' },
+      videoTeam: { url: '/office_video.html' },
+      PlanningTeam: { url: '/office_planning.html' },
+      regularTeam: { url: '/office_regular.html' },
+      staffTeam: { url: '/calendar.html'}
+    };
+    const departmentTeams = {
+      operation: ['operationTeam', 'cooperationTeam', 'HumanResourceTeam', 'financeTeam'],
+      promotion: ['marketingTeam', 'designTeam', 'videoTeam'],
+      planning: ['PlanningTeam', 'regularTeam', 'staffTeam']
     };
   
+  // 현재 사용자의 권한 정보를 가져오는 함수
+  async function getCurrentUserRole() {
+    try {
+      const response = await fetch('/user/info');
+      const userData = await response.json();
+      return {
+        role : userData.role,
+        department: userData.department,
+        team: userData.team,
+        isDepartmentHead: userData.isDepartmentHead
+      };
+    } catch (error) {
+      console.error('Error fetching user role:', error);
+      return null;
+    }
+  }
+  // 사용자의 페이지 접근 권한을 확인하는 함수
+  function hasAccessToPage(userRole, teamId) {
+    if (!userRole) return false;
+    if(userRole.role==='admin') return true; // 관리자 패스
+
+    // 부장인 경우 해당 부서의 모든 팀 페이지에 접근 가능
+    if (userRole.isDepartmentHead) {
+      return departmentTeams[userRole.department]?.includes(teamId);
+    }
+
+    // 일반 팀원인 경우 자신의 팀 페이지만 접근 가능
+    return teamId === userRole.team;
+  }
+
     // 페이지 로드 함수
     async function loadPage(pageId) {
       try {
+        const userRole = await getCurrentUserRole();
+
+        if (!hasAccessToPage(userRole, pageId)) {
+          alert('접근 권한이 없습니다. 부장이거나 해당 팀 소속인 경우에만 접근할 수 있습니다.');
+          return;
+        }
+  
         const pageConfig = pageConfigs[pageId];
-        if (!pageConfig) return;
+        if (!pageConfig) {
+          alert('페이지 구성을 찾을 수 없습니다.');
+          return;
+        }
     
         const mainContent = document.getElementById('main-content');
         const response = await fetch(pageConfig.url);
         const html = await response.text();
         mainContent.innerHTML = html;
+
+
+
         // 운영부
         //1. 운영팀
 
@@ -239,12 +266,13 @@ const Sidebar = (function() {
         
       } catch (error) {
         console.error('Error loading page:', error);
+        alert(`페이지 로드 중 오류가 발생했습니다 : ${error.message}`);
       }
     }
   
     function init(container) {
       container.innerHTML = template;
-  
+      
       const sidebar = container.querySelector('.org-sidebar');
       const toggleBtn = container.querySelector('.org-toggle-btn');
       const header = container.querySelector('.org-header h1');
@@ -258,7 +286,7 @@ const Sidebar = (function() {
         } else {
           header.textContent = 'Contenido';
           toggleBtn.textContent = '접기';
-        }
+        } 
       });
   
       // 팀 메뉴 클릭 이벤트 위임
@@ -271,7 +299,8 @@ const Sidebar = (function() {
         }
       });
     }
-  
+    
+    
     return {
       init: init
     };
@@ -279,4 +308,4 @@ const Sidebar = (function() {
   
   if (typeof window !== 'undefined') {
     window.Sidebar = Sidebar;
-  }
+  }  

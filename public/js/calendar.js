@@ -48,7 +48,27 @@ if (!window.calendarInitialized) {
         console.error('Error loading events:', error);
       }
     }
-  
+    async function checkPlanningDepartmentAccess() {
+      try {
+        const response = await fetch('/user/info');
+        const userData = await response.json();
+        
+        // 기획부 소속인지 확인 (department가 planning)
+        const isPlanningDepartment = userData.department === 'planning';
+        const isAdmin = userData.role === 'admin';
+        const eventManageButton = document.querySelector('.event-manage-button');
+        
+        if (eventManageButton) {
+          if (isPlanningDepartment||isAdmin) {
+            eventManageButton.style.display = 'block';
+          } else {
+            eventManageButton.style.display = 'none';
+          }
+        }
+      } catch (error) {
+        console.error('Error checking user department:', error);
+      }
+    }
     // Update current date display
     function updateCurrentDate() {
       const date = calendar.getDate();
@@ -95,6 +115,7 @@ if (!window.calendarInitialized) {
     // Initialize
     updateCurrentDate();
     loadEvents();
+    checkPlanningDepartmentAccess();
     
     // Auto refresh events every 5 minutes
     setInterval(loadEvents, 5 * 60 * 1000);
