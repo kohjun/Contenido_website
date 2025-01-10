@@ -40,12 +40,7 @@ module.exports = (passport) => {
               kakaoId,
               isVerified: true,
               role: 'participant',
-              status: {
-                week1: 'X',
-                week2: 'X',
-                week3: 'X',
-                week4: 'X',
-              },
+              
             });
           }
 

@@ -14,6 +14,7 @@ async function fetchUserInfo() {
 
       if (data.nickname && data.email && data.role) {
         const userInfoDiv = document.getElementById('user-info');
+        const userName = document.getElementById('user-name');
         const userNickname = document.getElementById('user-nickname');
         
         const userEmail = document.getElementById('user-email');
@@ -21,11 +22,33 @@ async function fetchUserInfo() {
         
         const userImage = document.getElementById('user-image');
         const userActive = document.getElementById('user-active');
+        userName.innerText = "이름 : " + data.name;
         userNickname.innerText = "프로필 이름 : " + data.nickname;
         userEmail.innerText = "이메일 : " + data.email.replace(/^(.{3,})(.{4})(@.*)$/, '$1****$3');
         
-        userRole.innerText = "역할 : "+ `${data.role}`;
-        userActive.innerText = "활동상태 : " +`${data.active}`;
+        let roleText;
+        switch (data.role) {
+            case 'participant':
+                roleText = '참가자';
+                break;
+            case 'guest':
+                roleText = '게스트';
+                break;
+            case 'starter':
+                roleText = '스타터';
+                break;
+            case 'officer':
+                roleText = '운영진';
+                break;
+            case 'admin':
+                roleText = '관리자';
+                break;
+            default:
+                roleText = data.role;
+        }
+        userRole.innerText = "역할 : " + roleText;
+        
+        userActive.innerText = "활성상태 : " + (data.active ? '✅활동' : '❌비활동');
 
         userInfoDiv.style.display = 'block';
 

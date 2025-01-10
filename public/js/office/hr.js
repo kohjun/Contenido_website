@@ -133,6 +133,7 @@ function closeDialog(dialogId) {
 }
 
 // 역할 업데이트
+// hr.js
 async function updateUserRole() {
     if (!selectedUserId) return;
   
@@ -146,12 +147,8 @@ async function updateUserRole() {
       if (newRole === 'officer') {
         requestBody.department = 'operation'; // 기본 부서
         requestBody.team = 'operationTeam'; // 기본 팀
-      } else {
-        // officer가 아닌 경우 department와 team을 null로 설정
-        requestBody.department = null;
-        requestBody.team = null;
       }
-      
+  
       const response = await fetch(`/user/update-role/${selectedUserId}`, {
         method: 'POST',
         headers: {
@@ -171,8 +168,8 @@ async function updateUserRole() {
         user.id === selectedUserId ? { 
           ...user, 
           role: newRole,
-          department: newRole === 'officer' ? result.department : null,
-          team: newRole === 'officer' ? result.team : null
+          department: newRole === 'officer' ? result.department : undefined,
+          team: newRole === 'officer' ? result.team : undefined
         } : user
       );
       
@@ -276,15 +273,17 @@ function getGenderDisplay(gender) {
 
 // 사용자 행 HTML 생성
 function generateUserRow(user) {
-  const warningCount = user.warningCount;
-  const teamName = getTeamNameInKorean(user.team); // 한글 팀 이름 가져오기
-  return `
-      <tr oncontextmenu="handleContextMenu(event, '${user.id}', '${user.displayName}', '${user.role}')" 
+    const warningCount = user.warningCount;
+    const regularCount = user.participationCount?.regularCount || 0;
+    const teamName = getTeamNameInKorean(user.team);
+    
+    return `
+      <tr oncontextmenu="handleContextMenu(event, '${user.id}', '${user.name}', '${user.role}')" 
           data-warning="${warningCount}">
           <td><img src="${user.profileImage}" alt="Profile" class="profile-image"></td>
-          <td>${user.displayName}</td>
+          <td>${user.name}</td>
           <td>${user.role}</td>
-          <td>${teamName || '-'}</td> <!-- 한글 팀 이름 표시 -->
+          <td>${teamName || '-'}</td>
           <td>${getGenderDisplay(user.gender)}</td>
           <td class="warning-count-cell">
               <button onclick="updateWarningCount('${user.id}', ${Math.max(0, warningCount - 1)})" 
@@ -293,7 +292,13 @@ function generateUserRow(user) {
               <button onclick="updateWarningCount('${user.id}', ${warningCount + 1})" 
                       class="warning-btn">+</button>
           </td>
-          <td>${calculateParticipationCount(user.status)}</td>
+          <td class="participation-count-cell">
+              <button onclick="updateParticipationCount('${user.id}', ${Math.max(0, regularCount - 1)})" 
+                      class="warning-btn" ${regularCount <= 0 ? 'disabled' : ''}>-</button>
+              <span>${regularCount}</span>
+              <button onclick="updateParticipationCount('${user.id}', ${regularCount + 1})" 
+                      class="warning-btn">+</button>
+          </td>
           <td>
               <label class="toggle-switch">
                   <input type="checkbox" ${user.active ? 'checked' : ''} 
@@ -302,8 +307,8 @@ function generateUserRow(user) {
               </label>
           </td>
       </tr>
-  `;
-}
+    `;
+  }
 
 function getTeamNameInKorean(team) {
   const teamMapping = {
@@ -322,12 +327,36 @@ function getTeamNameInKorean(team) {
 }
 
 
-// 참가 횟수 계산
-function calculateParticipationCount(status) {
-    if (!status) return 0;
-    return Object.values(status).filter(week => week === 'O').length;
-}
-
+// 참가 횟수 업데이트
+async function updateParticipationCount(userId, newCount) {
+    try {
+      const response = await fetch(`/user/update-participation/${userId}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ regularCount: newCount })
+      });
+  
+      if (!response.ok) {
+        throw new Error('Failed to update participation count');
+      }
+  
+      users = users.map(user =>
+        user.id === userId ? { 
+          ...user, 
+          participationCount: {
+            ...user.participationCount,
+            regularCount: newCount
+          }
+        } : user
+      );
+      
+      showUsersByRole(currentRole, false);
+      alert('참가 횟수가 업데이트되었습니다.');
+    } catch (error) {
+      console.error('Error updating participation count:', error);
+      alert('참가 횟수 업데이트에 실패했습니다.');
+    }
+  }
 // 경고 횟수 업데이트
 async function updateWarningCount(userId, newCount) {
     try {
@@ -471,8 +500,8 @@ function searchUsers() {
 
     searchResults = currentRoleUsers.filter(user => {
         switch(searchOption) {
-            case 'displayName':
-                return user.displayName.toLowerCase().includes(searchInput);
+            case 'name':
+                return user.name.toLowerCase().includes(searchInput);
             case 'warningCount':
                 return (user.warningCount || 0).toString() === searchInput;
             case 'active':

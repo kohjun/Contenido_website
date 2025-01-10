@@ -69,7 +69,10 @@
   cursor: pointer;
   transition: background-color 0.2s;
 }
-
+p {
+  color:#666;
+  font-size:small;
+}
 .search-container button:hover {
   background-color: #0875e0;
 }

@@ -49,7 +49,7 @@ router.get('/calendar', async (req, res) => {
         category: 'time',
         isReadOnly: true,
         state: event.appliedParticipants?.length >= event.participants ? '마감' : '모집중',
-        attendees: event.appliedParticipants?.map(p => p.displayName) || [],
+        attendees: [event.participants],
         isVisible: true,
         backgroundColor: event.appliedParticipants?.length >= event.participants ? '#FF6B6B' : '#03bd9e',
         dragBackgroundColor: event.appliedParticipants?.length >= event.participants ? '#FF6B6B' : '#03bd9e',
@@ -73,25 +73,6 @@ router.get('/calendar', async (req, res) => {
   }
 });
 
-// 참가자 상태 확인 - staff만 접근 가능
-router.get('/participants/status', 
-  authenticateToken,
-  authorizeRoles('officer','admin'),
-  async (req, res) => {
-    try {
-      const events = await Event.find({}).populate('participants');
-      const participantsStatus = events.map(event => ({
-        eventId: event._id,
-        survived: event.resultReport?.participants || [],
-        eliminated: event.participants.filter(
-          p => !(event.resultReport?.participants || []).includes(p._id)
-        ),
-      }));
-      res.json(participantsStatus);
-    } catch (error) {
-      res.status(500).json({ message: 'Error fetching participant status', error });
-    }
-});
 
 // 종료된 이벤트 정보 확인 - officer,participant,starter 접근 가능
 router.get('/ended', 
@@ -168,9 +149,9 @@ router.post('/',
   authenticateToken,
   authorizeRoles('officer','admin'),
   async (req, res) => {
-    if (req.user.department !== 'planning') {
-      return res.status(403).json({ 
-        message: '기획부만 이벤트 생성이 가능합니다.' 
+    if (req.user.department !== 'operation' && req.user.department !== 'planning') {
+      return res.status(403).json({
+        message: '기획부,운영부만 이벤트 생성이 가능합니다.' 
       });
     }
     const { title, date, place, participants, startTime, endTime, participation_fee, contents } = req.body;
@@ -200,29 +181,29 @@ router.post('/:id/report',
   authenticateToken,
   authorizeRoles('officer','admin'),
   async (req, res) => {
-    const { week, participants } = req.body;
+    const { participants } = req.body;
 
-    if (!week || !Array.isArray(participants) || participants.length === 0) {
-      return res.status(400).json({ message: 'Invalid input: week or participants missing' });
+    if (!Array.isArray(participants) || participants.length === 0) {
+      return res.status(400).json({ message: 'Invalid input: participants missing' });
     }
-    if (req.user.department !== 'plaaning') {
-      return res.status(403).json({ 
-        message: '기획부만 제출 가능합니다.' 
-      });
-    }
+
     try {
       const event = await Event.findById(req.params.id);
       if (!event) {
         return res.status(404).json({ message: 'Event not found' });
       }
 
+      // 이벤트 상태 업데이트
       event.finalParticipants = participants.map(String);
       event.isEnded = true;
       await event.save();
 
+      // 참가자들의 participationCount 증가
       const updates = participants.map(participantId =>
         User.findByIdAndUpdate(participantId, {
-          [`status.week${week}`]: 'O',
+          $inc: {
+            'participationCount.regularCount': 1  // regularCount 증가
+          }
         })
       );
       await Promise.all(updates);

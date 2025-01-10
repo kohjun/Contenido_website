@@ -32,11 +32,15 @@ const userSchema = new mongoose.Schema({
     type: Number,
     default: 0,
   },
-  status: {
-    week1: { type: String, default: 'X' },
-    week2: { type: String, default: 'X' },
-    week3: { type: String, default: 'X' },
-    week4: { type: String, default: 'X' }
+  participationCount: {
+    totalCount: {
+      type: Number,
+      default: 0
+    },
+    regularCount: {
+      type: Number,
+      default: 0
+    }
   },
   active: { type: Boolean, default: false },
   name: { type: String },

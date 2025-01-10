@@ -11,24 +11,6 @@ async function fetchUserId() {
   }
 }
 
-async function checkUserRole() {
-  try {
-    const response = await fetch('/user/user-role');
-    const data = await response.json();
-
-    const staffButton = document.getElementById('staff-button-container');
-    if (!staffButton) {
-      console.warn("Element 'staff-button-container' not found");
-      return;
-    }
-    if (data.role === 'officer') {
-      staffButton.style.display = 'block';
-    }
-  } catch (error) {
-    console.error('Error fetching user role:', error);
-  }
-}
-
 async function fetchEvents() {
   try {
     const response = await fetch('/events');
@@ -220,46 +202,37 @@ async function loadReportFormOptions() {
 
 // 결과 보고서 제출
 async function submitReport() {
-  const eventDropdown = document.getElementById('report-event');
-  const selectedEventId = eventDropdown ? eventDropdown.value : null;
-
-  const selectedWeekInput = document.querySelector('input[name="week"]:checked');
-  const selectedWeek = selectedWeekInput ? selectedWeekInput.value : null;
-
-  const selectedParticipants = Array.from(document.querySelectorAll('#participant-list input:checked'))
-    .map(checkbox => checkbox.value);
-
-  // 값이 모두 올바르게 선택되었는지 확인
-  if (!selectedEventId) {
-    alert('이벤트를 선택하세요.');
-    return;
-  }
-
-  if (!selectedWeek) {
-    alert('주차를 선택하세요.');
-    return;
-  }
-
-  if (selectedParticipants.length === 0) {
-    alert('최소 한 명의 참가자를 선택하세요.');
-    return;
-  }
-
   try {
+    const eventDropdown = document.getElementById('report-event');
+    const selectedEventId = eventDropdown ? eventDropdown.value : null;
+
+    const selectedParticipants = Array.from(document.querySelectorAll('#participant-list input:checked'))
+      .map(checkbox => checkbox.value);
+
+    // 값이 모두 올바르게 선택되었는지 확인
+    if (!selectedEventId) {
+      alert('이벤트를 선택하세요.');
+      return;
+    }
+
+    if (selectedParticipants.length === 0) {
+      alert('최소 한 명의 참가자를 선택하세요.');
+      return;
+    }
+
     const response = await fetch(`/events/${selectedEventId}/report`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        week: selectedWeek,
         participants: selectedParticipants
       })
     });
 
     if (response.ok) {
       alert('보고서 제출 완료!');
-      await markEventAsEnded(selectedEventId); // 이벤트 종료
-      fetchEvents(); // 이벤트 목록 갱신
-      window.location.href="events.html";
+      await markEventAsEnded(selectedEventId);
+      fetchEvents();
+      window.location.href = "events.html";
     } else {
       const errorData = await response.json();
       console.error('Failed to submit report:', errorData);
@@ -386,18 +359,10 @@ async function cancelApplication(eventId) {
 }
 
 
-// 참가상태 리디렉션
-function checkParticipationStatus() {
-  window.location.href = '/participation-status.html';
-}
-
-
-
 
 
 // Run fetchEvents when the document is ready
 document.addEventListener('DOMContentLoaded', async () => {
   await fetchUserId(); 
   await fetchEvents();
-  checkUserRole();
 });
