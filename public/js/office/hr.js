@@ -277,12 +277,20 @@ function generateUserRow(user) {
     const regularCount = user.participationCount?.regularCount || 0;
     const teamName = getTeamNameInKorean(user.team);
     
+    const roleDisplay = {
+        'officer': '운영진',
+        'starter': '스타터',
+        'admin': '관리자',
+        'participant': '참가자',
+        'guest': '게스트'
+    };
+
     return `
       <tr oncontextmenu="handleContextMenu(event, '${user.id}', '${user.name}', '${user.role}')" 
           data-warning="${warningCount}">
           <td><img src="${user.profileImage}" alt="Profile" class="profile-image"></td>
           <td>${user.name}</td>
-          <td>${user.role}</td>
+          <td>${roleDisplay[user.role] || user.role}</td>
           <td>${teamName || '-'}</td>
           <td>${getGenderDisplay(user.gender)}</td>
           <td class="warning-count-cell">
@@ -312,16 +320,16 @@ function generateUserRow(user) {
 
 function getTeamNameInKorean(team) {
   const teamMapping = {
-    "operationTeam": "운영팀",
-    "HumanResourceTeam": "인사팀",
-    "financeTeam": "재무팀",
-    "cooperationTeam": "대외협력팀",
-    "marketingTeam": "홍보팀",
-    "designTeam": "디자인팀",
-    "videoTeam": "영상제작팀",
-    "PlanningTeam": "기획팀",
-    "regularTeam": "정기모임팀",
-    "staffTeam": "스태프팀"
+    "operationTeam": "운영",
+    "HumanResourceTeam": "인사",
+    "financeTeam": "재무",
+    "cooperationTeam": "대외협력",
+    "marketingTeam": "홍보",
+    "designTeam": "디자인",
+    "videoTeam": "영상제작",
+    "PlanningTeam": "기획",
+    "regularTeam": "정기모임",
+    "staffTeam": "스태프"
   };
   return teamMapping[team] || team; // 매핑되지 않은 경우 원래 값 반환
 }

@@ -26,27 +26,15 @@ async function fetchUserInfo() {
         userNickname.innerText = "프로필 이름 : " + data.nickname;
         userEmail.innerText = "이메일 : " + data.email.replace(/^(.{3,})(.{4})(@.*)$/, '$1****$3');
         
-        let roleText;
-        switch (data.role) {
-            case 'participant':
-                roleText = '참가자';
-                break;
-            case 'guest':
-                roleText = '게스트';
-                break;
-            case 'starter':
-                roleText = '스타터';
-                break;
-            case 'officer':
-                roleText = '운영진';
-                break;
-            case 'admin':
-                roleText = '관리자';
-                break;
-            default:
-                roleText = data.role;
-        }
-        userRole.innerText = "역할 : " + roleText;
+        const roleDisplay = {
+            'officer': '운영진',
+            'starter': '스타터',
+            'admin': '관리자',
+            'participant': '참가자',
+            'guest': '게스트'
+        };
+
+        userRole.innerText = "역할 : " + (roleDisplay[data.role] || data.role);
         
         userActive.innerText = "활성상태 : " + (data.active ? '✅활동' : '❌비활동');
 

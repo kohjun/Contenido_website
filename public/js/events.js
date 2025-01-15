@@ -267,7 +267,7 @@ async function markEventAsEnded(eventId) {
 // 이벤트 삭제
 async function cancelEvent(eventId) {
   // 사용자에게 삭제 확인 메시지 표시
-  const isConfirmed = confirm('정말로 이벤트를 삭제하시겠습니까?');
+  const isConfirmed = confirm('해당 이벤트를 삭제하시겠습니까?');
 
   if (!isConfirmed) {
     // 사용자가 취소를 선택한 경우
@@ -303,7 +303,7 @@ async function handleCancelEvent(eventId, eventCreator) {
     const userRole = data.role; // 역할 가져오기
 
     if (eventCreator === userId && userRole === 'officer') {
-      // 사용자가 이벤트 생성자이면서 staff인 경우
+      // 사용자가 이벤트 생성자이면서 officer인 경우
       await cancelEvent(eventId);
     } else if (userRole !== 'officer') {
       alert('이벤트를 취소할 권한이 없습니다. (권한: 일반 사용자)');
