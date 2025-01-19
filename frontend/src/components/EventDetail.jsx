@@ -53,7 +53,7 @@ const EventDetail = () => {
         return (
           <div className="space-y-4 px-4">
             <p className="text-gray-800">
-              나는 마을의 열쇠공이다. 얼집 귀금속점 주인이 일전에 의뢰한 물건이 맘에 쏙 들었는지 귀한 답례품을 주고 갔다.
+              내용 주제 
             </p>
             <p className="text-gray-800">
               구두쇠로 소문난 녀석이 웬일이지? 제법 만들기 어려웠던 것이지만, 작업하는 재미가 있어서 꽤 괜찮은 결과물이 나온 덕인 것 같다. 보는 눈은 없어 가지고...

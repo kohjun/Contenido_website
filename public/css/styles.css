@@ -18,6 +18,10 @@ h1, h2{
   text-align: center;
   
 }
+p {
+  color:#666;
+  font-size:small;
+}
 /* 참가자 리스트 그리드 스타일 */
 .participant-grid {
   display: flex;
