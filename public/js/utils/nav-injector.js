@@ -171,6 +171,7 @@ const bottomNavHTML = `
         <span>마이</span>
     </button>
 </nav>
+
 `;
 
 // 사이드바 토글 함수

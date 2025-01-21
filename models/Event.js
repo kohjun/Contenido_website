@@ -49,6 +49,9 @@ const eventSchema = new mongoose.Schema({
     type: Boolean,
     default: false, // 기본값 false (이벤트 종료 여부)
   },
+  images: [{
+    type: String,
+    default: [] }],
   applicationPeriod: {
     start: Date,
     end: Date
