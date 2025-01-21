@@ -8,8 +8,10 @@
 </head>
 <body>
   <div class="container">
-    <h1>이벤트 내용</h1>
+  <h1>이벤트 내용</h1>
 
+  <!-- 이벤트 정보 -->
+  <div class="event-info">
     <p>제목: <span id="event-title"></span></p>
     <p>장소: <span id="event-place"></span></p>
     <p>날짜: <span id="event-date"></span></p>
@@ -18,17 +20,39 @@
     <p>종료 시간: <span id="event-end-time"></span></p>
     <p>참가비: <span id="event-fee"></span></p>
     <p>내용: <span id="event-contents"></span></p>
+  </div>
 
-    <!-- Modify Button -->
-    <button id="modify-button" onclick="enableEdit()">수정하기</button>
+  <!-- 이미지 컨테이너 -->
+  <div id="event-image-container" class="event-image-container"></div>
 
-    <!-- Confirmation Buttons (Initially Hidden) -->
-    <div id="confirmation-buttons" style="display: none;">
+  <!-- 수정 버튼 -->
+  <button id="modify-button" onclick="enableEdit()">수정하기</button>
+
+  <!-- 수정 관련 컨트롤 -->
+  <div id="edit-controls" style="display: none;">
+    <!-- 이미지 업로드 섹션이 여기에 동적으로 추가됨 -->
+    
+    <div class="image-section">
+      <h3>이벤트 이미지(최대 3장)</h3>
+      <div class="image-container">
+        <div id="event-image-container" class="image-grid"></div>
+        <label for="edit-image" class="image-upload-button" id="image-upload-label">
+          <span class="plus-icon">+</span>
+          <span class="upload-text">이미지 추가</span>
+          <input type="file" id="edit-image" accept="image/*" multiple class="image-upload-input">
+        </label>
+      </div>
+    </div>
+
+    <!-- 확인/취소 버튼 -->
+    <div id="confirmation-buttons">
       <button id="confirm-button" onclick="submitEdit()">확인</button>
       <button id="cancel-button" onclick="cancelEdit()">취소</button>
     </div>
-    <button onclick="window.location.href='events.html'">진행중인 이벤트</button>
   </div>
+
+  <button onclick="window.location.href='events.html'">진행중인 이벤트</button>
+</div>
 
   <script src="/js/modify-event.js"></script>
 </body>
