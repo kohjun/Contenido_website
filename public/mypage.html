@@ -12,29 +12,58 @@
   <div class="container">
     <!-- 내 정보 페이지 제목 -->
     <h3>기본 정보</h3>
+    <hr>
 
-    <!-- 사용자 정보 -->
-    <div class="user-info" id="user-info" style="display: none;">
-      <img src="/images/basic_Image.png" style="text-align: center;" alt="User Profile" id="user-image" />
-      <p> <strong id="user-name"> </strong></p>
-      <p id="user-nickname"></p>
-      <p id="user-email"></p>
-      
-      <p id="user-role"></p>
-      <p id="user-active"></p>
+    <!-- 사용자 정보 카드 -->
+    <div class="info-card">
+      <h4>프로필 정보</h4>
+      <div class="user-info" id="user-info" style="display: none;">
+        <img src="/images/basic_Image.png" style="text-align: center;" alt="User Profile" id="user-image" />
+        <p> <strong id="user-name"> </strong></p>
+        <p id="user-nickname"></p>
+        <p id="user-role"></p>
+        <p id="user-team"></p>
+      </div>
     </div>
-    <h3> 신청한 이벤트(예정)</h3>
 
-    <h3> 참여한 이벤트(예정)</h3>
+    <!-- 개인정보 카드 -->
+    <div class="info-card">
+      <h4>개인 정보 <button id="toggle-personal-info">보기</button></h4>
+      <div id="birthdate-input-container" style="display: none;">
+        <input type="password" id="birthdate-input" placeholder="생년월일 (예: 991022)">
+        <button id="confirm-birthdate">확인</button>
+      </div>
+      <div class="user-info" id="personal-info" style="display: none;">
+        <p id="user-email"></p>
+        <p id="user-phonenumber"></p>
+        <p id="user-gender"></p>
+        <p id="user-birthdate"></p>
+      </div>
+    </div>
 
-    <h3> </h3>
-    <div class=""></div>
+    <!-- 활동 정보 카드 -->
+    <div class="info-card">
+      <h4>활동 정보</h4>
+      <div class="user-info" id="activity-info" style="display: none;">
+        <p id="user-active"></p>
+        <p id="user-warningcount"></p>
+        <p id="user-regularcount"></p>
+        <p id="user-totalcount"></p>
+      </div>
+    </div>
+
+    <hr>
+    <h3>신청한 이벤트(예정)</h3>
+    <hr>
+    <!-- 신청한 이벤트 내용 추가 -->
+
+    <h3>참여한 이벤트(예정)</h3>
+    <hr>
+    <!-- 참여한 이벤트 내용 추가 -->
+
     <div class="button-container">
-      
-
+      <!-- 버튼 내용 추가 -->
     </div>
-
-
 
   <!-- Script -->
   <script src ="js/mypage.js"></script>

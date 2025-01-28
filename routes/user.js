@@ -1,4 +1,4 @@
-  // routes/user.js
+// routes/user.js
   const express = require('express');
   const router = express.Router();
   const authenticateToken = require('../middleware/authMiddleware');
@@ -71,7 +71,7 @@ schedule.scheduleJob('0 0 1 1,3,5,7,9,11 *', async () => {
   }
 });
 
-  // 유저 정보 얻기
+  // 토큰을 사용해서 유저 정보 얻기
   router.get('/info', authenticateToken, (req, res) => {
     console.log('User from JWT:', req.user); 
 
@@ -96,12 +96,53 @@ schedule.scheduleJob('0 0 1 1,3,5,7,9,11 *', async () => {
     }
   });
 
-  
+// 데이터베이스에서 유저 정보 얻기
+
+router.get('/info_database', authenticateToken, async (req, res) => {
+  try {
+    // JWT 토큰에서 받은 userId를 사용하여 데이터베이스에서 전체 정보 조회
+    const user = await User.findById(req.user.id)
+      .select('id name displayName email role active department team profileImage warningCount participationCount phonenumber gender birthDate');
+    
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // 캐시 방지 헤더 설정
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
+    res.setHeader('Surrogate-Control', 'no-store');
+    
+    // 전체 사용자 정보 반환
+    const userInfo = {
+      id: user._id,
+      name: user.name,
+      displayName: user.displayName,
+      email: user.email,
+      role: user.role,
+      active: user.active,
+      department: user.department,
+      team: user.team,
+      profileImage: user.profileImage,
+      warningCount: user.warningCount,
+      participationCount: user.participationCount,
+      phonenumber: user.phonenumber,
+      gender: user.gender,
+      birthDate: user.birthDate
+    };
+
+    res.json(userInfo);
+  } catch (error) {
+    console.error('Error fetching user info from database:', error);
+    res.status(500).json({ message: 'Error fetching user info' });
+  }
+});
 
   
 
 
-// 참가자 데이터 조회
+//여러 참가자 데이터 조회
 router.get('/participants/users', async (req, res) => {
   try {
     const users = await User.find({ isVerified: true })
@@ -119,6 +160,7 @@ router.get('/participants/users', async (req, res) => {
       department: user.department,
       gender: user.gender || '-',
       warningCount: user.warningCount,
+      
     }));
 
     res.status(200).json(userData);

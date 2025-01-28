@@ -363,7 +363,7 @@ input:focus, select:focus, textarea:focus {
   /* 표 스타일 */
   table {
     width: 100%;
-    table-layout: auto; /* 열 너비를 자동으로 조정 */
+    table-layout: fixed; /* 열 너비를 고정 */
     border-collapse: collapse;
     margin-top: 1rem;
     background: #fff;
@@ -403,7 +403,8 @@ input:focus, select:focus, textarea:focus {
   td {
     background: #ffffff;
     transition: background 0.3s ease;
-    
+    vertical-align: middle; /* 셀 내용 가운데 정렬 */
+    text-align: center; /* 셀 내용 가운데 정렬 */
   }
 
 
@@ -680,9 +681,24 @@ input:focus, select:focus, textarea:focus {
     box-sizing: border-box;
   }
 
+  .review-button {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 60px; /* 버튼 크기 증가 */
+    height: 60px; /* 버튼 크기 증가 */
+    border-radius: 50%;
+    background-color: #0A84FE;
+    color: #fff;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.3s, transform 0.2s;
+  }
 
-
-
+  .review-button:hover {
+    background-color: #0C84FE;
+    transform: translateY(-3px);
+  }
 
   /* 스크롤바 전체 */
 ::-webkit-scrollbar {

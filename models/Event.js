@@ -2,6 +2,10 @@
 const mongoose = require('mongoose');
 
 const eventSchema = new mongoose.Schema({
+  team:{
+    type: String,
+    required: true,
+  },
   title: {
     type: String,
     required: true, // 필수 항목
@@ -56,6 +60,10 @@ const eventSchema = new mongoose.Schema({
     start: Date,
     end: Date
   },
+  rating: {
+    type: Number,
+    default : 0
+  }
 });
 
 

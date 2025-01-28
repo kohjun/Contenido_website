@@ -1,1 +1,46 @@
-재무팀 페이지입니다
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>재무팀 관리</title>
+    <link rel="stylesheet" href="/css/finance.css">
+</head>
+<body>
+    <div class="container">
+        <h1>재무팀 관리</h1>
+        
+        <div class="upload-section">
+            <h2>거래 내역 조회</h2>
+            <div class="input-wrapper">
+                <input type="file" id="transaction-upload" accept=".json">
+                <button id="verify-button">확인</button>
+            </div>
+        </div>
+
+        <div id="table-container" class="hidden">
+            <table id="transaction-table">
+                <thead>
+                    <tr>
+                        <th>거래일시</th>
+                        <th>구분</th>
+                        <th>거래금액</th>
+                        <th>거래 후 잔액</th>
+                        <th>거래구분</th>
+                        <th>내용</th>
+                        <th>메모</th>
+                    </tr>
+                </thead>
+                <tbody id="transaction-body"></tbody>
+            </table>
+
+            <div class="pagination">
+                <button id="prev-page" disabled>이전</button>
+                <span id="page-info"></span>
+                <button id="next-page">다음</button>
+            </div>
+        </div>
+    </div>
+    <script src="/js/office/finance.js"></script>
+</body>
+</html>

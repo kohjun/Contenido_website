@@ -107,33 +107,45 @@ async function submitEvent() {
   const endTime = document.getElementById('event-end-time').value;
   const participation_fee = document.getElementById('event-participation-fee').value;
   const contents = document.getElementById('event-contents').value;
+  const team = document.getElementById('event-team').value;
+  const images = document.getElementById('event-images').files;
+
+  if (!title || !place || !participants || !date || !startTime || !endTime || !participation_fee || !contents || !team) {
+    alert('모든 필수 필드를 입력해주세요.');
+    return;
+  }
 
   try {
+    const formData = new FormData();
+    formData.append('title', title);
+    formData.append('place', place);
+    formData.append('participants', participants);
+    formData.append('date', date);
+    formData.append('startTime', startTime);
+    formData.append('endTime', endTime);
+    formData.append('participation_fee', participation_fee);
+    formData.append('contents', contents);
+    formData.append('team', team);
+
+    Array.from(images).forEach(image => {
+      formData.append('images', image);
+    });
+
     const response = await fetch('/events', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        title,
-        place,
-        participants,
-        date,
-        startTime,
-        endTime,
-        participation_fee,
-        contents
-      })
+      body: formData
     });
 
     if (response.ok) {
       alert('이벤트가 등록되었습니다');
       window.location.href = 'events.html'; // Redirect to events page after submission
     } else {
-      console.error('Error:', await response.json());
-      alert("입력란을 모두 입력해주세요.");
+      const errorData = await response.json();
+      console.error('Error:', errorData);
+      alert(errorData.message || "입력란을 모두 입력해주세요.");
     }
   } catch (error) {
     console.error('Error submitting event:', error);
-    
   }
 }
 

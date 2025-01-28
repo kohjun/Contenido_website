@@ -1,4 +1,4 @@
-  <!DOCTYPE html>
+<!DOCTYPE html>
   <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -61,7 +61,7 @@
             <td>${event.place}</td>
             <td>${event.finalParticipants?.length || 0}명</td>
             <td>${event.participation_fee.toLocaleString()}원</td>
-            <td><button onclick="redirectToReviewPage('${event._id}')">후기 작성</button></td>
+            <td><button class="review-button" onclick="redirectToReviewPage('${event._id}')">후기 작성</button></td>
           </tr>
         `;
       }

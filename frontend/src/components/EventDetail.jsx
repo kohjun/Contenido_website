@@ -1,242 +1,206 @@
-import React, { useState, useEffect } from 'react';
-import { Star, Heart, ArrowLeft, Camera } from 'lucide-react';
+import React, { useState } from 'react';
+import { useParams } from 'react-router-dom';
+import { Star, Heart, ArrowLeft, Upload, Camera } from 'lucide-react';
+import { useEvent } from '../hooks/useEvent';
+import { useEventReviews } from '../hooks/useEventReview';
 
-const EventDetail = ({ eventId }) => {
-  // URL에서 이벤트 ID를 가져오는 대신 props로 받습니다
-  const [event, setEvent] = useState(null);
-  const [reviews, setReviews] = useState([]);
-  const [userRole, setUserRole] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
+const EventDetail = () => {
+  const { id } = useParams();
+  const { event, loading, error } = useEvent(id);
+  const { reviews, newReview, setNewReview, submitReview } = useEventReviews(id);
   const [activeTab, setActiveTab] = useState('info');
   const [liked, setLiked] = useState(false);
-  const [likeCount, setLikeCount] = useState(101);
+  const [likeCount, setLikeCount] = useState(0);
   const [selectedImage, setSelectedImage] = useState(null);
-  const [newReview, setNewReview] = useState({ rating: 5, comment: '', isAnonymous: false });
+  const [reviewSubmitted, setReviewSubmitted] = useState(false); // 리뷰 제출 상태 추가
 
-  // 이벤트 데이터 로드
-  useEffect(() => {
-    const fetchEventData = async () => {
-      try {
-        const [eventResponse, reviewsResponse, userResponse] = await Promise.all([
-          fetch(`/events/${eventId}`),
-          fetch(`/reviews?eventId=${eventId}`),
-          fetch('/user/info')
-        ]);
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <div className="w-8 h-8 border-4 border-blue-500 rounded-full border-t-transparent animate-spin"></div>
+      </div>
+    );
+  }
 
-        if (!eventResponse.ok) throw new Error('Event not found');
-
-        const eventData = await eventResponse.ok ? await eventResponse.json() : null;
-        const reviewsData = await reviewsResponse.ok ? await reviewsResponse.json() : [];
-        const userData = await userResponse.ok ? await userResponse.json() : null;
-
-        setEvent(eventData);
-        setReviews(reviewsData);
-        setUserRole(userData?.role);
-      } catch (error) {
-        console.error('Error fetching data:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    if (eventId) {
-      fetchEventData();
-    }
-  }, [eventId]);
-
-  const handleImageUpload = async (event) => {
-    const file = event.target.files[0];
-    if (!file) return;
-
-    try {
-      const formData = new FormData();
-      formData.append('image', file);
-      formData.append('eventId', eventId);
-
-      const response = await fetch('/events/upload-image', {
-        method: 'POST',
-        body: formData
-      });
-
-      if (response.ok) {
-        const result = await response.json();
-        setSelectedImage(result.imageUrl);
-      }
-    } catch (error) {
-      console.error('Error uploading image:', error);
-    }
-  };
+  if (error || !event) {
+    return (
+      <div className="p-4 text-red-500 text-center">
+        {error || '이벤트를 찾을 수 없습니다.'}
+      </div>
+    );
+  }
 
   const handleLike = () => {
     setLiked(!liked);
     setLikeCount(prev => liked ? prev - 1 : prev + 1);
   };
 
-  const handleSubmitReview = async (e) => {
-    e.preventDefault();
-    
-    try {
-      const response = await fetch('/reviews', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          eventId,
-          rating: newReview.rating,
-          comment: newReview.comment,
-          isAnonymous: newReview.isAnonymous
-        })
-      });
+  // Calculate duration in minutes
+  const getDuration = () => {
+    const start = new Date(`2000/01/01 ${event.startTime}`);
+    const end = new Date(`2000/01/01 ${event.endTime}`);
+    return Math.round((end - start) / (1000 * 60));
+  };
 
-      if (response.ok) {
-        const reviewsResponse = await fetch(`/reviews?eventId=${eventId}`);
-        const updatedReviews = await reviewsResponse.json();
-        setReviews(updatedReviews);
-        setNewReview({ rating: 5, comment: '', isAnonymous: false });
-      }
-    } catch (error) {
-      console.error('Error submitting review:', error);
+  const handleReviewSubmit = async (e) => {
+    e.preventDefault();
+    await submitReview();
+    setReviewSubmitted(true); // 리뷰 제출 상태 업데이트
+    setTimeout(() => setReviewSubmitted(false), 3000); // 3초 후 알림 숨기기
+  };
+
+  const renderContent = () => {
+    switch (activeTab) {
+      case 'info':
+        return (
+          <div className="space-y-4">
+            {event.contents.split('\n').map((line, index) => (
+              <p key={index} className="text-gray-800">{line}</p>
+            ))}
+          </div>
+        );
+      case 'review':
+        return (
+          <div className="space-y-6">
+            <form onSubmit={handleReviewSubmit} className="space-y-4 border-b pb-6">
+              <div className="flex items-center gap-2">
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <Star
+                    key={star}
+                    className={`w-6 h-6 cursor-pointer ${
+                      star <= newReview.rating ? 'text-yellow-400 fill-current' : 'text-gray-300'
+                    }`}
+                    onClick={() => setNewReview(prev => ({ ...prev, rating: star }))}
+                  />
+                ))}
+              </div>
+              <textarea
+                className="w-full border rounded-lg p-2 h-24"
+                placeholder="리뷰를 작성해주세요"
+                value={newReview.comment}
+                onChange={(e) => setNewReview(prev => ({ ...prev, comment: e.target.value }))}
+              />
+              <button 
+                type="submit"
+                className="bg-orange-500 text-white px-4 py-2 rounded-lg"
+              >
+                리뷰 작성
+              </button>
+              {reviewSubmitted && (
+                <div className="text-green-500 mt-2">리뷰가 등록되었습니다!</div>
+              )}
+            </form>
+            <div className="space-y-4">
+              {reviews.map(review => (
+                <div key={review._id} className="border-b pb-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    {[...Array(5)].map((_, i) => (
+                      <Star
+                        key={i}
+                        className={`w-4 h-4 ${
+                          i < review.rating ? 'text-yellow-400 fill-current' : 'text-gray-300'
+                        }`}
+                      />
+                    ))}
+                    <span className="text-gray-500 text-sm">
+                      {new Date(review.createdAt).toLocaleDateString()}
+                    </span>
+                  </div>
+                  <p className="text-gray-800">{review.comment}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      case 'community':
+        return (
+          <div className="space-y-4">
+            <p className="text-gray-600 text-center py-8">
+              커뮤니티 기능은 준비중입니다.
+            </p>
+          </div>
+        );
+      default:
+        return null;
     }
   };
 
-  if (isLoading) {
-    return <div className="text-center p-4">Loading...</div>;
-  }
-
-  if (!event) {
-    return <div className="text-center p-4">Event not found</div>;
-  }
-
   return (
-    <div className="min-h-screen bg-gray-100">
-      <div className="max-w-2xl mx-auto bg-white">
-        {/* Header */}
-        <div className="flex items-center p-4 border-b">
-          <button onClick={() => window.history.back()} className="mr-4">
-            <ArrowLeft className="w-6 h-6" />
+    <div className="max-w-2xl mx-auto bg-white">
+      {/* Header */}
+      <div className="flex items-center p-4 border-b">
+        <button className="mr-4" onClick={() => window.history.back()}>
+          <ArrowLeft className="w-6 h-6" />
+        </button>
+        <h1 className="text-lg font-bold flex-1 text-center">{event.title}</h1>
+      </div>
+
+      {/* Main image */}
+      <div className="p-4 bg-gray-50">
+        <div className="border rounded-lg p-4 bg-white">
+          {event.images && event.images.length > 0 ? (
+            <img 
+              src={event.images[0]} 
+              alt={event.title}
+              className="h-64 w-full object-cover rounded"
+            />
+          ) : (
+            <div className="h-64 w-full bg-gray-100 rounded flex flex-col items-center justify-center">
+              <Camera className="w-12 h-12 text-gray-400 mb-2" />
+              <span className="text-gray-500">이미지 없음</span>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Event info */}
+      <div className="p-4">
+        <h2 className="text-xl font-bold mb-2">{event.title}</h2>
+        <p className="text-gray-600 mb-2">{event.place}</p>
+        
+        {/* Stats */}
+        <div className="flex items-center gap-4 mb-4">
+          <div className="flex items-center">
+            <Star className="w-5 h-5 text-yellow-400 fill-current" />
+            <span className="ml-1">4.5({reviews.length})</span>
+          </div>
+          <div className="flex items-center cursor-pointer" onClick={handleLike}>
+            <Heart className={`w-5 h-5 ${liked ? 'text-pink-500 fill-current' : 'text-pink-500'}`} />
+            <span className="ml-1">{likeCount}</span>
+          </div>
+          <div className="text-gray-600">
+            활동시간 {getDuration()}분
+          </div>
+        </div>
+
+        {/* Tabs */}
+        <div className="flex border-b mb-4">
+          {['info', 'review', 'community'].map((tab) => (
+            <button
+              key={tab}
+              className={`px-4 py-2 ${
+                activeTab === tab
+                  ? 'border-b-2 border-black font-bold'
+                  : 'text-gray-500'
+              }`}
+              onClick={() => setActiveTab(tab)}
+            >
+              {tab === 'info' ? '정보' : tab === 'review' ? '리뷰' : '커뮤니티'}
+            </button>
+          ))}
+        </div>
+
+        {/* Content */}
+        {renderContent()}
+
+        {/* Action buttons */}
+        <div className="flex gap-4 mt-6">
+          <button className="flex-1 bg-orange-500 text-white py-4 rounded-lg font-bold hover:bg-orange-600 transition-colors">
+            문의하기
           </button>
-          <h1 className="text-lg font-bold flex-1 text-center">{event.title}</h1>
-        </div>
-
-        {/* Image Section */}
-        <div className="p-4 bg-gray-50 border-y">
-          <div className="bg-gray-100 rounded-lg h-64">
-            {(selectedImage || event.image) ? (
-              <img 
-                src={selectedImage || event.image}
-                alt="Event"
-                className="w-full h-full object-cover rounded-lg"
-              />
-            ) : (
-              <div className="h-full flex items-center justify-center">
-                <Camera className="w-12 h-12 text-gray-400" />
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Event Info */}
-        <div className="p-4">
-          <div className="mb-6">
-            <h2 className="text-xl font-bold">{event.title}</h2>
-            <p className="text-gray-600">{event.place}</p>
-            <div className="mt-2 flex gap-4 text-sm text-gray-500">
-              <span>참가인원: {event.finalParticipants?.length || 0}/{event.participants}</span>
-              <span>시간: {event.startTime}-{event.endTime}</span>
-              <span>참가비: {event.participation_fee}원</span>
-            </div>
-          </div>
-
-          {/* Tabs */}
-          <div className="border-b">
-            <div className="flex">
-              <button
-                className={`px-4 py-2 ${activeTab === 'info' ? 'border-b-2 border-blue-500' : ''}`}
-                onClick={() => setActiveTab('info')}
-              >
-                정보
-              </button>
-              <button
-                className={`px-4 py-2 ${activeTab === 'review' ? 'border-b-2 border-blue-500' : ''}`}
-                onClick={() => setActiveTab('review')}
-              >
-                리뷰
-              </button>
-            </div>
-          </div>
-
-          {/* Content */}
-          <div className="mt-4">
-            {activeTab === 'info' ? (
-              <div className="prose max-w-none">
-                {event.contents}
-              </div>
-            ) : (
-              <div>
-                {/* Review Form */}
-                <form onSubmit={handleSubmitReview} className="mb-6">
-                  <div className="flex items-center gap-2 mb-2">
-                    {[1, 2, 3, 4, 5].map((star) => (
-                      <Star
-                        key={star}
-                        className={`w-6 h-6 cursor-pointer ${
-                          star <= newReview.rating ? 'text-yellow-400 fill-current' : 'text-gray-300'
-                        }`}
-                        onClick={() => setNewReview(prev => ({ ...prev, rating: star }))}
-                      />
-                    ))}
-                  </div>
-                  <textarea
-                    className="w-full border rounded p-2 mb-2"
-                    value={newReview.comment}
-                    onChange={(e) => setNewReview(prev => ({ ...prev, comment: e.target.value }))}
-                    placeholder="리뷰를 작성해주세요"
-                  />
-                  <div className="flex items-center gap-2 mb-2">
-                    <input
-                      type="checkbox"
-                      id="anonymous"
-                      checked={newReview.isAnonymous}
-                      onChange={(e) => setNewReview(prev => ({ ...prev, isAnonymous: e.target.checked }))}
-                    />
-                    <label htmlFor="anonymous">익명으로 작성</label>
-                  </div>
-                  <button
-                    type="submit"
-                    className="bg-blue-500 text-white px-4 py-2 rounded"
-                  >
-                    리뷰 작성
-                  </button>
-                </form>
-
-                {/* Reviews List */}
-                <div className="space-y-4">
-                  {reviews.map((review, index) => (
-                    <div key={index} className="border-b pb-4">
-                      <div className="flex items-center gap-2">
-                        <span className="font-bold">
-                          {review.isAnonymous ? '익명' : review.userId?.displayName}
-                        </span>
-                        <div className="flex">
-                          {[...Array(5)].map((_, i) => (
-                            <Star
-                              key={i}
-                              className={`w-4 h-4 ${
-                                i < review.rating ? 'text-yellow-400 fill-current' : 'text-gray-300'
-                              }`}
-                            />
-                          ))}
-                        </div>
-                      </div>
-                      <p className="mt-2">{review.comment}</p>
-                      <span className="text-sm text-gray-500">
-                        {new Date(review.createdAt).toLocaleDateString()}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
+          <button className="flex-1 bg-yellow-400 text-black py-4 rounded-lg font-bold hover:bg-yellow-500 transition-colors">
+            신청하기
+          </button>
         </div>
       </div>
     </div>
