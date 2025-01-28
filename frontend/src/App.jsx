@@ -1,19 +1,16 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import EventDetail from './components/EventDetail'; // EventDetail 컴포넌트 임포트
-import HomePage from './HomePage'; // 홈 페이지 컴포넌트 임포트
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import RankingPage from './RankingPage';
+import EventDetail from './components/EventDetail';
 
 const App = () => {
   return (
-    <Router>
+    <BrowserRouter>
       <Routes>
-        {/* Home 페이지로 이동하는 경로 설정 */}
-        <Route path="/ranking" element={<HomePage />} />
-
-        {/* 이벤트 상세 페이지로 이동하는 동적 경로 설정 */}
-        <Route path="/event/:eventId" element={<EventDetail />} />
+        <Route path="/ranking" element={<RankingPage />} />
+        <Route path="/ranking/:id" element={<EventDetail />} />
       </Routes>
-    </Router>
+    </BrowserRouter>
   );
 };
 

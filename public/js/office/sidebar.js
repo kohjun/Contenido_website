@@ -107,33 +107,33 @@ const Sidebar = (function() {
     </div>
   `;
 
-  
-    // 팀별 페이지 설정
-    const pageConfigs = {
-      operationTeam: { url: '/office_operation.html' },
-      cooperationTeam: { url: '/office_cooperation.html' },
-      HumanResourceTeam: { url: '/office_hr.html' },
-      financeTeam: { url: '/office_finance.html' },
-      marketingTeam: { url: '/office_marketing.html' },
-      designTeam: { url: '/office_design.html' },
-      videoTeam: { url: '/office_video.html' },
-      PlanningTeam: { url: '/office_planning.html' },
-      regularTeam: { url: '/office_regular.html' },
-      staffTeam: { url: '/calendar.html'}
-    };
-    const departmentTeams = {
-      operation: ['operationTeam', 'cooperationTeam', 'HumanResourceTeam', 'financeTeam'],
-      promotion: ['marketingTeam', 'designTeam', 'videoTeam'],
-      planning: ['PlanningTeam', 'regularTeam', 'staffTeam']
-    };
-  
+  // 팀별 페이지 설정
+  const pageConfigs = {
+    operationTeam: { url: '/office_operation.html' },
+    cooperationTeam: { url: '/office_cooperation.html' },
+    HumanResourceTeam: { url: '/office_hr.html' },
+    financeTeam: { url: '/office_finance.html' },
+    marketingTeam: { url: '/office_marketing.html' },
+    designTeam: { url: '/office_design.html' },
+    videoTeam: { url: '/office_video.html' },
+    PlanningTeam: { url: '/office_planning.html' },
+    regularTeam: { url: '/office_regular.html' },
+    staffTeam: { url: '/calendar.html' }
+  };
+
+  const departmentTeams = {
+    operation: ['operationTeam', 'cooperationTeam', 'HumanResourceTeam', 'financeTeam'],
+    promotion: ['marketingTeam', 'designTeam', 'videoTeam'],
+    planning: ['PlanningTeam', 'regularTeam', 'staffTeam']
+  };
+
   // 현재 사용자의 권한 정보를 가져오는 함수
   async function getCurrentUserRole() {
     try {
       const response = await fetch('/user/info');
       const userData = await response.json();
       return {
-        role : userData.role,
+        role: userData.role,
         department: userData.department,
         team: userData.team,
         isDepartmentHead: userData.isDepartmentHead
@@ -143,10 +143,11 @@ const Sidebar = (function() {
       return null;
     }
   }
+
   // 사용자의 페이지 접근 권한을 확인하는 함수
   function hasAccessToPage(userRole, teamId) {
     if (!userRole) return false;
-    if(userRole.role==='admin') return true; // 관리자 패스
+    if (userRole.role === 'admin') return true; // 관리자 패스
 
     // 부장인 경우 해당 부서의 모든 팀 페이지에 접근 가능
     if (userRole.isDepartmentHead) {
@@ -157,155 +158,217 @@ const Sidebar = (function() {
     return teamId === userRole.team;
   }
 
-    // 페이지 로드 함수
-    async function loadPage(pageId) {
-      try {
-        const userRole = await getCurrentUserRole();
+  // 페이지 로드 함수
+  async function loadPage(pageId) {
+    try {
+      const userRole = await getCurrentUserRole();
 
-        if (!hasAccessToPage(userRole, pageId)) {
-          alert('접근 권한이 없습니다. 부장이거나 해당 팀 소속인 경우에만 접근할 수 있습니다.');
-          return;
-        }
-  
-        const pageConfig = pageConfigs[pageId];
-        if (!pageConfig) {
-          alert('페이지 구성을 찾을 수 없습니다.');
-          return;
-        }
-    
-        const mainContent = document.getElementById('main-content');
-        const response = await fetch(pageConfig.url);
-        const html = await response.text();
-        mainContent.innerHTML = html;
+      if (!hasAccessToPage(userRole, pageId)) {
+        alert('접근 권한이 없습니다. 부장이거나 해당 팀 소속인 경우에만 접근할 수 있습니다.');
+        return;
+      }
 
+      const pageConfig = pageConfigs[pageId];
+      if (!pageConfig) {
+        alert('페이지 구성을 찾을 수 없습니다.');
+        return;
+      }
 
+      const mainContent = document.getElementById('main-content');
+      const response = await fetch(pageConfig.url);
+      const html = await response.text();
+      mainContent.innerHTML = html;
 
-        // 운영부
-        //1. 운영팀
+      // 운영부
+      //1. 운영팀
 
-        //2. 대외협력팀
+      //2. 대외협력팀
 
-        //3. 인사팀
-        if (pageId === 'HumanResourceTeam') {
-          // hr.js 스크립트가 이미 있다면 제거
-          const existingHRScript = document.querySelector('script[src="/js/office/hr.js"]');
-          if (existingHRScript) {
-            existingHRScript.remove();
-          }
-    
-          // hr.js 새로 로드
-          await new Promise((resolve, reject) => {
-            const hrScript = document.createElement('script');
-            hrScript.src = '/js/office/hr.js';
-            hrScript.onload = resolve;
-            hrScript.onerror = reject;
-            document.body.appendChild(hrScript);
-          });
-    
-          // 사용자 데이터 로드 함수 호출
-          if (typeof loadUsers === 'function') {
-            loadUsers();
-          }
+      //3. 인사팀
+      if (pageId === 'HumanResourceTeam') {
+        // hr.js 스크립트가 이미 있다면 제거
+        const existingHRScript = document.querySelector('script[src="/js/office/hr.js"]');
+        if (existingHRScript) {
+          existingHRScript.remove();
         }
 
-        //4. 재무팀
-        
+        // hr.js 새로 로드
+        await new Promise((resolve, reject) => {
+          const hrScript = document.createElement('script');
+          hrScript.src = '/js/office/hr.js';
+          hrScript.onload = resolve;
+          hrScript.onerror = reject;
+          document.body.appendChild(hrScript);
+        });
 
-        // 홍보부
-        //5. 마케팅팀
+        // 사용자 데이터 로드 함수 호출
+        if (typeof loadUsers === 'function') {
+          loadUsers();
+        }
+      }
 
-        //6. 디자인팀
-
-        //7. 영상제작팀
-
-        //기획부
-        //8. 기획팀
-        
-        //9. 정기모임팀
-
-        //10.스태프팀
-        if (pageId === 'staffTeam') {
-          
-          window.calendarInitialized = false;
-    
-          // TOAST UI Calendar CSS 로드
-          if (!document.querySelector('link[href*="toastui-calendar.min.css"]')) {
-            const link = document.createElement('link');
-            link.rel = 'stylesheet';
-            link.href = 'https://uicdn.toast.com/calendar/latest/toastui-calendar.min.css';
-            document.head.appendChild(link);
-          }
-    
-          // TOAST UI Calendar JS 로드
-          if (!window.tui?.Calendar) {
-            await new Promise((resolve, reject) => {
-              const script = document.createElement('script');
-              script.src = 'https://uicdn.toast.com/calendar/latest/toastui-calendar.min.js';
-              script.onload = resolve;
-              script.onerror = reject;
-              document.body.appendChild(script);
-            });
-          }
-    
-          // 기존 calendar.js 스크립트 제거
-          const existingScript = document.querySelector('script[src="/js/calendar.js"]');
+      //4. 재무팀
+      if (pageId === 'financeTeam') {
+        try {
+          // 기존 스크립트 제거 및 새로 로드
+          const existingScript = document.querySelector('script[src="/js/office/finance.js"]');
           if (existingScript) {
             existingScript.remove();
           }
-    
-          //calendar.js 새로 로드
+      
+          // 새 스크립트 로드
           await new Promise((resolve, reject) => {
-            const calendarScript = document.createElement('script');
-            calendarScript.src = '/js/calendar.js';
-            calendarScript.onload = resolve;
-            calendarScript.onerror = reject;
-            document.body.appendChild(calendarScript);
+            const financeScript = document.createElement('script');
+            financeScript.src = '/js/office/finance.js';
+            financeScript.onload = resolve;
+            financeScript.onerror = reject;
+            document.body.appendChild(financeScript);
+          });
+      
+          // CSS 파일 확인 및 추가
+          if (!document.querySelector('link[href="/css/finance.css"]')) {
+            const cssLink = document.createElement('link');
+            cssLink.rel = 'stylesheet';
+            cssLink.href = '/css/finance.css';
+            document.head.appendChild(cssLink);
+          }
+      
+          // HTML 컨텐츠 로드
+          const mainContent = document.getElementById('main-content');
+          const response = await fetch('/office_finance.html');
+          const html = await response.text();
+          mainContent.innerHTML = html;
+      
+          // TransactionTable 초기화
+          setTimeout(() => {
+            if (typeof TransactionTable === 'function') {
+              new TransactionTable();
+            }
+          }, 100); // DOM 업데이트 후 초기화
+        } catch (error) {
+          console.error('Error loading finance page:', error);
+          alert('재무팀 페이지 로드 중 문제가 발생했습니다.');
+        }
+      }
+      
+      
+      
+
+      // 홍보부
+      //5. 마케팅팀
+
+      //6. 디자인팀
+
+      //7. 영상제작팀
+
+      //기획부
+      //8. 기획팀
+
+      //9. 정기모임팀
+      if (pageId === 'regularTeam') {
+        // regular.js 스크립트가 이미 있다면 제거
+        const existingHRScript = document.querySelector('script[src="/js/office/regular.js"]');
+        if (existingHRScript) {
+          existingHRScript.remove();
+        }
+        const link = document.createElement('link');
+          link.rel = 'stylesheet';
+          link.href = './css/regular.css';
+          document.head.appendChild(link);
+        // regular.js 새로 로드
+        await new Promise((resolve, reject) => {
+          const hrScript = document.createElement('script');
+          hrScript.src = '/js/office/regular.js';
+          hrScript.onload = resolve;
+          hrScript.onerror = reject;
+          document.body.appendChild(hrScript);
+        });
+
+        // 사용자 데이터 로드 함수 호출
+        if (typeof loadUsers === 'function') {
+          loadUsers();
+        }
+      }
+      //10.스태프팀
+      if (pageId === 'staffTeam') {
+        window.calendarInitialized = false;
+
+        // TOAST UI Calendar CSS 로드
+        if (!document.querySelector('link[href*="toastui-calendar.min.css"]')) {
+          const link = document.createElement('link');
+          link.rel = 'stylesheet';
+          link.href = 'https://uicdn.toast.com/calendar/latest/toastui-calendar.min.css';
+          document.head.appendChild(link);
+        }
+
+        // TOAST UI Calendar JS 로드
+        if (!window.tui?.Calendar) {
+          await new Promise((resolve, reject) => {
+            const script = document.createElement('script');
+            script.src = 'https://uicdn.toast.com/calendar/latest/toastui-calendar.min.js';
+            script.onload = resolve;
+            script.onerror = reject;
+            document.body.appendChild(script);
           });
         }
 
-        
-      } catch (error) {
-        console.error('Error loading page:', error);
-        alert(`페이지 로드 중 오류가 발생했습니다 : ${error.message}`);
-      }
-    }
-  
-    function init(container) {
-      container.innerHTML = template;
-      
-      const sidebar = container.querySelector('.org-sidebar');
-      const toggleBtn = container.querySelector('.org-toggle-btn');
-      const header = container.querySelector('.org-header h1');
-  
-      // 사이드바 토글 기능
-      toggleBtn.addEventListener('click', () => {
-        sidebar.classList.toggle('collapsed');
-        if (sidebar.classList.contains('collapsed')) {
-          header.textContent = 'Con';
-          toggleBtn.textContent = '펼치기';
-        } else {
-          header.textContent = 'Contenido';
-          toggleBtn.textContent = '접기';
-        } 
-      });
-  
-      // 팀 메뉴 클릭 이벤트 위임
-      container.addEventListener('click', async (e) => {
-        const teamLink = e.target.closest('[data-team]');
-        if (teamLink) {
-          e.preventDefault();
-          const teamId = teamLink.dataset.team;
-          await loadPage(teamId);
+        // 기존 calendar.js 스크립트 제거
+        const existingScript = document.querySelector('script[src="/js/calendar.js"]');
+        if (existingScript) {
+          existingScript.remove();
         }
-      });
+
+        //calendar.js 새로 로드
+        await new Promise((resolve, reject) => {
+          const calendarScript = document.createElement('script');
+          calendarScript.src = '/js/calendar.js';
+          calendarScript.onload = resolve;
+          calendarScript.onerror = reject;
+          document.body.appendChild(calendarScript);
+        });
+      }
+
+    } catch (error) {
+      console.error('Error loading page:', error);
+      alert(`페이지 로드 중 오류가 발생했습니다 : ${error.message}`);
     }
-    
-    
-    return {
-      init: init
-    };
-  })();
-  
-  if (typeof window !== 'undefined') {
-    window.Sidebar = Sidebar;
-  }  
+  }
+
+  function init(container) {
+    container.innerHTML = template;
+
+    const sidebar = container.querySelector('.org-sidebar');
+    const toggleBtn = container.querySelector('.org-toggle-btn');
+    const header = container.querySelector('.org-header h1');
+
+    // 사이드바 토글 기능
+    toggleBtn.addEventListener('click', () => {
+      sidebar.classList.toggle('collapsed');
+      if (sidebar.classList.contains('collapsed')) {
+        header.textContent = 'Con';
+        toggleBtn.textContent = '펼치기';
+      } else {
+        header.textContent = 'Contenido';
+        toggleBtn.textContent = '접기';
+      }
+    });
+
+    // 팀 메뉴 클릭 이벤트 위임
+    container.addEventListener('click', async (e) => {
+      const teamLink = e.target.closest('[data-team]');
+      if (teamLink) {
+        e.preventDefault();
+        const teamId = teamLink.dataset.team;
+        await loadPage(teamId);
+      }
+    });
+  }
+
+  return {
+    init: init
+  };
+})();
+
+if (typeof window !== 'undefined') {
+  window.Sidebar = Sidebar;
+}

@@ -15,8 +15,8 @@ router.get('/', async (req, res) => {
 
   try {
     const reviews = await Review.find({ eventId })
-      .populate('userId', 'displayName _id') // 필요한 필드만 반환
-      .select('rating comment isAnonymous userId createdAt'); // 필요한 필드만 반환
+      .populate('userId', 'displayName _id')
+      .select('rating comment isAnonymous userId createdAt');
 
     res.json(reviews);
   } catch (error) {
@@ -38,7 +38,7 @@ router.post('/', authenticateToken, async (req, res) => {
       return res.status(404).json({ message: 'Event not found' });
     }
 
-    // 참가자 여부 확인 (finalParticipants가 String 배열이므로 includes 사용)
+    // 참가자 여부 확인
     if (!event.finalParticipants.includes(req.user.id)) {
       return res.status(403).json({ message: 'Only participants can submit reviews' });
     }
@@ -52,7 +52,22 @@ router.post('/', authenticateToken, async (req, res) => {
     });
 
     await review.save();
-    res.status(201).json({ message: 'Review submitted successfully' });
+
+    // 이벤트의 모든 리뷰 가져오기 (방금 작성한 리뷰 포함)
+    const allReviews = await Review.find({ eventId });
+    
+    // 평균 rating 계산
+    const totalRating = allReviews.reduce((sum, review) => sum + review.rating, 0);
+    const averageRating = totalRating / allReviews.length;
+
+    // 이벤트의 rating 업데이트
+    event.rating = parseFloat(averageRating.toFixed(1)); // 소수점 첫째자리까지만 저장
+    await event.save();
+
+    res.status(201).json({ 
+      message: 'Review submitted successfully',
+      newRating: event.rating
+    });
   } catch (error) {
     console.error('Error submitting review:', error);
     res.status(500).json({ message: 'Error submitting review', error: error.message });
@@ -61,8 +76,6 @@ router.post('/', authenticateToken, async (req, res) => {
 
 // 리뷰 삭제
 router.delete('/:id', authenticateToken, async (req, res) => {
-  console.log(`Delete request for review ID: ${req.params.id}`); // 요청 ID 로깅
-
   const { id } = req.params;
 
   try {
@@ -75,13 +88,31 @@ router.delete('/:id', authenticateToken, async (req, res) => {
       return res.status(403).json({ message: 'You can only delete your own reviews' });
     }
 
+    const eventId = review.eventId;
+
+    // 리뷰 삭제
     await review.deleteOne();
-    res.status(200).json({ message: 'Review deleted successfully' });
+
+    // 남은 리뷰들의 평균 rating 다시 계산
+    const remainingReviews = await Review.find({ eventId });
+    
+    let newRating = 0;
+    if (remainingReviews.length > 0) {
+      const totalRating = remainingReviews.reduce((sum, review) => sum + review.rating, 0);
+      newRating = parseFloat((totalRating / remainingReviews.length).toFixed(1));
+    }
+
+    // 이벤트의 rating 업데이트
+    await Event.findByIdAndUpdate(eventId, { rating: newRating });
+
+    res.status(200).json({ 
+      message: 'Review deleted successfully',
+      newRating: newRating
+    });
   } catch (error) {
     console.error('Error deleting review:', error);
     res.status(500).json({ message: 'Error deleting review', error: error.message });
   }
 });
-
 
 module.exports = router;

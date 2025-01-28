@@ -105,7 +105,7 @@ router.get('/calendar', async (req, res) => {
 // 종료된 이벤트 정보 확인 - officer,participant,starter 접근 가능
 router.get('/ended', 
   authenticateToken,
-  authorizeRoles('officer','participant','starter','admin'),
+  authorizeRoles('officer','participant','starter','admin','guest'),
   async (req, res) => {
     try {
       const endedEvents = await Event.find({ isEnded: true });
@@ -176,15 +176,22 @@ router.get('/:id/participants',
 router.post('/', 
   authenticateToken,
   authorizeRoles('officer','admin'),
+  upload.array('images', 3), // 최대 3개 이미지 업로드
   async (req, res) => {
     if (req.user.department !== 'operation' && req.user.department !== 'planning') {
       return res.status(403).json({
         message: '기획부,운영부만 이벤트 생성이 가능합니다.' 
       });
     }
-    const { title, date, place, participants, startTime, endTime, participation_fee, contents } = req.body;
+    const { title, date, place, participants, startTime, endTime, participation_fee, contents, team } = req.body;
+
+    if (!title || !date || !place || !participants || !startTime || !endTime || !participation_fee || !contents || !team) {
+      return res.status(400).json({ message: '모든 필수 필드를 입력해주세요.' });
+    }
 
     try {
+      const images = req.files.map(file => `/uploads/events/${file.filename}`);
+
       const event = new Event({
         title,
         date,
@@ -194,6 +201,8 @@ router.post('/',
         endTime,
         participation_fee,
         contents,
+        team,
+        images,
         creator: req.user.id,
       });
 
@@ -301,8 +310,6 @@ router.post('/:id/cancel-application',
 });
 
 // 이미지 업로드 라우트 추가
-// routes/events.js
-// 이미지 업로드 라우터도 수정
 router.post('/upload-images',
   authenticateToken,
   authorizeRoles('officer','admin'),
