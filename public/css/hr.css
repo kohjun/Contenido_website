@@ -72,6 +72,7 @@
 p {
   color:#666;
   font-size:small;
+  text-align: center;
 }
 .search-container button:hover {
   background-color: #0875e0;
@@ -365,5 +366,9 @@ input:checked + .slider:before {
   background-color: #0A84FE;
   color: white;
   border-color: #0A84FE;
+}
+
+h1, p {
+  text-align: center;
 }
 

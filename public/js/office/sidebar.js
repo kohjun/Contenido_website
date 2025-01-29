@@ -239,10 +239,13 @@ const Sidebar = (function() {
           const html = await response.text();
           mainContent.innerHTML = html;
       
-          // TransactionTable 초기화
+          // TransactionTable 및 FeeVerification 초기화
           setTimeout(() => {
             if (typeof TransactionTable === 'function') {
               new TransactionTable();
+            }
+            if (typeof FeeVerification === 'function') {
+              new FeeVerification();
             }
           }, 100); // DOM 업데이트 후 초기화
         } catch (error) {

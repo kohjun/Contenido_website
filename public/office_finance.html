@@ -8,13 +8,13 @@
 </head>
 <body>
     <div class="container">
-        <h1>재무팀 관리</h1>
+        <h1>재무팀 관리페이지</h1>
         
         <div class="upload-section">
             <h2>거래 내역 조회</h2>
             <div class="input-wrapper">
                 <input type="file" id="transaction-upload" accept=".json">
-                <button id="verify-button">확인</button>
+                <button id="verify-button">데이터 보기</button>
             </div>
         </div>
 
@@ -38,6 +38,10 @@
                 <button id="prev-page" disabled>이전</button>
                 <span id="page-info"></span>
                 <button id="next-page">다음</button>
+            </div>
+
+            <div class="fee-verify-section">
+                <button id="fee-verify-button" class="hidden">입금 처리</button>
             </div>
         </div>
     </div>

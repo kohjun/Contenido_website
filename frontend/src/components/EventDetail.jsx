@@ -12,7 +12,7 @@ const EventDetail = () => {
   const [liked, setLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(0);
   const [selectedImage, setSelectedImage] = useState(null);
-  const [reviewSubmitted, setReviewSubmitted] = useState(false); // 리뷰 제출 상태 추가
+  const [reviewSubmitted, setReviewSubmitted] = useState(false);
 
   if (loading) {
     return (
@@ -35,7 +35,6 @@ const EventDetail = () => {
     setLikeCount(prev => liked ? prev - 1 : prev + 1);
   };
 
-  // Calculate duration in minutes
   const getDuration = () => {
     const start = new Date(`2000/01/01 ${event.startTime}`);
     const end = new Date(`2000/01/01 ${event.endTime}`);
@@ -45,8 +44,8 @@ const EventDetail = () => {
   const handleReviewSubmit = async (e) => {
     e.preventDefault();
     await submitReview();
-    setReviewSubmitted(true); // 리뷰 제출 상태 업데이트
-    setTimeout(() => setReviewSubmitted(false), 3000); // 3초 후 알림 숨기기
+    setReviewSubmitted(true);
+    setTimeout(() => setReviewSubmitted(false), 3000);
   };
 
   const renderContent = () => {
@@ -126,9 +125,9 @@ const EventDetail = () => {
   };
 
   return (
-    <div className="max-w-2xl mx-auto bg-white">
+    <div className="max-w-2xl mx-auto bg-white min-h-screen">
       {/* Header */}
-      <div className="flex items-center p-4 border-b">
+      <div className="flex items-center p-4 border-b sticky top-0 bg-white z-10">
         <button className="mr-4" onClick={() => window.history.back()}>
           <ArrowLeft className="w-6 h-6" />
         </button>
@@ -174,7 +173,7 @@ const EventDetail = () => {
         </div>
 
         {/* Tabs */}
-        <div className="flex border-b mb-4">
+        <div className="flex border-b mb-4 sticky top-16 bg-white z-10">
           {['info', 'review', 'community'].map((tab) => (
             <button
               key={tab}
@@ -190,11 +189,13 @@ const EventDetail = () => {
           ))}
         </div>
 
-        {/* Content */}
-        {renderContent()}
+        {/* Content with fixed height */}
+        <div className="h-96 overflow-y-auto">
+          {renderContent()}
+        </div>
 
         {/* Action buttons */}
-        <div className="flex gap-4 mt-6">
+        <div className="flex gap-4 mt-6 sticky bottom-0 bg-white py-4 border-t">
           <button className="flex-1 bg-orange-500 text-white py-4 rounded-lg font-bold hover:bg-orange-600 transition-colors">
             문의하기
           </button>

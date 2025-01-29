@@ -146,12 +146,13 @@ router.get('/info_database', authenticateToken, async (req, res) => {
 router.get('/participants/users', async (req, res) => {
   try {
     const users = await User.find({ isVerified: true })
-      .select('displayName name participationCount profileImage status active role gender warningCount team department'); // 필요한 필드들을 선택
+      .select('displayName name participationCount profileImage status active role gender phonenumber warningCount team department'); // 필요한 필드들을 선택
     
     const userData = users.map(user => ({
       id: user._id,
       displayName: user.displayName,
       name : user.name,
+      phonenumber : user.phonenumber,
       profileImage: user.profileImage || '/images/basic_Image.png',
       participationCount: user.participationCount,
       active: user.active,
