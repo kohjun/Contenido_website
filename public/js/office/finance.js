@@ -111,9 +111,84 @@ class FeeVerification {
     }
 
     setupEventListeners() {
-        document.getElementById('fee-verify-button').addEventListener('click', async () => {
-            await this.verifyFees();
+        const verifyButton = document.getElementById('fee-verify-button');
+        if (verifyButton) {
+            verifyButton.addEventListener('click', async () => {
+                await this.verifyFees();
+            });
+        }
+
+        const downloadButton = document.getElementById('download-results');
+        if (downloadButton) {
+            downloadButton.addEventListener('click', () => {
+                this.downloadResults();
+            });
+        }
+    }
+
+    async loadXLSX() {
+        return new Promise((resolve, reject) => {
+            if (window.XLSX) {
+                resolve(window.XLSX);
+                return;
+            }
+
+            const script = document.createElement('script');
+            script.src = 'https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js';
+            script.onload = () => resolve(window.XLSX);
+            script.onerror = reject;
+            document.head.appendChild(script);
         });
+    }
+    // 결과 다운로드 함수
+    async downloadResults() {
+        try {
+            const XLSX = await this.loadXLSX();
+            const currentDate = new Date().toLocaleDateString('ko-KR', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit'
+            }).replace(/\. /g, '-').replace('.', '');
+
+            const wb = XLSX.utils.book_new();
+            const verifiedData = this.verificationResults.verified.map(p => ({
+                '상태': '납부완료',
+                '이름': p.name,
+                '닉네임': p.displayName,
+                '전화번호': this.maskPhoneNumber(p.phonenumber),
+                '납부일': currentDate
+            }));
+
+            const unverifiedData = this.verificationResults.unverified.map(p => ({
+                '상태': '미납',
+                '이름': p.name,
+                '닉네임': p.displayName,
+                '전화번호': this.maskPhoneNumber(p.phonenumber),
+                '납부일': '-'
+            }));
+
+            const allData = [...verifiedData, ...unverifiedData];
+            const ws = XLSX.utils.json_to_sheet(allData);
+
+            ws['!cols'] = [
+                { width: 10 }, // 상태
+                { width: 15 }, // 이름
+                { width: 20 }, // 닉네임
+                { width: 15 }, // 전화번호
+                { width: 12 }  // 납부일
+            ];
+
+            XLSX.utils.book_append_sheet(wb, ws, '회비 납부 현황');
+            XLSX.writeFile(wb, `회비납부현황_${currentDate}.xlsx`);
+        } catch (error) {
+            console.error('Error downloading results:', error);
+            alert('결과 다운로드 중 오류가 발생했습니다.');
+        }
+    }
+
+    maskPhoneNumber(phoneNumber) {
+        if (!phoneNumber) return '-';
+        return phoneNumber.replace(/(\d{3})-?\d{4}-?(\d{4})/, '$1-****-$2');
     }
 
     async fetchParticipants() {
@@ -254,9 +329,16 @@ class FeeVerification {
         }
     }
 
+    // FeeVerification class의 displayVerificationResults 메서드 업데이트
     displayVerificationResults() {
-        alert('입금처리가 완료되었습니다.');
         const container = document.getElementById('verification-container');
+        if (!container) {
+            console.error('Verification container not found');
+            return;
+        }
+
+        alert('입금처리가 완료되었습니다.');
+
         container.innerHTML = `
             <div class="verification-results">
                 <h3>회비 납부 확인 결과</h3>
@@ -265,7 +347,7 @@ class FeeVerification {
                         <h4>납부 완료 (${this.verificationResults.verified.length}명)</h4>
                         <ul>
                             ${this.verificationResults.verified.map(p => `
-                                <li>${p.name} (${p.displayName}) - ${p.phonenumber || '전화번호 없음'}</li>
+                                <li>${p.name} (${p.displayName}) - ${this.maskPhoneNumber(p.phonenumber) || '전화번호 없음'}</li>
                             `).join('')}
                         </ul>
                     </div>
@@ -273,14 +355,24 @@ class FeeVerification {
                         <h4>미납 (${this.verificationResults.unverified.length}명)</h4>
                         <ul>
                             ${this.verificationResults.unverified.map(p => `
-                                <li>${p.name} (${p.displayName}) - ${p.phonenumber || '전화번호 없음'}</li>
+                                <li>${p.name} (${p.displayName}) - ${this.maskPhoneNumber(p.phonenumber) || '전화번호 없음'}</li>
                             `).join('')}
                         </ul>
                     </div>
                 </div>
+                <button id="download-results" class="download-button">결과 다운로드</button>
             </div>
         `;
+        
+        // 다운로드 버튼에 이벤트 리스너 다시 연결
+        const downloadButton = document.getElementById('download-results');
+        if (downloadButton) {
+            downloadButton.addEventListener('click', () => {
+                this.downloadResults();
+            });
+        }
     }
+    
 }
 
 // Initialize on page load

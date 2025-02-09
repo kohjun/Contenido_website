@@ -182,7 +182,120 @@ const Sidebar = (function() {
       // 운영부
       //1. 운영팀
 
+  
       //2. 대외협력팀
+      
+
+      if (pageId === 'cooperationTeam') {
+        try {
+          // 1. HTML 컨텐츠 로드
+          const mainContent = document.getElementById('main-content');
+          const response = await fetch('/office_cooperation.html');
+          const html = await response.text();
+          mainContent.innerHTML = html;
+
+          // 2. CSS 로드
+          if (!document.querySelector('link[href="/css/cooperation.css"]')) {
+            const cssLink = document.createElement('link');
+            cssLink.rel = 'stylesheet';
+            cssLink.href = '/css/cooperation.css';
+            document.head.appendChild(cssLink);
+          }
+
+          // 3. 카카오맵 API 로드
+          await new Promise((resolve, reject) => {
+            const script = document.createElement('script');
+            script.type = 'text/javascript';
+            script.src = '//dapi.kakao.com/v2/maps/sdk.js?appkey=a20d5436081d8f992f48fb3b6205f2b9&libraries=services,drawing&autoload=false';
+            script.onload = () => {
+              kakao.maps.load(() => {
+                console.log('Kakao maps loaded successfully');
+                resolve();
+              });
+            };
+            script.onerror = reject;
+            document.head.appendChild(script);
+          });
+
+          // 4. cooperation.js 스크립트 로드 및 초기화
+          if (!document.querySelector('script[src="/js/office/cooperation.js"]')) {
+            await new Promise((resolve, reject) => {
+              const cooperationScript = document.createElement('script');
+              cooperationScript.src = '/js/office/cooperation.js';
+              cooperationScript.onload = resolve;
+              cooperationScript.onerror = reject;
+              document.body.appendChild(cooperationScript);
+            });
+          }
+
+          // 5. 실제 지도 초기화 함수
+          const initializeMap = () => {
+            const container = document.getElementById('map');
+            const routeContainer = document.getElementById('route-map');
+            
+            if (!container || !routeContainer) {
+              throw new Error('Map containers not found');
+            }
+
+            const options = {
+              center: new kakao.maps.LatLng(37.566826, 126.978656),
+              level: 3
+            };
+
+            const map = new kakao.maps.Map(container, options);
+            const routeMap = new kakao.maps.Map(routeContainer, options);
+
+            // 줌 컨트롤 추가
+            const zoomControl = new kakao.maps.ZoomControl();
+            map.addControl(zoomControl, kakao.maps.ControlPosition.RIGHT);
+            routeMap.addControl(zoomControl, kakao.maps.ControlPosition.RIGHT);
+
+            // 로딩 표시 제거
+            const loadingElement = document.getElementById('map-loading');
+            if (loadingElement) {
+              loadingElement.style.display = 'none';
+            }
+
+            return { map, routeMap };
+          };
+
+          // 6. 지도 초기화 실행
+          console.log('Initializing maps...');
+          const maps = initializeMap();
+          console.log('Maps initialized:', maps);
+
+          // 이벤트 리스너 설정
+          document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+              const tabId = tab.dataset.tab;
+              // 탭 전환
+              document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+              document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
+              tab.classList.add('active');
+              document.getElementById(`${tabId}-section`).classList.add('active');
+              // 지도 리사이즈
+              if (tabId === 'search') {
+                maps.map.relayout();
+              } else if (tabId === 'route') {
+                maps.routeMap.relayout();
+              }
+            });
+          });
+
+          // cooperation.js 초기화 함수 호출
+          if (window.CooperationMap && typeof window.CooperationMap.initialize === 'function') {
+            window.CooperationMap.initialize();
+          }
+
+        } catch (error) {
+          console.error('Error loading cooperation team page:', error);
+          const loadingElement = document.getElementById('map-loading');
+          if (loadingElement) {
+            loadingElement.style.display = 'none';
+          }
+          alert('대외협력팀 페이지 로드 중 오류가 발생했습니다.');
+        }
+      }
 
       //3. 인사팀
       if (pageId === 'HumanResourceTeam') {

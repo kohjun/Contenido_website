@@ -1,1 +1,75 @@
-대외협력팀 페이지입니다
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>대외협력팀</title>
+    <link rel="stylesheet" href="/css/cooperation.css">
+</head>
+<body>
+    <div class="container">
+        <h1 style="text-align: center;">대외협력팀 관리 페이지</h1>
+        
+        <div class="tabs">
+            <div class="tab active" data-tab="search">장소 검색</div>
+            <div class="tab" data-tab="route">길 찾기</div>
+            <div class="tab" data-tab="saved">장소 리스트</div>
+        </div>
+
+        <!-- 지도 로딩 상태 표시 -->
+        <div id="map-loading" class="loading-container">
+            <div class="loading-spinner"></div>
+            <p>지도를 불러오는 중입니다... 잠시만 기다려주세요.</p>
+        </div>
+
+        <!-- 장소 검색 섹션 -->
+        <div id="search-section" class="content-section active">
+            <div class="search-box">
+                <input type="text" id="keyword" class="search-input" placeholder="장소를 검색하세요">
+                <button onclick="window.CooperationMap.searchPlaces()" class="search-button">검색</button>
+            </div>
+            
+            <div id="map" class="map-container"></div>
+            <div id="places-list" class="places-list"></div>
+        </div>
+
+        <!-- 길찾기 섹션 -->
+        <div id="route-section" class="content-section">
+            <div class="route-search">
+                <div class="route-points">
+                    <input type="text" id="start-point" class="route-input" placeholder="출발지 입력">
+                    <button onclick="searchPoint('start')" class="search-button">검색</button>
+                </div>
+                <div class="route-points">
+                    <input type="text" id="end-point" class="route-input" placeholder="도착지 입력">
+                    <button onclick="searchPoint('end')" class="search-button">검색</button>
+                </div>
+                <button onclick="findRoute()" class="search-button">길찾기</button>
+            </div>
+            
+            <div id="route-map" class="map-container"></div>
+            <div id="route-result" class="route-result"></div>
+        </div>
+
+        <!-- 저장된 장소 섹션 -->
+        <div id="saved-section" class="content-section">
+            <div id="saved-places-list"></div>
+        </div>
+    </div>
+
+    <!-- 에러 모달 -->
+    <div id="error-modal" class="modal">
+        <div class="modal-content">
+            <h2>오류 발생</h2>
+            <p id="error-message"></p>
+            <button onclick="closeErrorModal()" class="modal-button">확인</button>
+        </div>
+    </div>
+
+    <script src="/js/office/cooperation.js"></script>
+    <script type="text/javascript" 
+        src="//dapi.kakao.com/v2/maps/sdk.js?appkey=a20d5436081d8f992f48fb3b6205f2b9&libraries=services,drawing&autoload=false"
+        onload="window.initMaps()">
+    </script>
+</body>
+</html>

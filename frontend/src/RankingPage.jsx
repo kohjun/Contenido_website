@@ -9,6 +9,7 @@ const RankingPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+
   // 현재 기간을 계산하는 함수
   const getCurrentPeriod = () => {
     const now = new Date();
@@ -24,7 +25,6 @@ const RankingPage = () => {
       try {
         const eventsResponse = await fetch('/events/ended');
         const events = await eventsResponse.json();
-
         const processedEvents = events.map(event => ({
           id: event._id,
           teamName: event.team,
@@ -63,7 +63,7 @@ const RankingPage = () => {
         setLoading(false);
       } catch (err) {
         console.error('Error fetching rankings:', err);
-        setError('Failed to load rankings');
+        setError('로그인 후 다시 시도하세요.');
         setLoading(false);
       }
     };
@@ -112,7 +112,6 @@ const RankingPage = () => {
   return (
     <div className="max-w-6xl mx-auto p-4">
       <h1 className="text-2xl font-bold text-center mb-6">동아리 활동 랭킹</h1>
-      
       <div className="flex flex-col items-center gap-2 mb-6">
         <div className="flex justify-center gap-4">
           <button

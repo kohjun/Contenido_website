@@ -4,7 +4,9 @@
     font-weight: normal;
     font-style: normal;
 }
-
+* {
+    font-family: 'GmarketSansMedium', sans-serif;
+}
 body {
     background-color: #f4f7f9;
     font-family: 'GmarketSansMedium', sans-serif;
@@ -45,6 +47,7 @@ input[type="file"] {
     border-radius: 4px;
     background-color: #fff;
     cursor: pointer;
+    font-family: 'GmarketSansMedium', sans-serif;
 }
 
 input[type="file"]::file-selector-button {
@@ -54,6 +57,7 @@ input[type="file"]::file-selector-button {
     border: none;
     border-radius: 4px;
     cursor: pointer;
+    font-family: 'GmarketSansMedium', sans-serif;
 }
 
 input[type="file"]::file-selector-button:hover {
@@ -68,6 +72,7 @@ button {
     background-color: #f0f0f0;
     font-size: 15px;
     transition: all 0.3s ease;
+    font-family: 'GmarketSansMedium', sans-serif;
 }
 
 button:hover {
@@ -133,6 +138,7 @@ tr:hover td {
     padding: 8px 12px;
     border: 1px solid #e2e8f0;
     background-color: white;
+    font-family: 'GmarketSansMedium', sans-serif;
     color: #4a5568;
     cursor: pointer;
     border-radius: 6px;
@@ -153,17 +159,23 @@ tr:hover td {
 
 .fee-verify-section {
     margin-top: 20px;
-    text-align: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 20px;
+    font-family: 'GmarketSansMedium', sans-serif;
 }
 
 #fee-verify-button {
-    background-color: #28a745;
+    
     padding: 12px 24px;
+    font-family: 'GmarketSansMedium', sans-serif;
     font-size: 16px;
 }
 
 #fee-verify-button:hover {
-    background-color: #218838;
+    background-color: #e0e0e0;
 }
 
 .verification-container {
@@ -214,4 +226,65 @@ tr:hover td {
 
 #page-info {
     color: #666;
+}
+.verification-results {
+    margin-top: 2rem;
+    padding: 1rem;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.results-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.results-box {
+    padding: 1rem;
+    background-color: #f8f9fa;
+    border-radius: 6px;
+}
+
+.results-box h4 {
+    margin: 0 0 0.5rem 0;
+    color: #333;
+}
+
+.results-box ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.results-box li {
+    padding: 0.25rem 0;
+    font-size: 0.9rem;
+    color: #666;
+}
+
+.download-button {
+    display: block;
+    margin: 1.5rem auto 0;
+    padding: 0.75rem 1.5rem;
+    
+    color: rgba(0, 0, 0, 1);
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: background-color 0.2s;
+    font-family: 'GmarketSansMedium', sans-serif;
+}
+
+.download-button:hover {
+    background-color: #e0e0e0;
+}
+
+@media (max-width: 768px) {
+    .results-grid {
+        grid-template-columns: 1fr;
+    }
 }

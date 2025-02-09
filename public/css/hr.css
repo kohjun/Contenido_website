@@ -4,7 +4,9 @@
   font-weight: normal;
   font-style: normal;
 }
-
+* {
+  font-family: 'GmarketSansMedium', sans-serif;
+}
 .container {
   font-family: 'GmarketSansMedium', sans-serif;
   max-width: 1200px;
@@ -35,9 +37,9 @@
 }
 
 .role-button.active {
-  background-color: #0A84FE;
+  background-color: #333;
   color: white;
-  box-shadow: 0 2px 4px rgba(10, 132, 254, 0.3);
+  box-shadow: 0 2px 4px #0229504d;
 }
 
 /* 검색창 스타일 */
@@ -64,22 +66,28 @@
   padding: 8px 16px;
   border: none;
   border-radius: 4px;
-  background-color: #0A84FE;
-  color: white;
+  background-color: #f0f0f0;
+  color: black;
   cursor: pointer;
   transition: background-color 0.2s;
 }
+
+.search-container button:hover {
+  background-color: #e0e0e0;
+}
+
+.search-container button:last-child {
+  background-color: #f0f0f0;
+}
+
+.search-container button:last-child:hover {
+  background-color: #e0e0e0;
+}
+
 p {
   color:#666;
   font-size:small;
   text-align: center;
-}
-.search-container button:hover {
-  background-color: #0875e0;
-}
-
-.search-container button:last-child {
-  background-color: #718096;
 }
 
 /* 테이블 스타일 */
@@ -113,11 +121,13 @@ p {
 .user-table tr:hover td {
   background-color: #f7faff;
 }
+
 /* 최근 변경된 행 스타일 */
 .recently-modified {
   background-color: rgba(255, 255, 0, 0.1) !important; /* 연한 노란색, !important로 다른 배경색보다 우선 적용 */
   transition: background-color 1s ease; /* 부드러운 전환 효과 */
 }
+
 /* 프로필 이미지 스타일 */
 .profile-image {
   width: 40px;
@@ -128,22 +138,18 @@ p {
 }
 
 /* 경고 횟수 스타일 */
-  .warning-count-cell span {
-    font-weight: bold;
-    padding: 2px 8px;
-    border-radius: 4px;
-  }
+.warning-count-cell span {
+  font-weight: bold;
+  padding: 2px 8px;
+  border-radius: 4px;
+}
 
-  /* tr:has(.warning-count-cell span:not(:empty):not([data-count="0"])) {
-    
-  } */
-
-  /* 경고 횟수가 2 이상인 행 스타일 */
+/* 경고 횟수가 2 이상인 행 스타일 */
 .user-table tr[data-warning="2"],
 .user-table tr[data-warning="3"],
 .user-table tr[data-warning="4"],
 .user-table tr[data-warning="5"] {
-    background-color: rgba(255, 99, 71, 0.1);
+  background-color: rgba(255, 99, 71, 0.1);
 }
 
 /* 경고 횟수가 2 이상인 행의 호버 스타일 */
@@ -151,12 +157,13 @@ p {
 .user-table tr[data-warning="3"]:hover,
 .user-table tr[data-warning="4"]:hover,
 .user-table tr[data-warning="5"]:hover {
-    background-color: rgba(255, 99, 71, 0.2);
+  background-color: rgba(255, 99, 71, 0.2);
 }
+
 .warning-btn {
   padding: 2px 8px;
   border: 1px solid #ddd;
-  background-color: #f8f9fa;
+  background-color: #f0f0f0;
   border-radius: 4px;
   cursor: pointer;
   font-size: 14px;
@@ -164,7 +171,7 @@ p {
 }
 
 .warning-btn:hover {
-  background-color: #e9ecef;
+  background-color: #e0e0e0;
   border-color: #dee2e6;
 }
 
@@ -212,7 +219,7 @@ p {
 }
 
 input:checked + .slider {
-  background-color: #0A84FE;
+  background-color: #333;
 }
 
 input:checked + .slider:before {
@@ -264,7 +271,7 @@ input:checked + .slider:before {
 
 .context-menu button:hover {
   background-color: #f5f5f5;
-  color: #0A84FE;
+  
 }
 
 /* 다이얼로그 스타일 */
@@ -317,24 +324,29 @@ input:checked + .slider:before {
   cursor: pointer;
   font-size: 14px;
   transition: all 0.2s;
+  background-color: #f0f0f0;
+}
+
+.dialog-buttons button:hover {
+  background-color: #e0e0e0;
 }
 
 .dialog-buttons button:first-child {
-  background-color: #0A84FE;
+  background-color: #333;
   color: white;
 }
 
 .dialog-buttons button:first-child:hover {
-  background-color: #0875e0;
+  background-color: #333;
 }
 
 .dialog-buttons button:last-child {
-  background-color: #e2e8f0;
-  color: #4a5568;
+  background-color: #f0f0f0;
+  color: black;
 }
 
 .dialog-buttons button:last-child:hover {
-  background-color: #cbd5e0;
+  background-color: #e0e0e0;
 }
 
 /* 페이지네이션 스타일 */
@@ -357,15 +369,14 @@ input:checked + .slider:before {
 }
 
 .pagination button:hover {
-  background-color: #f7fafc;
-  border-color: #0A84FE;
-  color: #0A84FE;
+  background-color: #e0e0e0;
+  color: #333 
 }
 
 .pagination button.active {
-  background-color: #0A84FE;
-  color: white;
-  border-color: #0A84FE;
+  background-color:#e0e0e0;
+  color: #333;
+  
 }
 
 h1, p {

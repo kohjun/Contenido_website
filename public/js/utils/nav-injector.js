@@ -151,7 +151,8 @@ const sidebarHTML = `
 // 상단 네비게이션 HTML
 const topNavHTML = `
 <nav class="custom-top-nav">
-    <button id="toggle-btn" class="toggle-btn" onclick="toggleSidebar()">☰</button><br>
+    <button id="toggle-btn" class="toggle-btn" onclick="toggleSidebar()">☰</button>
+    <span class="nav-title" onclick="goHome()">CONTENIDO</span>
 </nav>
 `;
 
@@ -203,7 +204,16 @@ function goToMyPage() {
 document.addEventListener('DOMContentLoaded', function() {
     // 스타일 삽입
     const styleSheet = document.createElement('style');
-    styleSheet.textContent = navStyles;
+    styleSheet.textContent = navStyles + `
+        .nav-title {
+            font-family: 'GmarketSansMedium', sans-serif;
+            font-size: 1.5rem;
+            margin: 0 auto;
+            margin-top: -10px; /* 위치를 조금 위로 올림 */
+            color: #0A84FE;
+            cursor: pointer;
+        }
+    `;
     document.head.appendChild(styleSheet);
 
     // body에 사이드바 삽입
