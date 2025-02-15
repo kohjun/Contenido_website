@@ -259,6 +259,7 @@ footer {
 .footer-section {
   margin-bottom: 20px;
   flex: 1 1 200px;
+  margin-right: 10px;
 }
 .footer-section h4 {
   margin-bottom: 10px;

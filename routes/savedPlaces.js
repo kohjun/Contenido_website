@@ -20,6 +20,8 @@ router.get('/', authenticateToken, async (req, res) => {
   }
 });
 
+
+
 // 새로운 장소 저장
 router.post('/', authenticateToken, async (req, res) => {
   try {
@@ -33,11 +35,13 @@ router.post('/', authenticateToken, async (req, res) => {
       phoneNumber,
       category,
       longitude,
-      latitude
+      latitude,
+      capacity,
+      facilities,
     } = req.body;
 
     // 필수 필드 검증
-    if (!placeId || !placeName || !addressName || !longitude || !latitude) {
+    if (!placeId || !placeName || !addressName || !longitude || !latitude|| !capacity || !facilities) {
       return res.status(400).json({ 
         message: '필수 정보가 누락되었습니다.' 
       });
@@ -54,6 +58,8 @@ router.post('/', authenticateToken, async (req, res) => {
         type: 'Point',
         coordinates: [longitude, latitude]
       },
+      capacity,
+      facilities,
       creator: req.user.id
     });
 

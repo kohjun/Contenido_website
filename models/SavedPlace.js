@@ -27,6 +27,33 @@ const savedPlaceSchema = new mongoose.Schema({
       required: true
     }
   },
+  capacity: {
+    type: String,
+    enum: ['~10', '~30', '~50','~100'],
+    required: true
+  },
+  facilities: [{
+    type: String,
+    enum: [
+      'TV/프로젝터',
+      '인터넷/WIFI',
+      '복사/인쇄기',
+      '화이트보드',
+      '음향/마이크',
+      '취사시설',
+      '음식물반입가능',
+      '주차',
+      'PC/노트북',
+      '의자/테이블',
+      '콘센트',
+      '24시 운영',
+      '연중무휴',
+      '간단한 다과/음료',
+      '내부화장실',
+      '마트/편의점',
+      '남/여화장실 구분'
+    ]
+  }],
   creator: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',

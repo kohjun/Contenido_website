@@ -1,5 +1,6 @@
-// 전역 변수들을 window 객체에 할당하여 스코프 문제 해결
+// 전역 객체 초기화
 window.CooperationMap = {
+    // 상태 변수들
     map: null,
     routeMap: null,
     markers: [],
@@ -8,76 +9,68 @@ window.CooperationMap = {
     routePolyline: null,
     isMapInitialized: false,
     currentInfoWindow: null,
+    selectedPlace: null,
+    selectedCapacity: null,
+    selectedFacilities: new Set(),
 
-    initialize() {
-        const loadingElement = document.getElementById('map-loading');
-        if (loadingElement) {
-            loadingElement.style.display = 'block';
-        }
+    showPlaceInfoModal(place) {
+        this.selectedPlace = place;
+        this.selectedCapacity = null;
+        this.selectedFacilities.clear();
 
-        try {
-            const container = document.getElementById('map');
-            const routeContainer = document.getElementById('route-map');
-            
-            if (!container || !routeContainer) {
-                throw new Error('Map containers not found');
-            }
+        // 모달 초기화
+        const modal = document.getElementById('place-info-modal');
+        const capacityButtons = modal.querySelectorAll('.capacity-button');
+        const facilityButtons = modal.querySelectorAll('.facility-button');
 
-            const options = {
-                center: new kakao.maps.LatLng(37.566826, 126.978656),
-                level: 3
-            };
+        capacityButtons.forEach(button => button.classList.remove('selected'));
+        facilityButtons.forEach(button => button.classList.remove('selected'));
 
-            this.map = new kakao.maps.Map(container, options);
-            this.routeMap = new kakao.maps.Map(routeContainer, options);
-            this.places = new kakao.maps.services.Places();
-
-            const zoomControl = new kakao.maps.ZoomControl();
-            this.map.addControl(zoomControl, kakao.maps.ControlPosition.RIGHT);
-            this.routeMap.addControl(zoomControl, kakao.maps.ControlPosition.RIGHT);
-
-            this.isMapInitialized = true;
-            this.setupEventListeners();
-            this.loadSavedPlaces();
-
-            if (loadingElement) {
-                loadingElement.style.display = 'none';
-            }
-
-            console.log('Map initialization complete');
-        } catch (error) {
-            console.error('Error initializing map:', error);
-            if (loadingElement) {
-                loadingElement.style.display = 'none';
-            }
-            this.showError('지도 초기화 중 오류가 발생했습니다: ' + error.message);
-        }
+        modal.style.display = 'block';
     },
 
-    setupEventListeners() {
-        // 탭 전환 이벤트
-        document.querySelectorAll('.tab').forEach(tab => {
-            tab.addEventListener('click', () => window.switchTab(tab.dataset.tab));
+    closePlaceInfoModal() {
+        document.getElementById('place-info-modal').style.display = 'none';
+        this.selectedPlace = null;
+        this.selectedCapacity = null;
+        this.selectedFacilities.clear();
+    },
+
+    toggleCapacity(button) {
+        const capacityButtons = document.querySelectorAll('.capacity-button');
+        capacityButtons.forEach(btn => btn.classList.remove('selected'));
+        button.classList.add('selected');
+        this.selectedCapacity = button.dataset.capacity;
+    },
+
+    toggleFacility(button) {
+        const facility = button.dataset.facility;
+        if (button.classList.contains('selected')) {
+            button.classList.remove('selected');
+            this.selectedFacilities.delete(facility);
+        } else {
+            button.classList.add('selected');
+            this.selectedFacilities.add(facility);
+        }
+    },
+    
+    // 마커 관리 메서드
+    addMarker(position) {
+        const marker = new kakao.maps.Marker({
+            position: position,
+            clickable: true
         });
-
-        // 검색 입력 이벤트
-        const keywordInput = document.getElementById('keyword');
-        if (keywordInput) {
-            keywordInput.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') {
-                    window.searchPlaces();
-                }
-            });
-        }
-
-        // 검색 버튼 이벤트
-        const searchButton = document.querySelector('.search-button');
-        if (searchButton) {
-            searchButton.addEventListener('click', () => window.searchPlaces());
-        }
+        marker.setMap(this.map);
+        this.markers.push(marker);
+        return marker;
     },
 
-    // 장소 검색
+    removeMarkers() {
+        this.markers.forEach(marker => marker.setMap(null));
+        this.markers = [];
+    },
+
+    // 장소 검색 관련 메서드
     searchPlaces() {
         if (!this.isMapInitialized) {
             this.showError('지도가 아직 초기화되지 않았습니다.');
@@ -90,18 +83,19 @@ window.CooperationMap = {
             return;
         }
 
-        this.places.keywordSearch(keyword, (data, status) => {
-            if (status === kakao.maps.services.Status.OK) {
-                this.displayPlaces(data);
-            } else if (status === kakao.maps.services.Status.ZERO_RESULT) {
-                this.showError('검색 결과가 존재하지 않습니다.');
-            } else if (status === kakao.maps.services.Status.ERROR) {
-                this.showError('검색 중 오류가 발생했습니다.');
-            }
-        });
+        this.places.keywordSearch(keyword, (data, status) => this.placesSearchCallback(data, status));
     },
 
-    // 검색 결과 표시
+    placesSearchCallback(data, status) {
+        if (status === kakao.maps.services.Status.OK) {
+            this.displayPlaces(data);
+        } else if (status === kakao.maps.services.Status.ZERO_RESULT) {
+            this.showError('검색 결과가 존재하지 않습니다.');
+        } else if (status === kakao.maps.services.Status.ERROR) {
+            this.showError('검색 중 오류가 발생했습니다.');
+        }
+    },
+
     displayPlaces(places) {
         const listEl = document.getElementById('places-list');
         const bounds = new kakao.maps.LatLngBounds();
@@ -125,23 +119,6 @@ window.CooperationMap = {
         this.map.setBounds(bounds);
     },
 
-    // 마커 관리
-    addMarker(position) {
-        const marker = new kakao.maps.Marker({
-            position: position,
-            clickable: true
-        });
-        marker.setMap(this.map);
-        this.markers.push(marker);
-        return marker;
-    },
-
-    removeMarkers() {
-        this.markers.forEach(marker => marker.setMap(null));
-        this.markers = [];
-    },
-
-    // 장소 아이템 UI 생성
     createPlaceItem(place) {
         const itemEl = document.createElement('div');
         itemEl.className = 'place-item';
@@ -154,149 +131,13 @@ window.CooperationMap = {
                 ${place.category_name ? `<div class="place-category">🏷️ ${place.category_name}</div>` : ''}
             </div>
             <div class="action-buttons">
-                <button onclick="window.CooperationMap.savePlace(${JSON.stringify(place)})" class="action-button save-button">저장</button>
+                <button onclick="window.CooperationMap.savePlace(${JSON.stringify(place).replace(/"/g, '&quot;')})" class="action-button save-button">저장</button>
             </div>
         `;
         
         return itemEl;
     },
 
-    // 장소 저장
-    async savePlace(place) {
-        try {
-            const placeData = {
-                placeId: place.id,
-                placeName: place.place_name,
-                addressName: place.address_name,
-                roadAddressName: place.road_address_name,
-                phoneNumber: place.phone,
-                category: place.category_name,
-                longitude: parseFloat(place.x),
-                latitude: parseFloat(place.y)
-            };
-
-            const response = await fetch('/saved-places', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json'
-                },
-                body: JSON.stringify(placeData)
-            });
-
-            const result = await this.handleApiResponse(response);
-            this.showSuccess(result.message || '장소가 저장되었습니다');
-            await this.loadSavedPlaces();
-        } catch (error) {
-            console.error('Error saving place:', error);
-            this.showError('장소 저장에 실패했습니다: ' + error.message);
-        }
-    },
-
-    // 저장된 장소 불러오기
-    async loadSavedPlaces() {
-        try {
-            const response = await fetch('/saved-places');
-            const data = await this.handleApiResponse(response);
-
-            if (!Array.isArray(data)) {
-                throw new Error('올바르지 않은 데이터 형식입니다');
-            }
-
-            this.displaySavedPlaces(data);
-        } catch (error) {
-            console.error('Error loading saved places:', error);
-            this.showError('저장된 장소를 불러오는데 실패했습니다: ' + error.message);
-        }
-    },
-
-    // 저장된 장소 표시
-    displaySavedPlaces(places) {
-        const listEl = document.getElementById('saved-places-list');
-        if (!listEl) return;
-
-        listEl.innerHTML = '';
-
-        if (places.length === 0) {
-            listEl.innerHTML = '<p class="no-places">저장된 장소가 없습니다.</p>';
-            return;
-        }
-
-        places.forEach(place => {
-            const itemEl = document.createElement('div');
-            itemEl.className = 'place-item';
-            
-            itemEl.innerHTML = `
-                <div class="place-info">
-                    <div class="place-name">${place.placeName || '이름 없음'}</div>
-                    <div class="place-address">${place.addressName || '주소 없음'}</div>
-                    ${place.phoneNumber ? `<div class="place-phone">📞 ${place.phoneNumber}</div>` : ''}
-                    ${place.category ? `<div class="place-category">🏷️ ${place.category}</div>` : ''}
-                </div>
-                <div class="action-buttons">
-                    <button onclick="window.CooperationMap.showOnMap('${place._id}')" class="action-button">지도에서 보기</button>
-                    <button onclick="window.CooperationMap.deletePlace('${place._id}')" class="action-button delete-button">삭제</button>
-                </div>
-            `;
-
-            listEl.appendChild(itemEl);
-        });
-    },
-
-    // 장소 삭제
-    async deletePlace(placeId) {
-        if (!confirm('이 장소를 삭제하시겠습니까?')) {
-            return;
-        }
-
-        try {
-            const response = await fetch(`/saved-places/${placeId}`, {
-                method: 'DELETE'
-            });
-
-            await this.handleApiResponse(response);
-            this.showSuccess('장소가 삭제되었습니다');
-            await this.loadSavedPlaces();
-        } catch (error) {
-            console.error('Error deleting place:', error);
-            this.showError('장소 삭제에 실패했습니다: ' + error.message);
-        }
-    },
-
-    // 지도에서 장소 보기
-    async showOnMap(placeId) {
-        try {
-            const response = await fetch(`/saved-places/${placeId}`);
-            const place = await this.handleApiResponse(response);
-
-            if (!place.location?.coordinates) {
-                throw new Error('잘못된 장소 데이터입니다');
-            }
-
-            const position = new kakao.maps.LatLng(
-                place.location.coordinates[1],
-                place.location.coordinates[0]
-            );
-
-            this.removeMarkers();
-
-            const marker = this.addMarker(position);
-            this.displayPlaceInfo({
-                place_name: place.placeName,
-                address_name: place.addressName,
-                road_address_name: place.roadAddressName,
-                phone: place.phoneNumber
-            }, marker);
-
-            this.map.setCenter(position);
-            window.switchTab('search');
-        } catch (error) {
-            console.error('Error showing place on map:', error);
-            this.showError('장소 정보를 불러오는데 실패했습니다: ' + error.message);
-        }
-    },
-
-    // 장소 정보 표시
     displayPlaceInfo(place, marker) {
         if (this.currentInfoWindow) {
             this.currentInfoWindow.close();
@@ -320,7 +161,200 @@ window.CooperationMap = {
         this.currentInfoWindow = infowindow;
     },
 
-    // API 응답 처리
+    // 저장된 장소 관련 메서드
+    async savePlaceWithInfo() {
+        if (!this.selectedPlace || !this.selectedCapacity) {
+            this.showError('수용 인원을 선택해주세요.');
+            return;
+        }
+
+        try {
+            const placeData = {
+                placeId: this.selectedPlace.id,
+                placeName: this.selectedPlace.place_name,
+                addressName: this.selectedPlace.address_name,
+                roadAddressName: this.selectedPlace.road_address_name,
+                phoneNumber: this.selectedPlace.phone,
+                category: this.selectedPlace.category_name,
+                longitude: parseFloat(this.selectedPlace.x),
+                latitude: parseFloat(this.selectedPlace.y),
+                capacity: this.selectedCapacity,
+                facilities: Array.from(this.selectedFacilities)
+            };
+            const response = await fetch('/saved-places', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify(placeData)
+            });
+
+            const result = await this.handleApiResponse(response);
+            this.showSuccess(result.message || '장소가 저장되었습니다');
+            this.closePlaceInfoModal();
+            await this.loadSavedPlaces();
+        } catch (error) {
+            console.error('Error saving place:', error);
+            this.showError('장소 저장에 실패했습니다: ' + error.message);
+        }
+    },
+
+    async loadSavedPlaces() {
+        try {
+            const response = await fetch('/saved-places');
+            const data = await this.handleApiResponse(response);
+
+            if (!Array.isArray(data)) {
+                throw new Error('올바르지 않은 데이터 형식입니다');
+            }
+
+            this.displaySavedPlaces(data);
+        } catch (error) {
+            console.error('Error loading saved places:', error);
+            this.showError('저장된 장소를 불러오는데 실패했습니다: ' + error.message);
+        }
+    },
+
+    displaySavedPlaces(places) {
+        const listEl = document.getElementById('saved-places-list');
+        if (!listEl) return;
+
+        listEl.innerHTML = '';
+
+        if (places.length === 0) {
+            listEl.innerHTML = '<p class="no-places">저장된 장소가 없습니다.</p>';
+            return;
+        }
+
+        places.forEach(place => {
+            const itemEl = document.createElement('div');
+            itemEl.className = 'place-item';
+            
+            // 시설 태그 생성
+            const facilityTags = place.facilities?.map(facility => 
+                `<span class="facility-tag">${facility}</span>`
+            ).join('') || '';
+
+            itemEl.innerHTML = `
+                <div class="place-info">
+                    <div class="place-name">${place.placeName || '이름 없음'}</div>
+                    <div class="place-address">${place.addressName || '주소 없음'}</div>
+                    ${place.phoneNumber ? `<div class="place-phone">📞 ${place.phoneNumber}</div>` : ''}
+                    ${place.category ? `<div class="place-category">🏷️ ${place.category}</div>` : ''}
+                    <div class="place-capacity">👥 ${this.formatCapacity(place.capacity)}</div>
+                    <div class="facility-tags">${facilityTags}</div>
+                </div>
+                <div class="action-buttons">
+                    <button onclick="window.CooperationMap.showOnMap('${place._id}')" class="action-button">지도에서 보기</button>
+                    <button onclick="window.CooperationMap.deletePlace('${place._id}')" class="action-button delete-button">삭제</button>
+                </div>
+            `;
+
+            listEl.appendChild(itemEl);
+        });
+    },
+    formatCapacity(capacity) {
+        switch(capacity) {
+            case '~10': return '~10명';
+            case '~30': return '~30명';
+            case '~50': return '~50명';
+            case '~100': return '~100명';
+            default: return capacity;
+        }
+    },
+    savePlace(place) {
+        this.selectedPlace = place;
+        this.showPlaceInfoModal(place);
+    },
+    async deletePlace(placeId) {
+        if (!confirm('이 장소를 삭제하시겠습니까?')) {
+            return;
+        }
+
+        try {
+            const response = await fetch(`/saved-places/${placeId}`, {
+                method: 'DELETE'
+            });
+
+            await this.handleApiResponse(response);
+            this.showSuccess('장소가 삭제되었습니다');
+            await this.loadSavedPlaces();
+        } catch (error) {
+            console.error('Error deleting place:', error);
+            this.showError('장소 삭제에 실패했습니다: ' + error.message);
+        }
+    },
+
+    async showOnMap(placeId) {
+        try {
+            const response = await fetch(`/saved-places/${placeId}`);
+            const place = await this.handleApiResponse(response);
+
+            if (!place.location?.coordinates) {
+                throw new Error('잘못된 장소 데이터입니다');
+            }
+
+            const position = new kakao.maps.LatLng(
+                place.location.coordinates[1],
+                place.location.coordinates[0]
+            );
+
+            this.removeMarkers();
+            const marker = this.addMarker(position);
+
+            if (this.currentInfoWindow) {
+                this.currentInfoWindow.close();
+            }
+
+            const infowindow = new kakao.maps.InfoWindow({
+                content: `
+                    <div class="info-window">
+                        <h3>${place.placeName || '이름 없음'}</h3>
+                        <p>${place.addressName || '주소 없음'}</p>
+                        ${place.phoneNumber ? `<p>📞 ${place.phoneNumber}</p>` : ''}
+                        ${place.roadAddressName ? `<p>🚗 ${place.roadAddressName}</p>` : ''}
+                    </div>
+                `,
+                removable: true
+            });
+
+            infowindow.open(this.map, marker);
+            this.currentInfoWindow = infowindow;
+
+            this.map.setCenter(position);
+            this.switchTab('search');
+        } catch (error) {
+            console.error('Error showing place on map:', error);
+            this.showError('장소 정보를 불러오는데 실패했습니다: ' + error.message);
+        }
+    },
+
+    // 탭 관리 메서드
+    switchTab(tabId) {
+        if (!this.isMapInitialized) {
+            this.showError('지도가 아직 초기화되지 않았습니다.');
+            return;
+        }
+
+        document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+        document.querySelectorAll('.content-section').forEach(section => section.classList.remove('active'));
+        
+        document.querySelector(`.tab[data-tab="${tabId}"]`).classList.add('active');
+        document.getElementById(`${tabId}-section`).classList.add('active');
+
+        if (tabId === 'search' && this.map) {
+            this.map.relayout();
+        } else if (tabId === 'route' && this.routeMap) {
+            this.routeMap.relayout();
+        }
+
+        if (tabId === 'saved') {
+            this.loadSavedPlaces();
+        }
+    },
+
+    // 유틸리티 메서드
     async handleApiResponse(response) {
         try {
             const text = await response.text();
@@ -331,7 +365,6 @@ window.CooperationMap = {
         }
     },
 
-    // 에러 처리
     showError(message) {
         const modal = document.getElementById('error-modal');
         const messageElement = document.getElementById('error-message');
@@ -345,31 +378,157 @@ window.CooperationMap = {
 
     showSuccess(message) {
         alert(message);
+    },
+
+    closeErrorModal() {
+        const modal = document.getElementById('error-modal');
+        if (modal) {
+            modal.style.display = 'none';
+        }
+    },
+
+    setupEventListeners() {
+        // 검색 이벤트
+        const keywordInput = document.getElementById('keyword');
+        if (keywordInput) {
+            keywordInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    this.searchPlaces();
+                }
+            });
+        }
+
+        // 검색 버튼 이벤트
+        const searchButton = document.querySelector('.search-button');
+        if (searchButton) {
+            searchButton.addEventListener('click', () => this.searchPlaces());
+        }
+    },
+    closeErrorModal() {
+        const modal = document.getElementById('error-modal');
+        if (modal) {
+            modal.style.display = 'none';
+        }
+    },
+
+    // 지도 타입 변경 메서드
+    setMapType(maptype) {
+        const roadmapControl = document.getElementById('btnRoadmap');
+        const skyviewControl = document.getElementById('btnSkyview');
+        
+        if (maptype === 'roadmap') {
+            this.map.setMapTypeId(kakao.maps.MapTypeId.ROADMAP);
+            roadmapControl.className = 'selected';
+            skyviewControl.className = '';
+        } else {
+            this.map.setMapTypeId(kakao.maps.MapTypeId.HYBRID);
+            skyviewControl.className = 'selected';
+            roadmapControl.className = '';
+        }
+    },
+
+    // 지도 확대 메서드
+    zoomIn() {
+        if (this.map) {
+            this.map.setLevel(this.map.getLevel() - 2);
+        }
+    },
+
+    // 지도 축소 메서드
+    zoomOut() {
+        if (this.map) {
+            this.map.setLevel(this.map.getLevel() + 2);
+        }
+    },
+    // 초기화
+    initialize() {
+        const loadingElement = document.getElementById('map-loading');
+        if (loadingElement) {
+            loadingElement.style.display = 'block';
+        }
+         // 지도 타입 컨트롤 이벤트 리스너 설정
+         document.getElementById('btnRoadmap').addEventListener('click', () => this.setMapType('roadmap'));
+         document.getElementById('btnSkyview').addEventListener('click', () => this.setMapType('skyview'));
+        // 수용 인원 버튼 이벤트 리스너
+        document.querySelectorAll('.capacity-button').forEach(button => {
+            button.addEventListener('click', () => this.toggleCapacity(button));
+        });
+
+        // 시설 버튼 이벤트 리스너
+        document.querySelectorAll('.facility-button').forEach(button => {
+            button.addEventListener('click', () => this.toggleFacility(button));
+        });
+
+        // ESC 키로 모달 닫기
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                this.closePlaceInfoModal();
+            }
+        });
+
+        // 모달 외부 클릭으로 닫기
+        document.getElementById('place-info-modal').addEventListener('click', (e) => {
+            if (e.target.id === 'place-info-modal') {
+                this.closePlaceInfoModal();
+            }
+        });
+        try {
+            const container = document.getElementById('map');
+            const routeContainer = document.getElementById('route-map');
+            
+            if (!container || !routeContainer) {
+                throw new Error('Map containers not found');
+            }
+
+            const options = {
+                center: new kakao.maps.LatLng(37.566826, 126.978656),
+                level: 3
+            };
+
+            this.map = new kakao.maps.Map(container, options);
+            this.routeMap = new kakao.maps.Map(routeContainer, options);
+            this.places = new kakao.maps.services.Places();
+
+            const zoomControl = new kakao.maps.ZoomControl();
+            this.map.addControl(zoomControl, kakao.maps.ControlPosition.RIGHT);
+            this.routeMap.addControl(zoomControl, kakao.maps.ControlPosition.RIGHT);
+            
+
+
+            this.isMapInitialized = true;
+            this.setupEventListeners();
+            this.loadSavedPlaces();
+
+            
+            if (loadingElement) {
+                loadingElement.style.display = 'none';
+            }
+
+            console.log('Map initialization complete');
+        } catch (error) {
+            console.error('Error initializing map:', error);
+            if (loadingElement) {
+                loadingElement.style.display = 'none';
+            }
+            this.showError('지도 초기화 중 오류가 발생했습니다: ' + error.message);
+        }
     }
 };
 
+// 전역 함수들
+window.searchPlaces = function() {
+    window.CooperationMap.searchPlaces();
+};
 
-// API 응답 처리 함수
-async function handleApiResponse(response) {
-    try {
-        const text = await response.text();
-        if (!text) {
-            throw new Error('빈 응답이 반환되었습니다');
-        }
-        try {
-            return JSON.parse(text);
-        } catch (e) {
-            console.error('JSON 파싱 에러:', e);
-            console.log('받은 응답:', text);
-            throw new Error('서버 응답을 처리할 수 없습니다');
-        }
-    } catch (error) {
-        console.error('API 응답 처리 중 에러:', error);
-        throw error;
-    }
-}
+window.closeErrorModal = function() {
+    window.CooperationMap.closeErrorModal();
+};
 
-// 지도 초기화 함수
+window.switchTab = function(tabId) {
+    window.CooperationMap.switchTab(tabId);
+};
+
+// 초기화 함수
 window.initMaps = function() {
     if (typeof kakao === 'undefined') {
         console.error('Kakao maps API not loaded');
@@ -637,60 +796,6 @@ function displaySavedPlaces(places) {
 
         listEl.appendChild(itemEl);
     });
-}
-
-// 지도에서 특정 장소 보기
-async function showOnMap(placeId) {
-    try {
-        console.log('Showing place on map:', placeId);
-        const response = await fetch(`/saved-places/${placeId}`, {
-            headers: {
-                'Accept': 'application/json'
-            }
-        });
-
-        const place = await handleApiResponse(response);
-        console.log('Place details:', place);
-
-        if (!place.location?.coordinates) {
-            throw new Error('잘못된 장소 데이터입니다');
-        }
-
-        const position = new kakao.maps.LatLng(
-            place.location.coordinates[1],
-            place.location.coordinates[0]
-        );
-
-        if (currentInfoWindow) {
-            currentInfoWindow.close();
-        }
-
-        const marker = new kakao.maps.Marker({ position });
-        marker.setMap(map);
-        markers.push(marker);
-
-        const infowindow = new kakao.maps.InfoWindow({
-            content: `
-                <div class="info-window">
-                    <h3>${place.placeName || '이름 없음'}</h3>
-                    <p>${place.addressName || '주소 없음'}</p>
-                    ${place.phoneNumber ? `<p>📞 ${place.phoneNumber}</p>` : ''}
-                    ${place.roadAddressName ? `<p>🚗 ${place.roadAddressName}</p>` : ''}
-                    ${place.category ? `<p>🏷️ ${place.category}</p>` : ''}
-                </div>
-            `,
-            removable: true
-        });
-
-        infowindow.open(map, marker);
-        currentInfoWindow = infowindow;
-
-        map.setCenter(position);
-        switchTab('search');
-    } catch (error) {
-        console.error('Error showing place on map:', error);
-        showError('장소 정보를 불러오는데 실패했습니다: ' + error.message);
-    }
 }
 
 
