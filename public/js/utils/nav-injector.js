@@ -167,7 +167,7 @@ const sidebarHTML = `
 const topNavHTML = `
 <nav class="custom-top-nav">
     <button id="toggle-btn" class="toggle-btn" onclick="toggleSidebar()">☰</button>
-    <span class="nav-title" onclick="goHome()"><img src="./images/contenido.png" alt="Contenido Logo"></span>
+    <span class="nav-title" onclick="goHome()"><img src="./images/HomeLogo.png" alt="Contenido Logo"></span>
 </nav>
 `;
 

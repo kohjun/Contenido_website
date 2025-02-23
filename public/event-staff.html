@@ -83,6 +83,28 @@
           <textarea id="event-contents" rows="6" placeholder="이벤트에 대한 상세한 설명을 작성해주세요" required></textarea>
           <span class="form-hint">이벤트의 목적, 진행 방식, 준비물 등을 자세히 설명해주세요</span>
         </div>
+        <!-- 선별적 이벤트 옵션 -->
+        <div class="form-group">
+          <label class="checkbox-label">
+            <input type="checkbox" id="is-selective" onchange="toggleQuestionSection()">
+            선별적 이벤트 (참가자 선발)
+          </label>
+          <span class="form-hint">참가자를 선발하기 위한 추가 질문을 입력할 수 있습니다</span>
+        </div>
+
+        <!-- 추가 질문 섹션 -->
+        <div id="question-section" class="question-container" style="display: none;">
+          <h3>추가 질문</h3>
+          <div id="questions-container"></div>
+          <button type="button" 
+                  id="add-question-btn" 
+                  class="add-question" 
+                  onclick="addQuestion()">
+            + 질문 추가
+          </button>
+          <span class="form-hint">최대 3개의 질문을 추가할 수 있습니다</span>
+        </div>
+
         <div class="form-group">
           <label>이미지</label>
           <input type="file" id="event-images" multiple accept="image/*"><br>

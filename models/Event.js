@@ -2,6 +2,13 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
 
+const questionSchema = new mongoose.Schema({
+  questionText: {
+    type: String,
+    required: true
+  }
+});
+
 const participantSchema = new mongoose.Schema({
   userId: { 
     type: mongoose.Schema.Types.ObjectId, 
@@ -16,7 +23,14 @@ const participantSchema = new mongoose.Schema({
     type: String,
     enum: ['pending', 'approved', 'rejected'],
     default: 'pending'
-  }
+  },
+  // 답변 추가
+  answers: [{
+    answerText: {
+      type: String,
+      required: true
+    }
+  }]
 });
 
 const eventSchema = new mongoose.Schema({
@@ -80,14 +94,16 @@ const eventSchema = new mongoose.Schema({
   accessCode: {
     type: String,
     required: true,
-    maxlength: 60 // bcrypt 해시를 저장하기 위한 충분한 길이
-  }
+    maxlength: 60
+  },
+  isSelective: {
+    type: Boolean,
+    default: false
+  },
+  additionalQuestions: [questionSchema]
 });
-
-// 저장 전 accessCode 해시화
 eventSchema.pre('save', async function(next) {
   if (this.isModified('accessCode')) {
-    // 입력된 accessCode가 이미 해시된 값이 아닌 경우에만 해시화
     if (this.accessCode.length === 4) {
       this.accessCode = await bcrypt.hash(this.accessCode, 10);
     }
@@ -95,7 +111,6 @@ eventSchema.pre('save', async function(next) {
   next();
 });
 
-// 접근 코드 확인 메서드
 eventSchema.methods.verifyAccessCode = async function(inputCode) {
   return await bcrypt.compare(inputCode, this.accessCode);
 };

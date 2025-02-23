@@ -11,21 +11,18 @@ async function fetchEvents() {
       return;
     }
 
-    // 사용자 정보 가져오기
     const userResponse = await fetch('/user/info');
     const currentUser = await userResponse.json();
 
     if (events.length === 0) {
       eventsList.innerHTML = `
         <div class="empty-state">
-          <img src="/images/empty-state.png" alt="No events" class="empty-state-image">
           <p>현재 진행중인 이벤트가 없습니다.</p>
         </div>
       `;
       return;
     }
 
-    // 그리드 컨테이너 생성
     eventsList.innerHTML = '<div class="events-grid"></div>';
     const eventsGrid = eventsList.querySelector('.events-grid');
 
@@ -40,7 +37,6 @@ async function fetchEvents() {
       const eventCard = document.createElement('div');
       eventCard.className = 'event-card';
       
-      // 이벤트 상태에 따른 배지 색상 결정
       let statusBadge = '';
       if (isFull) {
         statusBadge = '<span class="status-badge full">마감</span>';
@@ -48,6 +44,24 @@ async function fetchEvents() {
         statusBadge = userStatus === 'approved' ? 
           '<span class="status-badge approved">참가확정</span>' : 
           '<span class="status-badge pending">승인대기</span>';
+      }
+
+      // 신청 버튼 상태 결정
+      let applyButton = '';
+      if (hasApplied) {
+        applyButton = `<button class="cancel-button" onclick="cancelApplication('${event._id}')">신청취소</button>`;
+      } else if (isFull) {
+        applyButton = '<button class="apply-button" disabled>승인마감</button>';
+      } else if (!isActive) {
+        applyButton = '<button class="apply-button" disabled>신청불가</button>';
+      } else {
+        // 선별적 이벤트인 경우 신청버튼 비활성화하고 상세보기로 안내
+        if (event.isSelective && event.additionalQuestions?.length > 0) {
+          applyButton = '<button class="apply-button" disabled> 상세보기 신청 </button>';
+        } else {
+          // 일반 이벤트는 바로 신청 가능
+          applyButton = `<button class="apply-button" onclick="applyForEvent('${event._id}')">신청하기</button>`;
+        }
       }
 
       eventCard.innerHTML = `
@@ -79,33 +93,16 @@ async function fetchEvents() {
               <i class="info-icon">💰</i>
               <span>${event.participation_fee.toLocaleString()}원</span>
             </div>
+            ${event.isSelective ? '<div class="info-item selective-badge">📝 지원서 필요</div>' : ''}
           </div>
         </div>
 
         <div class="event-card-footer">
-          <button class="view-details" onclick="openContentWindow('${event._id}')">
-            상세보기
-          </button>
-          ${
-            hasApplied
-              ? userStatus === 'approved'
-                ? `<button class="cancel-button" onclick="cancelApplication('${event._id}')">신청취소</button>`
-                : userStatus === 'pending'
-                  ? `<button class="cancel-button" onclick="cancelApplication('${event._id}')">신청취소</button>`
-                  : `<button class="apply-button" onclick="applyForEvent('${event._id}')">신청하기</button>`
-              : isFull
-                ? '<button class="apply-button" disabled>승인마감</button>'
-                : isActive
-                  ? `<button class="apply-button" onclick="applyForEvent('${event._id}')">신청하기</button>`
-                  : '<button class="apply-button" disabled>신청불가</button>'
-          }
-          ${
-            (currentUser.role === 'admin' || (currentUser.role === 'officer' && event.creator === currentUser.id))
-            ? `<button class="delete-button" onclick="handleCancelEvent('${event._id}', '${event.creator}')">
-                삭제
-               </button>`
-            : ''
-          }
+          <button class="view-details" onclick="openContentWindow('${event._id}')">상세보기</button>
+          ${applyButton}
+          ${(currentUser.role === 'admin' || (currentUser.role === 'officer' && event.creator === currentUser.id))
+            ? `<button class="delete-button" onclick="handleCancelEvent('${event._id}', '${event.creator}')">삭제</button>`
+            : ''}
         </div>
       `;
 
@@ -134,7 +131,10 @@ async function submitEvent() {
     const contents = document.getElementById('event-contents').value;
     const team = document.getElementById('event-team').value;
     const accessCode = document.getElementById('event-access-code').value;
+    const isSelective = document.getElementById('is-selective').checked;
+    
 
+    
     // 입력값 검증
     if (!title || !place || !participants || !date || !startTime || 
         !endTime || !participation_fee || !contents || !team || !accessCode) {
@@ -170,6 +170,24 @@ async function submitEvent() {
     formData.append('contents', contents);
     formData.append('team', team);
     formData.append('accessCode', accessCode);
+    formData.append('isSelective', isSelective);
+    if (isSelective) {
+      const questions = Array.from(document.querySelectorAll('.question-item')).map(item => ({
+        questionText: item.querySelector('.question-text').value
+      }));
+
+      if (questions.length === 0) {
+        alert('선별적 이벤트에는 최소 1개의 질문이 필요합니다.');
+        return;
+      }
+
+      if (questions.some(q => !q.questionText.trim())) {
+        alert('모든 질문을 입력해주세요.');
+        return;
+      }
+
+      formData.append('additionalQuestions', JSON.stringify(questions));
+    }
 
     // 이미지 파일이 있는 경우 추가
     const images = document.getElementById('event-images')?.files || [];
@@ -202,7 +220,57 @@ async function submitEvent() {
   }
 }
 
+let questionCount = 0;
 
+function toggleQuestionSection() {
+  const isSelective = document.getElementById('is-selective').checked;
+  const questionSection = document.getElementById('question-section');
+  questionSection.style.display = isSelective ? 'block' : 'none';
+
+  if (!isSelective) {
+    document.getElementById('questions-container').innerHTML = '';
+    questionCount = 0;
+  }
+}
+
+function addQuestion() {
+  if (questionCount >= 3) {
+    alert('최대 3개의 질문만 추가할 수 있습니다.');
+    return;
+  }
+
+  const container = document.getElementById('questions-container');
+  const questionDiv = document.createElement('div');
+  questionDiv.className = 'question-item';
+  questionDiv.innerHTML = `
+    <button type="button" class="delete-question" onclick="deleteQuestion(this)">×</button>
+    <div class="form-group">
+      <label>질문 ${questionCount + 1}</label>
+      <textarea class="question-text" 
+                placeholder="질문을 입력하세요" 
+                required></textarea>
+    </div>
+  `;
+
+  container.appendChild(questionDiv);
+  questionCount++;
+
+  document.getElementById('add-question-btn').disabled = questionCount >= 3;
+}
+
+function deleteQuestion(button) {
+  button.closest('.question-item').remove();
+  questionCount--;
+  
+  document.querySelectorAll('.question-item').forEach((item, index) => {
+    const label = item.querySelector('label');
+    if (label) {
+      label.textContent = `질문 ${index + 1}`;
+    }
+  });
+
+  document.getElementById('add-question-btn').disabled = false;
+}
 // Redirect to additional-info.html with event ID in query string
 async function openContentWindow(eventId) {
   try {
@@ -211,6 +279,7 @@ async function openContentWindow(eventId) {
     console.error('Error opening event content window:', error);
   }
 }
+
 
 
 async function loadReportFormOptions() {

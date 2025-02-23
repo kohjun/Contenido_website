@@ -165,7 +165,8 @@ router.get('/:id/participants',
         gender: participant.userId.gender,
         phonenumber: participant.userId.phonenumber,
         status: participant.status,
-        appliedAt: participant.appliedAt
+        appliedAt: participant.appliedAt,
+        answers: participant.answers
       }));
 
       res.json({
@@ -194,18 +195,25 @@ router.post('/',
         });
       }
 
-      const {
+      const { title, date, place, participants, startTime, endTime, participation_fee, contents, team, accessCode } = req.body;
+
+      const eventData = {
         title,
         date,
         place,
-        participants,
+        participants: parseInt(participants),
         startTime,
         endTime,
-        participation_fee,
+        participation_fee: parseInt(participation_fee),
         contents,
         team,
-        accessCode
-      } = req.body;
+        accessCode,
+        images: req.files ? req.files.map(file => `/uploads/events/${file.filename}`) : [],
+        creator: req.user.id,
+        isSelective: req.body.isSelective === 'true',
+        additionalQuestions: req.body.isSelective === 'true' && req.body.additionalQuestions ? 
+          JSON.parse(req.body.additionalQuestions) : []
+      };
 
       // 입력값 검증
       if (!title || !date || !place || !participants || !startTime || 
@@ -218,23 +226,7 @@ router.post('/',
         return res.status(400).json({ message: '접근 코드는 4자리 숫자여야 합니다.' });
       }
 
-      const images = req.files ? req.files.map(file => `/uploads/events/${file.filename}`) : [];
-
-      const event = new Event({
-        title,
-        date,
-        place,
-        participants: parseInt(participants),
-        startTime,
-        endTime,
-        participation_fee: parseInt(participation_fee),
-        contents,
-        team,
-        accessCode, // 직접 accessCode 필드에 저장
-        images,
-        creator: req.user.id
-      });
-
+      const event = new Event(eventData);
       await event.save();
       
       res.status(201).json({ message: '이벤트가 성공적으로 등록되었습니다.' });
@@ -313,39 +305,67 @@ router.post('/:id/verify-access', authenticateToken, async (req, res) => {
 
 
 // 이벤트 신청 - active 상태인 participant,starter,officer 가능
-router.post('/:id/apply', 
-  authenticateToken,
-  requireActiveUser,
-  authorizeRoles('participant', 'starter', 'officer', 'admin'),
-  async (req, res) => {
-    try {
-      const event = await Event.findById(req.params.id);
-      if (!event) {
-        return res.status(404).json({ message: 'Event not found' });
-      }
-
-      // 정원 초과 확인
-      if (event.appliedParticipants.length >= event.participants) {
-        return res.status(400).json({ message: 'Event is already full' });
-      }
-
-      // 이미 신청했는지 확인
-      if (event.appliedParticipants.some(p => p.userId.toString() === req.user.id)) {
-        return res.status(400).json({ message: 'You have already applied' });
-      }
-
-      // 새로운 참가자 추가
-      event.appliedParticipants.push({
-        userId: req.user.id,
-        appliedAt: new Date()
-      });
-      
-      await event.save();
-      res.status(200).json({ message: 'Application successful' });
-    } catch (error) {
-      console.error('Error applying for event:', error);
-      res.status(500).json({ message: 'Error applying for event', error });
+router.post('/:id/apply', authenticateToken, requireActiveUser, async (req, res) => {
+  try {
+    const event = await Event.findById(req.params.id);
+    if (!event) {
+      return res.status(404).json({ message: '이벤트를 찾을 수 없습니다.' });
     }
+
+    // 이미 지난 이벤트인지 확인
+    if (event.isEnded) {
+      return res.status(400).json({ message: '이미 종료된 이벤트입니다.' });
+    }
+
+    // 정원 초과 확인
+    const approvedCount = event.appliedParticipants.filter(p => p.status === 'approved').length;
+    if (approvedCount >= event.participants) {
+      return res.status(400).json({ message: '이미 정원이 다 찼습니다.' });
+    }
+
+    // 이미 신청했는지 확인
+    if (event.appliedParticipants.some(p => p.userId.toString() === req.user.id)) {
+      return res.status(400).json({ message: '이미 신청한 이벤트입니다.' });
+    }
+
+    const participantData = {
+      userId: req.user.id,
+      appliedAt: new Date(),
+      status: 'pending'
+    };
+
+    // 선별적 이벤트인 경우 답변 처리
+    if (event.isSelective && event.additionalQuestions.length > 0) {
+      if (!req.body.answers) {
+        return res.status(400).json({ message: '지원서 답변이 필요합니다.' });
+      }
+
+      // 답변 수가 질문 수와 일치하는지 확인
+      if (req.body.answers.length !== event.additionalQuestions.length) {
+        return res.status(400).json({ message: '모든 질문에 답변해주세요.' });
+      }
+
+      // 답변이 비어있는지 확인
+      if (req.body.answers.some(answer => !answer.answerText.trim())) {
+        return res.status(400).json({ message: '비어있는 답변이 있습니다.' });
+      }
+
+      participantData.answers = req.body.answers;
+    }
+
+    event.appliedParticipants.push(participantData);
+    await event.save();
+
+    res.json({ 
+      message: '신청이 완료되었습니다. 승인을 기다려주세요.'
+    });
+  } catch (error) {
+    console.error('Error applying for event:', error);
+    res.status(500).json({ 
+      message: '이벤트 신청 중 오류가 발생했습니다.',
+      error: error.message 
+    });
+  }
 });
 
 // 이벤트 신청 취소 - 'participant','starter','officer' 가능
@@ -386,42 +406,42 @@ router.post('/:eventId/participants/:userId/status',
   async (req, res) => {
     try {
       const { eventId, userId } = req.params;
-      const { status } = req.body; // 'approved' 또는 'rejected'
+      const { status } = req.body;
 
       const event = await Event.findById(eventId);
       if (!event) {
-        return res.status(404).json({ message: 'Event not found' });
+        return res.status(404).json({ message: '이벤트를 찾을 수 없습니다.' });
       }
 
-      // 이벤트 생성자 확인
-      if (event.creator.toString() !== req.user.id) {
-        return res.status(403).json({ 
-          message: 'Only event creator can approve/reject participants' 
-        });
-      }
-
-      const participantIndex = event.appliedParticipants.findIndex(
+      const participant = event.appliedParticipants.find(
         p => p.userId.toString() === userId
       );
 
-      if (participantIndex === -1) {
-        return res.status(404).json({ message: 'Participant not found' });
+      if (!participant) {
+        return res.status(404).json({ message: '참가자를 찾을 수 없습니다.' });
       }
 
+      // 승인 시 정원 확인
       if (status === 'approved') {
-        event.appliedParticipants[participantIndex].status = 'approved';
-      } else if (status === 'rejected') {
-        // 거절된 참가자는 배열에서 제거
-        event.appliedParticipants.splice(participantIndex, 1);
+        const approvedCount = event.appliedParticipants.filter(
+          p => p.status === 'approved'
+        ).length;
+
+        if (approvedCount >= event.participants) {
+          return res.status(400).json({ message: '이미 정원이 다 찼습니다.' });
+        }
       }
 
+      participant.status = status;
       await event.save();
-      res.json({ message: `Participant ${status} successfully` });
+
+      res.json({ message: '참가자 상태가 업데이트되었습니다.' });
     } catch (error) {
       console.error('Error updating participant status:', error);
-      res.status(500).json({ message: 'Error updating participant status' });
+      res.status(500).json({ message: '상태 업데이트 중 오류가 발생했습니다.' });
     }
-});
+  }
+);
 
 // 이미지 업로드 라우트 추가
 router.post('/upload-images',

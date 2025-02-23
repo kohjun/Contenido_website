@@ -139,8 +139,9 @@ async function submitReview(eventId) {
   const isAnonymous = document.getElementById('anonymous').checked;
 
   try {
-    const method = userReview ? 'PUT' : 'POST';
-    const url = userReview ? `/reviews/${userReview._id}` : '/reviews';
+    // userReview가 있고 _id도 있는 경우에만 PUT 요청
+    const method = userReview && userReview._id ? 'PUT' : 'POST';
+    const url = userReview && userReview._id ? `/reviews/${userReview._id}` : '/reviews';
 
     const response = await fetch(url, {
       method,
@@ -148,23 +149,17 @@ async function submitReview(eventId) {
       body: JSON.stringify({ eventId, rating, comment, isAnonymous }),
     });
 
-    if (response.ok) {
-      alert(userReview ? '후기가 성공적으로 수정되었습니다.' : '후기가 성공적으로 등록되었습니다.');
-      document.getElementById('review-form').reset();
-      await loadReviews(eventId);
-      
-      if (!userReview) {
-        userReview = await response.json();
-        const submitButton = document.querySelector('#review-form button[type="submit"]');
-        submitButton.textContent = '리뷰 수정';
-      }
-    } else {
+    if (!response.ok) {
       const error = await response.json();
-      alert(`후기 ${userReview ? '수정' : '등록'} 실패: ${error.message}`);
+      throw new Error(error.message);
     }
+
+    alert(userReview ? '후기가 수정되었습니다.' : '후기가 등록되었습니다.');
+    await loadReviews(eventId);
+    document.getElementById('review-form').reset();
   } catch (error) {
     console.error('Error submitting review:', error);
-    alert('후기를 처리하는 중 문제가 발생했습니다.');
+    alert('후기 처리 중 오류가 발생했습니다: ' + error.message);
   }
 }
 

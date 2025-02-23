@@ -3,14 +3,20 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Event Status - Staff</title>
+  <title>이벤트 참가 현황</title>
   <link rel="stylesheet" href="/css/styles.css" />
+  <style>
+    /* isSelective가 true일 때 기존 표 형식 숨기기 */
+    .hidden {
+      display: none;
+    }
+  </style>
 </head>
 <body>
   <div class="container">
     <h1>이벤트 참가 현황</h1>
     <div id="event-details"></div>
-    <table>
+    <table id="participant-table">
       <thead>
         <tr>
           <th>이름</th>
@@ -23,7 +29,17 @@
       </thead>
       <tbody id="participant-list"></tbody>
     </table>
-    <button onclick="window.location.href='event-staff.html'">돌아가기</button>
+    <div id="application-list"></div>
+
+    <!-- 지원서 모달 -->
+    <div id="application-modal" class="modal">
+      <div class="modal-content">
+        <span class="close-modal" onclick="closeModal()">&times;</span>
+        <div id="application-content"></div>
+      </div>
+    </div>
+
+    <button onclick="window.location.href='event-staff.html'" class="back-button">돌아가기</button>
   </div>
 
   <script src="/js/event-status.js"></script>

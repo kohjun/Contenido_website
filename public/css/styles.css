@@ -705,6 +705,128 @@ dot {
   cursor: pointer;
 }
 
+/* 지원서 스타일 */
+.modal {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+}
+
+.modal-content {
+  position: relative;
+  background: white;
+  margin: 10% auto;
+  padding: 2rem;
+  width: 80%;
+  max-width: 600px;
+  border-radius: 0.5rem;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+.answer-section {
+  margin: 1rem 0;
+  padding: 1rem;
+  background: #f8fafc;
+  border-radius: 0.5rem;
+  border: 1px solid #e2e8f0;
+}
+
+.question-text {
+  font-weight: bold;
+  color: #2d3748;
+  margin-bottom: 0.5rem;
+}
+
+.answer-text {
+  white-space: pre-wrap;
+  padding: 1rem;
+  background: white;
+  border-radius: 0.25rem;
+}
+
+.file-attachment {
+  margin-top: 0.5rem;
+  padding: 0.5rem;
+  background: #edf2f7;
+  border-radius: 0.25rem;
+}
+
+.close-modal {
+  position: absolute;
+  right: 1rem;
+  top: 1rem;
+  font-size: 1.5rem;
+  cursor: pointer;
+}
+
+.participant-row {
+  transition: background-color 0.3s ease;
+}
+
+.participant-row:hover {
+  background-color: #f8fafc;
+}
+
+.status-approved {
+  background-color: #dcfce7 !important;
+}
+
+.view-application-btn {
+  padding: 0.25rem 0.75rem;
+  background-color: #3b82f6;
+  color: white;
+  border: none;
+  border-radius: 0.25rem;
+  cursor: pointer;
+  margin-left: 0.5rem;
+}
+
+.view-application-btn:hover {
+  background-color: #2563eb;
+}
+
+.application-item {
+  margin: 1rem 0;
+  padding: 1rem;
+  background: #f8fafc;
+  border-radius: 0.5rem;
+  border: 1px solid #e2e8f0;
+}
+
+.application-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.application-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.approve-btn, .reject-btn {
+  padding: 0.25rem 0.75rem;
+  border: none;
+  border-radius: 0.25rem;
+  cursor: pointer;
+}
+
+.approve-btn {
+  background-color: #10b981;
+  color: white;
+}
+
+.reject-btn {
+  background-color: #ef4444;
+  color: white;
+}
+
 /* 버튼 스타일 */
 button, .submit-button {
   display: flex; /* Flexbox 활성화 */
@@ -978,16 +1100,6 @@ input:focus, select:focus, textarea:focus {
     
   }
 
-  #participant-table td{
-    padding: 0.8rem;
-    border: 1px solid #ffffff;
-    text-align: center;
-    word-wrap: break-word; /* 텍스트 줄바꿈 */
-    border-color:#ddd;
-  }
-  #participant-table td:hover{
-    background-color: #bcd9f7;
-  }
 
   td {
     background: #ffffff;
@@ -1444,12 +1556,60 @@ tr:hover {
 
   /* 후기 리스트 스타일 */
   .review {
+    position: relative;
     background: #fff;
-    border: 1px solid #ddd;
+    border: 1px solid #eee;
     border-radius: 8px;
     padding: 1rem;
     margin-bottom: 1rem;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+  }
+  
+  .review-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 0.5rem;
+  }
+  
+  .review-rating {
+    margin-left: 0.5rem;
+    color: #0A84FE;
+  }
+  
+  .review-actions {
+    margin-left: auto;
+  }
+  
+  .review-action-btn {
+    background: none;
+    border: none;
+    font-size: 0.9rem;
+    color: #666;
+    padding: 4px 8px;
+    cursor: pointer;
+    transition: color 0.2s;
+  }
+  
+  .review-action-btn:hover {
+    color: #0A84FE;
+  }
+  
+  .review-action-btn.edit {
+    margin-right: 8px;
+  }
+  
+  .review-action-btn.delete:hover {
+    color: #dc3545;
+  }
+  
+  .review-content {
+    margin: 0.5rem 0;
+    line-height: 1.5;
+  }
+  
+  .review-date {
+    font-size: 0.8rem;
+    color: #888;
+    margin: 0;
   }
 
   .review strong {

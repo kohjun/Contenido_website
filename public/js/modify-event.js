@@ -5,7 +5,13 @@ async function loadEventContent(eventId) {
   try {
     const response = await fetch(`/events/${eventId}`);
     const event = await response.json();
+    originalData = { ...event };
 
+    // 사용자 정보 조회
+    const userResponse = await fetch('/user/info');
+    const user = await userResponse.json();
+
+    // 기본 정보 표시
     document.getElementById('event-title').textContent = event.title;
     document.getElementById('event-place').textContent = event.place;
     document.getElementById('event-date').textContent = new Date(event.date).toISOString().split('T')[0];
@@ -15,7 +21,7 @@ async function loadEventContent(eventId) {
     document.getElementById('event-fee').textContent = event.participation_fee.toLocaleString() + '원';
     document.getElementById('event-contents').textContent = event.contents;
 
-    // 이미지들 표시
+    // 이미지 표시
     const imageContainer = document.getElementById('event-image-container');
     if (event.images && event.images.length > 0) {
       imageContainer.innerHTML = event.images.map((image, index) => `
@@ -27,21 +33,196 @@ async function loadEventContent(eventId) {
         </div>
       `).join('');
     }
-    
-    originalData = { ...event };
 
-    const userResponse = await fetch('/user/info');
-    const user = await userResponse.json();
-
+    // 생성자인 경우 수정 버튼 표시
     if (event.creator === user.id && user.role === 'officer') {
       document.getElementById('modify-button').style.display = 'block';
-    } else {
-      document.getElementById('modify-button').style.display = 'none';
     }
+
+    // 신청 상태 확인 및 버튼 업데이트
+    const hasApplied = event.appliedParticipants.some(p => p.userId === user.id);
+    const isActive = user.active;
+    const approvedCount = event.appliedParticipants.filter(p => p.status === 'approved').length;
+    const isFull = approvedCount >= event.participants;
+
+    const applicationSection = document.getElementById('application-section');
+    if (event.isSelective) {
+      // 선별적 이벤트
+      if (hasApplied) {
+        applicationSection.innerHTML = `
+          <p class="status-text">지원이 완료되었습니다</p>
+          <div class="application-form" style="pointer-events: none; opacity: 0.7;">
+            <h3>지원서 양식</h3>
+            <form id="application-form">
+              ${event.additionalQuestions.map((question, index) => `
+                <div class="question-section">
+                  <p class="question-text">Q${index + 1}. ${question.questionText}</p>
+                  <textarea class="answer-textarea" disabled></textarea>
+                </div>
+              `).join('')}
+              <button type="submit" class="submit-button" disabled>지원완료</button>
+            </form>
+          </div>
+        `;
+      } else if (!isActive) {
+        applicationSection.innerHTML = `
+          <p class="status-text">현재 지원이 불가능합니다</p>
+          <button class="submit-button" disabled>지원불가</button>
+        `;
+      } else if (isFull) {
+        applicationSection.innerHTML = `
+          <p class="status-text">모집이 마감되었습니다</p>
+          <button class="submit-button" disabled>마감</button>
+        `;
+      } else {
+        applicationSection.innerHTML = `
+          <div class="application-form">
+            <h3>지원서 작성</h3>
+            <form id="application-form" onsubmit="submitApplication(event)">
+              ${event.additionalQuestions.map((question, index) => `
+                <div class="question-section">
+                  <p class="question-text">Q${index + 1}. ${question.questionText}</p>
+                  <textarea class="answer-textarea" name="answer_${index}" required></textarea>
+                </div>
+              `).join('')}
+              <button type="submit" class="submit-button">지원하기</button>
+            </form>
+          </div>
+        `;
+      }
+    } else {
+      // 일반 이벤트
+      if (hasApplied) {
+        applicationSection.innerHTML = `
+          <p class="status-text">신청이 완료되었습니다</p>
+          <button class="submit-button" disabled>신청완료</button>
+        `;
+      } else if (!isActive) {
+        applicationSection.innerHTML = `
+          <p class="status-text">현재 신청이 불가능합니다</p>
+          <button class="submit-button" disabled>신청불가</button>
+        `;
+      } else if (isFull) {
+        applicationSection.innerHTML = `
+          <p class="status-text">모집이 마감되었습니다</p>
+          <button class="submit-button" disabled>마감</button>
+        `;
+      } else {
+        applicationSection.innerHTML = `
+          <button onclick="applyForEvent('${event._id}')" class="submit-button">신청하기</button>
+        `;
+      }
+    }
+
   } catch (error) {
-    console.error('Error loading event content:', error);
-    alert('이벤트 내용을 불러오는 중 문제가 발생했습니다.');
+    console.error('Error:', error);
+    alert('이벤트 정보를 불러오는데 실패했습니다.');
   }
+}
+
+// 신청 상태 확인 함수
+function isApplied(event, user) {
+  return event.applicants && event.applicants.includes(user.id);
+}
+
+// 신청 버튼 업데이트 함수
+function updateApplicationButton(event, user) {
+  const applicationSection = document.getElementById('application-section');
+  if (isApplied(event, user)) {
+    applicationSection.innerHTML = `
+      <p>신청이 완료되었습니다.</p>
+      <button class="submit-button" disabled>신청완료</button>
+    `;
+  } else if (event.isSelective && event.additionalQuestions?.length > 0) {
+    // 선별적 이벤트: 지원서 폼 표시
+    applicationSection.innerHTML = `
+      <div class="application-form">
+        <h3>지원서 작성</h3>
+        <form id="application-form" onsubmit="submitApplication(event)">
+          ${event.additionalQuestions.map((question, index) => `
+            <div class="question-section">
+              <p class="question-text">Q${index + 1}. ${question.questionText}</p>
+              <textarea 
+                class="answer-textarea" 
+                name="answer_${index}" 
+                required
+                placeholder="답변을 입력하세요"
+              ></textarea>
+            </div>
+          `).join('')}
+          <button type="submit" class="submit-button">신청하기</button>
+        </form>
+      </div>
+    `;
+  } else {
+    // 일반 이벤트: 기본 신청 버튼
+    applicationSection.innerHTML = `
+      <button onclick="applyForEvent('${event._id}')" class="submit-button">신청하기</button>
+    `;
+  }
+}
+
+// 지원서 제출 함수
+async function submitApplication(e) {
+  e.preventDefault();
+  const eventId = new URLSearchParams(window.location.search).get('id');
+  
+  const answers = Array.from(document.querySelectorAll('.answer-textarea')).map(textarea => ({
+    answerText: textarea.value
+  }));
+
+  try {
+    const response = await fetch(`/events/${eventId}/apply`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ answers })
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || '신청 실패');
+    }
+
+    alert('지원서가 성공적으로 제출되었습니다.');
+    updateApplicationStatus();
+  } catch (error) {
+    console.error('Error:', error);
+    alert(error.message);
+  }
+}
+
+// 일반 이벤트 신청 함수
+async function applyForEvent(eventId) {
+  try {
+    const response = await fetch(`/events/${eventId}/apply`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || '신청 실패');
+    }
+
+    alert('이벤트 신청이 성공적으로 완료되었습니다.');
+    updateApplicationStatus();
+  } catch (error) {
+    console.error('Error:', error);
+    alert(error.message);
+  }
+}
+
+// 신청 상태 업데이트 함수
+function updateApplicationStatus() {
+  const applicationSection = document.getElementById('application-section');
+  applicationSection.innerHTML = `
+    <p>신청이 완료되었습니다.</p>
+    <button class="submit-button" disabled>신청완료</button>
+  `;
 }
 
 function enableEdit() {
@@ -168,15 +349,6 @@ async function submitEdit() {
     // 새 이미지 업로드 처리
     if (imageInput && imageInput.files.length > 0) {
       const formData = new FormData();
-      Array.from(imageInput.files).forEach(file => {
-        formData.append('images', file);
-      });
-      formData.append('eventId', eventId);
-
-      const imageResponse = await fetch('/events/upload-images', {
-        method: 'POST',
-        body: formData
-      });
 
       if (!imageResponse.ok) {
         const errorData = await imageResponse.json();

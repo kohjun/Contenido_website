@@ -32,54 +32,122 @@ async function fetchEventStatus() {
       <p><strong>날짜:</strong> ${new Date(event.date).toLocaleDateString()}</p>
       <p><strong>승인된 참가자:</strong> ${approvedCount}/${event.participants}명</p>
       <p><strong>총 신청자:</strong> ${event.appliedParticipants.length}명</p>
+      ${event.isSelective ? '<p><strong>유형:</strong> <span class="selective-badge">선별적 이벤트</span></p>' : '<p><strong>유형:</strong> <span class="selective-badge">일반 이벤트</span></p>'}
     `;
 
-    const participantList = document.getElementById('participant-list');
-    participantList.innerHTML = participantsData.participants
-      .map(participant => {
-        const genderDisplay = participant.gender === 'male' ? '남' : participant.gender === 'female' ? '여' : '그외';
-        const appliedDate = new Date(participant.appliedAt).toLocaleString('ko-KR', {
-          year: 'numeric',
-          month: '2-digit',
-          day: '2-digit',
-          hour: '2-digit',
-          minute: '2-digit'
-        });
-        
-        const canApprove = approvedCount < event.participants;
-        const statusText = formatStatus(participant.status || 'pending');
-        
-        return `
-          <tr data-user-id="${participant.userId}">
-            <td>${participant.name}</td>
-            <td>${genderDisplay}</td>
-            <td>${participant.phonenumber || '-'}</td>
-            <td>${appliedDate}</td>
-            <td>${formatStatus(participant.status || 'pending')}</td>
-            <td>
-              ${(participant.status || 'pending') === 'pending' ? `
-                <button onclick="updateParticipantStatus('${eventId}', '${participant.userId}', 'approved')" 
-                        class="approve-btn"
-                        ${!canApprove ? 'disabled title="최대 승인 인원에 도달했습니다"' : ''}>
-                  승인
-                </button>
-                <button onclick="updateParticipantStatus('${eventId}', '${participant.userId}', 'rejected')" 
-                        class="reject-btn">
-                  거절
-                </button>
-              ` : participant.status === 'approved' ? 
-                  '<span class="status-confirmed">✓ 참가확정</span>' : ''}
-            </td>
-          </tr>
-        `;
-      })
-      .join('');
+    if (event.isSelective) {
+      // 지원서가 필요한 선별적 이벤트인 경우
+      document.getElementById('participant-table').classList.add('hidden');
+      document.getElementById('application-list').innerHTML = `
+        <h2>지원서 목록</h2>
+        ${participantsData.participants.map(participant => `
+          <div class="application-item" id="application-${participant.userId}">
+            <div class="application-header">
+              <h3>${participant.name}님의 지원서</h3>
+              <div class="application-actions">
+                ${participant.status === 'approved' ? 
+                  '<span class="status-confirmed">✓ 참가확정</span>' :
+                  participant.status === 'rejected' ?
+                  '<span class="status-rejected">거절됨</span>' :
+                  `<button onclick="updateParticipantStatus('${eventId}', '${participant.userId}', 'approved')" class="approve-btn">승인</button>
+                   <button onclick="updateParticipantStatus('${eventId}', '${participant.userId}', 'rejected')" class="reject-btn">거절</button>`
+                }
+              </div>
+            </div>
+            <p><strong>성별:</strong> ${participant.gender === 'male' ? '남' : participant.gender === 'female' ? '여' : '그외'}</p>
+            <p><strong>전화번호:</strong> ${participant.phonenumber || '-'}</p>
+            <p><strong>신청일시:</strong> ${new Date(participant.appliedAt).toLocaleString('ko-KR', {
+              year: 'numeric',
+              month: '2-digit',
+              day: '2-digit',
+              hour: '2-digit',
+              minute: '2-digit'
+            })}</p>
+            ${participant.answers ? participant.answers.map((answer, index) => `
+              <div class="answer-section">
+                <p class="question-text">Q${index + 1}. ${event.additionalQuestions[index].questionText}</p>
+                <div class="answer-text">${answer.answerText}</div>
+              </div>
+            `).join('') : '<p>지원서가 없습니다.</p>'}
+          </div>
+        `).join('')}
+      `;
+    } else {
+      // 일반 이벤트인 경우 기존 표 형식 유지
+      document.getElementById('participant-table').classList.remove('hidden');
+      const participantList = document.getElementById('participant-list');
+      participantList.innerHTML = participantsData.participants
+        .map(participant => {
+          const genderDisplay = participant.gender === 'male' ? '남' : participant.gender === 'female' ? '여' : '그외';
+          const appliedDate = new Date(participant.appliedAt).toLocaleString('ko-KR', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit'
+          });
+
+          const canApprove = approvedCount < event.participants;
+          const statusText = formatStatus(participant.status || 'pending');
+
+          let buttonsHtml = '';
+          if (participant.status === 'approved') {
+            buttonsHtml = '<span class="status-confirmed">✓ 참가확정</span>';
+          } else if (participant.status === 'rejected') {
+            buttonsHtml = '<span class="status-rejected">거절됨</span>';
+          } else {
+            buttonsHtml = `
+              <button onclick="updateParticipantStatus('${eventId}', '${participant.userId}', 'approved')" 
+                      class="approve-btn"
+                      ${!canApprove ? 'disabled title="최대 승인 인원에 도달했습니다"' : ''}>
+                승인
+              </button>
+              <button onclick="updateParticipantStatus('${eventId}', '${participant.userId}', 'rejected')" 
+                      class="reject-btn">
+                거절
+              </button>
+            `;
+          }
+
+          return `
+            <tr data-user-id="${participant.userId}">
+              <td>${participant.name}</td>
+              <td>${genderDisplay}</td>
+              <td>${participant.phonenumber || '-'}</td>
+              <td>${appliedDate}</td>
+              <td>${statusText}</td>
+              <td>${buttonsHtml}</td>
+            </tr>
+          `;
+        })
+        .join('');
+    }
   } catch (error) {
     console.error('Error fetching event status:', error);
     alert('참가 현황을 가져오는 중 오류가 발생했습니다.');
   }
 }
 
+// 지원서 보기 모달 함수 추가
+function viewApplication(participantId) {
+  const participant = event.appliedParticipants.find(p => p.userId === participantId);
+  if (!participant || !participant.answers) return;
+
+  const modal = document.getElementById('application-modal');
+  const content = document.getElementById('application-content');
+
+  content.innerHTML = `
+    <h3>${participant.name}님의 지원서</h3>
+    ${participant.answers.map((answer, index) => `
+      <div class="answer-section">
+        <p class="question-text">Q${index + 1}. ${event.additionalQuestions[index].questionText}</p>
+        <div class="answer-text">${answer.answerText}</div>
+      </div>
+    `).join('')}
+  `;
+
+  modal.style.display = 'block';
+}
 
 async function verifyEventAccess(eventId) {
   const accessCode = prompt('이벤트 접근 코드를 입력하세요 (4자리):');
@@ -134,56 +202,11 @@ async function updateParticipantStatus(eventId, userId, status) {
       throw new Error(error.message);
     }
 
-    // 성공적인 응답을 받은 후 UI 업데이트
-    const participantRow = document.querySelector(`tr[data-user-id="${userId}"]`);
-    if (participantRow) {
-      if (status === 'rejected') {
-        // 거절된 경우 행 자체를 제거
-        participantRow.style.transition = 'opacity 0.5s ease';
-        participantRow.style.opacity = '0';
-        
-        // 애니메이션 완료 후 행 제거
-        setTimeout(() => {
-          participantRow.remove();
-        }, 500);
-        
-        // 총 신청자 수 업데이트
-        const paragraphs = document.querySelectorAll('#event-details p');
-        const totalParticipantsEl = Array.from(paragraphs)
-          .find(p => p.textContent.includes('총 신청자'));
-        
-        if (totalParticipantsEl) {
-          const currentTotal = parseInt(totalParticipantsEl.textContent.match(/(\d+)명/)[1]);
-          totalParticipantsEl.innerHTML = `<strong>총 신청자:</strong> ${currentTotal - 1}명`;
-        }
-      } else if (status === 'approved') {
-        // 승인된 경우 UI 업데이트
-        const statusCell = participantRow.querySelector('td:nth-child(5)');
-        const actionsCell = participantRow.querySelector('td:last-child');
-        
-        statusCell.innerHTML = formatStatus(status);
-        actionsCell.innerHTML = '<span class="status-confirmed">✓ 참가확정</span>';
-        
-        // 승인된 참가자 수 업데이트
-        const paragraphs = document.querySelectorAll('#event-details p');
-        const approvedCountEl = Array.from(paragraphs)
-          .find(p => p.textContent.includes('승인된 참가자'));
-        
-        if (approvedCountEl) {
-          const matches = approvedCountEl.textContent.match(/(\d+)\/(\d+)명/);
-          if (matches) {
-            const currentCount = parseInt(matches[1]);
-            const maxCount = parseInt(matches[2]);
-            approvedCountEl.innerHTML = `<strong>승인된 참가자:</strong> ${currentCount + 1}/${maxCount}명`;
-          }
-        }
-
-        // 시각적 피드백 추가
-        participantRow.classList.add('status-approved');
-      }
-    }
-
+    // 상태 변경 알림
     alert(status === 'approved' ? '참가자가 승인되었습니다.' : '참가 신청이 거절되었습니다.');
+
+    // 전체 데이터 다시 로드
+    await fetchEventStatus();
 
   } catch (error) {
     console.error('Error:', error);
@@ -203,7 +226,6 @@ function formatStatus(status) {
       return '<span class="status status-pending">승인대기</span>';
   }
 }
-
 
 function formatDate(dateString) {
   return new Date(dateString).toLocaleString('ko-KR', {
