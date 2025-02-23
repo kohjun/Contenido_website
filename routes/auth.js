@@ -62,14 +62,21 @@ router.post('/additional-info', authenticateToken, async (req, res) => {
     user.gender = req.body.gender;
     user.birthDate = req.body.birthDate;
     user.phonenumber = req.body.phonenumber;
+    user.preferredActivity = req.body.preferredActivity;
     user.isAdditionalInfoComplete = true;
 
     await user.save();
 
-    res.status(200).json({ message: '추가 정보가 성공적으로 저장되었습니다.', redirectUrl: '/events.html' });
+    res.status(200).json({ 
+      message: '추가 정보가 성공적으로 저장되었습니다.', 
+      redirectUrl: '/index.html' 
+    });
   } catch (error) {
     console.error('Error saving additional info:', error);
-    res.status(500).json({ message: '추가 정보를 저장하는 중 문제가 발생했습니다.' });
+    res.status(500).json({ 
+      message: '추가 정보를 저장하는 중 문제가 발생했습니다.',
+      error: error.message 
+    });
   }
 });
 

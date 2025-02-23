@@ -1,16 +1,5 @@
 // public/js/events.js
 let userId;
-async function fetchUserId() {
-  try {
-    const response = await fetch('/user/info');
-    const userData = await response.json();
-    userId = userData.id || userData._id; // Adjust as necessary based on the API response
- // Store the user ID
-  } catch (error) {
-    console.error('Error fetching user ID:', error);
-  }
-}
-
 async function fetchEvents() {
   try {
     const response = await fetch('/events');
@@ -22,71 +11,105 @@ async function fetchEvents() {
       return;
     }
 
-    eventsList.innerHTML = `
-      <table>
-        <thead>
-          <tr>
-            <th>주제</th>
-            <th>날짜</th>
-            <th>장소</th>
-            <th>참가 현황</th>
-            <th>시간</th>
-            <th>참가비</th>
-            <th>신청</th>
-            <th>내용</th>
-            <th>삭제</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
-    `;
-
-    const tableBody = eventsList.querySelector('tbody');
-
-    if (events.length === 0) {
-      eventsList.innerHTML += '<p>현재 진행중인 이벤트가 없습니다.</p>';
-      return;
-    }
-
-    // 현재 사용자 정보 가져오기
+    // 사용자 정보 가져오기
     const userResponse = await fetch('/user/info');
     const currentUser = await userResponse.json();
 
+    if (events.length === 0) {
+      eventsList.innerHTML = `
+        <div class="empty-state">
+          <img src="/images/empty-state.png" alt="No events" class="empty-state-image">
+          <p>현재 진행중인 이벤트가 없습니다.</p>
+        </div>
+      `;
+      return;
+    }
+
+    // 그리드 컨테이너 생성
+    eventsList.innerHTML = '<div class="events-grid"></div>';
+    const eventsGrid = eventsList.querySelector('.events-grid');
+
     events.forEach(event => {
-      const isFull = event.appliedParticipants.length >= event.participants;
-      const hasApplied = event.appliedParticipants.includes(currentUser.id);
+      const hasApplied = event.appliedParticipants.some(p => p.userId.toString() === currentUser.id);
+      const approvedCount = event.appliedParticipants.filter(p => p.status === 'approved').length;
+      const isFull = approvedCount >= event.participants;
       const isActive = currentUser.active;
-      const row = document.createElement('tr');
-      row.innerHTML = `
-        <td>${event.title}</td>
-        <td>${new Date(event.date).toLocaleDateString()}</td>
-        <td>${event.place}</td>
-        <td>${event.appliedParticipants.length} / ${event.participants}</td>
-        <td>${event.startTime}~${event.endTime}</td>
-        <td>${event.participation_fee.toLocaleString()}원</td>
-        <td>
+      const userStatus = hasApplied ? 
+        event.appliedParticipants.find(p => p.userId.toString() === currentUser.id)?.status : null;
+      
+      const eventCard = document.createElement('div');
+      eventCard.className = 'event-card';
+      
+      // 이벤트 상태에 따른 배지 색상 결정
+      let statusBadge = '';
+      if (isFull) {
+        statusBadge = '<span class="status-badge full">마감</span>';
+      } else if (hasApplied) {
+        statusBadge = userStatus === 'approved' ? 
+          '<span class="status-badge approved">참가확정</span>' : 
+          '<span class="status-badge pending">승인대기</span>';
+      }
+
+      eventCard.innerHTML = `
+        <div class="event-card-header">
+          ${statusBadge}
+          <h3 class="event-title">${event.title}</h3>
+          <p class="event-team">${event.team}</p>
+        </div>
+        
+        <div class="event-card-content">
+          <div class="event-info">
+            <div class="info-item">
+              <i class="info-icon">📅</i>
+              <span>${new Date(event.date).toLocaleDateString()}</span>
+            </div>
+            <div class="info-item">
+              <i class="info-icon">📍</i>
+              <span>${event.place}</span>
+            </div>
+            <div class="info-item">
+              <i class="info-icon">⏰</i>
+              <span>${event.startTime} ~ ${event.endTime}</span>
+            </div>
+            <div class="info-item">
+              <i class="info-icon">👥</i>
+              <span>${approvedCount}/${event.participants}명</span>
+            </div>
+            <div class="info-item">
+              <i class="info-icon">💰</i>
+              <span>${event.participation_fee.toLocaleString()}원</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="event-card-footer">
+          <button class="view-details" onclick="openContentWindow('${event._id}')">
+            상세보기
+          </button>
           ${
             hasApplied
-              ? `<button onclick="cancelApplication('${event._id}')">신청취소</button>` // 이미 신청한 경우
+              ? userStatus === 'approved'
+                ? `<button class="cancel-button" onclick="cancelApplication('${event._id}')">신청취소</button>`
+                : userStatus === 'pending'
+                  ? `<button class="cancel-button" onclick="cancelApplication('${event._id}')">신청취소</button>`
+                  : `<button class="apply-button" onclick="applyForEvent('${event._id}')">신청하기</button>`
               : isFull
-                ? '<button disabled>마감</button>' // 마감된 경우
+                ? '<button class="apply-button" disabled>승인마감</button>'
                 : isActive
-                  ? `<button onclick="applyForEvent('${event._id}')">신청하기</button>` // active=true인 경우 신청 버튼
-                  : '<button disabled>신청불가</button>' // active=false인 경우
+                  ? `<button class="apply-button" onclick="applyForEvent('${event._id}')">신청하기</button>`
+                  : '<button class="apply-button" disabled>신청불가</button>'
           }
-        </td>
-        <td><a href="#" onclick="openContentWindow('${event._id}')">
-        <img src ="/images/info-check.png" alt="Check Event" style =" cursor: pointer; width: 10;">
-        </a></td>
-        <td>
-          <img src="/images/event-cancel-icon.png" 
-               alt="Cancel Event" 
-               style="cursor: pointer; width: 10;" 
-               onclick="handleCancelEvent('${event._id}', '${event.creator}')">
-        </td>
+          ${
+            (currentUser.role === 'admin' || (currentUser.role === 'officer' && event.creator === currentUser.id))
+            ? `<button class="delete-button" onclick="handleCancelEvent('${event._id}', '${event.creator}')">
+                삭제
+               </button>`
+            : ''
+          }
+        </div>
       `;
 
-      tableBody.appendChild(row);
+      eventsGrid.appendChild(eventCard);
     });
   } catch (error) {
     console.error('Error fetching events:', error);
@@ -97,25 +120,45 @@ async function fetchEvents() {
 
 
 
+
 // 새로운 이벤트 등록
 async function submitEvent() {
-  const title = document.getElementById('event-title').value;
-  const place = document.getElementById('event-place').value;
-  const participants = parseInt(document.getElementById('event-participants').value, 10);
-  const date = document.getElementById('event-date').value;
-  const startTime = document.getElementById('event-start-time').value;
-  const endTime = document.getElementById('event-end-time').value;
-  const participation_fee = document.getElementById('event-participation-fee').value;
-  const contents = document.getElementById('event-contents').value;
-  const team = document.getElementById('event-team').value;
-  const images = document.getElementById('event-images').files;
-
-  if (!title || !place || !participants || !date || !startTime || !endTime || !participation_fee || !contents || !team) {
-    alert('모든 필수 필드를 입력해주세요.');
-    return;
-  }
-
   try {
+    const title = document.getElementById('event-title').value;
+    const place = document.getElementById('event-place').value;
+    const participants = document.getElementById('event-participants').value;
+    const date = document.getElementById('event-date').value;
+    const startTime = document.getElementById('event-start-time').value;
+    const endTime = document.getElementById('event-end-time').value;
+    const participation_fee = document.getElementById('event-participation-fee').value;
+    const contents = document.getElementById('event-contents').value;
+    const team = document.getElementById('event-team').value;
+    const accessCode = document.getElementById('event-access-code').value;
+
+    // 입력값 검증
+    if (!title || !place || !participants || !date || !startTime || 
+        !endTime || !participation_fee || !contents || !team || !accessCode) {
+      alert('모든 필수 필드를 입력해주세요.');
+      return;
+    }
+
+    // 접근 코드 유효성 검사
+    if (!/^\d{4}$/.test(accessCode)) {
+      alert('접근 코드는 4자리 숫자여야 합니다.');
+      return;
+    }
+
+    // 접근 코드 확인 메시지
+    const confirmed = confirm(
+      `이벤트의 접근 코드는 "${accessCode}" 입니다.\n` +
+      '이 코드는 저장 후 다시 확인할 수 없으니 반드시 기억해두세요.\n' +
+      '계속 진행하시겠습니까?'
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
     const formData = new FormData();
     formData.append('title', title);
     formData.append('place', place);
@@ -126,7 +169,10 @@ async function submitEvent() {
     formData.append('participation_fee', participation_fee);
     formData.append('contents', contents);
     formData.append('team', team);
+    formData.append('accessCode', accessCode);
 
+    // 이미지 파일이 있는 경우 추가
+    const images = document.getElementById('event-images')?.files || [];
     Array.from(images).forEach(image => {
       formData.append('images', image);
     });
@@ -136,16 +182,23 @@ async function submitEvent() {
       body: formData
     });
 
-    if (response.ok) {
-      alert('이벤트가 등록되었습니다');
-      window.location.href = 'events.html'; // Redirect to events page after submission
-    } else {
-      const errorData = await response.json();
-      console.error('Error:', errorData);
-      alert(errorData.message || "입력란을 모두 입력해주세요.");
+    const result = await response.json();
+
+    if (!response.ok) {
+      throw new Error(result.message || '서버 에러가 발생했습니다.');
     }
+
+    // 성공 시 접근 코드 다시 한 번 보여주기
+    alert(
+      `이벤트가 성공적으로 등록되었습니다.\n\n` +
+      `이벤트 접근 코드: ${accessCode}\n` +
+      `이 코드를 반드시 기억해두세요!`
+    );
+    
+    window.location.href = 'events.html';
   } catch (error) {
     console.error('Error submitting event:', error);
+    alert(error.message || '이벤트 등록 중 오류가 발생했습니다.');
   }
 }
 
@@ -309,21 +362,54 @@ async function cancelEvent(eventId) {
 // 이벤트 취소 핸들링
 async function handleCancelEvent(eventId, eventCreator) {
   try {
-    // Fetch user role to confirm the user is a staff member
-    const response = await fetch('/user/user-role');
-    const data = await response.json();
-    const userRole = data.role; // 역할 가져오기
+    const userResponse = await fetch('/user/info');
+    const currentUser = await userResponse.json();
 
-    if (eventCreator === userId && userRole === 'officer') {
-      // 사용자가 이벤트 생성자이면서 officer인 경우
-      await cancelEvent(eventId);
-    } else if (userRole !== 'officer') {
-      alert('이벤트를 취소할 권한이 없습니다. (권한: 일반 사용자)');
+    if (currentUser.role === 'admin' || (currentUser.role === 'officer' && eventCreator === currentUser.id)) {
+      // 관리자이거나 이벤트 생성자인 officer인 경우
+      const isConfirmed = confirm('이벤트를 삭제하시겠습니까?');
+      if (isConfirmed) {
+        await cancelEvent(eventId);
+      }
     } else {
-      alert('이벤트 생성자가 아니므로 취소할 수 없습니다.');
+      alert('이벤트를 삭제할 권한이 없습니다.');
     }
   } catch (error) {
     console.error('Error checking role or canceling event:', error);
+    alert('이벤트 삭제 중 오류가 발생했습니다.');
+  }
+}
+function viewEventStatus() {
+  const selectedEventId = document.getElementById('report-event').value;
+  if (!selectedEventId) {
+    alert('이벤트를 선택하세요.');
+    return;
+  }
+  window.location.href = `event-status-staff.html?id=${selectedEventId}`;
+}
+
+// 이벤트 현황 확인으로 리디렉션
+function checkParticipationStatus() {
+  window.location.href = 'participation-status.html';
+}
+async function cancelEvent(eventId) {
+  try {
+    const response = await fetch(`/events/${eventId}`, {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+    });
+
+    if (response.ok) {
+      alert('이벤트가 성공적으로 삭제되었습니다.');
+      fetchEvents(); // Refresh the event list after deletion
+    } else {
+      const errorData = await response.json();
+      console.error('Failed to delete event:', errorData.message);
+      alert('이벤트 삭제에 실패했습니다: ' + errorData.message);
+    }
+  } catch (error) {
+    console.error('Error deleting event:', error);
+    alert('이벤트 삭제 중 오류가 발생했습니다.');
   }
 }
 
@@ -331,18 +417,16 @@ async function applyForEvent(eventId) {
   const isConfirmed = confirm('이벤트 당일 일주일 전부터 신청취소 시 경고1회가 주어집니다. 신청하시겠습니까?');
 
   if (!isConfirmed) {
-    // 사용자가 취소를 선택한 경우
     alert('신청이 취소되었습니다.');
     return;
   }
+
   try {
-
-
     const response = await fetch(`/events/${eventId}/apply`, { method: 'POST' });
 
     if (response.ok) {
-      alert('신청이 완료되었습니다.');
-      fetchEvents(); // 이벤트 목록 다시 로드
+      alert('신청이 완료되었습니다. 운영진의 승인을 기다려주세요.');
+      fetchEvents();
     } else {
       const error = await response.json();
       alert(`신청 실패: ${error.message}`);
@@ -354,6 +438,10 @@ async function applyForEvent(eventId) {
 }
 
 async function cancelApplication(eventId) {
+  isConfirmed = confirm('해당 이벤트 신청을 취소하시겠습니까?');
+  if (!isConfirmed) {
+    return;
+  }
   try {
     const response = await fetch(`/events/${eventId}/cancel-application`, { method: 'POST' });
 
@@ -375,6 +463,5 @@ async function cancelApplication(eventId) {
 
 // Run fetchEvents when the document is ready
 document.addEventListener('DOMContentLoaded', async () => {
-  await fetchUserId(); 
   await fetchEvents();
 });

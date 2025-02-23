@@ -115,6 +115,22 @@ const navStyles = `
     color: #333;
 }
 
+.nav-title {
+    font-family: 'GmarketSansMedium', sans-serif;
+    font-size: 1.5rem;
+    margin: 0 auto;
+    margin-top: -10px; /* 위치를 조금 위로 올림 */
+    color: #0A84FE;
+    cursor: pointer;
+    width: 200px;
+    height: 40px;
+}
+
+.nav-title img {
+    width: 100%;
+    height: auto;
+}
+
 @media (max-width: 768px) {
     .custom-nav-icon {
         font-size: 20px;
@@ -125,9 +141,8 @@ const navStyles = `
     .custom-bottom-nav {
         height: 55px;
     }
-}`;
-
-
+}
+`;
 
 // 사이드바 HTML
 const sidebarHTML = `
@@ -152,7 +167,7 @@ const sidebarHTML = `
 const topNavHTML = `
 <nav class="custom-top-nav">
     <button id="toggle-btn" class="toggle-btn" onclick="toggleSidebar()">☰</button>
-    <span class="nav-title" onclick="goHome()">CONTENIDO</span>
+    <span class="nav-title" onclick="goHome()"><img src="./images/contenido.png" alt="Contenido Logo"></span>
 </nav>
 `;
 
@@ -172,7 +187,6 @@ const bottomNavHTML = `
         <span>마이</span>
     </button>
 </nav>
-
 `;
 
 // 사이드바 토글 함수
@@ -204,16 +218,7 @@ function goToMyPage() {
 document.addEventListener('DOMContentLoaded', function() {
     // 스타일 삽입
     const styleSheet = document.createElement('style');
-    styleSheet.textContent = navStyles + `
-        .nav-title {
-            font-family: 'GmarketSansMedium', sans-serif;
-            font-size: 1.5rem;
-            margin: 0 auto;
-            margin-top: -10px; /* 위치를 조금 위로 올림 */
-            color: #0A84FE;
-            cursor: pointer;
-        }
-    `;
+    styleSheet.textContent = navStyles;
     document.head.appendChild(styleSheet);
 
     // body에 사이드바 삽입

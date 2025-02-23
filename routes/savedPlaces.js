@@ -77,6 +77,26 @@ router.post('/', authenticateToken, async (req, res) => {
   }
 });
 
+
+// 메모 업데이트 라우트 추가
+router.put('/:id/memo', async (req, res) => {
+  try {
+      const { memo } = req.body;
+      const place = await SavedPlace.findById(req.params.id);
+      
+      if (!place) {
+          return res.status(404).json({ message: '장소를 찾을 수 없습니다.' });
+      }
+
+      place.memo = memo;
+      await place.save();
+
+      res.json({ message: '메모가 업데이트되었습니다.' });
+  } catch (error) {
+      console.error('Error updating memo:', error);
+      res.status(500).json({ message: '메모 업데이트 중 오류가 발생했습니다.' });
+  }
+});
 // 장소 삭제
 router.delete('/:id', authenticateToken, async (req, res) => {
   try {

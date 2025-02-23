@@ -1,70 +1,103 @@
 // models/Event.js
 const mongoose = require('mongoose');
+const bcrypt = require('bcrypt');
+
+const participantSchema = new mongoose.Schema({
+  userId: { 
+    type: mongoose.Schema.Types.ObjectId, 
+    ref: 'User', 
+    required: true 
+  },
+  appliedAt: { 
+    type: Date, 
+    default: Date.now 
+  },
+  status: {
+    type: String,
+    enum: ['pending', 'approved', 'rejected'],
+    default: 'pending'
+  }
+});
 
 const eventSchema = new mongoose.Schema({
-  team:{
+  team: {
     type: String,
     required: true,
   },
   title: {
     type: String,
-    required: true, // 필수 항목
-  }, // 이벤트 제목
+    required: true,
+  },
   date: {
     type: Date,
-    required: true, // 필수 항목
-  }, // 이벤트 날짜
+    required: true,
+  },
   place: {
     type: String,
-    required: true, // 필수 항목
-  }, // 장소
+    required: true,
+  },
   participants: {
     type: Number,
-    required: true, // 필수 항목
-  }, // 모집 인원 (최대 인원 수)
-  appliedParticipants: [
-    { type: mongoose.Schema.Types.ObjectId, ref: 'User' } // 참조 추가
-  ], // 신청자 목록 (User ID 배열)
+    required: true,
+  },
+  appliedParticipants: [participantSchema],
   finalParticipants: {
     type: [String],
-    default: [] // 최종 참석자 목록 (String 배열)
+    default: []
   },
   startTime: {
     type: String,
-    required: true, // 필수 항목
-  }, // 시작 시간
+    required: true,
+  },
   endTime: {
     type: String,
-    required: true, // 필수 항목
-  }, // 종료 시간
+    required: true,
+  },
   participation_fee: {
     type: Number,
-    required: true, // 필수 항목
-  }, // 참가비
+    required: true,
+  },
   contents: {
     type: String,
-    required: true, // 필수 항목
-  }, // 이벤트 내용
+    required: true,
+  },
   creator: {
     type: mongoose.Schema.Types.ObjectId,
-    
-  }, // 이벤트 생성자 (ObjectId)
+    required: true,
+  },
   isEnded: {
     type: Boolean,
-    default: false, // 기본값 false (이벤트 종료 여부)
+    default: false,
   },
   images: [{
     type: String,
-    default: [] }],
-  applicationPeriod: {
-    start: Date,
-    end: Date
-  },
+    default: []
+  }],
   rating: {
     type: Number,
-    default : 0
+    default: 0
+  },
+  accessCode: {
+    type: String,
+    required: true,
+    maxlength: 60 // bcrypt 해시를 저장하기 위한 충분한 길이
   }
 });
 
+// 저장 전 accessCode 해시화
+eventSchema.pre('save', async function(next) {
+  if (this.isModified('accessCode')) {
+    // 입력된 accessCode가 이미 해시된 값이 아닌 경우에만 해시화
+    if (this.accessCode.length === 4) {
+      this.accessCode = await bcrypt.hash(this.accessCode, 10);
+    }
+  }
+  next();
+});
+
+// 접근 코드 확인 메서드
+eventSchema.methods.verifyAccessCode = async function(inputCode) {
+  return await bcrypt.compare(inputCode, this.accessCode);
+};
 
 module.exports = mongoose.model('Event', eventSchema);

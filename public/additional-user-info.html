@@ -26,6 +26,36 @@
       <label for="phonenumber">전화번호:</label>
       <input type="tel" id="phonenumber" name="phonenumber" placeholder="010-1234-5678" required>
 
+      <label for="preferredActivity">활동희망지역:</label>
+      <select id="preferredActivity" name="preferredActivity" required>
+        <option value="">활동희망지역 선택</option>
+        <option value="강남구">강남구</option>
+        <option value="강동구">강동구</option>
+        <option value="강북구">강북구</option>
+        <option value="강서구">강서구</option>
+        <option value="관악구">관악구</option>
+        <option value="광진구">광진구</option>
+        <option value="구로구">구로구</option>
+        <option value="금천구">금천구</option>
+        <option value="노원구">노원구</option>
+        <option value="도봉구">도봉구</option>
+        <option value="동대문구">동대문구</option>
+        <option value="동작구">동작구</option>
+        <option value="마포구">마포구</option>
+        <option value="서대문구">서대문구</option>
+        <option value="서초구">서초구</option>
+        <option value="성동구">성동구</option>
+        <option value="성북구">성북구</option>
+        <option value="송파구">송파구</option>
+        <option value="양천구">양천구</option>
+        <option value="영등포구">영등포구</option>
+        <option value="용산구">용산구</option>
+        <option value="은평구">은평구</option>
+        <option value="종로구">종로구</option>
+        <option value="중구">중구</option>
+        <option value="중랑구">중랑구</option>
+      </select>
+
       <button type="submit">제출</button>
     </form>
   </div>
@@ -39,6 +69,7 @@
         gender: document.getElementById('gender').value,
         birthDate: document.getElementById('birthDate').value,
         phonenumber: document.getElementById('phonenumber').value,
+        preferredActivity: document.getElementById('preferredActivity').value
       };
 
       try {
@@ -52,7 +83,7 @@
 
         if (response.ok) {
           alert(result.message);
-          window.location.href = result.redirectUrl || '/events.html'; // 리디렉션 경로
+          window.location.href = result.redirectUrl || '/events.html';
         } else {
           alert(`에러: ${result.message}`);
         }

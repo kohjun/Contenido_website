@@ -16,6 +16,10 @@ const savedPlaceSchema = new mongoose.Schema({
   roadAddressName: String,
   phoneNumber: String,
   category: String,
+  memo: { // 메모 필드 추가
+    type: String,
+    default: ''
+  },
   location: {
     type: {
       type: String,

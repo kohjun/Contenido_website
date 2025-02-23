@@ -16,8 +16,119 @@
     font-weight: normal;
     font-style: normal;
   }
+
+/* TODO 리스트 스타일 */
+.todo-container {
+    padding: 20px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.todo-input-container {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+#todo-input {
+    flex: 1;
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+.add-todo-button {
+    padding: 12px 24px;
+    background-color: #0A84FE;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.add-todo-button:hover {
+    background-color: #0875e0;
+}
+
+.todo-filters {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.filter-button {
+    padding: 8px 16px;
+    background-color: #f0f0f0;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.filter-button.active {
+    background-color: #0A84FE;
+    color: white;
+}
+
+.todo-list {
+    list-style: none;
+    padding: 0;
+}
+
+.todo-item {
+    display: flex;
+    align-items: center;
+    padding: 12px;
+    border-bottom: 1px solid #eee;
+    animation: slideIn 0.3s ease;
+}
+
+.todo-item:last-child {
+    border-bottom: none;
+}
+
+.todo-checkbox {
+    margin-right: 12px;
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+}
+
+.todo-text {
+    flex: 1;
+    font-size: 14px;
+}
+
+.todo-text.completed {
+    text-decoration: line-through;
+    color: #888;
+}
+
+.todo-date {
+    font-size: 12px;
+    color: #888;
+    margin-right: 12px;
+}
+
+.delete-todo {
+    padding: 6px 12px;
+    background-color: #ff4444;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.delete-todo:hover {
+    background-color: #cc0000;
+}
 /* 로딩 스피너 */
 .loading-container {
+    font-family: 'GmarketSansMedium', sans-serif;
     position: absolute;
     top: 50%;
     left: 50%;
@@ -48,6 +159,7 @@
 
 /* 탭 스타일 */
 .tabs {
+    font-family: 'GmarketSansMedium', sans-serif;
     display: flex;
     margin-bottom: 20px;
     border-bottom: 1px solid #ddd;
@@ -78,6 +190,7 @@
 
 /* 콘텐츠 섹션 */
 .content-section {
+    font-family: 'GmarketSansMedium', sans-serif;
     display: none;
     background: #fff;
     padding: 20px;
@@ -91,6 +204,7 @@
 
 /* 검색 박스 */
 .search-box {
+    font-family: 'GmarketSansMedium', sans-serif;
     display: flex;
     gap: 10px;
     margin-bottom: 20px;
@@ -109,7 +223,37 @@
     border-color: #0A84FE;
     outline: none;
 }
-
+.switch-page {
+    margin: 20px 0;
+    
+    margin: auto;
+    
+    max-width: 200px;
+    gap: 10px;
+    justify-content: center;
+    padding: 10px 25px;
+    color: #333 !important; /* 기본 색상 */
+    cursor: pointer;
+    border: none;
+    border-radius: 3px;
+    border-color:#333;
+    background-color: #f0f0f0;
+    font-size: 15px;
+    transition: all 0.3s ease;
+    text-decoration: none !important; /* 밑줄 제거 */
+    
+  }
+  
+  .switch-page:visited {
+    color: #333 !important; /* 방문 후에도 원래 색 유지 */
+    text-decoration: none !important; /* 밑줄 제거 */
+  }
+  
+  .switch-page:hover, .switch-page:focus {
+    text-decoration: underline !important; /* 마우스 올릴 때 밑줄 */
+  }
+  
+  
 .search-button {
     padding: 10px 20px;
     background-color: #f0f0f0;
@@ -126,6 +270,7 @@
 
 /* 지도 컨테이너 */
 .map-container {
+    font-family: 'GmarketSansMedium', sans-serif;
     position: relative;
     width: 100%;
     height: 400px;
@@ -199,6 +344,7 @@
 
 /* 장소 목록 */
 .places-list {
+    font-family: 'GmarketSansMedium', sans-serif;
     max-height: 300px;
     overflow-y: auto;
     border: 1px solid #ddd;
@@ -277,6 +423,7 @@
 
 /* 정보 창 스타일 */
 .info-window {
+    font-family: 'GmarketSansMedium', sans-serif;
     padding: 10px;
     max-width: 300px;
 
@@ -294,6 +441,7 @@
     color: #666;
 }
 .place-info-modal {
+    font-family: 'GmarketSansMedium', sans-serif;
     display: none;
     position: fixed;
     top: 0;
@@ -305,6 +453,7 @@
   }
   
   .place-info-content {
+    font-family: 'GmarketSansMedium', sans-serif;
     position: absolute;
     top: 50%;
     left: 50%;
@@ -352,6 +501,7 @@
   
   /* 시설 선택 */
   .facilities-selection {
+    font-family: 'GmarketSansMedium', sans-serif;
     margin-bottom: 1.5rem;
   }
   
@@ -391,6 +541,7 @@
   
   /* 시설 표시 태그 */
   .facility-tags {
+    font-family: 'GmarketSansMedium', sans-serif;
     display: flex;
     flex-wrap: wrap;
     gap: 0.5rem;
@@ -444,6 +595,7 @@
   }
 /* 모달 스타일 */
 .modal {
+    font-family: 'GmarketSansMedium', sans-serif;
     display: none;
     position: fixed;
     top: 0;
@@ -483,7 +635,97 @@
 .modal-button:hover {
     background-color: #e0e0e0;
 }
+/* 메모 관련 스타일 */
+.place-memo {
+    margin-top: 8px;
+    width: 100%;
+    font-family: 'GmarketSansMedium', sans-serif;
+}
 
+.memo-display {
+    padding: 8px;
+    min-height: 24px;
+    color: #666;
+    font-size: 0.9em;
+    
+    text-align:left;
+}
+
+.memo-display.has-memo {
+    background-color: #f8f9fa;
+    border-radius: 4px;
+    border-left: 3px solid #333;
+}
+
+.memo-edit {
+    margin-top: 8px;
+}
+
+.memo-input {
+    width: 100%;
+    min-height: 60px;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    resize: vertical;
+    font-family: inherit;
+    margin-bottom: 8px;
+}
+
+.memo-input:focus {
+    outline: none;
+    border-color: #0A84FE;
+    box-shadow: 0 0 0 2px rgba(10, 132, 254, 0.1);
+}
+
+.memo-buttons {
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+}
+
+.memo-buttons button {
+    padding: 4px 12px;
+    font-size: 0.9em;
+}
+
+/* 기존 스타일 수정 */
+.place-item {
+    font-family: 'GmarketSansMedium', sans-serif;
+    padding: 16px;
+    margin-bottom: 16px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    background: white;
+    transition: all 0.3s ease;
+}
+
+.place-item:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.action-buttons {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+}
+
+.action-button {
+    padding: 6px 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background: white;
+    color: #333;
+    cursor: pointer;
+    font-size: 0.9em;
+    transition: all 0.2s ease;
+}
+
+.action-button:hover {
+    background: #f8f9fa;
+    border-color: #0A84FE;
+    color: #0A84FE;
+}
 /* 반응형 디자인 */
 @media (max-width: 768px) {
     .container {

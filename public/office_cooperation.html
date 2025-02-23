@@ -9,13 +9,13 @@
 <body>
     <div class="container">
         <h1 style="text-align: center;">대외협력팀 관리 페이지</h1>
-        <p>정렬 순서 정하기 ( 음식점만보기,가나다순) , 길찾기 -> 메모장 or TODO리스트 , 장소리스트에 메모 추가</p>
-
-        <h3><a href="/office_cooperation.html">전용 페이지 접속</a></h3>
-        <h3><a href="/office">운영진 페이지 접속</a></h3>
+        <br>
+          <a class="switch-page" href="/office_cooperation.html">대외협력팀 페이지</a>
+          <a class="switch-page" href="/office">운영진 페이지</a><br><br>
+        
         <div class="tabs">
             <div class="tab active" data-tab="search">장소 검색</div>
-            <div class="tab" data-tab="route">길 찾기</div>
+            <div class="tab" data-tab="todo">TO-DO 리스트</div>
             <div class="tab" data-tab="saved">장소 리스트</div>
         </div>
 
@@ -48,6 +48,21 @@
             
             <div id="places-list" class="places-list"></div>
         </div>
+         <!-- TODO 리스트 섹션 -->
+         <div id="todo-section" class="content-section">
+          <div class="todo-container">
+              <div class="todo-input-container">
+                  <input type="text" id="todo-input" placeholder="새로운 할 일을 입력하세요">
+                  <button onclick="addTodo()" class="add-todo-button">추가</button>
+              </div>
+              <div class="todo-filters">
+                  <button class="filter-button active" onclick="filterTodos('all')">전체</button>
+                  <button class="filter-button" onclick="filterTodos('active')">진행중</button>
+                  <button class="filter-button" onclick="filterTodos('completed')">완료</button>
+              </div>
+              <ul id="todo-list" class="todo-list"></ul>
+          </div>
+      </div>
 
         <!-- 길찾기 섹션 -->
         <div id="route-section" class="content-section">

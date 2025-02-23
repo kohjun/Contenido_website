@@ -35,6 +35,11 @@ async function fetchUserInfo() {
       'participant': '참가자',
       'guest': '게스트'
     };
+    const departmentDisplay = {
+      'operation' : '운영부',
+      'marketing' : '홍보부',
+      'planning' : '기획부'
+    }
 
     // 팀 표시 매핑
     const teamDisplay = {
@@ -62,6 +67,7 @@ async function fetchUserInfo() {
     updateElement('user-nickname', `프로필 이름 : ${data.displayName || '-'}`);
     updateElement('user-email', `이메일 : ${data.email ? data.email.replace(/^(.{3,})(.{4})(@.*)$/, '$1****$3') : '-'}`);
     updateElement('user-role', `역할 : ${roleDisplay[data.role] || data.role || '-'}`);
+    updateElement('user-department', `부서 : ${departmentDisplay[data.department] || data.department || '-'}`);
     updateElement('user-team', `팀 이름 : ${teamDisplay[data.team] || data.team || '-'}`);
 
     // 개인 정보 업데이트
@@ -73,7 +79,7 @@ async function fetchUserInfo() {
     }
 
     // 활동 정보 업데이트
-    updateElement('user-active', `활성상태 : ${data.active ? '✅활동' : '❌비활동'}`);
+    updateElement('user-active', `활성상태 : ${data.active ? '✅활동 , *동아리 부원임을 인증하는 마크입니다.*'  : '❌비활동 , *동아리 부원이 아님을 인증하는 마크입니다.*'}`);
     updateElement('user-warningcount', `경고 횟수 : ${data.warningCount || 0}`);
     updateElement('user-totalcount', `총 참가 횟수 : ${data.participationCount?.totalCount || 0}`);
     updateElement('user-regularcount', `정기 참가 횟수 : ${data.participationCount?.regularCount || 0}`);

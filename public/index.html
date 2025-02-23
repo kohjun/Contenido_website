@@ -9,38 +9,90 @@
   </head>
 
   <body>
-    
-    <!-- User Info section positioned at the top-right -->
-    
-    
-    <div class="container">
-      <div class="title-container">
-        <p class="subtitle"><strong><dot>리얼</dot> 버라이어티<br>연합 동아리</strong></p>
-        <br><br>
-        <img src="/images/Conteindo_Image.png" width="270" height="270" alt="Content Image" style="margin-left:20px" />
+    <div class="page-layout">
+      <!-- 왼쪽 광고 배너너 -->
+      <div class="ad-banner">
+        <!-- <img src="./images/sample.jpeg" alt="Left Advertisement"> -->
+        <p>Advertisement</p>
       </div>
-  
-      <br>
+      <div class="container">
+        <div class="title-container">
+          <p class="subtitle"><strong><dot>리얼</dot> 버라이어티<br>연합 동아리</strong></p>
+          <br><br>
+          <img src="./images/Conteindo_Image.png" width="270" height="270" alt="Content Image" style="margin-left:20px" />
+        </div>
+    
+        <br>
 
-      <div> 
-        <button >메뉴얼 보기</button>
-        <button onclick="OnEvents()">이벤트 신청</button>
-      <!-- <button onclick="checkParticipationStatus()">참가자 상태 확인</button>-->  
-        <button onclick="window.location.href='/ranking'">👑 활동 랭킹 👑</button>
+        <div> 
+          <button >메뉴얼 보기</button>
+          <button onclick="OnEvents()">이벤트 신청</button>
+       
+          <button onclick="window.location.href='/ranking'">👑 활동 랭킹 👑</button>
+        </div>
+
+        <button id="kakao-login-button" class="kakao-login-button" onclick="loginWithKakao()">Login with Kakao</button>
+        <button id="logout-button" style="display: none;" onclick="logout()">로그아웃</button>
+        <div style="text-align: center; margin-top: 2rem;">
+          <a href="https://m.youtube.com/@CONTENIDO-f6w" target="_blank" rel="noopener noreferrer" style="text-decoration: none;">
+            <img src="/images/youtube-icon.png" alt="YouTube Icon" style="width: 55px; height: 55px;" />
+          </a>
+          <a href="https://www.instagram.com/contenido__o?igsh=NDRocG93MTB4MDJn" target="_blank" rel="noopener noreferrer" style="text-decoration: none;">
+            <img src="/images/instagram-icon.png" alt="Instagram Icon" style="width: 55px; height: 55px; " />
+          </a>
+        </div>
       </div>
-
-      <button id="kakao-login-button" class="kakao-login-button" onclick="loginWithKakao()">Login with Kakao</button>
-      <button id="logout-button" style="display: none;" onclick="logout()">로그아웃</button>
-      <div style="text-align: center; margin-top: 2rem;">
-        <a href="https://m.youtube.com/@CONTENIDO-f6w" target="_blank" rel="noopener noreferrer" style="text-decoration: none;">
-          <img src="/images/youtube-icon.png" alt="YouTube Icon" style="width: 55px; height: 55px;" />
-        </a>
-        <a href="https://www.instagram.com/contenido__o?igsh=NDRocG93MTB4MDJn" target="_blank" rel="noopener noreferrer" style="text-decoration: none;">
-          <img src="/images/instagram-icon.png" alt="Instagram Icon" style="width: 55px; height: 55px; " />
-        </a>
+      
+       <!-- 오른쪽 광고 배너 -->
+      <div class="ad-banner">
+        <!-- <img src="./images/sample.jpeg" alt="Right Advertisement"> -->
+        <p>Advertisement</p>
       </div>
     </div>
-   
+
+    <!-- 첫 번째 팝업 내용 -->
+    <div id="popup1" class="popup">
+      <div class="popup-content">
+        <span class="close-button" onclick="closePopup('popup1')">&times;</span>
+        <div class="popup-body">
+          <!-- 팝업 내용 -->
+          <div class="popup-images">
+            <img src="./images/보드게임1.png" alt="Popup Image 1">
+            <img src="./images/보드게임2.png" alt="Popup Image 2">
+            <img src="./images/보드게임3.png" alt="Popup Image 3">
+          </div>
+        </div>
+        <div class="popup-footer">
+          <label class="dont-show-today">
+            <input type="checkbox" id="dont-show-today-1"> 오늘 하루 보지 않기
+          </label>
+          <button onclick="closePopup('popup1')">닫기</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 두 번째 팝업 내용 -->
+    <div id="popup2" class="popup">
+      <div class="popup-content">
+        <span class="close-button" onclick="closePopup('popup2')">&times;</span>
+    
+        <div class="popup-body">
+          <!-- 팝업 내용 -->
+          <div class="popup-images">
+            <img src="./images/술집1.png" alt="Popup Image 1">
+            <img src="./images/술집2.png" alt="Popup Image 2">
+            <img src="./images/술집3.png" alt="Popup Image 3">
+          </div>
+        </div>
+        <div class="popup-footer">
+          <label class="dont-show-today">
+            <input type="checkbox" id="dont-show-today-2"> 오늘 하루 보지 않기
+          </label>
+          <button onclick="closePopup('popup2')">닫기</button>
+        </div>
+      </div>
+    </div>
+
     <!-- Footer section -->
     <footer>
       <div class="footer-container">
@@ -79,7 +131,57 @@
 
     
     <script>
+      document.addEventListener('DOMContentLoaded', function() {
+      // 쿠키 체크
+      if (!getCookie('dontShowToday1')) {
+        showPopup('popup1');
+      }
+      if (!getCookie('dontShowToday2')) {
+        showPopup('popup2');
+      }
+      startImageSlider();
+    });
 
+    function showPopup(popupId) {
+      document.getElementById(popupId).style.display = 'block';
+    }
+
+    function closePopup(popupId) {
+      const popup = document.getElementById(popupId);
+      const dontShowToday = document.getElementById(`dont-show-today-${popupId === 'popup1' ? '1' : popupId === 'popup2' ? '2' : ''}`).checked;
+      
+      if (dontShowToday) {
+        // 쿠키 설정 (24시간)
+        const date = new Date();
+        date.setTime(date.getTime() + (24 * 60 * 60 * 1000));
+        document.cookie = `dontShowToday${popupId === 'popup1' ? '1' : popupId === 'popup2' ? '2' : ''}=true; expires=${date.toUTCString()}; path=/`;
+      }
+      
+      popup.style.display = 'none';
+    }
+
+    // 쿠키 가져오기 함수
+    function getCookie(name) {
+      const value = `; ${document.cookie}`;
+      const parts = value.split(`; ${name}=`);
+      if (parts.length === 2) return parts.pop().split(';').shift();
+    }
+
+    // 팝업 닫기 버튼 이벤트
+    document.querySelectorAll('.close-button').forEach(button => {
+      button.addEventListener('click', function() {
+        closePopup(button.parentElement.parentElement.id);
+      });
+    });
+
+    // 팝업 외부 클릭 시 닫기
+    document.querySelectorAll('.popup').forEach(popup => {
+      popup.addEventListener('click', function(e) {
+        if (e.target === this) {
+          closePopup(this.id);
+        }
+      });
+    });
       
       function checkParticipationStatus() {
         window.location.href = '/participation-status.html';
@@ -118,9 +220,20 @@
         window.location.href = '/auth/logout';
       }
 
-      
-    
-
+      function startImageSlider() {
+        document.querySelectorAll('.popup-images').forEach(popupImages => {
+          const images = popupImages.querySelectorAll('img');
+          let currentIndex = 0;
+  
+          images[currentIndex].style.display = 'block';
+  
+          setInterval(() => {
+            images[currentIndex].style.display = 'none';
+            currentIndex = (currentIndex + 1) % images.length;
+            images[currentIndex].style.display = 'block';
+          }, 3000);
+        });
+      }
 
     </script>
   <script src="/js/utils/nav-injector.js"></script>

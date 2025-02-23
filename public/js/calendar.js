@@ -13,7 +13,7 @@ if (!window.calendarInitialized) {
       calendars: [
         {
           id: 'cal1',
-          name: '정규 이벤트',
+          name: '스태프 이벤트',
           backgroundColor: '#03bd9e',
         },
         {

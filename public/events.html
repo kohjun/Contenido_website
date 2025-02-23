@@ -7,19 +7,34 @@
   <link rel="stylesheet" href="/css/styles.css" />
 </head>
 <body>
-  <div class="container">
-    <h1>진행중인 이벤트</h1>
-    <p>※활동부원만 신청 가능합니다.(마이페이지를 통해 확인)</p>
-    <!-- Section for listing events as a table -->
-    <div id="events-list"></div>
-    <br>
-    <!-- Button to check participation status -->
-    <button onclick="window.location.href='calendar.html'">이벤트 캘린더</button>
-    <button onclick="window.location.href='ended-events.html'">종료된 이벤트</button><br><br>
+  <div class="page-layout">
+    <!-- 왼쪽 광고 배너너 -->
+    <div class="ad-banner">
+      <!-- <img src="./images/sample.jpeg" alt="Left Advertisement"> -->
+      <p>Advertisement</p>
+    </div>
+    <div class="container">
+      <h1>진행중인 이벤트</h1>
+      <p>※활동부원만 신청 가능합니다.(마이페이지를 통해 확인)</p>
+      <p>이벤트 당일 일주일 이후 신청 : 페널티 , 대타 모집 : 패널티 X</p>
+      <p>S : 스타터팀, R : 정기모임팀, A ~ C : 스태프팀</p>
+      
+      
+      <!-- Section for listing events as a table -->
+      <div id="events-list"></div>
+      <br>
+      <!-- Button to check participation status -->
+      <button onclick="window.location.href='calendar.html'">이벤트 캘린더</button>
+      <button onclick="window.location.href='ended-events.html'">종료된 이벤트</button><br><br>
 
-    <!-- Home button -->
+      <!-- Home button -->
+    </div>
+    <!-- 오른쪽 광고 배너 -->
+    <div class="ad-banner">
+      <!-- <img src="./images/sample.jpeg" alt="Right Advertisement"> -->
+      <p>Advertisement</p>
+    </div>
   </div>
-
   <!-- Include events.js which already calls checkUserRole -->
   <script src="/js/events.js"></script>
   <script src="/js/utils/nav-injector.js"></script>

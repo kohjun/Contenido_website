@@ -13,6 +13,11 @@
     <div id="event-details"></div>
     <br>
     <h2>후기</h2>
+    
+    <!-- 비참가자를 위한 안내 메시지 -->
+    <div id="review-notice" style="display: none;" class="notice-message"></div>
+    
+    <!-- 후기 작성/수정 폼 -->
     <form id="review-form" style="display: none;">
       <label for="rating">별점:</label>
       <select id="rating" name="rating" required>
@@ -27,8 +32,8 @@
       <textarea id="comment" name="comment" required></textarea>
 
       <!-- 익명 체크박스 -->
-      <label for="anonymous"style="text-align: center;">
-        <input type="checkbox" id="anonymous" name="anonymous" >
+      <label for="anonymous" style="text-align: center;">
+        <input type="checkbox" id="anonymous" name="anonymous">
         &nbsp;&nbsp;익명
       </label>
 
@@ -37,10 +42,9 @@
 
     <br><br>
     <div id="reviews-list"></div>
-    <br>
-    <button onclick="window.location.href='ended-events.html'">종료된 이벤트</button><br>
+
+    <button onclick="window.location.href='ended-events.html'">종료된 이벤트</button>
   </div>
   <script src="/js/event-review.js"></script>
-  <script src="/js/utils/nav-injector.js"></script>
 </body>
 </html>

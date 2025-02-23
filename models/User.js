@@ -1,4 +1,3 @@
-// models/User.js
 const mongoose = require('mongoose');
 
 const userSchema = new mongoose.Schema({
@@ -11,24 +10,24 @@ const userSchema = new mongoose.Schema({
     type: String, 
     enum: ['participant', 'starter', 'officer','guest','admin'], 
     default: 'guest' 
-  }, // 역할 추가
+  },
   department: { 
     type: String, 
     enum: ['operation', 'promotion', 'planning'], 
     required: function () { return this.role === 'officer'; } 
-  }, // 부서 (officer 전용)
+  },
   team: { 
     type: String, 
     required: function () { 
       return this.role === 'officer' && !this.isDepartmentHead; 
     } 
-  }, // 팀 (officer이고 부장이 아닌 경우 필수)
+  },
   isDepartmentHead: { 
     type: Boolean, 
     default: false, 
     required: function () { return this.role === 'officer'; } 
-  }, // 부장 여부
-  warningCount:{
+  },
+  warningCount: {
     type: Number,
     default: 0,
   },
@@ -46,18 +45,28 @@ const userSchema = new mongoose.Schema({
   name: { type: String },
   gender: { type: String, enum: ['male', 'female', 'other'] },
   birthDate: { type: Date },
+  preferredActivity: { 
+    type: String, 
+    enum: [
+      '강남구', '강동구', '강북구', '강서구', '관악구',
+      '광진구', '구로구', '금천구', '노원구', '도봉구',
+      '동대문구', '동작구', '마포구', '서대문구', '서초구',
+      '성동구', '성북구', '송파구', '양천구', '영등포구',
+      '용산구', '은평구', '종로구', '중구', '중랑구'
+    ]
+  },
   isAdditionalInfoComplete: { type: Boolean, default: false },
   phonenumber: { type: String },
-  createdEvents: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Event' }], // 생성한 이벤트
-  participatedEvents: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Event' }], // 참가한 이벤트
-  reviews: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Review' }] // 작성한 후기
+  createdEvents: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Event' }],
+  participatedEvents: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Event' }],
+  reviews: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Review' }]
 });
 
 // 커스텀 검증: officer 역할일 때 부서 및 조건 확인
 userSchema.pre('save', function (next) {
   if (this.role === 'officer') {
     if (!this.department) {
-      return next(new Error('부서가 없습니다다'));
+      return next(new Error('부서가 없습니다'));
     }
     if (!this.isDepartmentHead && !this.team) {
       return next(new Error('팀이 없습니다.'));
