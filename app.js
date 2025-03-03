@@ -49,15 +49,24 @@ require('./config/passportConfig')(passport);
 app.use(passport.initialize());
 app.use(passport.session());
 
-// API 라우터들 (가장 먼저 등록)
+// API 라우터들
 app.use('/auth', require('./routes/auth'));
 app.use('/events', require('./routes/events'));
 app.use('/user', require('./routes/user'));
 app.use('/reviews', require('./routes/reviews'));
 app.use('/saved-places', require('./routes/savedPlaces'));
+app.use('/application', require('./routes/application'));
+app.use('/application-result', require('./routes/applicationResult')); // 수정된 경로
 
 // Role-based routes
 app.use('/', require('./routes/role'));
+
+app.get('/admin/applications', (req, res, next) => {
+    if (!req.isAuthenticated() || !['officer', 'admin'].includes(req.user.role)) {
+      return res.status(403).json({ message: '접근 권한이 없습니다' });
+    }
+    res.sendFile(path.join(__dirname, 'public/applications.html'));
+  });
 
 // 업로드된 파일 서빙 설정
 app.use('/uploads', express.static(path.join(__dirname, 'public/uploads'), {
@@ -102,7 +111,7 @@ app.use(express.static(reactBuildPath, {
     }
 }));
 
-// API 404 에러 핸들러
+// API 404 에러 핸들러는 모든 API 라우터 등록 후에 위치
 app.use('/api/*', (req, res) => {
     res.status(404).json({ message: 'API endpoint not found' });
 });

@@ -320,16 +320,16 @@ function generateUserRow(user) {
 
 function getTeamNameInKorean(team) {
   const teamMapping = {
-    "operationTeam": "운영",
-    "HumanResourceTeam": "인사",
-    "financeTeam": "재무",
-    "cooperationTeam": "대외협력",
-    "marketingTeam": "홍보",
-    "designTeam": "디자인",
-    "videoTeam": "영상제작",
-    "PlanningTeam": "기획",
-    "regularTeam": "정기모임",
-    "staffTeam": "스태프"
+    "operationTeam": "운영팀",
+    "HumanResourceTeam": "인사팀",
+    "financeTeam": "재무팀",
+    "cooperationTeam": "대외협력팀",
+    "marketingTeam": "홍보팀",
+    "designTeam": "디자인팀",
+    "videoTeam": "영상제작팀",
+    "PlanningTeam": "기획팀",
+    "regularTeam": "정기모임팀",
+    "staffTeam": "스태프팀"
   };
   return teamMapping[team] || team; // 매핑되지 않은 경우 원래 값 반환
 }

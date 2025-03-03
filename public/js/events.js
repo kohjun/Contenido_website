@@ -1,122 +1,187 @@
 // public/js/events.js
 let userId;
+let currentPage = 1;
+let eventsPerPage = 10;
+let allEvents = [];
+
 async function fetchEvents() {
   try {
     const response = await fetch('/events');
     const events = await response.json();
-
-    const eventsList = document.getElementById('events-list');
-    if (!eventsList) {
-      console.warn("Element with id 'events-list' not found.");
-      return;
-    }
+    allEvents = events; // 모든 이벤트 저장
 
     const userResponse = await fetch('/user/info');
     const currentUser = await userResponse.json();
 
-    if (events.length === 0) {
-      eventsList.innerHTML = `
-        <div class="empty-state">
-          <p>현재 진행중인 이벤트가 없습니다.</p>
-        </div>
-      `;
-      return;
-    }
+    displayCurrentPage(currentUser);
 
-    eventsList.innerHTML = '<div class="events-grid"></div>';
-    const eventsGrid = eventsList.querySelector('.events-grid');
-
-    events.forEach(event => {
-      const hasApplied = event.appliedParticipants.some(p => p.userId.toString() === currentUser.id);
-      const approvedCount = event.appliedParticipants.filter(p => p.status === 'approved').length;
-      const isFull = approvedCount >= event.participants;
-      const isActive = currentUser.active;
-      const userStatus = hasApplied ? 
-        event.appliedParticipants.find(p => p.userId.toString() === currentUser.id)?.status : null;
-      
-      const eventCard = document.createElement('div');
-      eventCard.className = 'event-card';
-      
-      let statusBadge = '';
-      if (isFull) {
-        statusBadge = '<span class="status-badge full">마감</span>';
-      } else if (hasApplied) {
-        statusBadge = userStatus === 'approved' ? 
-          '<span class="status-badge approved">참가확정</span>' : 
-          '<span class="status-badge pending">승인대기</span>';
-      }
-
-      // 신청 버튼 상태 결정
-      let applyButton = '';
-      if (hasApplied) {
-        applyButton = `<button class="cancel-button" onclick="cancelApplication('${event._id}')">신청취소</button>`;
-      } else if (isFull) {
-        applyButton = '<button class="apply-button" disabled>승인마감</button>';
-      } else if (!isActive) {
-        applyButton = '<button class="apply-button" disabled>신청불가</button>';
-      } else {
-        // 선별적 이벤트인 경우 신청버튼 비활성화하고 상세보기로 안내
-        if (event.isSelective && event.additionalQuestions?.length > 0) {
-          applyButton = '<button class="apply-button" disabled> 상세보기 신청 </button>';
-        } else {
-          // 일반 이벤트는 바로 신청 가능
-          applyButton = `<button class="apply-button" onclick="applyForEvent('${event._id}')">신청하기</button>`;
-        }
-      }
-
-      eventCard.innerHTML = `
-        <div class="event-card-header">
-          ${statusBadge}
-          <h3 class="event-title">${event.title}</h3>
-          <p class="event-team">${event.team}</p>
-        </div>
-        
-        <div class="event-card-content">
-          <div class="event-info">
-            <div class="info-item">
-              <i class="info-icon">📅</i>
-              <span>${new Date(event.date).toLocaleDateString()}</span>
-            </div>
-            <div class="info-item">
-              <i class="info-icon">📍</i>
-              <span>${event.place}</span>
-            </div>
-            <div class="info-item">
-              <i class="info-icon">⏰</i>
-              <span>${event.startTime} ~ ${event.endTime}</span>
-            </div>
-            <div class="info-item">
-              <i class="info-icon">👥</i>
-              <span>${approvedCount}/${event.participants}명</span>
-            </div>
-            <div class="info-item">
-              <i class="info-icon">💰</i>
-              <span>${event.participation_fee.toLocaleString()}원</span>
-            </div>
-            ${event.isSelective ? '<div class="info-item selective-badge">📝 지원서 필요</div>' : ''}
-          </div>
-        </div>
-
-        <div class="event-card-footer">
-          <button class="view-details" onclick="openContentWindow('${event._id}')">상세보기</button>
-          ${applyButton}
-          ${(currentUser.role === 'admin' || (currentUser.role === 'officer' && event.creator === currentUser.id))
-            ? `<button class="delete-button" onclick="handleCancelEvent('${event._id}', '${event.creator}')">삭제</button>`
-            : ''}
-        </div>
-      `;
-
-      eventsGrid.appendChild(eventCard);
-    });
   } catch (error) {
     console.error('Error fetching events:', error);
+    const eventsList = document.getElementById('events-list');
+    if (eventsList) {
+      eventsList.innerHTML = `
+        <div class="error-state">
+          <p>이벤트를 불러오는 중 문제가 발생했습니다.</p>
+          <p>로그인 후 다시 시도해주세요.</p>
+        </div>
+      `;
+    }
   }
 }
 
+function displayCurrentPage(currentUser) {
+  const startIndex = (currentPage - 1) * eventsPerPage;
+  const endIndex = startIndex + eventsPerPage;
+  const currentEvents = allEvents.slice(startIndex, endIndex);
+  
+  const eventsList = document.getElementById('events-list');
+  if (!eventsList) {
+    console.warn("Element with id 'events-list' not found.");
+    return;
+  }
 
+  if (allEvents.length === 0) {
+    eventsList.innerHTML = `
+      <div class="empty-state">
+        <p>현재 진행중인 이벤트가 없습니다.</p>
+      </div>
+    `;
+    return;
+  }
 
+  eventsList.innerHTML = '<div class="events-grid"></div>';
+  const eventsGrid = eventsList.querySelector('.events-grid');
 
+  // 기존의 이벤트 카드 생성 로직
+  currentEvents.forEach(event => {
+    const hasApplied = event.appliedParticipants.some(p => p.userId.toString() === currentUser.id);
+    const approvedCount = event.appliedParticipants.filter(p => p.status === 'approved').length;
+    const isFull = approvedCount >= event.participants;
+    const isActive = currentUser.active;
+    const userStatus = hasApplied ? 
+      event.appliedParticipants.find(p => p.userId.toString() === currentUser.id)?.status : null;
+    
+    const eventCard = document.createElement('div');
+    eventCard.className = 'event-card';
+    
+    let statusBadge = '';
+    if (isFull) {
+      statusBadge = '<span class="status-badge full">마감</span>';
+    } else if (hasApplied) {
+      statusBadge = userStatus === 'approved' ? 
+        '<span class="status-badge approved">참가확정</span>' : 
+        '<span class="status-badge pending">승인대기</span>';
+    }
 
+    // 신청 버튼 상태 결정
+    let applyButton = '';
+    if (hasApplied) {
+      applyButton = `<button class="action-button cancel-button" onclick="cancelApplication('${event._id}')">신청취소</button>`;
+    } else if (isFull) {
+      applyButton = '<button class="action-button apply-button" disabled>승인마감</button>';
+    } else if (!isActive) {
+      applyButton = '<button class="action-button apply-button" disabled>신청불가</button>';
+    } else {
+      if (event.isSelective && event.additionalQuestions?.length > 0) {
+        applyButton = '<button class="action-button apply-button" disabled>상세보기 신청</button>';
+      } else {
+        applyButton = `<button class="action-button apply-button" onclick="applyForEvent('${event._id}')">신청하기</button>`;
+      }
+    }
+
+    eventCard.innerHTML = `
+      <div class="event-image">
+        ${statusBadge}
+        ${event.images && event.images.length > 0 
+          ? `<img src="${event.images[0]}" alt="${event.title}">` 
+          : `<img src="./images/sky_blue.jpg" alt="기본 이벤트 이미지">`
+        }
+      </div>
+      <div class="event-content">
+        <div class="event-header">
+          <h3 class="event-title">${event.title}</h3>
+          <span class="event-team">${event.team}</span>
+          ${event.isSelective ? '<span class="selective-badge">📝 지원서 필요</span>' : ''}
+        </div>
+        
+        <div class="event-info">
+          <div class="info-row">
+            <div class="info-item">
+              <span class="info-icon"><img src="./images/EventDate.jpeg"></span>
+              <span>${new Date(event.date).toLocaleDateString()}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-icon"><img src="./images/ProgressTime.jpeg"></span>
+              <span>${event.startTime} ~ ${event.endTime}</span>
+            </div>
+          </div>
+          <div class="info-item">
+            <span class="info-icon"><img src="./images/EventLocation.jpeg"></span>
+            <span>${event.place}</span>
+          </div>
+          <div class="info-row">
+            <div class="info-item">
+              <span class="info-icon"><img src="./images/participants.jpeg"></span>
+              <span>${approvedCount}/${event.participants}명</span>
+            </div>
+            <div class="info-item">
+              <span class="info-icon"><img src="./images/participation_fee.jpeg"></span>
+              <span>${event.participation_fee.toLocaleString()}원</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="event-actions">
+          <button class="action-button view-details" onclick="openContentWindow('${event._id}')">
+            상세보기
+          </button>
+          ${applyButton}
+          ${(currentUser.role === 'admin' || (currentUser.role === 'officer' && event.creator === currentUser.id))
+            ? `<button class="action-button delete-button" onclick="handleCancelEvent('${event._id}', '${event.creator}')">
+                삭제
+              </button>`
+            : ''}
+        </div>
+      </div>
+    `;
+
+    eventsGrid.appendChild(eventCard);
+  });
+
+  // 페이지네이션 컨트롤 업데이트
+  updatePaginationControls();
+}
+
+function updatePaginationControls() {
+  const totalPages = Math.ceil(allEvents.length / eventsPerPage);
+  const prevButton = document.getElementById('prev-page');
+  const nextButton = document.getElementById('next-page');
+  const pageInfo = document.getElementById('page-info');
+
+  prevButton.disabled = currentPage === 1;
+  nextButton.disabled = currentPage === totalPages;
+  pageInfo.textContent = `페이지 ${currentPage} / ${totalPages}`;
+}
+
+// 페이지네이션 버튼 이벤트 리스너 추가
+document.addEventListener('DOMContentLoaded', () => {
+  fetchEvents();
+
+  document.getElementById('prev-page').addEventListener('click', () => {
+    if (currentPage > 1) {
+      currentPage--;
+      fetchEvents();
+    }
+  });
+
+  document.getElementById('next-page').addEventListener('click', () => {
+    const totalPages = Math.ceil(allEvents.length / eventsPerPage);
+    if (currentPage < totalPages) {
+      currentPage++;
+      fetchEvents();
+    }
+  });
+});
 
 // 새로운 이벤트 등록
 async function submitEvent() {

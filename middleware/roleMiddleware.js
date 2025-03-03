@@ -33,11 +33,15 @@ const extractTeamFromUrl = (url) => {
 
 // 사용자가 특정 팀에 접근할 권한이 있는지 확인하는 함수
 const hasTeamAccess = (user, teamId) => {
-    // 부장인 경우
+    // 관리자는 모든 접근 가능
+    if (user.role === 'admin') return true;
+    
+    // 부장은 자신의 부서의 모든 팀 페이지에 접근 가능
     if (user.isDepartmentHead) {
         return departmentTeams[user.department]?.includes(teamId);
     }
-    // 일반 팀원인 경우
+    
+    // 일반 팀원은 자신의 팀 페이지만 접근 가능
     return user.team === teamId;
 };
 
@@ -45,13 +49,13 @@ const authorizeRoles = (...allowedRoles) => {
     return async (req, res, next) => {
         // 1. 기본 인증 확인
         if (!req.user) {
-            return res.status(401).json({ message: 'Authentication required' });
+            return res.status(401).json({ message: '인증이 필요합니다. 로그인 후 다시 시도해주세요.' });
         }
 
         // 2. 역할 확인
         if (!allowedRoles.includes(req.user.role)) {
             return res.status(403).json({ 
-                message: 'You do not have permission to perform this action' 
+                message: '해당 페이지에 접근권한이 없습니다.' 
             });
         }
 
@@ -76,14 +80,11 @@ const authorizeRoles = (...allowedRoles) => {
                 }
             }
             // 팀 페이지 접근 체크
-            else{
-                if(req.user.role==='admin'){}
-                else if (teamId) {
-                    if (!hasTeamAccess(req.user, teamId)) {
-                        return res.status(403).json({ 
-                            message: 'You do not have permission to access this team page' 
-                        });
-                    }
+            else if (teamId) {
+                if (!hasTeamAccess(req.user, teamId)) {
+                    return res.status(403).json({ 
+                        message: 'You do not have permission to access this team page' 
+                    });
                 }
             }
         }

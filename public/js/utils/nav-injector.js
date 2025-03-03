@@ -40,12 +40,8 @@ const navStyles = `
 
 .sidebar a {
     text-decoration: none;
-    color: #333;
+    color: #333 !important;
     transition: color 0.2s;
-}
-
-.sidebar a:hover {
-    color: #0A84FE;
 }
 
 .custom-top-nav {
@@ -104,10 +100,17 @@ const navStyles = `
     cursor: pointer;
     transition: background-color 0.2s;
 }
-
+.custom-nav-button:hover{
+    background-color: transparent
+}
 .custom-nav-icon {
     font-size: 24px;
     margin-bottom: 4px;
+}
+
+.custom-nav-icon img {
+    width: 24px;
+    height: 24px;
 }
 
 .custom-nav-button span {
@@ -135,6 +138,10 @@ const navStyles = `
     .custom-nav-icon {
         font-size: 20px;
     }
+    .custom-nav-icon img {
+        width: 20px;
+        height: 20px;
+    }
     .custom-nav-button span {
         font-size: 11px;
     }
@@ -149,15 +156,18 @@ const sidebarHTML = `
 <aside>
     <div id="sidebar" class="sidebar">
         <div>
-            <a href="office.html" id="staffPageLink"><h3>운영진 페이지</h3></a>
+            <a href="/office.html" id="staffPageLink"><h3>운영진 페이지</h3></a>
             <a><h3>동아리 활동</h3></a>
             <ul>         
                 <li><a href="mypage.html">마이페이지</a></li>
-                <li><a href="">Q&A(예정)</a></li>
+                <li><a href="events.html">진행중인 이벤트</a></li>
+                <li><a href="ended-events.html">종료된 이벤트</a></li>
+                <li><a href="/ranking">활동 랭킹</a></li>
                 <li><a href="">익명제보(예정)</a></li>
             </ul>
-            <a href="" onclick="alert('추후 확장 예정입니다!')"><h3>동아리 모집(예정)</h3></a>
+            <a href="/apply"><h3>신입부원 지원하기</h3></a>
             <a href="" onclick="alert('추후 확장 예정입니다!')"><h3>회비내역(예정)</h3></a>
+            <a href=""><h3>협찬 및 제휴</h3></a>
         </div>
     </div>
 </aside>
@@ -179,11 +189,11 @@ const bottomNavHTML = `
         <span>알림</span>
     </button>
     <button class="custom-nav-button" onclick="goHome()">
-        <i class="custom-nav-icon">🏠</i>
+        <i class="custom-nav-icon"><img src="./images/Home.jpeg"></i>
         <span>홈</span>
     </button>
     <button class="custom-nav-button" onclick="goToMyPage()">
-        <i class="custom-nav-icon">👤</i>
+        <i class="custom-nav-icon"><img src="./images/mypage.jpeg"></i>
         <span>마이</span>
     </button>
 </nav>

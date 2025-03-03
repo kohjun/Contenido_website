@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ko">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,43 +8,70 @@
 </head>
 <body>
   <div class="container">
-    <h1>종료된 이벤트</h1>
+    <!-- 이벤트 헤더 -->
+    <div class="event-header">
+      <h1>이벤트 후기</h1>
+      <div id="event-details" class="event-summary"></div>
+    </div>
 
-    <div id="event-details"></div>
-    <br>
-    <h2>후기</h2>
-    
-    <!-- 비참가자를 위한 안내 메시지 -->
-    <div id="review-notice" style="display: none;" class="notice-message"></div>
-    
-    <!-- 후기 작성/수정 폼 -->
-    <form id="review-form" style="display: none;">
-      <label for="rating">별점:</label>
-      <select id="rating" name="rating" required>
-        <option value="1">1점</option>
-        <option value="2">2점</option>
-        <option value="3">3점</option>
-        <option value="4">4점</option>
-        <option value="5">5점</option>
-      </select>
+    <!-- 리뷰 섹션 -->
+    <div class="review-section">
+      <!-- 비참가자 안내 메시지 -->
+      <div id="review-notice" class="notice-message" style="display: none;"></div>
+      
+      <!-- 리뷰 작성 폼 -->
+      <form id="review-form" class="review-form" style="display: none;">
+        <div class="rating-container">
+          <label>별점을 선택해주세요</label>
+          <div class="star-rating">
+            <div class="stars">
+              <span class="star" data-rating="1">★</span>
+              <span class="star" data-rating="2">★</span>
+              <span class="star" data-rating="3">★</span>
+              <span class="star" data-rating="4">★</span>
+              <span class="star" data-rating="5">★</span>
+            </div>
+            <input type="hidden" id="rating" name="rating" required>
+          </div>
+        </div>
 
-      <label for="comment">후기:</label>
-      <textarea id="comment" name="comment" required></textarea>
+        <div class="comment-container">
+          <label for="comment">후기를 작성해주세요</label>
+          <textarea 
+            id="comment" 
+            name="comment" 
+            placeholder="이벤트에 대한 솔직한 후기를 남겨주세요." 
+            required
+          ></textarea>
+        </div>
 
-      <!-- 익명 체크박스 -->
-      <label for="anonymous" style="text-align: center;">
-        <input type="checkbox" id="anonymous" name="anonymous">
-        &nbsp;&nbsp;익명
-      </label>
+        <div class="form-footer">
+          <label class="anonymous-checkbox">
+            <input type="checkbox" id="anonymous" name="anonymous">
+            <span class="checkbox-text">익명으로 작성하기</span>
+          </label>
+          <button type="submit" class="submit-button">
+            <span class="button-text">후기 등록</span>
+          </button>
+        </div>
+      </form>
 
-      <button type="submit">후기 등록</button>
-    </form>
+      <!-- 리뷰 목록 -->
+      <div class="reviews-container">
+        <h2>후기 목록</h2>
+        <div id="reviews-list" class="reviews-list"></div>
+      </div>
+    </div>
 
-    <br><br>
-    <div id="reviews-list"></div>
-
-    <button onclick="window.location.href='ended-events.html'">종료된 이벤트</button>
+    <!-- 네비게이션 -->
+    <div class="navigation">
+      <button onclick="window.location.href='ended-events.html'" class="back-button">
+        <span class="button-text">돌아가기</span>
+      </button>
+    </div>
   </div>
-  <script src="/js/event-review.js"></script>
+
+  <script src="./js/event-review.js"></script>
+  <script src="./js/utils/nav-injector.js"></script>
 </body>
 </html>

@@ -161,6 +161,137 @@
   outline: none;
 }
 
+/* 수정 가능한 필드 스타일 */
+.editable-field {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+}
+
+.edit-button {
+  padding: 4px 8px;
+  width: 90px;
+  margin-left: auto; /* 버튼을 오른쪽으로 정렬 */
+  background-color: #6c757d;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  transition: all 0.3s ease;
+}
+
+.edit-button:hover {
+  background-color: #5a6268;
+  transform: translateY(-1px);
+}
+
+.edit-form {
+  margin-top: 8px;
+  padding: 10px;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.edit-form input,
+.edit-form select {
+  width: 100%;
+  padding: 8px;
+  margin-bottom: 8px;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.edit-form input:focus,
+.edit-form select:focus {
+  border-color: #0A84FE;
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(10, 132, 254, 0.25);
+}
+
+.edit-form button {
+  padding: 6px 12px;
+  margin-right: 8px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.2s ease;
+}
+
+.edit-form button:first-child {
+  background-color: #0A84FE;
+  color: white;
+}
+
+.edit-form button:last-child {
+  background-color: #6c757d;
+  color: white;
+}
+
+.edit-form button:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+
+/* 이벤트 리스트 스타일 수정 */
+.events-container {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 10px 0;
+}
+
+.event-item {
+  padding: 15px;
+  background-color: #f8f9fa;
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.event-item:hover {
+  background-color: #e9ecef;
+  transform: translateX(5px);
+}
+
+.event-title {
+  font-weight: bold;
+  margin-bottom: 5px;
+}
+
+.event-details {
+  font-size: 0.9rem;
+  color: #666;
+}
+
+.event-status {
+  margin-top: 5px;
+  font-weight: 500;
+}
+
+.status-pending {
+  color: #ffc107;
+}
+
+.status-approved {
+  color: #28a745;
+}
+
+.status-completed {
+  color: #0A84FE;
+}
+
+.empty-message {
+  text-align: center;
+  color: #666;
+  padding: 20px;
+}
+
   /* 반응형 디자인 */
 @media (max-width: 768px) {
     .toggle-btn {

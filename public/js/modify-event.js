@@ -349,6 +349,18 @@ async function submitEdit() {
     // 새 이미지 업로드 처리
     if (imageInput && imageInput.files.length > 0) {
       const formData = new FormData();
+      formData.append('eventId', eventId);
+      
+      // 이미지 파일들 추가
+      Array.from(imageInput.files).forEach(file => {
+        formData.append('images', file);
+      });
+
+      // 이미지 업로드 요청
+      const imageResponse = await fetch('/events/upload-images', {
+        method: 'POST',
+        body: formData
+      });
 
       if (!imageResponse.ok) {
         const errorData = await imageResponse.json();

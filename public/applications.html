@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>지원자 관리</title>
+  <link rel="stylesheet" href="/css/applications.css" />
+</head>
+<body>
+  <div class="admin-container">
+    <h1>지원자 관리</h1>
+    
+    <!-- 통계 섹션 -->
+    <div class="stats-grid" id="stats-container">
+      <div class="stat-card">
+        <div class="value" id="total-count">0</div>
+        <div class="label">전체</div>
+      </div>
+      <div class="stat-card">
+        <div class="value" id="pending-count">0</div>
+        <div class="label">심사중</div>
+      </div>
+      <div class="stat-card">
+        <div class="value" id="accepted-count">0</div>
+        <div class="label">합격</div>
+      </div>
+      <div class="stat-card">
+        <div class="value" id="rejected-count">0</div>
+        <div class="label">불합격</div>
+      </div>
+      <div class="stat-card">
+        <div class="value" id="officer-count">0</div>
+        <div class="label">운영진 희망</div>
+      </div>
+    </div>
+    
+    <!-- 검색 및 필터 -->
+    <div class="search-container">
+      <input 
+        type="text" 
+        id="search-input" 
+        class="search-input" 
+        placeholder="이름, 이메일, 학교 검색..."
+      />
+      <span class="search-icon">🔍</span>
+    </div>
+    
+    <div class="filter-buttons">
+      <button class="filter-button active" data-filter="all">전체</button>
+      <button class="filter-button" data-filter="pending">심사중</button>
+      <button class="filter-button" data-filter="accepted">합격</button>
+      <button class="filter-button" data-filter="rejected">불합격</button>
+      <button class="filter-button" data-filter="officer">운영진 희망</button>
+    </div>
+    
+    <!-- 지원자 목록 -->
+    <div id="applicants-container">
+      <div class="loading">
+        <div class="loading-spinner"></div>
+      </div>
+    </div>
+
+    <div class="back-button-container">
+      <button class="back-button" onclick="location.href='/office'">돌아가기</button>
+    </div>
+    
+    <!-- 상세 정보 모달 -->
+    <div class="modal" id="detail-modal">
+      <div class="modal-content">
+        <span class="close-modal" id="close-modal" onclick="closeModal()">&times;</span>
+        <div id="applicant-detail"></div>
+      </div>
+    </div>
+  </div>
+
+  <script src="/js/office/applications.js"></script>
+</body>
+</html>

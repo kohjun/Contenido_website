@@ -15,19 +15,32 @@
     </div>
     <div class="container">
       <h1>진행중인 이벤트</h1>
+      <div class="navigation-buttons">
+        <button onclick="window.location.href='calendar.html'" class="calendar-button">
+          <i class="calendar-icon">📅</i>
+          이벤트 캘린더
+        </button>
+        <button onclick="window.location.href='ended-events.html'" class="ended-events-button">
+          <i class="history-icon">📋</i>
+          종료된 이벤트
+        </button>
+      </div>
       <p>※활동부원만 신청 가능합니다.(마이페이지를 통해 확인)</p>
-      <p>이벤트 당일 일주일 이후 신청 : 페널티 , 대타 모집 : 패널티 X</p>
+      <p>이벤트 당일 전 일주일 이내 신청 취소 : 경고 1회 -> 대타 모집 : 패널티 X</p>
       <p>S : 스타터팀, R : 정기모임팀, A ~ C : 스태프팀</p>
       
       
-      <!-- Section for listing events as a table -->
       <div id="events-list"></div>
-      <br>
-      <!-- Button to check participation status -->
-      <button onclick="window.location.href='calendar.html'">이벤트 캘린더</button>
-      <button onclick="window.location.href='ended-events.html'">종료된 이벤트</button><br><br>
 
-      <!-- Home button -->
+      <!-- 페이지네이션 추가 -->
+      <div class="pagination-container">
+        <button class="pagination-button" id="prev-page" disabled>&lt; 이전</button>
+        <span id="page-info">페이지 1</span>
+        <button class="pagination-button" id="next-page">다음 &gt;</button>
+      </div>
+
+      
+
     </div>
     <!-- 오른쪽 광고 배너 -->
     <div class="ad-banner">

@@ -147,15 +147,17 @@ const Sidebar = (function() {
   // 사용자의 페이지 접근 권한을 확인하는 함수
   function hasAccessToPage(userRole, teamId) {
     if (!userRole) return false;
-    if (userRole.role === 'admin') return true; // 관리자 패스
-
-    // 부장인 경우 해당 부서의 모든 팀 페이지에 접근 가능
+    
+    // 1. 관리자는 모든 접근 가능
+    if (userRole.role === 'admin') return true;
+    
+    // 2. 부장은 자신의 부서의 모든 팀 페이지에 접근 가능
     if (userRole.isDepartmentHead) {
       return departmentTeams[userRole.department]?.includes(teamId);
     }
-
-    // 일반 팀원인 경우 자신의 팀 페이지만 접근 가능
-    return teamId === userRole.team;
+    
+    // 3. 일반 팀원은 자신의 팀 페이지만 접근 가능
+    return userRole.team === teamId;
   }
 
   // 페이지 로드 함수

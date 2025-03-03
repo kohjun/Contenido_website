@@ -1,0 +1,221 @@
+@font-face {
+    font-family: 'GmarketSansMedium';
+    src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_2001@1.1/GmarketSansMedium.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+  }
+  * {
+    font-family: 'GmarketSansMedium', sans-serif;
+  }
+
+:root {
+    --primary-color: #0A84FE;
+    --success-color: #34D399;
+    --error-color: #EF4444;
+    --warning-color: #FBBF24;
+    --text-primary: #1F2937;
+    --text-secondary: #6B7280;
+    --background: #F3F4F6;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    background: var(--background);
+    font-family: 'Noto Sans KR', sans-serif;
+    color: var(--text-primary);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+}
+
+.page-container {
+    width: 100%;
+    padding: 2rem;
+}
+
+.result-container {
+    max-width: 600px;
+    margin: 0 auto;
+    background: white;
+    border-radius: 20px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+    overflow: hidden;
+}
+
+.header-section {
+    padding: 2.5rem 2rem;
+    text-align: center;
+    background: linear-gradient(135deg, var(--primary-color), #60A5FA);
+    color: white;
+}
+
+.header-section h1 {
+    margin: 0;
+    font-size: 2rem;
+    font-weight: 700;
+}
+
+.subtitle {
+    margin: 0.5rem 0;
+    opacity: 0.9;
+    font-size: 1rem;
+}
+
+.info-badge {
+    display: inline-flex;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.2);
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    margin-top: 1rem;
+    font-size: 0.875rem;
+}
+
+.info-icon {
+    margin-right: 0.5rem;
+}
+
+.search-form {
+    padding: 2rem;
+}
+
+.input-group {
+    display: flex;
+    gap: 1rem;
+}
+
+#email-input {
+    flex: 1;
+    padding: 1rem;
+    border: 2px solid #E5E7EB;
+    border-radius: 12px;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+}
+
+#email-input:focus {
+    border-color: var(--primary-color);
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(10, 132, 254, 0.1);
+}
+
+button {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 1rem 1.5rem;
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(10, 132, 254, 0.2);
+}
+
+.result-card {
+    margin: 0 2rem 2rem;
+    background: #F9FAFB;
+    border-radius: 16px;
+    overflow: hidden;
+}
+
+.result-header {
+    padding: 1.5rem;
+    border-bottom: 1px solid #E5E7EB;
+}
+
+.result-header h2 {
+    margin: 0;
+    font-size: 1.25rem;
+    color: var(--text-primary);
+}
+
+.result-body {
+    padding: 1.5rem;
+}
+
+.status {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    text-align: center;
+}
+
+.message {
+    color: var(--text-secondary);
+    text-align: center;
+    line-height: 1.6;
+}
+
+.kakao-section {
+    margin-top: 2rem;
+    text-align: center;
+}
+
+.kakao-button {
+    background: #FEE500;
+    color: #000000;
+    display: inline-flex;
+    align-items: center;
+    padding: 1rem 2rem;
+    border-radius: 12px;
+    font-weight: 500;
+    margin-top: 1rem;
+}
+
+.kakao-icon {
+    width: 24px;
+    height: 24px;
+    margin-right: 0.5rem;
+}
+
+.error-container {
+    margin: 2rem;
+    padding: 1rem;
+    background: #FEF2F2;
+    border-radius: 12px;
+    color: var(--error-color);
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.hidden {
+    display: none;
+}
+
+.back-button-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 2rem 0;
+    padding: 0 2rem;
+}
+
+.back-button-container button {
+    min-width: 200px;
+    justify-content: center;
+}
+
+@media (max-width: 640px) {
+    .input-group {
+        flex-direction: column;
+    }
+
+    button {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .result-container {
+        margin: 1rem;
+    }
+}

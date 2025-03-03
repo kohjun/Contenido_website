@@ -1,5 +1,35 @@
 const mongoose = require('mongoose');
 
+const applicationSchema = new mongoose.Schema({
+  school: {
+    type: String,
+    required: true
+  },
+  address: {
+    type: String,
+    required: true
+  },
+  wantOfficer: {
+    type: Boolean,
+    default: false
+  },
+  motivation: {
+    type: String,
+    required: true
+  },
+  planningContent: String,
+  status: {
+    type: String,
+    enum: ['pending', 'accepted', 'rejected'],
+    default: 'pending'
+  },
+  appliedAt: {
+    type: Date,
+    default: Date.now
+  },
+  processedAt: Date
+});
+
 const userSchema = new mongoose.Schema({
   email: { type: String, required: true, unique: true },
   displayName: { type: String, required: true },
@@ -8,7 +38,7 @@ const userSchema = new mongoose.Schema({
   isVerified: { type: Boolean, default: true },
   role: { 
     type: String, 
-    enum: ['participant', 'starter', 'officer','guest','admin'], 
+    enum: ['participant', 'starter', 'officer', 'guest', 'admin', 'applicant'],
     default: 'guest' 
   },
   department: { 
@@ -59,7 +89,8 @@ const userSchema = new mongoose.Schema({
   phonenumber: { type: String },
   createdEvents: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Event' }],
   participatedEvents: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Event' }],
-  reviews: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Review' }]
+  reviews: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Review' }],
+  application: applicationSchema
 });
 
 // 커스텀 검증: officer 역할일 때 부서 및 조건 확인
@@ -74,5 +105,37 @@ userSchema.pre('save', function (next) {
   }
   next();
 });
+
+// 지원서 제출 메서드
+userSchema.methods.submitApplication = async function(applicationData) {
+  this.role = 'applicant';
+  this.application = {
+    status: 'pending',
+    school: applicationData.school,
+    address: applicationData.address,
+    wantOfficer: applicationData.wantOfficer,
+    motivation: applicationData.motivation,
+    planningContent: applicationData.planningContent,
+    appliedAt: new Date()
+  };
+  return this.save();
+};
+
+// 지원 상태 업데이트 메서드
+userSchema.methods.updateApplicationStatus = async function(status) {
+  if (!this.application) {
+    throw new Error('지원서가 존재하지 않습니다');
+  }
+  
+  this.application.status = status;
+  this.application.processedAt = new Date();
+  
+  if (status === 'accepted') {
+    this.role = this.application.wantOfficer ? 'starter' : 'participant';
+    this.active = true;
+  }
+  
+  return this.save();
+};
 
 module.exports = mongoose.model('User', userSchema);

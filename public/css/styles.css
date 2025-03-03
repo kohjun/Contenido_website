@@ -467,6 +467,72 @@ p {
   transform: translateY(-2px);
 }
 
+/* 합격 결과 확인 버튼 스타일 */
+.result-check-button {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 90%;
+  max-width: 280px;
+  padding: 0.8rem 1.5rem;
+  margin: 1.5rem auto;
+  background: linear-gradient(135deg, #6366f1, #0A84FE);
+  color: white;
+  border: none;
+  border-radius: 50px;
+  font-size: 1.1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(10, 132, 254, 0.3);
+}
+
+.result-check-button:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 20px rgba(10, 132, 254, 0.4);
+  background: linear-gradient(135deg, #4f46e5, #0875e0);
+}
+
+.result-check-button:active {
+  transform: translateY(-1px);
+}
+
+.result-icon {
+  font-size: 1.3rem;
+  margin-right: 8px;
+}
+
+.result-text {
+  flex-grow: 1;
+  text-align: center;
+}
+
+.result-arrow {
+  font-size: 1.2rem;
+  margin-left: 8px;
+  transition: transform 0.3s ease;
+}
+
+.result-check-button:hover .result-arrow {
+  transform: translateX(5px);
+}
+
+/* 기존 버튼들과 새로운 버튼 사이의 구분선 */
+.result-check-button {
+  position: relative;
+  margin-top: 2rem;
+}
+
+.result-check-button::before {
+  content: '';
+  position: absolute;
+  top: -1rem;
+  left: 10%;
+  right: 10%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(10, 132, 254, 0.2), transparent);
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
   .dashboard-section {
@@ -1317,143 +1383,207 @@ tr:hover {
   border-color: #e5e7eb;
   background-color: #f3f4f6;
 }
+
+/* 이벤트 리스트 스타일  */
 .events-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 1.5rem;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 2rem;
   padding: 1rem;
 }
 
-/* Event Card Styles */
 .event-card {
   background: white;
   border-radius: 16px;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
   overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
   transition: transform 0.3s ease, box-shadow 0.3s ease;
   position: relative;
 }
 
 .event-card:hover {
   transform: translateY(-5px);
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
 }
 
-.event-card-header {
-  padding: 1.25rem;
-  background: linear-gradient(135deg, #f0f9ff 0%, #e1f3fe 100%);
+.event-image {
   position: relative;
+  width: 100%;
+  height: 200px;
+  overflow: hidden;
+}
+
+.event-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.event-card:hover .event-image img {
+  transform: scale(1.05);
+}
+
+.status-badge {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  z-index: 1;
+}
+
+.status-badge.full {
+  background-color: #dc3545;
+  color: white;
+}
+
+.status-badge.approved {
+  background-color: #28a745;
+  color: white;
+}
+
+.status-badge.pending {
+  background-color: #ffc107;
+  color: #212529;
+}
+
+.event-content {
+  padding: 1.5rem;
+}
+
+.event-header {
+  margin-bottom: 1rem;
 }
 
 .event-title {
-  font-size: 1.25rem;
+  font-size: 1.3rem;
   font-weight: bold;
-  color: #2d3748;
-  margin: 0 0 0.5rem 0;
+  color: #333;
+  margin-bottom: 0.5rem;
 }
 
 .event-team {
-  font-size: 0.875rem;
-  color: #718096;
-  margin: 0;
-}
-
-.event-card-content {
-  padding: 1.25rem;
+  font-size: 0.9rem;
+  color: #0A84FE;
 }
 
 .event-info {
-  display: grid;
-  gap: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
 }
 
 .info-item {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  color: #4a5568;
-  font-size: 0.875rem;
+  color: #666;
+  font-size: 0.9rem;
 }
 
 .info-icon {
-  font-size: 1rem;
+  color: #0A84FE;
+  font-size: 1.1rem;
 }
 
-.event-card-footer {
-  padding: 1.25rem;
-  border-top: 1px solid #e2e8f0;
+.info-icon img {
+  width: 20px; /* 이미지 너비 조정 */
+  height: 20px; /* 이미지 높이 조정 */
+  object-fit: cover; /* 이미지 비율 유지 */
+  transform: translateY(2px);
+}
+
+.selective-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.3rem 0.8rem;
+  background-color: #f8f9fa;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  color: #666;
+}
+
+.event-actions {
   display: flex;
-  gap: 0.75rem;
-  justify-content: flex-end;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 1rem;
+  border-top: 1px solid #eee;
 }
 
-/* Button Styles */
-.event-card button {
-  padding: 0.5rem 1rem;
+.action-button {
+  padding: 0.5rem 1.1rem;
   border-radius: 8px;
-  font-size: 0.875rem;
+  font-size: 0.8rem;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s ease;
-  border: none;
-  margin: 0;
-  width: auto;
-  max-width: none;
 }
 
+
 .view-details {
-  background-color: #f7fafc;
-  color: #4a5568;
-  border: 1px solid #e2e8f0;
+  background-color: #f8f9fa;
+  color: #495057;
+  border: 1px solid #dee2e6;
 }
 
 .view-details:hover {
-  background-color: #edf2f7;
-  transform: none;
+  background-color: #e9ecef;
 }
 
 .apply-button {
   background-color: #0A84FE;
   color: white;
+  border: none;
 }
 
 .apply-button:hover {
   background-color: #0875e0;
-  transform: none;
 }
 
 .apply-button:disabled {
-  background-color: #cbd5e0;
+  background-color: #ccc;
   cursor: not-allowed;
 }
 
 .cancel-button {
-  background-color: #fc8181;
+  background-color: #dc3545;
   color: white;
+  border: none;
 }
 
 .cancel-button:hover {
-  background-color: #f56565;
-  transform: none;
+  background-color: #c82333;
 }
 
 .delete-button {
-  background-color: #feb2b2;
-  color: #c53030;
+  background-color: #6c757d;
+  color: white;
+  border: none;
 }
 
 .delete-button:hover {
-  background-color: #fc8181;
-  color: white;
-  transform: none;
+  background-color: #5a6268;
+}
+
+@media (max-width: 768px) {
+  .events-grid {
+    grid-template-columns: 1fr;
+    padding: 1rem;
+  }
 }
 
 /* Status Badge Styles */
 .status-badge {
   position: absolute;
   top: 1rem;
-  right: 1rem;
-  padding: 0.25rem 0.75rem;
+  right: 1.45rem;
+  padding: 0.2rem 0.7rem;
   border-radius: 9999px;
   font-size: 0.75rem;
   font-weight: 500;
@@ -1545,7 +1675,7 @@ tr:hover {
   }
 
   /* 후기 */
-  /* 후기 제목 스타일 */
+
   h2 {
     font-size: 1.8rem;
     color: #555;
@@ -1555,28 +1685,162 @@ tr:hover {
   }
 
   /* 후기 리스트 스타일 */
-  .review {
-    position: relative;
-    background: #fff;
-    border: 1px solid #eee;
-    border-radius: 8px;
+  .review-section {
+    margin-top: 2rem;
+  }
+  
+  /* 별점 컨테이너 */
+  .rating-container {
+    margin-bottom: 1.5rem;
+    text-align: center;
+  }
+  
+  .rating-container label {
+    display: block;
+    margin-bottom: 0.5rem;
+    color: #666;
+    font-size: 0.9rem;
+  }
+  
+  .star-rating {
+    display: inline-block;
+  }
+  
+  .stars {
+    display: flex;
+    flex-direction: row;  /* flex-direction을 row로 설정 */
+    justify-content: center;
+    gap: 0.5rem;
+  }
+  
+  .star {
+    font-size: 2.5rem;
+    cursor: pointer;
+    color: #ddd;
+    transition: all 0.3s ease;
+    user-select: none;
+  }
+  
+  /* hover 효과 방향 변경 */
+  .star:hover ~ .star {
+    color: #ddd;  /* 호버한 별 이후의 별들은 회색으로 */
+  }
+  
+  .stars:hover .star {
+    color: #ffd700;  /* 호버 시 모든 별을 먼저 노란색으로 */
+  }
+  
+  .star:hover ~ .star {
+    color: #ddd;  /* 호버한 별 이후의 별들만 회색으로 변경 */
+  }
+  
+  .star.active {
+    color: #ffd700;
+    animation: star-pop 0.3s ease;
+  }
+  
+  @keyframes star-pop {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.2); }
+    100% { transform: scale(1); }
+  }
+  
+  /* 댓글 컨테이너 */
+  .comment-container {
+    margin-bottom: 1.5rem;
+  }
+  
+  .comment-container label {
+    display: block;
+    margin-bottom: 0.5rem;
+    color: #666;
+    font-size: 0.9rem;
+  }
+  
+  .comment-container textarea {
+    width: 100%;
+    min-height: 120px;
     padding: 1rem;
-    margin-bottom: 1rem;
+    border: 1px solid #e1e1e1;
+    border-radius: 8px;
+    resize: vertical;
+    font-family: inherit;
+    transition: border-color 0.3s ease;
+  }
+  
+  .comment-container textarea:focus {
+    border-color: #0A84FE;
+    outline: none;
+  }
+  
+  /* 폼 푸터 */
+  .form-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 1rem;
+  }
+  
+  .anonymous-checkbox {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+  }
+  
+  .anonymous-checkbox input {
+    margin-right: 0.5rem;
+  }
+  
+  .checkbox-text {
+    color: #666;
+    font-size: 0.9rem;
+  }
+  
+  /* 리뷰 리스트 */
+  .reviews-container {
+    margin-top: 3rem;
+  }
+  
+  .reviews-container h2 {
+    font-size: 1.5rem;
+    margin-bottom: 1.5rem;
+    color: #333;
+  }
+  
+  .review {
+    background: white;
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    transition: transform 0.3s ease;
+  }
+  
+  .review:hover {
+    transform: translateY(-2px);
   }
   
   .review-header {
     display: flex;
     align-items: center;
-    margin-bottom: 0.5rem;
+    margin-bottom: 1rem;
   }
   
-  .review-rating {
-    margin-left: 0.5rem;
-    color: #0A84FE;
+  .review-author {
+    font-weight: 600;
+    color: #333;
+  }
+  
+  .review-stars {
+    margin-left: 1rem;
+    color: #ffd700;
+    letter-spacing: 2px;
   }
   
   .review-actions {
     margin-left: auto;
+    display: flex;
+    gap: 0.5rem;
   }
   
   .review-action-btn {
@@ -1584,96 +1848,40 @@ tr:hover {
     border: none;
     font-size: 0.9rem;
     color: #666;
-    padding: 4px 8px;
+    padding: 0.4rem 0.8rem;
     cursor: pointer;
-    transition: color 0.2s;
+    transition: all 0.3s ease;
   }
   
   .review-action-btn:hover {
-    color: #0A84FE;
-  }
-  
-  .review-action-btn.edit {
-    margin-right: 8px;
+    color:#ffffff;
+    background-color: #0A84FE;
+    transform: translateY(-1px);
   }
   
   .review-action-btn.delete:hover {
-    color: #dc3545;
+    color:#ffffff;
+    background-color: #0A84FE;
   }
   
   .review-content {
-    margin: 0.5rem 0;
-    line-height: 1.5;
+    color: #444;
+    line-height: 1.6;
+    margin-bottom: 1rem;
   }
   
   .review-date {
     font-size: 0.8rem;
     color: #888;
-    margin: 0;
   }
-
-  .review strong {
-    font-size: 1rem;
-    color: #333;
+  
+  /* 네비게이션 */
+  .navigation {
+    margin-top: 3rem;
+    text-align: center;
   }
-
-  .review p {
-    margin: 0.5rem 0;
-    color: #666;
-  }
-
-  .review em {
-    font-size: 0.85rem;
-    color: #999;
-  }
-
-  /* 후기 작성 폼 스타일 */
-  #review-form {
-    background: #fff;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    padding: 1.5rem;
-    margin-top: 1rem;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
-  }
-
-  #review-form label {
-    font-weight: bold;
-    color: #555;
-    margin-top: 0.5rem;
-    display: block;
-  }
-
-  #review-form select, 
-  #review-form textarea, 
-  #review-form input[type="checkbox"] {
-    margin-top: 0.5rem;
-    width: 100%;
-    padding: 0.6rem;
-    font-size: 1rem;
-    border: 1px solid #ddd;
-    border-radius: 5px;
-    box-sizing: border-box;
-  }
-
-  .review-button {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    width: 60px; /* 버튼 크기 증가 */
-    height: 60px; /* 버튼 크기 증가 */
-    border-radius: 50%;
-    background-color: #0A84FE;
-    color: #fff;
-    border: none;
-    cursor: pointer;
-    transition: background-color 0.3s, transform 0.2s;
-  }
-
-  .review-button:hover {
-    background-color: #0C84FE;
-    transform: translateY(-3px);
-  }
+  
+  
 
   /* 스크롤바 전체 */
 ::-webkit-scrollbar {
@@ -1697,4 +1905,173 @@ tr:hover {
 /* 스크롤바 핸들이 마우스와 상호작용할 때 */
 ::-webkit-scrollbar-thumb:hover {
   background: #555; /* 마우스를 올렸을 때 색 */
+}
+
+/* 종료된 이벤트 페이지 스타일 */
+.title-section {
+  text-align: center;
+  margin-bottom: 2rem;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid #eee;
+}
+
+.title-section h1 {
+  color: #333;
+  margin-bottom: 0.5rem;
+}
+
+.title-section .subtitle {
+  color: #666;
+  font-size: 1rem;
+}
+
+.ended-events-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1rem 0;
+}
+
+.ended-event-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.ended-event-card:hover {
+  transform: translateX(5px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+}
+
+.event-info h3 {
+  margin: 0 0 0.5rem 0;
+  color: #333;
+  font-size: 1.2rem;
+}
+
+.event-details {
+  display: flex;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.detail-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.detail-item i {
+  color: #0A84FE;
+  font-size: 1.1rem;
+}
+
+.review-action {
+  flex-shrink: 0;
+  margin-left: 1rem;
+}
+
+.review-button {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.8rem 1.2rem;
+  background: #0A84FE;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.review-button:hover {
+  background: #0875e0;
+  transform: translateY(-2px);
+}
+
+.review-icon {
+  font-size: 1.2rem;
+}
+
+.reviewed-badge {
+  display: inline-block;
+  padding: 0.5rem 1rem;
+  background: #e2e8f0;
+  color: #64748b;
+  border-radius: 8px;
+  font-size: 0.9rem;
+}
+
+.empty-state, .error-state {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: #666;
+}
+
+.navigation-buttons {
+  display: flex;
+  justify-content: center;
+  margin-top: 2rem;
+}
+
+/* 페이지네이션 스타일 */
+.pagination-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+  margin: 2rem 0;
+}
+
+.pagination-button {
+  padding: 0.5rem 1rem;
+  background: #f8f9fa;
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  color: #333;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.9rem;
+}
+
+.pagination-button:hover:not(:disabled) {
+  background: #e9ecef;
+  transform: translateY(-1px);
+}
+
+.pagination-button:disabled {
+  background: #e9ecef;
+  color: #adb5bd;
+  cursor: not-allowed;
+  border-color: #dee2e6;
+}
+
+#page-info {
+  color: #666;
+  font-size: 0.9rem;
+}
+
+@media (max-width: 768px) {
+  .event-details {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .ended-event-card {
+    flex-direction: column;
+    gap: 1rem;
+    text-align: center;
+  }
+
+  .review-action {
+    margin-left: 0;
+  }
 }

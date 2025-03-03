@@ -89,6 +89,7 @@ schedule.scheduleJob('0 0 1 1,3,5,7,9,11 *', async () => {
         active: req.user.active,
         department: req.user.department,
         team: req.user.team,
+        isDepartmentHead: req.user.isDepartmentHead,
         profileImage: req.user.profileImage || '/images/basic_Image.png'
       });
     } else {
@@ -102,7 +103,7 @@ router.get('/info_database', authenticateToken, async (req, res) => {
   try {
     // JWT 토큰에서 받은 userId를 사용하여 데이터베이스에서 전체 정보 조회
     const user = await User.findById(req.user.id)
-      .select('id name displayName email role active department team profileImage warningCount participationCount phonenumber gender birthDate');
+      .select('id name displayName email role active department team profileImage warningCount participationCount phonenumber gender birthDate preferredActivity isDepartmentHead'); // isDepartmentHead 추가
     
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
@@ -129,7 +130,9 @@ router.get('/info_database', authenticateToken, async (req, res) => {
       participationCount: user.participationCount,
       phonenumber: user.phonenumber,
       gender: user.gender,
-      birthDate: user.birthDate
+      birthDate: user.birthDate,
+      preferredActivity: user.preferredActivity,
+      isDepartmentHead: user.isDepartmentHead, // 추가
     };
 
     res.json(userInfo);
@@ -146,7 +149,7 @@ router.get('/info_database', authenticateToken, async (req, res) => {
 router.get('/participants/users', async (req, res) => {
   try {
     const users = await User.find({ isVerified: true })
-      .select('displayName name participationCount profileImage status active role gender phonenumber warningCount team department'); // 필요한 필드들을 선택
+      .select('displayName name participationCount profileImage status active role gender phonenumber warningCount team department preferredActivity'); // 필요한 필드들을 선택
     
     const userData = users.map(user => ({
       id: user._id,
@@ -161,7 +164,7 @@ router.get('/participants/users', async (req, res) => {
       department: user.department,
       gender: user.gender || '-',
       warningCount: user.warningCount,
-      
+      preferredActivity: user.preferredActivity || '-'
     }));
 
     res.status(200).json(userData);
@@ -349,4 +352,56 @@ router.post('/update-team/:userId', authenticateToken, async (req, res) => {
       res.status(500).json({ message: '팀 변경 중 오류가 발생했습니다.' });
   }
 });
+
+// 프로필 업데이트 라우트 추가
+router.post('/update-profile', authenticateToken, async (req, res) => {
+  try {
+    const { phonenumber, preferredActivity } = req.body;
+    const updateFields = {};
+
+    if (phonenumber !== undefined) {
+      if (!/^[0-9]{11}$/.test(phonenumber)) {
+        return res.status(400).json({ message: '유효하지 않은 전화번호 형식입니다.' });
+      }
+      updateFields.phonenumber = phonenumber;
+    }
+
+    if (preferredActivity !== undefined) {
+      const validDistricts = [
+        '강남구', '강동구', '강북구', '강서구', '관악구',
+        '광진구', '구로구', '금천구', '노원구', '도봉구',
+        '동대문구', '동작구', '마포구', '서대문구', '서초구',
+        '성동구', '성북구', '송파구', '양천구', '영등포구',
+        '용산구', '은평구', '종로구', '중구', '중랑구'
+      ];
+      
+      if (!validDistricts.includes(preferredActivity)) {
+        return res.status(400).json({ message: '유효하지 않은 지역입니다.' });
+      }
+      updateFields.preferredActivity = preferredActivity;
+    }
+
+    const user = await User.findByIdAndUpdate(
+      req.user.id,
+      { $set: updateFields },
+      { new: true }
+    );
+
+    if (!user) {
+      return res.status(404).json({ message: '사용자를 찾을 수 없습니다.' });
+    }
+
+    res.json({
+      message: '프로필이 성공적으로 업데이트되었습니다.',
+      user: {
+        phonenumber: user.phonenumber,
+        preferredActivity: user.preferredActivity
+      }
+    });
+  } catch (error) {
+    console.error('Error updating profile:', error);
+    res.status(500).json({ message: '프로필 업데이트 중 오류가 발생했습니다.' });
+  }
+});
+
 module.exports = router;
