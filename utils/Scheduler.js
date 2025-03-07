@@ -1,38 +1,5 @@
 const schedule = require('node-schedule');
 const User = require('../models/User');
-const AcceptedApplication = require('../models/AcceptedApplication');
-
-// 3개월마다 실행될 작업 설정 - 지원서 초기화
-const initializeApplications = schedule.scheduleJob('0 0 1 */3 *', async () => {
-  try {
-    const currentDate = new Date();
-    const period = `${currentDate.getFullYear()}-${Math.floor(currentDate.getMonth() / 3) + 1}Q`;
-
-    // 합격한 지원서 저장
-    const acceptedUsers = await User.find({
-      'application.status': 'accepted',
-      application: { $exists: true }
-    });
-
-    for (const user of acceptedUsers) {
-      await AcceptedApplication.create({
-        userId: user._id,
-        applicationData: user.application,
-        recruitmentPeriod: period
-      });
-    }
-
-    // 모든 사용자의 지원서 초기화
-    await User.updateMany(
-      { application: { $exists: true } },
-      { $unset: { application: "" } }
-    );
-
-    console.log(`Applications initialized successfully for period: ${period}`);
-  } catch (error) {
-    console.error('Error in application initialization:', error);
-  }
-});
 
 // 1,4,7,10월 1일 00:00에 실행되는 경고 초기화 스케줄러
 const resetWarningCounts = schedule.scheduleJob('0 0 1 1,4,7,10 *', async () => {
@@ -96,7 +63,6 @@ const resetParticipationCount = schedule.scheduleJob('0 0 1 1,3,5,7,9,11 *', asy
 });
 
 module.exports = {
-  initializeApplications,
   resetWarningCounts,
   resetParticipationCount
 };

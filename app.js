@@ -73,13 +73,6 @@ app.get('/admin/*', (req, res, next) => {
     next();
 });
 
-app.get('/admin/applications', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public/applications.html'));
-});
-
-app.get('/admin/accepted-applications', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public/accepted-applications.html'));
-});
 
 app.get('/applications', (req, res, next) => {
     if (!req.isAuthenticated() || !['officer', 'admin'].includes(req.user.role)) {
@@ -88,13 +81,7 @@ app.get('/applications', (req, res, next) => {
     res.sendFile(path.join(__dirname, 'public/applications.html'));
   });
 
-// 합격 지원서 관리 페이지 라우트
-app.get('/accepted-applications', (req, res, next) => {
-    if (!req.isAuthenticated() || !['officer', 'admin'].includes(req.user.role)) {
-        return res.status(403).json({ message: '접근 권한이 없습니다' });
-    }
-    res.sendFile(path.join(__dirname, 'public/accepted-applications.html'));
-});
+
 
 // 업로드된 파일 서빙 설정
 app.use('/uploads', express.static(path.join(__dirname, 'public/uploads'), {
