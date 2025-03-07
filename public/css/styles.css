@@ -1960,19 +1960,6 @@ tr:hover {
   flex-wrap: wrap;
 }
 
-.detail-item {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  color: #666;
-  font-size: 0.9rem;
-}
-
-.detail-item i {
-  color: #0A84FE;
-  font-size: 1.1rem;
-}
-
 .review-action {
   flex-shrink: 0;
   margin-left: 1rem;

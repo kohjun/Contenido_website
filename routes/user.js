@@ -1,101 +1,33 @@
-// routes/user.js
-  const express = require('express');
-  const router = express.Router();
-  const authenticateToken = require('../middleware/authMiddleware');
-  const User = require('../models/User'); 
-  const schedule = require('node-schedule');
+const express = require('express');
+const router = express.Router();
+const authenticateToken = require('../middleware/authMiddleware');
+const User = require('../models/User');
 
-// 1,4,7,10월 1일 00:00에 실행되는 경고 초기화 스케줄러 (3개월)  // '0 */2 * * * *' 2분마다 갱신   // 
-schedule.scheduleJob('0 0 1 1,4,7,10 *', async () => {
-  try {
-    console.log(`[${new Date()}] 경고 횟수 리셋.`);
-    
-    const result = await User.updateMany(
-      {}, // 모든 사용자 대상
-      { $set: { warningCount: 0 } }
-    );
+// 토큰을 사용해서 유저 정보 얻기
+router.get('/info', authenticateToken, (req, res) => {
+  console.log('User from JWT:', req.user); 
 
-    console.log(`Warning count reset completed. Modified ${result.modifiedCount} users.`);
-  } catch (error) {
-    console.error('Error resetting warning counts:', error);
+  if (req.user) {
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
+    res.setHeader('Surrogate-Control', 'no-store');
+    res.json({
+      id: req.user.id, 
+      name: req.user.name,
+      nickname: req.user.displayName,
+      email: req.user.email,
+      role: req.user.role,
+      active: req.user.active,
+      department: req.user.department,
+      team: req.user.team,
+      isDepartmentHead: req.user.isDepartmentHead,
+      profileImage: req.user.profileImage || '/images/basic_Image.png'
+    });
+  } else {
+    res.status(401).json({ message: 'Unauthorized' });
   }
 });
-
-
-// 격월(1,3,5,7,9,11월) 1일 00:00에 regularCount 초기화 및 활성상태 업데이트
-schedule.scheduleJob('0 0 1 1,3,5,7,9,11 *', async () => {
-  try {
-    const users = await User.find();
-    console.log(`[${new Date()}] Bi-monthly participation count update started.`);
-
-    const bulkOperations = users.map((user) => {
-      // 기본 업데이트 객체
-      const updateObj = {};
-
-      // participant이고 참가횟수가 2회 미만인 경우 활성상태 false로 변경
-      if (user.role === 'participant' && (user.participationCount.regularCount || 0) < 2) {
-        updateObj.$set = { active: false };
-      }
-
-      // 활성상태가 true인 경우에만 참가횟수 초기화 및 누적
-      if (user.active) {
-        updateObj.$inc = {
-          'participationCount.totalCount': user.participationCount.regularCount || 0
-        };
-        updateObj.$set = {
-          ...updateObj.$set,
-          'participationCount.regularCount': 0
-        };
-      }
-
-      // 업데이트할 내용이 있는 경우만 bulkWrite 작업 추가
-      if (Object.keys(updateObj).length > 0) {
-        return {
-          updateOne: {
-            filter: { _id: user._id },
-            update: updateObj
-          }
-        };
-      }
-      return null;
-    }).filter(Boolean); // null 제거
-
-    if (bulkOperations.length > 0) {
-      await User.bulkWrite(bulkOperations);
-      console.log('Bi-monthly participation count update completed successfully.');
-    } else {
-      console.log('No users to update.');
-    }
-  } catch (error) {
-    console.error('Error during bi-monthly participation count update:', error);
-  }
-});
-
-  // 토큰을 사용해서 유저 정보 얻기
-  router.get('/info', authenticateToken, (req, res) => {
-    console.log('User from JWT:', req.user); 
-
-    if (req.user) {
-      res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
-      res.setHeader('Pragma', 'no-cache');
-      res.setHeader('Expires', '0');
-      res.setHeader('Surrogate-Control', 'no-store');
-      res.json({
-        id: req.user.id, 
-        name: req.user.name,
-        nickname: req.user.displayName,
-        email: req.user.email,
-        role: req.user.role,
-        active: req.user.active,
-        department: req.user.department,
-        team: req.user.team,
-        isDepartmentHead: req.user.isDepartmentHead,
-        profileImage: req.user.profileImage || '/images/basic_Image.png'
-      });
-    } else {
-      res.status(401).json({ message: 'Unauthorized' });
-    }
-  });
 
 // 데이터베이스에서 유저 정보 얻기
 
@@ -142,9 +74,6 @@ router.get('/info_database', authenticateToken, async (req, res) => {
   }
 });
 
-  
-
-
 //여러 참가자 데이터 조회
 router.get('/participants/users', async (req, res) => {
   try {
@@ -174,41 +103,39 @@ router.get('/participants/users', async (req, res) => {
   }
 });
 
+// 유저의 역할 검증
+router.get('/user-role', authenticateToken, (req, res) => {
+  console.log('Authenticated user role:', req.user?.role);
 
-  // 유저의 역할 검증
-  router.get('/user-role', authenticateToken, (req, res) => {
-    console.log('Authenticated user role:', req.user?.role);
+  if (req.user) {
+    res.json({ role: req.user.role });
+  } else {
+    res.status(401).json({ message: 'Unauthorized' });
+  }
+});
 
-    if (req.user) {
-      res.json({ role: req.user.role });
-    } else {
-      res.status(401).json({ message: 'Unauthorized' });
+// POST 
+// 유저 활성 상태 토글
+router.post('/toggle-active/:userId', authenticateToken, async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const { active } = req.body;
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
     }
-  });
-  
 
-  // POST 
-  // 유저 활성 상태 토글
-  router.post('/toggle-active/:userId', authenticateToken, async (req, res) => {
-    try {
-      const { userId } = req.params;
-      const { active } = req.body;
+    user.active = active;
+    await user.save();
 
-      const user = await User.findById(userId);
-      if (!user) {
-        return res.status(404).json({ message: 'User not found' });
-      }
-
-      user.active = active;
-      await user.save();
-
-      res.status(200).json({ message: 'User active status updated successfully' });
-    } catch (error) {
-      console.error('Error toggling user active status:', error);
-      res.status(500).json({ message: 'Error updating user active status' });
-    }
-  });
-  // 참가 횟수 업데이트
+    res.status(200).json({ message: 'User active status updated successfully' });
+  } catch (error) {
+    console.error('Error toggling user active status:', error);
+    res.status(500).json({ message: 'Error updating user active status' });
+  }
+});
+// 참가 횟수 업데이트
 router.post('/update-participation/:userId', authenticateToken, async (req, res) => {
   try {
     const { userId } = req.params;
@@ -237,7 +164,7 @@ router.post('/update-participation/:userId', authenticateToken, async (req, res)
     res.status(500).json({ message: '참가 횟수 업데이트 중 오류가 발생했습니다.' });
   }
 });
-  // 경고 횟수 업데이트 - authorizeRoles 미들웨어 추가
+// 경고 횟수 업데이트 - authorizeRoles 미들웨어 추가
 router.post('/update-warning/:userId', authenticateToken, async (req, res) => {
   try {
     const { userId } = req.params;

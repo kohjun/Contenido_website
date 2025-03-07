@@ -11,6 +11,10 @@ const fs = require('fs');
 const favicon = require('serve-favicon');
 const app = express();
 
+// 스케줄러 추가
+const scheduler = require('./utils/Scheduler');
+console.log('All schedulers initialized');
+
 // 업로드 디렉토리 생성
 const uploadDir = path.join(__dirname, 'public/uploads/events');
 if (!fs.existsSync(uploadDir)) {
@@ -56,17 +60,41 @@ app.use('/user', require('./routes/user'));
 app.use('/reviews', require('./routes/reviews'));
 app.use('/saved-places', require('./routes/savedPlaces'));
 app.use('/application', require('./routes/application'));
-app.use('/application-result', require('./routes/applicationResult')); // 수정된 경로
+app.use('/application-result', require('./routes/applicationResult'));
 
 // Role-based routes
 app.use('/', require('./routes/role'));
 
-app.get('/admin/applications', (req, res, next) => {
+// 관리자 페이지 라우트들
+app.get('/admin/*', (req, res, next) => {
+    if (!req.isAuthenticated() || !['officer', 'admin'].includes(req.user.role)) {
+        return res.status(403).json({ message: '접근 권한이 없습니다' });
+    }
+    next();
+});
+
+app.get('/admin/applications', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public/applications.html'));
+});
+
+app.get('/admin/accepted-applications', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public/accepted-applications.html'));
+});
+
+app.get('/applications', (req, res, next) => {
     if (!req.isAuthenticated() || !['officer', 'admin'].includes(req.user.role)) {
       return res.status(403).json({ message: '접근 권한이 없습니다' });
     }
     res.sendFile(path.join(__dirname, 'public/applications.html'));
   });
+
+// 합격 지원서 관리 페이지 라우트
+app.get('/accepted-applications', (req, res, next) => {
+    if (!req.isAuthenticated() || !['officer', 'admin'].includes(req.user.role)) {
+        return res.status(403).json({ message: '접근 권한이 없습니다' });
+    }
+    res.sendFile(path.join(__dirname, 'public/accepted-applications.html'));
+});
 
 // 업로드된 파일 서빙 설정
 app.use('/uploads', express.static(path.join(__dirname, 'public/uploads'), {
@@ -130,7 +158,6 @@ app.get('*', (req, res, next) => {
 
     // HTML 직접 접근 차단
     if (req.path.endsWith('.html') && !req.path.endsWith('index.html')) {
-        return res.status(403).json({ message: 'Direct access not allowed' });
     }
 
     // React 앱으로 라우팅

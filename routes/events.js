@@ -305,67 +305,71 @@ router.post('/:id/verify-access', authenticateToken, async (req, res) => {
 
 
 // 이벤트 신청 - active 상태인 participant,starter,officer 가능
-router.post('/:id/apply', authenticateToken, requireActiveUser, async (req, res) => {
-  try {
-    const event = await Event.findById(req.params.id);
-    if (!event) {
-      return res.status(404).json({ message: '이벤트를 찾을 수 없습니다.' });
-    }
-
-    // 이미 지난 이벤트인지 확인
-    if (event.isEnded) {
-      return res.status(400).json({ message: '이미 종료된 이벤트입니다.' });
-    }
-
-    // 정원 초과 확인
-    const approvedCount = event.appliedParticipants.filter(p => p.status === 'approved').length;
-    if (approvedCount >= event.participants) {
-      return res.status(400).json({ message: '이미 정원이 다 찼습니다.' });
-    }
-
-    // 이미 신청했는지 확인
-    if (event.appliedParticipants.some(p => p.userId.toString() === req.user.id)) {
-      return res.status(400).json({ message: '이미 신청한 이벤트입니다.' });
-    }
-
-    const participantData = {
-      userId: req.user.id,
-      appliedAt: new Date(),
-      status: 'pending'
-    };
-
-    // 선별적 이벤트인 경우 답변 처리
-    if (event.isSelective && event.additionalQuestions.length > 0) {
-      if (!req.body.answers) {
-        return res.status(400).json({ message: '지원서 답변이 필요합니다.' });
+router.post('/:id/apply', 
+  authenticateToken,
+  authorizeRoles('participant', 'starter', 'officer', 'admin'),
+  requireActiveUser, 
+  async (req, res) => {
+    try {
+      const event = await Event.findById(req.params.id);
+      if (!event) {
+        return res.status(404).json({ message: '이벤트를 찾을 수 없습니다.' });
       }
 
-      // 답변 수가 질문 수와 일치하는지 확인
-      if (req.body.answers.length !== event.additionalQuestions.length) {
-        return res.status(400).json({ message: '모든 질문에 답변해주세요.' });
+      // 이미 지난 이벤트인지 확인
+      if (event.isEnded) {
+        return res.status(400).json({ message: '이미 종료된 이벤트입니다.' });
       }
 
-      // 답변이 비어있는지 확인
-      if (req.body.answers.some(answer => !answer.answerText.trim())) {
-        return res.status(400).json({ message: '비어있는 답변이 있습니다.' });
+      // 정원 초과 확인
+      const approvedCount = event.appliedParticipants.filter(p => p.status === 'approved').length;
+      if (approvedCount >= event.participants) {
+        return res.status(400).json({ message: '이미 정원이 다 찼습니다.' });
       }
 
-      participantData.answers = req.body.answers;
+      // 이미 신청했는지 확인
+      if (event.appliedParticipants.some(p => p.userId.toString() === req.user.id)) {
+        return res.status(400).json({ message: '이미 신청한 이벤트입니다.' });
+      }
+
+      const participantData = {
+        userId: req.user.id,
+        appliedAt: new Date(),
+        status: 'pending'
+      };
+
+      // 선별적 이벤트인 경우 답변 처리
+      if (event.isSelective && event.additionalQuestions.length > 0) {
+        if (!req.body.answers) {
+          return res.status(400).json({ message: '지원서 답변이 필요합니다.' });
+        }
+
+        // 답변 수가 질문 수와 일치하는지 확인
+        if (req.body.answers.length !== event.additionalQuestions.length) {
+          return res.status(400).json({ message: '모든 질문에 답변해주세요.' });
+        }
+
+        // 답변이 비어있는지 확인
+        if (req.body.answers.some(answer => !answer.answerText.trim())) {
+          return res.status(400).json({ message: '비어있는 답변이 있습니다.' });
+        }
+
+        participantData.answers = req.body.answers;
+      }
+
+      event.appliedParticipants.push(participantData);
+      await event.save();
+
+      res.json({ 
+        message: '신청이 완료되었습니다. 승인을 기다려주세요.'
+      });
+    } catch (error) {
+      console.error('Error applying for event:', error);
+      res.status(500).json({ 
+        message: '이벤트 신청 중 오류가 발생했습니다.',
+        error: error.message 
+      });
     }
-
-    event.appliedParticipants.push(participantData);
-    await event.save();
-
-    res.json({ 
-      message: '신청이 완료되었습니다. 승인을 기다려주세요.'
-    });
-  } catch (error) {
-    console.error('Error applying for event:', error);
-    res.status(500).json({ 
-      message: '이벤트 신청 중 오류가 발생했습니다.',
-      error: error.message 
-    });
-  }
 });
 
 // 이벤트 신청 취소 - 'participant','starter','officer' 가능

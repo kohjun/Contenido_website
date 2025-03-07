@@ -19,7 +19,7 @@ async function loadEventContent(eventId) {
     document.getElementById('event-start-time').textContent = event.startTime;
     document.getElementById('event-end-time').textContent = event.endTime;
     document.getElementById('event-fee').textContent = event.participation_fee.toLocaleString() + '원';
-    document.getElementById('event-contents').textContent = event.contents;
+    document.getElementById('event-contents').innerHTML = event.contents.replace(/\n/g, "<br>");
 
     // 이미지 표시
     const imageContainer = document.getElementById('event-image-container');

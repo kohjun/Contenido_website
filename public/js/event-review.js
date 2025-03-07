@@ -92,12 +92,15 @@ async function loadEventDetails(eventId) {
     const event = await response.json();
 
     document.getElementById('event-details').innerHTML = `
-      <div class="event-info">
-        <h2>${event.title}</h2>
-        <p class="event-date">${new Date(event.date).toLocaleDateString()}</p>
-        <p class="event-place">${event.place}</p>
-      </div>
-    `;
+    <div class="event-info">
+      <h2>${event.title}</h2>
+      <p class="event-date">날짜 : ${new Date(event.date).toLocaleDateString()}</p>
+      <p class="event-place">장소 : ${event.place}</p>
+      <p class="event-participation_fee">참가비 : ${event.participation_fee}원</p>
+      <p class="event-content">${event.contents.replace(/\n/g, "<br>")}</p>
+    </div>
+  `;
+  
 
     // 참가자 확인 및 폼 표시 설정
     const isParticipant = event.finalParticipants?.includes(currentUserId);
