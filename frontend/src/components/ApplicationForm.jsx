@@ -28,7 +28,7 @@ const ApplicationForm = () => {
       
       // guest가 아닌 경우 메인 페이지로 리다이렉션
       if (userData.role !== 'guest') {
-        alert('게스트 회원만 지원이 가능합니다.');
+        alert('게스트만 지원이 가능합니다.');
         window.location.href = '/';
         return;
       }

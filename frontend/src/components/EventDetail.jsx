@@ -194,7 +194,7 @@ const EventDetail = () => {
           {renderContent()}
         </div>
 
-        {/* Action buttons */}
+        {/* Action buttons
         <div className="flex gap-4 mt-6 sticky bottom-0 bg-white py-4 border-t">
           <button className="flex-1 bg-orange-500 text-white py-4 rounded-lg font-bold hover:bg-orange-600 transition-colors">
             문의하기
@@ -202,7 +202,7 @@ const EventDetail = () => {
           <button className="flex-1 bg-yellow-400 text-black py-4 rounded-lg font-bold hover:bg-yellow-500 transition-colors">
             신청하기
           </button>
-        </div>
+        </div> */}
       </div>
     </div>
   );
