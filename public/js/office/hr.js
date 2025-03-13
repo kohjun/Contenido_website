@@ -56,6 +56,7 @@ function initializeDialogs() {
                 <option value="PlanningTeam">기획팀</option>
                 <option value="regularTeam">정기모임팀</option>
                 <option value="staffTeam">스태프팀</option>
+                <option value="starterTeam">스타터팀</option>
             </select>
             <div class="dialog-buttons">
                 <button onclick="updateUserTeam()">변경</button>
@@ -200,7 +201,8 @@ const teamDepartmentMapping = {
     // 기획부
     'PlanningTeam': 'planning',
     'regularTeam': 'planning',
-    'staffTeam': 'planning'
+    'staffTeam': 'planning',
+    'starterTeam' : 'planning'
 };
 
 // 팀 업데이트 함수 수정
@@ -329,7 +331,8 @@ function getTeamNameInKorean(team) {
     "videoTeam": "영상제작팀",
     "PlanningTeam": "기획팀",
     "regularTeam": "정기모임팀",
-    "staffTeam": "스태프팀"
+    "staffTeam": "스태프팀",
+    "starterTeam" : "스타터팀"
   };
   return teamMapping[team] || team; // 매핑되지 않은 경우 원래 값 반환
 }

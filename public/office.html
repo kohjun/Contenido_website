@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <title>콘테니도 운영진 페이지</title>
     <link rel="stylesheet" href="/css/office.css" />
+    <link rel="stylesheet" href="/css/organization.css" />
 </head>
 <body>
     <!-- 사이드바 컨테이너 -->
@@ -11,12 +12,86 @@
 
     <!-- 메인 컨텐츠 -->
     <main class="main-content" id="main-content">
-        <h1>Officer Page</h1>
-        <p style="margin-top: 1rem;">사이드바에서 팀을 선택하세요.</p>
+        <div class="header-controls">
+            <h1>CONTENID-O 동아리 운영진 조직도</h1>
+            
+        </div>
+        
+        <div class="org-chart">
+            <div class="department president">
+                <h2>회장단</h2>
+                <div class="member-list" id="administration"></div>
+            </div>
+            
+            <div class="departments">
+                <div class="department">
+                    <h2>운영부</h2>
+                    <div class="teams">
+                        <div class="team">
+                            <h3>운영팀</h3>
+                            <div class="member-list" id="operationTeam"></div>
+                        </div>
+                        <div class="team">
+                            <h3>대외협력팀</h3>
+                            <div class="member-list" id="cooperationTeam"></div>
+                        </div>
+                        <div class="team">
+                            <h3>인사팀</h3>
+                            <div class="member-list" id="HumanResourceTeam"></div>
+                        </div>
+                        <div class="team">
+                            <h3>재무팀</h3>
+                            <div class="member-list" id="financeTeam"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="department">
+                    <h2>홍보부</h2>
+                    <div class="teams">
+                        <div class="team">
+                            <h3>홍보팀</h3>
+                            <div class="member-list" id="marketingTeam"></div>
+                        </div>
+                        <div class="team">
+                            <h3>디자인팀</h3>
+                            <div class="member-list" id="designTeam"></div>
+                        </div>
+                        <div class="team">
+                            <h3>영상제작팀</h3>
+                            <div class="member-list" id="videoTeam"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="department">
+                    <h2>기획부</h2>
+                    <div class="teams">
+                        <div class="team">
+                            <h3>기획팀</h3>
+                            <div class="member-list" id="PlanningTeam"></div>
+                        </div>
+                        <div class="team">
+                            <h3>정기모임팀</h3>
+                            <div class="member-list" id="regularTeam"></div>
+                        </div>
+                        <div class="team">
+                            <h3>스태프팀</h3>
+                            <div class="member-list" id="staffTeam"></div>
+                        </div>
+                        <div class="team">
+                            <h3>스타터팀</h3>
+                            <div class="member-list" id="starterTeam"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </main>
 
     <!-- 스크립트 -->
     <script src="/js/office/sidebar.js"></script>
+    <script src="/js/office/organization.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const container = document.getElementById('sidebar-container');

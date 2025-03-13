@@ -35,7 +35,7 @@ async function loadEventContent(eventId) {
     }
 
     // 생성자인 경우 수정 버튼 표시
-    if (event.creator === user.id && user.role === 'officer') {
+    if (event.creator === user.id && (user.role === 'officer' || user.role === 'admin')) {
       document.getElementById('modify-button').style.display = 'block';
     }
 

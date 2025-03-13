@@ -87,7 +87,7 @@
         <div class="form-group">
           <label class="checkbox-label">
             <input type="checkbox" id="is-selective" onchange="toggleQuestionSection()">
-            선별적 이벤트 (참가자 선발)
+            <br>일반 이벤트(지원서 X) < ---- > 선발 이벤트 (지원서 O)
           </label>
           <span class="form-hint">참가자를 선발하기 위한 추가 질문을 입력할 수 있습니다</span>
         </div>
@@ -139,11 +139,20 @@
           </select>
         </div>
 
-
-
         <div class="participant-selection-container">
           <label>참가자 선택</label>
           <div id="participant-list" class="participant-grid"></div>
+        </div>
+
+        <div class="form-group">
+          <label for="report-access-code">접근 코드</label>
+          <input type="password" 
+                 id="report-access-code" 
+                 pattern="\d{4}" 
+                 maxlength="4" 
+                 placeholder="4자리 숫자" 
+                 required>
+          <small>* 이벤트 생성 시 설정한 접근 코드를 입력하여 보고서를 제출하세요.</small>
         </div>
 
         <div class="form-actions">

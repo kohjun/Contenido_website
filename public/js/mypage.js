@@ -43,16 +43,17 @@ async function fetchUserInfo() {
 
     // 팀 표시 매핑
     const teamDisplay = {
-      'operationTeam': '운영',
-      'cooperationTeam': '대외협력',
-      'HumanResourceTeam': '인사',
-      'financeTeam': '재무',
-      'marketingTeam': '홍보',
-      'designTeam': '디자인',
-      'videoTeam': '영상제작',
-      'PlanningTeam': '기획',
-      'regularTeam': '정기모임',
-      'staffTeam': '스태프'
+      'operationTeam': '운영팀',
+      'cooperationTeam': '대외협력팀',
+      'HumanResourceTeam': '인사팀',
+      'financeTeam': '재무팀',
+      'marketingTeam': '홍보팀',
+      'designTeam': '디자인팀',
+      'videoTeam': '영상제작팀',
+      'PlanningTeam': '기획팀',
+      'regularTeam': '정기모임팀',
+      'staffTeam': '스태프팀',
+      'starterTeam' :'스타터팀'
     };
 
     // 성별 표시 매핑

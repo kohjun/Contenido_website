@@ -57,6 +57,10 @@ const userSchema = new mongoose.Schema({
     default: false, 
     required: function () { return this.role === 'officer'; } 
   },
+  isTeamLeader: {  // 새로운 필드 추가
+    type: Boolean,
+    default: false
+  },
   warningCount: {
     type: Number,
     default: 0,
