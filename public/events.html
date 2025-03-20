@@ -1,55 +1,276 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Events</title>
-  <link rel="stylesheet" href="/css/styles.css" />
-</head>
-<body>
-  <div class="page-layout">
-    <!-- 왼쪽 광고 배너너 -->
-    <div class="ad-banner">
-      <!-- <img src="./images/sample.jpeg" alt="Left Advertisement"> -->
-      <p>Advertisement</p>
-    </div>
-    <div class="container">
-      <h1>진행중인 이벤트</h1>
-      <div class="navigation-buttons">
-        <button onclick="window.location.href='calendar.html'" class="calendar-button">
-          <i class="calendar-icon">📅</i>
-          이벤트 캘린더
-        </button>
-        <button onclick="window.location.href='ended-events.html'" class="ended-events-button">
-          <i class="history-icon">📋</i>
-          종료된 이벤트
-        </button>
+  <html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Home</title>
+    <link rel="icon" href="/images/Contenido_Logo.ico" type="image/x-icon">
+    <link rel="stylesheet" href="/css/styles.css" />
+    
+  </head>
+
+  <body>
+    <div class="page-layout">
+      
+      <div class="container">
+        <div class="title-container">
+          <p class="subtitle"><strong><dot>리얼</dot> 버라이어티<br>연합 동아리</strong></p>
+          <br><br>
+          <img src="./images/Conteindo_Image.png" width="270" height="270" alt="Content Image" style="margin-left:20px" />
+        </div>
+        
+        <div>
+          <h2>공지사항</h2>
+          <div id="home-announcements" class="home-announcements">
+            <!-- 공지사항이 여기에 동적으로 로드됩니다 -->
+          </div>
+        </div>
+
+        <!-- 공지사항 모달 추가 -->
+        <div id="announcement-modal" class="modal">
+          <div class="modal-content">
+            <span class="close-button" onclick="closeAnnouncementModal()">&times;</span>
+            <h2 id="modal-title"></h2>
+            <div id="modal-content"></div>
+          </div>
+        </div>
+
+        <hr>
+
+        <div class="home-buttons">       
+          <!-- 새로운 합격 확인 버튼 -->
+          <button onclick="window.location.href='application-result.html'" class="result-check-button">
+            <span class="result-icon">🔍</span>
+            <span class="result-text">합격 결과 확인하기</span>
+            <span class="result-arrow">→</span>
+          </button>
+        </div>      
+         
+
+
+        <div> 
+          <button onclick="OnEvents()">이벤트 신청</button>
+          <button onclick="window.location.href='/ranking'">👑 활동 랭킹 👑</button>
+        </div>
+
+        <button id="kakao-login-button" class="kakao-login-button" onclick="loginWithKakao()">Login with Kakao</button>
+        <button id="logout-button" style="display: none;" onclick="logout()">로그아웃</button>
+        <div style="text-align: center; margin-top: 2rem;">
+          <a href="https://m.youtube.com/@CONTENIDO-f6w" target="_blank" rel="noopener noreferrer" style="text-decoration: none;">
+            <img src="/images/youtube-icon.png" alt="YouTube Icon" style="width: 55px; height: 55px;" />
+          </a>
+          <a href="https://www.instagram.com/contenido__o?igsh=NDRocG93MTB4MDJn" target="_blank" rel="noopener noreferrer" style="text-decoration: none;">
+            <img src="/images/instagram-icon.png" alt="Instagram Icon" style="width: 55px; height: 55px; " />
+          </a>
+        </div>
+        
       </div>
-      <p>※활동부원만 신청 가능합니다.(마이페이지를 통해 확인)</p>
-      <p>이벤트 당일 전 일주일 이내 신청 취소 : 경고 1회 -> 대타 모집 : 패널티 X</p>
-      <p>S : 스타터팀, R : 정기모임팀, A ~ C : 스태프팀</p>
-      
-      
-      <div id="events-list"></div>
 
-      <!-- 페이지네이션 추가 -->
-      <div class="pagination-container">
-        <button class="pagination-button" id="prev-page" disabled>&lt; 이전</button>
-        <span id="page-info">페이지 1</span>
-        <button class="pagination-button" id="next-page">다음 &gt;</button>
+    </div>
+
+    <!-- 첫 번째 팝업 내용 -->
+    <div id="popup1" class="popup">
+      <div class="popup-content">
+        <span class="close-button" onclick="closePopup('popup1')">&times;</span>
+        <div class="popup-body">
+          <!-- 팝업 내용 -->
+          <div class="popup-images">
+            <img src="./images/보드게임1.png" alt="Popup Image 1">
+            <img src="./images/보드게임2.png" alt="Popup Image 2">
+            <img src="./images/보드게임3.png" alt="Popup Image 3">
+          </div>
+        </div>
+        <div class="popup-footer">
+          <label class="dont-show-today">
+            <input type="checkbox" id="dont-show-today-1"> 오늘 하루 보지 않기
+          </label>
+          <button onclick="closePopup('popup1')">닫기</button>
+        </div>
       </div>
+    </div>
 
+    <!-- 두 번째 팝업 내용 -->
+    <div id="popup2" class="popup">
+      <div class="popup-content">
+        <span class="close-button" onclick="closePopup('popup2')">&times;</span>
+    
+        <div class="popup-body">
+          <!-- 팝업 내용 -->
+          <div class="popup-images">
+            <img src="./images/술집1.png" alt="Popup Image 1">
+            <img src="./images/술집2.png" alt="Popup Image 2">
+            <img src="./images/술집3.png" alt="Popup Image 3">
+          </div>
+        </div>
+        <div class="popup-footer">
+          <label class="dont-show-today">
+            <input type="checkbox" id="dont-show-today-2"> 오늘 하루 보지 않기
+          </label>
+          <button onclick="closePopup('popup2')">닫기</button>
+        </div>
+      </div>
+    </div>
+    <br>
+    <!-- Footer section -->
+    <footer>
+      <div class="footer-container">
+          <!-- Section 1: About -->
+          <div class="footer-section">
+              <h4>About Us</h4>
+              <p>
+                2024년 4월 부터 활동을 시작한 리얼 버라이어티 연합 동아리로서 부원들에게 최상의 경험과 기회를 제공합니다.
+              </p>
+          </div>
+          <!-- Section 2: Quick Links -->
+          <div class="footer-section">
+              <h4>Quick Links</h4>
+              <ul>
+                  <li><a href="/events.html">진행중인 이벤트</a></li>
+                  <li><a href="/ended-events.html">종료된 이벤트</a></li>  
+              </ul>
+          </div>
+          <!-- Section 3: Contact -->
+          <div class="footer-section">
+              <h4>Contact Us</h4>
+              <ul>
+                  <li><p>010-2245-8697(운영부장)</p></li>
+                  <li><p>010-5183-5971(홍보부장)</p></li> 
+                  <li><p>010-8798-5971(기획부장)</p></li>                
+              </ul>
+          </div>
+      </div>
+      <div class="footer-bottom">
+          © 2025 Contenido.kr. All Rights Reserved.
+      </div>
+    </footer>
       
+    
 
-    </div>
-    <!-- 오른쪽 광고 배너 -->
-    <div class="ad-banner">
-      <!-- <img src="./images/sample.jpeg" alt="Right Advertisement"> -->
-      <p>Advertisement</p>
-    </div>
-  </div>
-  <!-- Include events.js which already calls checkUserRole -->
-  <script src="/js/events.js"></script>
+    
+    <script>
+      document.addEventListener('DOMContentLoaded', function() {
+        // 쿠키 체크
+        if (!getCookie('dontShowToday1')) {
+          showPopup('popup1');
+        }
+        if (!getCookie('dontShowToday2')) {
+          showPopup('popup2');
+        }
+        startImageSlider();
+        // loadHomeAnnouncements 제거
+      });
+
+      function showPopup(popupId) {
+        document.getElementById(popupId).style.display = 'block';
+      }
+
+      function closePopup(popupId) {
+        const popup = document.getElementById(popupId);
+        const dontShowToday = document.getElementById(`dont-show-today-${popupId === 'popup1' ? '1' : popupId === 'popup2' ? '2' : ''}`).checked;
+        
+        if (dontShowToday) {
+          // 쿠키 설정 (24시간)
+          const date = new Date();
+          date.setTime(date.getTime() + (24 * 60 * 60 * 1000));
+          document.cookie = `dontShowToday${popupId === 'popup1' ? '1' : popupId === 'popup2' ? '2' : ''}=true; expires=${date.toUTCString()}; path=/`;
+        }
+        
+        popup.style.display = 'none';
+      }
+
+      // 쿠키 가져오기 함수
+      function getCookie(name) {
+        const value = `; ${document.cookie}`;
+        const parts = value.split(`; ${name}=`);
+        if (parts.length === 2) return parts.pop().split(';').shift();
+      }
+
+      // 팝업 닫기 버튼 이벤트
+      document.querySelectorAll('.close-button').forEach(button => {
+        button.addEventListener('click', function() {
+          closePopup(button.parentElement.parentElement.id);
+        });
+      });
+
+      // 팝업 외부 클릭 시 닫기
+      document.querySelectorAll('.popup').forEach(popup => {
+        popup.addEventListener('click', function(e) {
+          if (e.target === this) {
+            closePopup(this.id);
+          }
+        });
+      });
+        
+      function checkParticipationStatus() {
+        window.location.href = '/participation-status.html';
+      }
+
+      async function updateButtonVisibility() {
+        try {
+          const response = await fetch('/user/info');
+          if (response.status === 200) {
+            document.getElementById('kakao-login-button').style.display = 'none';
+            document.getElementById('logout-button').style.display = 'block';
+          } else {
+            document.getElementById('kakao-login-button').style.display = 'block';
+            document.getElementById('logout-button').style.display = 'none';
+          }
+        } catch (error) {
+          console.error('Error checking login status:', error);
+          document.getElementById('kakao-login-button').style.display = 'block';
+          document.getElementById('logout-button').style.display = 'none';
+        }
+      }
+
+      document.addEventListener('DOMContentLoaded', updateButtonVisibility);
+
+      function loginWithKakao() {
+        window.location.href = '/auth/kakao';
+      }
+
+      function OnEvents() {
+        window.location.href = '/events.html';
+      }
+      function OnOfficer() {
+        window.location.href = '/officer.html';
+      }
+      function logout() {
+        window.location.href = '/auth/logout';
+      }
+
+      function startImageSlider() {
+        document.querySelectorAll('.popup-images').forEach(popupImages => {
+          const images = popupImages.querySelectorAll('img');
+          let currentIndex = 0;
+  
+          images[currentIndex].style.display = 'block';
+  
+          setInterval(() => {
+            images[currentIndex].style.display = 'none';
+            currentIndex = (currentIndex + 1) % images.length;
+            images[currentIndex].style.display = 'block';
+          }, 3000);
+        });
+      }
+
+      function showAnnouncementModal(title, content) {
+        document.getElementById('modal-title').textContent = title;
+        document.getElementById('modal-content').textContent = content;
+        document.getElementById('announcement-modal').style.display = 'block';
+      }
+
+      function closeAnnouncementModal() {
+        document.getElementById('announcement-modal').style.display = 'none';
+      }
+
+      // 모달 외부 클릭 시 닫기
+      window.onclick = function(event) {
+        const modal = document.getElementById('announcement-modal');
+        if (event.target == modal) {
+          modal.style.display = 'none';
+        }
+      }
+    </script>
   <script src="/js/utils/nav-injector.js"></script>
-</body>
-</html>
+  </body>
+  </html>

@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const authenticateToken = require('../middleware/authMiddleware');
+const { authorizeRoles } = require('../middleware/roleMiddleware');
 const User = require('../models/User');
 
 // 토큰을 사용해서 유저 정보 얻기
@@ -78,13 +79,13 @@ router.get('/info_database', authenticateToken, async (req, res) => {
 router.get('/participants/users', async (req, res) => {
   try {
     const users = await User.find({ isVerified: true })
-      .select('displayName name participationCount profileImage status active role gender phonenumber warningCount team department preferredActivity'); // 필요한 필드들을 선택
+      .select('displayName name participationCount profileImage status active role gender phonenumber warningCount team department preferredActivity birthDate isTeamLeader'); // isTeamLeader 추가
     
     const userData = users.map(user => ({
       id: user._id,
       displayName: user.displayName,
-      name : user.name,
-      phonenumber : user.phonenumber,
+      name: user.name,
+      phonenumber: user.phonenumber,
       profileImage: user.profileImage || '/images/basic_Image.png',
       participationCount: user.participationCount,
       active: user.active,
@@ -93,7 +94,9 @@ router.get('/participants/users', async (req, res) => {
       department: user.department,
       gender: user.gender || '-',
       warningCount: user.warningCount,
-      preferredActivity: user.preferredActivity || '-'
+      preferredActivity: user.preferredActivity || '-',
+      birthDate: user.birthDate,
+      isTeamLeader: user.isTeamLeader
     }));
 
     res.status(200).json(userData);
@@ -329,6 +332,35 @@ router.post('/update-profile', authenticateToken, async (req, res) => {
     console.error('Error updating profile:', error);
     res.status(500).json({ message: '프로필 업데이트 중 오류가 발생했습니다.' });
   }
+});
+
+// 팀장 지정/해제 라우트 수정
+router.post('/update-team-leader/:userId', authenticateToken, authorizeRoles('admin'), async (req, res) => {
+    try {
+        const { userId } = req.params;
+        const { isTeamLeader } = req.body;
+
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({ message: '사용자를 찾을 수 없습니다.' });
+        }
+
+        // officer만 팀장 지정 가능
+        if (user.role !== 'officer') {
+            return res.status(400).json({ message: '운영진만 팀장으로 지정할 수 있습니다.' });
+        }
+
+        user.isTeamLeader = isTeamLeader;
+        await user.save();
+
+        res.json({
+            success: true,
+            message: `팀장 ${isTeamLeader ? '지정' : '해제'}이 완료되었습니다.`
+        });
+    } catch (error) {
+        console.error('팀장 상태 업데이트 중 오류:', error);
+        res.status(500).json({ message: '팀장 상태 업데이트에 실패했습니다.' });
+    }
 });
 
 module.exports = router;

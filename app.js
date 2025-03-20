@@ -61,6 +61,11 @@ app.use('/reviews', require('./routes/reviews'));
 app.use('/saved-places', require('./routes/savedPlaces'));
 app.use('/application', require('./routes/application'));
 app.use('/application-result', require('./routes/applicationResult'));
+app.use('/announcements', require('./routes/announcement')); // 경로 수정
+
+
+// 정적 파일 서빙 설정 전에 API 라우터 추가
+app.use('/office', require('./routes/office')); // 운영진 라우터 추가
 
 // Role-based routes
 app.use('/', require('./routes/role'));
@@ -93,25 +98,20 @@ app.use('/uploads', express.static(path.join(__dirname, 'public/uploads'), {
 // 정적 파일 서빙 설정 전에 favicon 미들웨어 추가
 app.use(favicon(path.join(__dirname, 'public', 'images', 'Contenido_Logo.ico')));
 
-// 정적 파일 서빙 설정
+// 정적 파일 서빙 설정 수정
 app.use(express.static('public', {
     setHeaders: (res, filePath) => {
-        if (filePath.endsWith('.html') && !filePath.endsWith('index.html')) {
+        if (filePath.endsWith('.html')) {
             res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
             res.setHeader('Pragma', 'no-cache');
-        } else if (filePath.match(/\.(js|css|png|jpg|jpeg|gif|ico)$/)) {
-            res.setHeader('Cache-Control', 'public, max-age=31536000'); // 1년
-        }
-        if (filePath.endsWith('.js')) {
-            // JavaScript 파일에 대한 캐시 제어
-            res.setHeader('Cache-Control', 'no-cache');
+            res.setHeader('Expires', '0');
+        } else if (filePath.match(/\.(js|css)$/)) {
+            // JavaScript와 CSS 파일에 대한 캐시 제어
+            res.setHeader('Cache-Control', 'no-cache, must-revalidate');
             res.setHeader('Pragma', 'no-cache');
             res.setHeader('Expires', '0');
-        } else if (filePath.endsWith('.css')) {
-            // CSS 파일에 대한 캐시 제어
-            res.setHeader('Cache-Control', 'no-cache');
-            res.setHeader('Pragma', 'no-cache');
-            res.setHeader('Expires', '0');
+        } else if (filePath.match(/\.(png|jpg|jpeg|gif|ico)$/)) {
+            res.setHeader('Cache-Control', 'public, max-age=31536000');
         }
     }
 }));
@@ -180,6 +180,8 @@ mongoose
     console.error('MongoDB connection error:', error.message);
     process.exit(1); // 치명적인 데이터베이스 연결 오류시 프로세스 종료
   });
+
+
 // 서버 실행
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {

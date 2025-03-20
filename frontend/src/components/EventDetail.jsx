@@ -81,7 +81,7 @@ const EventDetail = () => {
               />
               <button 
                 type="submit"
-                className="bg-orange-500 text-white px-4 py-2 rounded-lg"
+                className="bg-[#0A84FE]-500 text-white px-4 py-2 rounded-lg"
               >
                 리뷰 작성
               </button>

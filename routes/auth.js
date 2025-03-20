@@ -41,7 +41,7 @@ router.get(
         return res.redirect('/additional-user-info.html');
       }
 
-      res.redirect('/events.html');
+      res.redirect('/index.html');
     } catch (error) {
       console.error('Error during user login:', error);
       res.redirect('/');

@@ -1,0 +1,152 @@
+.dashboard {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.dashboard h2 {
+    color: #333;
+    text-align: center;
+    margin-bottom: 30px;
+    font-size: 24px;
+}
+
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 30px;
+    padding: 20px;
+}
+
+.chart-container {
+    background: #fff;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    min-height: 400px;
+    display: flex;
+    flex-direction: column;
+}
+
+.chart-container h3 {
+    color: #444;
+    margin-bottom: 15px;
+    font-size: 18px;
+    text-align: center;
+}
+
+.stats-container {
+    grid-column: 1 / -1;
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    padding: 30px;
+    border-radius: 16px;
+    box-shadow: 0 8px 16px rgba(0,0,0,0.05);
+    margin-bottom: 30px;
+}
+
+.stats-container h3 {
+    color: #444;
+    margin-bottom: 15px;
+    font-size: 20px;
+}
+
+.stats-container p {
+    font-size: 16px;
+    color: #666;
+    margin: 10px 0;
+    display: flex;
+    justify-content: space-between;
+    max-width: 300px;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+}
+
+.stat-card {
+    background: white;
+    padding: 24px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 6px 12px rgba(0,0,0,0.1);
+}
+
+.stat-icon {
+    font-size: 2rem;
+    margin-right: 16px;
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 12px;
+}
+
+.stat-info {
+    flex: 1;
+}
+
+.stat-info h4 {
+    color: #6c757d;
+    font-size: 0.9rem;
+    margin: 0 0 8px 0;
+    font-weight: 500;
+}
+
+.stat-info span {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #212529;
+}
+
+.stat-card.total {
+    border-bottom: 4px solid #4BC0C0;
+}
+
+.stat-card.active {
+    border-bottom: 4px solid #0A84FE;
+}
+
+.stat-card.average {
+    border-bottom: 4px solid #FFCE56;
+}
+
+/* 차트 크기 조정 */
+#roleChart, #genderChart {
+    max-width: 400px;
+    max-height: 400px;
+    margin: 0 auto;
+}
+
+#activityChart {
+    max-width: 500px;
+    max-height: 400px;
+    margin: 0 auto;
+}
+
+/* 반응형 디자인 */
+@media (max-width: 768px) {
+    .dashboard-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .chart-container {
+        min-height: 300px;
+    }
+    
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .stat-card {
+        padding: 20px;
+    }
+}

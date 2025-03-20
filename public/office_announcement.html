@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>공지사항 관리</title>
+    <link rel="stylesheet" href="./css/announcement.css">
+</head>
+<body>
+    <div class="announcements-container">
+        <h1>공지사항 관리</h1>
+        
+        <!-- 공지사항 작성 폼 -->
+        <form id="create-announcement-form" class="announcement-form">
+            <div class="form-group">
+                <label for="title">제목</label>
+                <input type="text" id="title" name="title" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="content">내용</label>
+                <textarea id="content" name="content" required></textarea>
+            </div>
+            
+            <div class="form-group">
+                <label for="priority">중요도</label>
+                <select id="priority" name="priority">
+                    <option value="high">높음</option>
+                    <option value="medium" selected>중간</option>
+                    <option value="low">낮음</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="department">대상 부서</label>
+                <select id="department" name="department">
+                    <option value="all">전체</option>
+                    <option value="operation">운영부</option>
+                    <option value="promotion">홍보부</option>
+                    <option value="planning">기획부</option>
+                </select>
+            </div>
+            
+            <button type="submit">공지사항 등록</button>
+        </form>
+
+        <!-- 공지사항 목록 -->
+        <div id="announcements-list"></div>
+
+        <!-- 수정 모달 -->
+        <div id="edit-modal" class="modal">
+            <div class="modal-content">
+                <h2>공지사항 수정</h2>
+                <form id="edit-announcement-form">
+                    <input type="hidden" id="edit-id">
+                    <div class="form-group">
+                        <label for="edit-title">제목</label>
+                        <input type="text" id="edit-title" name="title" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit-content">내용</label>
+                        <textarea id="edit-content" name="content" required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit-priority">중요도</label>
+                        <select id="edit-priority" name="priority">
+                            <option value="high">높음</option>
+                            <option value="medium">중간</option>
+                            <option value="low">낮음</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit-department">대상 부서</label>
+                        <select id="edit-department" name="department">
+                            <option value="all">전체</option>
+                            <option value="operation">운영부</option>
+                            <option value="promotion">홍보부</option>
+                            <option value="planning">기획부</option>
+                        </select>
+                    </div>
+                    <div class="modal-buttons">
+                        <button type="submit">수정</button>
+                        <button type="button" onclick="document.getElementById('edit-modal').style.display='none'">취소</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <script src="/js/office/announcement.js"></script>
+</body>
+</html>

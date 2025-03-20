@@ -1,69 +1,63 @@
 import React, { useState, useEffect } from 'react';
+import { ChevronRight, ChevronLeft, Star } from 'lucide-react';
 import _ from 'lodash';
-import { Star } from 'lucide-react';
 
 const RankingPage = () => {
   const [eventRankings, setEventRankings] = useState([]);
   const [participantRankings, setParticipantRankings] = useState([]);
-  const [activeTab, setActiveTab] = useState('events');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-
-
-  // 현재 기간을 계산하는 함수
-  const getCurrentPeriod = () => {
-    const now = new Date();
-    const month = now.getMonth(); // 0-11
-    const period = Math.floor(month / 2) * 2; // 현재 월을 2개월 단위로 나눔
-    const startMonth = period + 1; // 1부터 시작하는 월로 변환
-    const endMonth = period + 2;
-    return `${startMonth}~${endMonth}월`;
-  };
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const cardsToShow = 3;
 
   useEffect(() => {
     const fetchRankings = async () => {
       try {
         const eventsResponse = await fetch('/events/ended');
         const events = await eventsResponse.json();
-        const processedEvents = events.map(event => ({
-          id: event._id,
-          teamName: event.team,
-          eventName: event.title,
-          participants: event.finalParticipants?.length || 0,
-          maxParticipants: event.participants,
+        
+        if (!Array.isArray(events)) {
+          console.error('Events data is not an array:', events);
+          throw new Error('Invalid events data format');
+        }
+
+        const processedEvents = events.map((event, index) => ({
+          id: index + 1,        // 랭킹 표시용 id
+          eventId: event._id,   // 실제 MongoDB _id
+          title: event.title,
+          date: new Date(event.date).toLocaleDateString('ko-KR', { year: 'numeric', month: '2-digit', day: '2-digit' }).replace(/\. /g, '.'),
+          participation: `${Math.round((event.finalParticipants?.length || 0) / event.participants * 100)}%(${event.finalParticipants?.length || 0}/${event.participants})`,
           rating: event.rating || 0,
+          ratingCount: event.ratingCount || 0,
           description: event.contents,
-          date: new Date(event.date).toLocaleDateString(),
-          participationFee: event.participation_fee,
-          mainImage: event.images?.[0]
+          price: `${event.participation_fee.toLocaleString()}원`,
+          image: event.images?.[0] || '/api/placeholder/400/200'
         }));
 
-        const sortedEvents = _.orderBy(
-          processedEvents,
-          ['rating',(event) =>event.participants / event.maxParticipants],
-          ['desc', 'desc']
-        );
-
+        const sortedEvents = _.orderBy(processedEvents, ['rating', 'ratingCount'], ['desc', 'desc']);
         setEventRankings(sortedEvents);
 
         const usersResponse = await fetch('/user/participants/users');
         const users = await usersResponse.json();
-
         const processedUsers = users
           .filter(user => user.active)
           .map(user => ({
-            id: user.id,
             name: user.name,
-            participationCount: (user.participationCount?.regularCount || 0)
+            count: user.participationCount?.regularCount || 0,
+            image: user.profileImage || '/api/placeholder/200/280'
           }));
 
-        const sortedUsers = _.orderBy(processedUsers, ['participationCount'], ['desc']);
-        setParticipantRankings(sortedUsers);
+        const sortedUsers = _.orderBy(processedUsers, ['count'], ['desc'])
+          .map((user, index) => ({
+            ...user,
+            id: index + 1 // 순위를 정렬 후 인덱스 기준으로 부여
+          }));
 
+        setParticipantRankings(sortedUsers);
         setLoading(false);
       } catch (err) {
         console.error('Error fetching rankings:', err);
-        setError('로그인 후 다시 시도하세요.');
+        setError('데이터를 불러오는 중 오류가 발생했습니다.');
         setLoading(false);
       }
     };
@@ -71,26 +65,16 @@ const RankingPage = () => {
     fetchRankings();
   }, []);
 
-  const handleEventClick = (eventId) => {
-    window.location.href = `/ranking/${eventId}`;
+  const handlePrevCards = () => {
+    if (currentIndex > 0) {
+      setCurrentIndex(currentIndex - 1);
+    }
   };
 
-  const renderStars = (rating) => {
-    return (
-      <div className="flex items-center">
-        {[...Array(5)].map((_, index) => (
-          <Star
-            key={index}
-            className={`w-4 h-4 ${
-              index < Math.floor(rating)
-                ? 'text-yellow-400 fill-yellow-400'
-                : 'text-gray-300'
-            }`}
-          />
-        ))}
-        <span className="ml-1 text-sm text-gray-600">({rating.toFixed(1)})</span>
-      </div>
-    );
+  const handleNextCards = () => {
+    if (currentIndex < participantRankings.length - cardsToShow) {
+      setCurrentIndex(currentIndex + 1);
+    }
   };
 
   if (loading) {
@@ -103,115 +87,143 @@ const RankingPage = () => {
 
   if (error) {
     return (
-      <div className="p-4 text-red-500 text-center">
-        {error}
-      </div>
+      <div className="p-4 text-red-500 text-center">{error}</div>
     );
   }
 
   return (
-    <div className="max-w-6xl mx-auto p-4">
-      <h1 className="text-2xl font-bold text-center mb-6">동아리 활동 랭킹</h1>
-      <div className="flex flex-col items-center gap-2 mb-6">
-        <div className="flex justify-center gap-4">
-          <button
-            onClick={() => setActiveTab('events')}
-            className={`px-4 py-2 rounded-lg ${
-              activeTab === 'events' ? 'bg-blue-500 text-white' : 'bg-gray-200'
-            }`}
-          >
-            이벤트 랭킹
-          </button>
-          <button
-            onClick={() => setActiveTab('participants')}
-            className={`px-4 py-2 rounded-lg ${
-              activeTab === 'participants' ? 'bg-blue-500 text-white' : 'bg-gray-200'
-            }`}
-          >
-            참여 랭킹
-          </button>
+    <div className="max-w-2xl mx-auto p-4 font-['Elice DX Neolli']">
+      {/* 참여 랭킹 섹션 */}
+      <div className="mb-8">
+        <div className="flex justify-between items-center mb-2">
+          <h1 className="text-3xl " >참여 랭킹</h1>
+          <button className="text-gray-500 hover:text-gray-700" onClick={() => window.location.href = 'index.html'}>돌아가기</button>
         </div>
-        {activeTab === 'participants' && (
-          <div className="text-lg font-semibold text-gray-600">
-            {getCurrentPeriod()} 랭킹
+        <p className="text-gray-500 mb-4">상위 활동부원 20위까지 표시됩니다.</p>
+        
+        <div className="relative">
+          <h2 className="text-xl font-medium mb-2">
+            {new Date().getFullYear()}년 {new Date().getMonth() + 1}월 - {new Date().getMonth() + 2}월 기준
+          </h2>
+          
+          {/* 카드 캐러셀 */}
+          <div className="relative">
+            <div className="overflow-hidden">
+              <div 
+                className="flex transition-transform duration-300"
+                style={{ transform: `translateX(-${currentIndex * (100 / cardsToShow)}%)` }}
+              >
+                {participantRankings.map((user) => (
+                  <div 
+                    key={user.id} 
+                    className="flex-none w-1/3 px-2"
+                  >
+                    <div className="relative rounded-lg overflow-hidden shadow-md bg-white">
+                      <div className="absolute top-0 left-0 z-10">
+                        <div className="relative">
+                          <svg width="40" height="55" viewBox="0 0 60 80" className="fill-[#0A84FE]">
+                            <polygon points="0,0 60,0 60,60 30,80 0,60" />
+                          </svg>
+                          <div className="absolute top-0 left-0 w-full h-full flex justify-center items-center text-white font-medium text-lg" style={{paddingBottom: "10px"}}>
+                            {user.id}
+                          </div>
+                        </div>
+                      </div>
+                      <img 
+                        src={user.image} 
+                        alt={user.name}
+                        className="w-full h-64 object-cover"
+                      />
+                      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black to-transparent p-4">
+                        <div className="flex justify-between items-end">
+                          <h3 className="text-white text-2xl">{user.name}</h3>
+                          <div className="text-white text-4xl">{user.count}<span className="text-sm ml-1">회</span></div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+            
+            {/* 좌우 이동 버튼 */}
+            <button 
+              onClick={handlePrevCards} 
+              className={`absolute top-1/2 left-0 -translate-y-1/2 -translate-x-1/2 bg-white p-2 rounded-full shadow-lg ${currentIndex === 0 ? 'opacity-50 cursor-not-allowed' : ''}`}
+              disabled={currentIndex === 0}
+            >
+              <ChevronLeft className="w-6 h-6" />
+            </button>
+            
+            <button 
+              onClick={handleNextCards} 
+              className={`absolute top-1/2 right-0 -translate-y-1/2 translate-x-1/2 bg-white p-2 rounded-full shadow-lg ${currentIndex >= participantRankings.length - cardsToShow ? 'opacity-50 cursor-not-allowed' : ''}`}
+              disabled={currentIndex >= participantRankings.length - cardsToShow}
+            >
+              <ChevronRight className="w-6 h-6" />
+            </button>
           </div>
-        )}
-        <div className="text-sm text-gray-500 mt-2">
-          {activeTab === 'events' 
-            ? '* 종료된 이벤트 중 상위 20개의 이벤트만 표시됩니다.'
-            : '* 상위 활동부원 20위까지 표시됩니다.'
-          }
         </div>
       </div>
-
-      {activeTab === 'events' ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {eventRankings.slice(0, 20).map((event, index) => (
-            <div
-              key={event.id}
-              className="bg-white rounded-lg shadow-lg overflow-hidden cursor-pointer transform transition-transform hover:scale-105"
-              onClick={() => handleEventClick(event.id)}
+      <br></br>
+      {/* 이벤트 랭킹 섹션 */}
+      <div>
+        <div className="flex justify-between items-center mb-2">
+          <h1 className="text-3xl font-medium">이벤트 랭킹</h1>
+        </div>
+        <p className="text-gray-500 mb-4">종료된 이벤트 중 상위 20개의 이벤트만 표시됩니다.</p>
+        <br></br>
+        <div className="space-y-4">
+          {eventRankings.slice(0, 20).map((event) => (
+            <div 
+              key={event.id} 
+              className="border border-gray-300 rounded-lg overflow-hidden bg-white cursor-pointer hover:border-[#0A84FE] transition-colors" 
+              onClick={() => window.location.href = `/ranking/${event.eventId}`}
             >
-              <div className="relative aspect-video w-full overflow-hidden">
-                <img
-                  src={event.mainImage || "/api/placeholder/400/225"}
-                  alt={event.eventName}
-                  className="w-full h-full object-cover"
+              <div className="relative">
+                {/* 랭킹 번호 - 리본 스타일 */}
+                <div className="absolute top-0 left-0 z-10">
+                  <div className="relative">
+                    <svg width="35" height="50" viewBox="0 0 60 80" className="fill-[#0A84FE]">
+                      <polygon points="0,0 60,0 60,60 30,80 0,60" />
+                    </svg>
+                    <div className="absolute top-0 left-0 w-full h-3/4 flex justify-center items-center text-white font-medium text-lg">
+                      {event.id} {/* 랭킹 표시용 id 사용 */}
+                    </div>
+                  </div>
+                </div>
+                
+                <img 
+                  src={event.image} 
+                  alt={event.title}
+                  className="w-full h-48 object-cover"
                 />
-                <div className="absolute top-2 left-2 bg-blue-500 text-white px-3 py-1 rounded-full text-sm font-bold">
-                  #{index + 1}
-                </div>
               </div>
+              
               <div className="p-4">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm text-gray-500">{event.teamName}</span>
-                  <span className="text-sm text-gray-500">{event.date}</span>
+                <div className="flex justify-between items-start">
+                  <h3 className="text-2xl font-bold">{event.title}</h3>
+                  <p className="text-gray-500">{event.date}</p>
                 </div>
-                <h3 className="text-lg font-semibold mb-2">{event.eventName}</h3>
-                <p className="text-sm text-gray-600 mb-2 line-clamp-2">{event.description}</p>
-                <div className="flex justify-between items-center mb-2">
-                  <div className="text-sm">
-                    참가율: {Math.round(event.participants / event.maxParticipants * 100)}%
-                    <span className="text-gray-500 ml-1">
-                      ({event.participants}/{event.maxParticipants})
-                    </span>
-                  </div>
-                  <div className="text-sm font-semibold">
-                    {event.participationFee.toLocaleString()}원
+                
+                <div className="flex justify-between items-center my-2">
+                  <p className="text-black-600">참가율 : {event.participation}</p>
+                  <div className="flex items-center">
+                    <Star className="w-5 h-5 fill-yellow-400 stroke-yellow-400" />
+                    <span className="font-medium mx-1">{event.rating}</span>
+                    <span className="text-gray-500">({event.ratingCount})</span>
                   </div>
                 </div>
-                {renderStars(event.rating)}
+                
+                <p className="text-gray-700 my-3 line-clamp-3 font-medium">{event.description}</p>
+                
+                <div className="flex justify-end mt-2">
+                  <p className="text-xl font-medium">참가비 <span className="text-3xl ml-2">{event.price}</span></p>
+                </div>
               </div>
             </div>
           ))}
         </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {participantRankings.slice(0, 20).map((participant, index) => (
-            <div
-              key={participant.id}
-              className="bg-white rounded-lg shadow-lg overflow-hidden"
-            >
-              <div className="p-4 text-center">
-                <div className="text-3xl font-bold text-gray-800">#{index + 1}</div>
-                <div className="text-xl font-bold text-gray-800">{participant.name}</div>
-                <div className="text-3xl font-bold text-blue-500">
-                  {participant.participationCount}
-                </div>
-                <div className="text-sm text-gray-500">활동 횟수</div>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-      
-      <div className="mt-6 flex justify-center">
-        <button 
-          onClick={() => window.location.href = '/events.html'}
-          className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
-        >
-          진행중인 이벤트
-        </button>
       </div>
     </div>
   );

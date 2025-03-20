@@ -3,25 +3,40 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>콘테니도</title>
+    <title>Home</title>
     <link rel="icon" href="/images/Contenido_Logo.ico" type="image/x-icon">
     <link rel="stylesheet" href="/css/styles.css" />
+    
   </head>
 
   <body>
     <div class="page-layout">
-      <!-- 왼쪽 광고 배너너 -->
-      <div class="ad-banner">
-        <!-- <img src="./images/sample.jpeg" alt="Left Advertisement"> -->
-        <p>Advertisement</p>
-      </div>
+      
       <div class="container">
         <div class="title-container">
           <p class="subtitle"><strong><dot>리얼</dot> 버라이어티<br>연합 동아리</strong></p>
           <br><br>
           <img src="./images/Conteindo_Image.png" width="270" height="270" alt="Content Image" style="margin-left:20px" />
         </div>
-    
+        
+        <div>
+          <h2>공지사항</h2>
+          <div id="home-announcements" class="home-announcements">
+            <!-- 공지사항이 여기에 동적으로 로드됩니다 -->
+          </div>
+        </div>
+
+        <!-- 공지사항 모달 추가 -->
+        <div id="announcement-modal" class="modal">
+          <div class="modal-content">
+            <span class="close-button" onclick="closeAnnouncementModal()">&times;</span>
+            <h2 id="modal-title"></h2>
+            <div id="modal-content"></div>
+          </div>
+        </div>
+
+        <hr>
+
         <div class="home-buttons">       
           <!-- 새로운 합격 확인 버튼 -->
           <button onclick="window.location.href='application-result.html'" class="result-check-button">
@@ -29,12 +44,12 @@
             <span class="result-text">합격 결과 확인하기</span>
             <span class="result-arrow">→</span>
           </button>
-        </div>
-        <br>
+        </div>      
+         
+
+
         <div> 
-          <button >메뉴얼 보기</button>
           <button onclick="OnEvents()">이벤트 신청</button>
-       
           <button onclick="window.location.href='/ranking'">👑 활동 랭킹 👑</button>
         </div>
 
@@ -50,12 +65,7 @@
         </div>
         
       </div>
-      
-       <!-- 오른쪽 광고 배너 -->
-      <div class="ad-banner">
-        <!-- <img src="./images/sample.jpeg" alt="Right Advertisement"> -->
-        <p>Advertisement</p>
-      </div>
+
     </div>
 
     <!-- 첫 번째 팝업 내용 -->
@@ -100,7 +110,7 @@
         </div>
       </div>
     </div>
-
+    <br>
     <!-- Footer section -->
     <footer>
       <div class="footer-container">
@@ -116,17 +126,16 @@
               <h4>Quick Links</h4>
               <ul>
                   <li><a href="/events.html">진행중인 이벤트</a></li>
-                  <li><a href="/ended-events.html">종료된 이벤트</a></li>
-                                    
+                  <li><a href="/ended-events.html">종료된 이벤트</a></li>  
               </ul>
           </div>
           <!-- Section 3: Contact -->
           <div class="footer-section">
               <h4>Contact Us</h4>
-              <ul></ul>
-                  <li>Email: support@contenido.kr
-                  <li>Phone: 010-5183-5971(홍보부장), 010-2245-8697(운영부장), 010-8798-5971(기획부장)</li>
-                                   
+              <ul>
+                  <li><p>010-2245-8697(운영부장)</p></li>
+                  <li><p>010-5183-5971(홍보부장)</p></li> 
+                  <li><p>010-8798-5971(기획부장)</p></li>                
               </ul>
           </div>
       </div>
@@ -148,6 +157,7 @@
         showPopup('popup2');
       }
       startImageSlider();
+      loadAnnouncements();
     });
 
     function showPopup(popupId) {
@@ -243,6 +253,42 @@
         });
       }
 
+      function showAnnouncementModal(title, content) {
+        document.getElementById('modal-title').textContent = title;
+        document.getElementById('modal-content').textContent = content;
+        document.getElementById('announcement-modal').style.display = 'block';
+      }
+  
+      function closeAnnouncementModal() {
+        document.getElementById('announcement-modal').style.display = 'none';
+      }
+  
+      // 모달 외부 클릭 시 닫기
+      window.onclick = function(event) {
+        const modal = document.getElementById('announcement-modal');
+        if (event.target == modal) {
+          modal.style.display = 'none';
+        }
+      }
+
+      // 공지사항 로드 함수 추가
+      async function loadAnnouncements() {
+        try {
+          const response = await fetch('/announcements');
+          if (!response.ok) throw new Error('서버 오류');
+          const announcements = await response.json();
+          const container = document.getElementById('home-announcements');
+          
+          container.innerHTML = announcements.map(announcement => `
+            <p class="home-announcement ${announcement.priority}" 
+               onclick="showAnnouncementModal('${announcement.title}', '${announcement.content}')">
+              ${announcement.title}
+            </p>
+          `).join('');
+        } catch (error) {
+          console.error('공지사항 로드 실패:', error);
+        }
+      }
     </script>
   <script src="/js/utils/nav-injector.js"></script>
   </body>

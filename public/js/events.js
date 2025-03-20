@@ -346,7 +346,7 @@ async function openContentWindow(eventId) {
 }
 
 
-
+// 참가자 보고서 제출 옵션
 async function loadReportFormOptions() {
   try {
     const response = await fetch('/events');
@@ -375,18 +375,22 @@ async function loadReportFormOptions() {
     }
 
     participantList.innerHTML = ''; // Clear existing options
-    participants.forEach(participant => {
+    
+    // active가 true인 유저만 필터링
+    const activeParticipants = participants.filter(participant => participant.active);
+    
+    activeParticipants.forEach(participant => {
       const div = document.createElement('div');
-      div.className = 'participant-item'; // Assign class for CSS styling
+      div.className = 'participant-item';
 
       const checkbox = document.createElement('input');
       checkbox.type = 'checkbox';
-      checkbox.value = participant.id; // Set value to participant ID
+      checkbox.value = participant.id;
       checkbox.id = `participant-${participant.id}`;
 
       const label = document.createElement('label');
       label.htmlFor = checkbox.id;
-      label.textContent = participant.displayName;
+      label.textContent = participant.name; // displayName 대신 name 사용
 
       div.appendChild(checkbox);
       div.appendChild(label);
@@ -404,13 +408,18 @@ async function submitReport() {
   try {
     const eventDropdown = document.getElementById('report-event');
     const selectedEventId = eventDropdown ? eventDropdown.value : null;
+    const accessCode = document.getElementById('report-access-code').value;
 
     const selectedParticipants = Array.from(document.querySelectorAll('#participant-list input:checked'))
       .map(checkbox => checkbox.value);
 
-    // 값이 모두 올바르게 선택되었는지 확인
     if (!selectedEventId) {
       alert('이벤트를 선택하세요.');
+      return;
+    }
+
+    if (!accessCode) {
+      alert('접근 코드를 입력하세요.');
       return;
     }
 
@@ -419,6 +428,19 @@ async function submitReport() {
       return;
     }
 
+    // 접근 코드 확인
+    const verifyResponse = await fetch(`/events/${selectedEventId}/verify-access`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ accessCode })
+    });
+
+    if (!verifyResponse.ok) {
+      alert('잘못된 접근 코드입니다.');
+      return;
+    }
+
+    // 보고서 제출
     const response = await fetch(`/events/${selectedEventId}/report`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -442,8 +464,6 @@ async function submitReport() {
     alert('보고서를 제출하는 중 오류가 발생했습니다.');
   }
 }
-
-
 
 // 이벤트 종료 표시
 async function markEventAsEnded(eventId) {
@@ -572,28 +592,24 @@ async function applyForEvent(eventId) {
 }
 
 async function cancelApplication(eventId) {
-  isConfirmed = confirm('해당 이벤트 신청을 취소하시겠습니까?');
+  const isConfirmed = confirm('정말로 신청을 취소하시겠습니까?\n이벤트 일주일 전 취소 시 경고 1회가 부여됩니다.');
+
   if (!isConfirmed) {
     return;
   }
+
   try {
     const response = await fetch(`/events/${eventId}/cancel-application`, { method: 'POST' });
+    const result = await response.json();
 
-    if (response.ok) {
-      alert('신청이 취소되었습니다.');
-      fetchEvents(); // 이벤트 목록 다시 로드
-    } else {
-      const error = await response.json();
-      alert(`취소 실패: ${error.message}`);
-    }
+    alert(result.message);
+    fetchEvents(); // 이벤트 목록 새로고침
+
   } catch (error) {
     console.error('Error canceling application:', error);
-    alert('취소 중 문제가 발생했습니다.');
+    alert('신청 취소 중 문제가 발생했습니다.');
   }
 }
-
-
-
 
 // Run fetchEvents when the document is ready
 document.addEventListener('DOMContentLoaded', async () => {

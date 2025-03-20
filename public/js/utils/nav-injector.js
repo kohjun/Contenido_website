@@ -133,6 +133,38 @@ const navStyles = `
     width: 100%;
     height: auto;
 }
+.ad-banner {
+    position: fixed;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 150px;  /* 고정 너비 300px로 변경 */
+    height: 600px; /* 고정 높이 600px 유지 */
+    background-color: #f5f5f5;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border: 1px solid #ddd;
+    z-index: 999;
+}
+
+.ad-banner p {
+    color: #999;
+    font-size: 14px;
+}
+
+.left-banner {
+    left: 250px;  /* 위치 조정 */
+}
+
+.right-banner {
+    right: 250px;  /* 위치 조정 */
+}
+
+@media (max-width: 1700px) {  /* 반응형 breakpoint 수정 */
+    .ad-banner {
+        display: none;
+    }
+}
 
 @media (max-width: 768px) {
     .custom-nav-icon {
@@ -162,6 +194,7 @@ const sidebarHTML = `
                 <li><a href="mypage.html">마이페이지</a></li>
                 <li><a href="events.html">진행중인 이벤트</a></li>
                 <li><a href="ended-events.html">종료된 이벤트</a></li>
+                <li><a href="/calendar.html">이벤트 캘린더</a></li>
                 <li><a href="/ranking">활동 랭킹</a></li>
                 <li><a href="">익명제보(예정)</a></li>
             </ul>
@@ -198,6 +231,17 @@ const bottomNavHTML = `
     </button>
 </nav>
 `;
+// 광고 배너 HTML 수정
+const adBannersHTML = `
+    <div class="ad-banner left-banner">
+        <!-- <img src="./images/sample.jpeg" alt="Left Advertisement"> -->
+        <p>Advertisement</p>
+    </div>
+    <div class="ad-banner right-banner">
+        <!-- <img src="./images/sample.jpeg" alt="Right Advertisement"> -->
+        <p>Advertisement</p>
+    </div>
+`;
 
 // 사이드바 토글 함수
 function toggleSidebar() {
@@ -223,6 +267,8 @@ function goHome() {
 function goToMyPage() {
     window.location.href = '/mypage.html';
 }
+// 광고 배너 삽입
+document.body.insertAdjacentHTML('beforeend', adBannersHTML);
 
 // 스타일과 네비게이션 삽입
 document.addEventListener('DOMContentLoaded', function() {

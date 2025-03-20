@@ -2,7 +2,7 @@ const Sidebar = (function() {
   const template = `
     <div class="org-sidebar" id="org-sidebar">
       <div class="org-header">
-        <a href="index.html"> <h1>Contenido</h1> </a>
+        <a href="index.html"> <h1>CONTENIDO</h1> </a>
       </div>
       
       <div class="org-menu">
@@ -82,7 +82,7 @@ const Sidebar = (function() {
         </a>
         
         <div class="org-submenu">
-          <a href="#" class="org-menu-item" data-team="PlanningTeam">
+          <a href="#" class="org-menu-item" data-team="planningTeam">
             <div class="org-menu-item-content">
               <div class="org-menu-item-label"><strong>기획팀</strong></div>
               <div class="org-menu-item-description">기획 활동 기록 및 일정 관리</div>
@@ -100,9 +100,13 @@ const Sidebar = (function() {
               <div class="org-menu-item-description">메인 컨텐츠 이벤트 기획</div>
             </div>
           </a>
+          <a href="#" class="org-menu-item" data-team="starterTeam">
+            <div class="org-menu-item-content">
+              <div class="org-menu-item-label"><strong>스타터팀</strong></div>
+              <div class="org-menu-item-description">신입부원 맞충형 관리</div>
+            </div>
+          </a>
         </div>
-
-        <button class="org-toggle-btn">접기</button>
       </div>
     </div>
   `;
@@ -116,15 +120,17 @@ const Sidebar = (function() {
     marketingTeam: { url: '/office_marketing.html' },
     designTeam: { url: '/office_design.html' },
     videoTeam: { url: '/office_video.html' },
-    PlanningTeam: { url: '/office_planning.html' },
-    regularTeam: { url: '/office_regular.html' },
-    staffTeam: { url: '/calendar.html' }
+    planningTeam: { url: '/office_planning.html' },
+    regularTeam: { url: '/calendar.html' },
+    staffTeam: { url: '/calendar.html' },
+    starterTeam : {url: '/calendar.html'},
+    announcement: { url: '/office_announcement.html' }  // Add this line
   };
 
   const departmentTeams = {
     operation: ['operationTeam', 'cooperationTeam', 'HumanResourceTeam', 'financeTeam'],
     promotion: ['marketingTeam', 'designTeam', 'videoTeam'],
-    planning: ['PlanningTeam', 'regularTeam', 'staffTeam']
+    planning: ['planningTeam', 'regularTeam', 'staffTeam','starterTeam']
   };
 
   // 현재 사용자의 권한 정보를 가져오는 함수
@@ -176,6 +182,9 @@ const Sidebar = (function() {
         return;
       }
 
+      
+
+      // 기존 페이지 로드 로직
       const mainContent = document.getElementById('main-content');
       const response = await fetch(pageConfig.url);
       const html = await response.text();
@@ -183,7 +192,68 @@ const Sidebar = (function() {
 
       // 운영부
       //1. 운영팀
+      if (pageId === 'operationTeam') {
+        try {
+          // 기존 대시보드 초기화 상태 리셋
+          window.dashboardInitialized = false;
+          
+          // 1. CSS 파일이 이미 로드되어 있는지 확인
+          if (!document.querySelector('link[href="/css/operation.css"]')) {
+            const cssLink = document.createElement('link');
+            cssLink.rel = 'stylesheet';
+            cssLink.href = '/css/operation.css';
+            document.head.appendChild(cssLink);
+          }
 
+          // 2. Chart.js가 로드되어 있는지 확인
+          if (!window.Chart) {
+            await new Promise((resolve, reject) => {
+              const chartScript = document.createElement('script');
+              chartScript.src = 'https://cdn.jsdelivr.net/npm/chart.js';
+              chartScript.onload = resolve;
+              chartScript.onerror = reject;
+              document.head.appendChild(chartScript);
+            });
+          }
+
+          // 3. HTML 컨텐츠 로드
+          const mainContent = document.getElementById('main-content');
+          const response = await fetch('/office_operation.html');
+          const html = await response.text();
+          mainContent.innerHTML = html;
+
+          // 4. dashboard.js 로드 또는 재로드
+          const existingDashboard = document.querySelector('script[src="/js/office/dashboard.js"]');
+          if (existingDashboard) {
+            existingDashboard.remove();
+          }
+
+          await new Promise((resolve, reject) => {
+            const dashboardScript = document.createElement('script');
+            dashboardScript.src = '/js/office/dashboard.js';
+            dashboardScript.onload = resolve;
+            dashboardScript.onerror = reject;
+            document.body.appendChild(dashboardScript);
+          });
+
+          // 5. Dashboard 초기화
+          if (window.Dashboard) {
+            await window.Dashboard.initialize();
+            window.dashboardInitialized = true;
+          }
+
+        } catch (error) {
+          console.error('Error loading operation team page:', error);
+          const mainContent = document.getElementById('main-content');
+          mainContent.innerHTML = `
+            <div class="error-message">
+              <h3>페이지 로드 중 오류가 발생했습니다</h3>
+              <p>${error.message}</p>
+            </div>
+          `;
+        }
+        return;
+      }
   
       //2. 대외협력팀
       
@@ -381,6 +451,67 @@ const Sidebar = (function() {
 
       //기획부
       //8. 기획팀
+      //10.스태프팀
+      if (pageId === 'planningTeam') {
+        try {
+          // 기존 planning.js 스크립트 제거
+          const existingPlanningScript = document.querySelector('script[src="/js/office/planning.js"]');
+          if (existingPlanningScript) {
+            existingPlanningScript.remove();
+          }
+
+          // CSS 파일 확인 및 추가
+          if (!document.querySelector('link[href="/css/office/planning.css"]')) {
+            const cssLink = document.createElement('link');
+            cssLink.rel = 'stylesheet';
+            cssLink.href = '/css/office/planning.css';
+            document.head.appendChild(cssLink);
+          }
+
+          // Chart.js 로드 확인
+          if (!window.Chart) {
+            await new Promise((resolve, reject) => {
+              const chartScript = document.createElement('script');
+              chartScript.src = 'https://cdn.jsdelivr.net/npm/chart.js';
+              chartScript.onload = resolve;
+              chartScript.onerror = reject;
+              document.head.appendChild(chartScript);
+            });
+          }
+
+          // HTML 컨텐츠 로드
+          const mainContent = document.getElementById('main-content');
+          const response = await fetch('/office_planning.html');
+          const html = await response.text();
+          mainContent.innerHTML = html;
+
+          // planning.js 새로 로드 및 초기화
+          await new Promise((resolve, reject) => {
+            const planningScript = document.createElement('script');
+            planningScript.src = '/js/office/planning.js';
+            planningScript.onload = () => {
+              // planning.js가 로드된 후 초기화 함수 호출
+              if (typeof window.initDashboard === 'function') {
+                window.initDashboard();
+              }
+              resolve();
+            };
+            planningScript.onerror = reject;
+            document.body.appendChild(planningScript);
+          });
+
+        } catch (error) {
+          console.error('Error loading planning team page:', error);
+          const mainContent = document.getElementById('main-content');
+          mainContent.innerHTML = `
+            <div class="error-message">
+              <h3>기획팀 페이지 로드 중 오류가 발생했습니다</h3>
+              <p>${error.message}</p>
+            </div>
+          `;
+        }
+        return;
+      }
 
       //9. 정기모임팀
       if (pageId === 'regularTeam') {
@@ -407,8 +538,11 @@ const Sidebar = (function() {
           loadUsers();
         }
       }
+      
+      
+
       //10.스태프팀
-      if (pageId === 'staffTeam') {
+      if (pageId === 'staffTeam'||'regularTeam'||'starterTeam') {
         window.calendarInitialized = false;
 
         // TOAST UI Calendar CSS 로드
@@ -456,20 +590,7 @@ const Sidebar = (function() {
     container.innerHTML = template;
 
     const sidebar = container.querySelector('.org-sidebar');
-    const toggleBtn = container.querySelector('.org-toggle-btn');
     const header = container.querySelector('.org-header h1');
-
-    // 사이드바 토글 기능
-    toggleBtn.addEventListener('click', () => {
-      sidebar.classList.toggle('collapsed');
-      if (sidebar.classList.contains('collapsed')) {
-        header.textContent = 'Con';
-        toggleBtn.textContent = '펼치기';
-      } else {
-        header.textContent = 'Contenido';
-        toggleBtn.textContent = '접기';
-      }
-    });
 
     // 팀 메뉴 클릭 이벤트 위임
     container.addEventListener('click', async (e) => {
