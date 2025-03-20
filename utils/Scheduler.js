@@ -17,11 +17,11 @@ const resetWarningCounts = schedule.scheduleJob('0 0 1 1,4,7,10 *', async () => 
   }
 });
 
-// 격월(1,3,5,7,9,11월) 1일 00:00에 regularCount 초기화 및 활성상태 업데이트
-const resetParticipationCount = schedule.scheduleJob('0 0 1 1,3,5,7,9,11 *', async () => {
+// 격월(1,4,7,10월) 1일 00:00에 regularCount(정기 참여 횟수) 초기화 및 활성상태 업데이트
+const resetParticipationCount = schedule.scheduleJob('0 0 1 1,4,7,10 *', async () => {
   try {
     const users = await User.find();
-    console.log(`[${new Date()}] Bi-monthly participation count update started.`);
+    console.log(`[${new Date()}] participation count update started.`);
 
     const bulkOperations = users.map((user) => {
       const updateObj = {};
@@ -53,7 +53,7 @@ const resetParticipationCount = schedule.scheduleJob('0 0 1 1,3,5,7,9,11 *', asy
 
     if (bulkOperations.length > 0) {
       await User.bulkWrite(bulkOperations);
-      console.log('Bi-monthly participation count update completed successfully.');
+      console.log('participation count update completed successfully.');
     } else {
       console.log('No users to update.');
     }
