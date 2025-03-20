@@ -20,8 +20,6 @@ router.get(
     try {
       const profile = req.user;
 
-      console.log('User Profile:', profile);
-
       // JWT 생성
       const token = jwt.sign(
         { id: profile._id, 

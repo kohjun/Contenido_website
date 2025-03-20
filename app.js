@@ -28,9 +28,14 @@ app.use(express.json());
 
 // CORS 설정 (필요한 경우)
 app.use((req, res, next) => {
-    res.header('Access-Control-Allow-Origin', 'http://localhost:3000');  // 웹사이트 주소 입력
+    const allowedOrigins = ['https://contenido.kr', 'http://localhost:3000'];
+    const origin = req.headers.origin;
+    if (allowedOrigins.includes(origin)) {
+        res.header('Access-Control-Allow-Origin', origin);
+    }
     res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
     res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    res.header('Access-Control-Allow-Credentials', 'true');
     next();
 });
 
@@ -42,7 +47,9 @@ app.use(
         saveUninitialized: false,
         cookie: {
             httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
+            secure: true, // HTTPS 사용시 true로 설정
+            sameSite: 'strict',
+            domain: '.contenido.kr', // 도메인 설정
             maxAge: 24 * 60 * 60 * 1000 // 24시간
         }
     })

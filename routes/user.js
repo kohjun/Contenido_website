@@ -6,8 +6,6 @@ const User = require('../models/User');
 
 // 토큰을 사용해서 유저 정보 얻기
 router.get('/info', authenticateToken, (req, res) => {
-  console.log('User from JWT:', req.user); 
-
   if (req.user) {
     res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
     res.setHeader('Pragma', 'no-cache');
