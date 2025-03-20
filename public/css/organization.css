@@ -262,3 +262,18 @@
 .team-leader .contact {
     color: #a17f1a !important;
 }
+
+.member-count {
+    font-size: 0.8em;
+    float : right;
+    color: #666;
+    margin-left: 2px;
+}
+
+.member-count::before {
+    content: "(";
+}
+
+.member-count::after {
+    content: "명)";
+}

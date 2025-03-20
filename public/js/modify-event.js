@@ -1,10 +1,12 @@
 let originalData = {};
-let deletedImages = new Set(); // 삭제된 이미지 추적
+let deletedImages = new Set();
+let currentEvent = null; // 전역 변수로 현재 이벤트 데이터 저장
 
 async function loadEventContent(eventId) {
   try {
     const response = await fetch(`/events/${eventId}`);
     const event = await response.json();
+    currentEvent = event;  // 전역 변수에 저장
     originalData = { ...event };
 
     // 사용자 정보 조회
@@ -12,19 +14,19 @@ async function loadEventContent(eventId) {
     const user = await userResponse.json();
 
     // 기본 정보 표시
-    document.getElementById('event-title').textContent = event.title;
-    document.getElementById('event-place').textContent = event.place;
-    document.getElementById('event-date').textContent = new Date(event.date).toISOString().split('T')[0];
-    document.getElementById('event-participants').textContent = event.participants + '명';
-    document.getElementById('event-start-time').textContent = event.startTime;
-    document.getElementById('event-end-time').textContent = event.endTime;
-    document.getElementById('event-fee').textContent = event.participation_fee.toLocaleString() + '원';
-    document.getElementById('event-contents').innerHTML = event.contents.replace(/\n/g, "<br>");
+    document.getElementById('event-title').textContent = currentEvent.title;
+    document.getElementById('event-place').textContent = currentEvent.place;
+    document.getElementById('event-date').textContent = new Date(currentEvent.date).toISOString().split('T')[0];
+    document.getElementById('event-participants').textContent = currentEvent.participants + '명';
+    document.getElementById('event-start-time').textContent = currentEvent.startTime;
+    document.getElementById('event-end-time').textContent = currentEvent.endTime;
+    document.getElementById('event-fee').textContent = currentEvent.participation_fee.toLocaleString() + '원';
+    document.getElementById('event-contents').innerHTML = currentEvent.contents.replace(/\n/g, "<br>");
 
     // 이미지 표시
     const imageContainer = document.getElementById('event-image-container');
-    if (event.images && event.images.length > 0) {
-      imageContainer.innerHTML = event.images.map((image, index) => `
+    if (currentEvent.images && currentEvent.images.length > 0) {
+      imageContainer.innerHTML = currentEvent.images.map((image, index) => `
         <div class="image-wrapper" data-image-path="${image}">
           <div class="event-image">
             <img src="${image}" alt="Event image ${index + 1}">
@@ -35,18 +37,18 @@ async function loadEventContent(eventId) {
     }
 
     // 생성자인 경우 수정 버튼 표시
-    if (event.creator === user.id && (user.role === 'officer' || user.role === 'admin')) {
+    if (currentEvent.creator === user.id && (user.role === 'officer' || user.role === 'admin')) {
       document.getElementById('modify-button').style.display = 'block';
     }
 
     // 신청 상태 확인 및 버튼 업데이트
-    const hasApplied = event.appliedParticipants.some(p => p.userId === user.id);
+    const hasApplied = currentEvent.appliedParticipants.some(p => p.userId === user.id);
     const isActive = user.active;
-    const approvedCount = event.appliedParticipants.filter(p => p.status === 'approved').length;
-    const isFull = approvedCount >= event.participants;
+    const approvedCount = currentEvent.appliedParticipants.filter(p => p.status === 'approved').length;
+    const isFull = approvedCount >= currentEvent.participants;
 
     const applicationSection = document.getElementById('application-section');
-    if (event.isSelective) {
+    if (currentEvent.isSelective) {
       // 선별적 이벤트
       if (hasApplied) {
         applicationSection.innerHTML = `
@@ -54,7 +56,7 @@ async function loadEventContent(eventId) {
           <div class="application-form" style="pointer-events: none; opacity: 0.7;">
             <h3>지원서 양식</h3>
             <form id="application-form">
-              ${event.additionalQuestions.map((question, index) => `
+              ${currentEvent.additionalQuestions.map((question, index) => `
                 <div class="question-section">
                   <p class="question-text">Q${index + 1}. ${question.questionText}</p>
                   <textarea class="answer-textarea" disabled></textarea>
@@ -79,7 +81,7 @@ async function loadEventContent(eventId) {
           <div class="application-form">
             <h3>지원서 작성</h3>
             <form id="application-form" onsubmit="submitApplication(event)">
-              ${event.additionalQuestions.map((question, index) => `
+              ${currentEvent.additionalQuestions.map((question, index) => `
                 <div class="question-section">
                   <p class="question-text">Q${index + 1}. ${question.questionText}</p>
                   <textarea class="answer-textarea" name="answer_${index}" required></textarea>
@@ -109,15 +111,116 @@ async function loadEventContent(eventId) {
         `;
       } else {
         applicationSection.innerHTML = `
-          <button onclick="applyForEvent('${event._id}')" class="submit-button">신청하기</button>
+          <button onclick="applyForEvent('${currentEvent._id}')" class="submit-button">신청하기</button>
         `;
       }
     }
+
+    // 카카오 공유 버튼 초기화
+    await initializeKakaoShare();
 
   } catch (error) {
     console.error('Error:', error);
     alert('이벤트 정보를 불러오는데 실패했습니다.');
   }
+}
+
+// 카카오 초기화 함수
+async function initializeKakao() {
+  try {
+    const response = await fetch('/events/kakao-key');
+    const data = await response.json();
+    Kakao.init(data.kakaoKey);
+  } catch (error) {
+    console.error('카카오 키 초기화 실패:', error);
+  }
+}
+
+// 카카오톡 공유 함수 수정
+async function initializeKakaoShare() {
+  if (!currentEvent) {
+    console.error('이벤트 데이터가 없습니다.');
+    return;
+  }
+
+  await initializeKakao();
+
+  const kakaoButton = document.getElementById('kakao-share-button');
+  if (!kakaoButton) return;
+
+  const testImageUrl = 'https://search.pstatic.net/common/?src=http%3A%2F%2Fblogfiles.naver.net%2FMjAyNDA0MjhfMTU1%2FMDAxNzE0Mjc3Mjg3MTUy.niRL4XUfCRd_vhpY6vLyEXHB6aKeTeFZaSOHhrb_XNAg.-jG6J0I32ie91PNsRW5qRuevckHtuQQE8JtW42IrMCAg.JPEG%2Fimage_0.jpg&type=a340';
+
+  // D-Day 계산 추가
+  const today = new Date();
+  today.setHours(0, 0, 0, 0); // 시간 제거하고 날짜만 비교
+  
+  const eventDate = new Date(currentEvent.date);
+  eventDate.setHours(0, 0, 0, 0);
+  
+  const diffTime = eventDate.getTime() - today.getTime();
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  
+  let dDayText;
+  if (diffDays > 0) {
+    dDayText = `D-${diffDays}`;
+  } else if (diffDays === 0) {
+    dDayText = 'D-Day';
+  } else {
+    dDayText = '종료';
+  }
+
+  Kakao.Share.createDefaultButton({
+    container: '#kakao-share-button',
+    objectType: 'feed',
+    content: {
+      title: `[${currentEvent.team}] ${currentEvent.title}`,
+      description: currentEvent.contents,
+      imageUrl: testImageUrl, // 테스트 이미지 URL 사용
+      link: {
+        mobileWebUrl: window.location.href,
+        webUrl: window.location.href,
+      },
+    },
+    itemContent: {
+
+      profileImageUrl: testImageUrl, // 테스트 이미지 URL 사용
+      titleImageText: currentEvent.title,
+      titleImageCategory: currentEvent.team,
+      items: [
+        {
+          item: '일시',
+          itemOp: `${new Date(currentEvent.date).toLocaleDateString()}`,
+        },
+        {
+          item: '시간',
+          itemOp: `${currentEvent.startTime}~${currentEvent.endTime}`,
+        },
+        {
+          item: '장소',
+          itemOp: currentEvent.place,
+        },
+        {
+          item: '인원',
+          itemOp: `${currentEvent.participants}명`,
+        },
+        {
+          item: '참가비',
+          itemOp: `${currentEvent.participation_fee.toLocaleString()}원`,
+        },
+      ],
+      sum: '행사일',
+      sumOp: dDayText, // 계산된 D-Day 텍스트 적용
+    },
+    buttons: [
+      {
+        title: '이벤트 신청하기',
+        link: {
+          mobileWebUrl: window.location.href,
+          webUrl: window.location.href,
+        },
+      }
+    ],
+  });
 }
 
 // 신청 상태 확인 함수

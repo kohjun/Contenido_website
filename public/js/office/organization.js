@@ -100,10 +100,27 @@ class OrganizationChart {
             if (await this.isAdmin()) {
                 this.setupTeamLeaderEdit();
             }
+
+            // 인원수 업데이트 추가
+            this.updateMemberCounts();
         } catch (error) {
             console.error('데이터 로드 중 오류:', error);
             alert('데이터를 불러오는데 실패했습니다.');
         }
+    }
+
+    static updateMemberCounts() {
+        // 각 팀의 인원수 업데이트
+        document.querySelectorAll('.team').forEach(team => {
+            const memberCount = team.querySelector('.member-list').children.length;
+            team.querySelector('.member-count').textContent = memberCount;
+        });
+
+        // 각 부서의 인원수 업데이트
+        document.querySelectorAll('.department').forEach(dept => {
+            const memberCount = dept.querySelectorAll('.member-list .member').length;
+            dept.querySelector('h2 .member-count').textContent = memberCount;
+        });
     }
 }
 

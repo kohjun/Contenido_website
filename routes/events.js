@@ -56,6 +56,11 @@ router.get('/', async (req, res) => {
     res.status(500).json({ message: 'Error fetching events', error });
   }
 });
+router.get('/kakao-key', (req, res) => {
+  res.json({ kakaoKey: process.env.KAKAO_JAVASCRIPT_KEY });
+});
+
+module.exports = router;
 
 
 // 캘린더용 이벤트 포맷 - 인증 불필요
@@ -116,8 +121,27 @@ router.get('/ended',
   authorizeRoles('officer','participant','starter','admin','guest'),
   async (req, res) => {
     try {
+      const Review = require('../models/Review'); // Review 모델 추가
+
+      // 모든 종료된 이벤트 가져오기
       const endedEvents = await Event.find({ isEnded: true });
-      res.json(endedEvents);
+      
+      // 각 이벤트에 대한 리뷰 정보를 가져와서 평균 평점 계산
+      const eventsWithReviews = await Promise.all(endedEvents.map(async (event) => {
+        const reviews = await Review.find({ eventId: event._id });
+        const ratings = reviews.map(review => review.rating);
+        const averageRating = ratings.length > 0 
+          ? ratings.reduce((a, b) => a + b, 0) / ratings.length 
+          : 0;
+
+        return {
+          ...event.toObject(),
+          rating: averageRating,
+          ratingCount: reviews.length
+        };
+      }));
+
+      res.json(eventsWithReviews);
     } catch (error) {
       console.error('Error fetching ended events:', error.message);
       res.status(500).json({
@@ -586,6 +610,7 @@ router.put('/update-content',
       });
     }
 });
+
 
 
 module.exports = router;

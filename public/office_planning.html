@@ -1,1 +1,38 @@
-기획팀 페이지입니다
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>기획부 통계 대시보드</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="/css/office/planning.css">
+</head>
+<body>
+    <header>
+        <h1><script>document.write(new Date().getFullYear())</script> 스태프팀 통계</h1>
+    </header>
+    <div class="team-stats" id="basicStats"></div>
+    <div class="dashboard">
+        <div class="chart-container">
+            <canvas id="ratingChart"></canvas>
+        </div>
+        <div class="chart-container">
+            <canvas id="feeChart"></canvas>
+        </div>
+        <div class="chart-container">
+            <canvas id="dayChart"></canvas>
+        </div>
+        <div class="chart-container">
+            <canvas id="timeChart"></canvas>
+        </div>
+        <div class="chart-container">
+            <canvas id="monthChart"></canvas>
+        </div>
+        <div class="chart-container">
+            <canvas id="participationChart"></canvas>
+        </div>
+    </div>
+    <script src="/js/office/planning.js"></script>
+</body>
+</html>
