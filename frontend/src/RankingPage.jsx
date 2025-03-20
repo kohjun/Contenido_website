@@ -103,7 +103,16 @@ const RankingPage = () => {
         
         <div className="relative">
           <h2 className="text-xl font-medium mb-2">
-            {new Date().getFullYear()}년 {new Date().getMonth() + 1}월 - {new Date().getMonth() + 2}월 기준
+            {(() => {
+              const now = new Date();
+              const year = now.getFullYear();
+              const month = now.getMonth() + 1;
+              // 3개월 단위로 구분 (1-3월, 4-6월, 7-9월, 10-12월)
+              const quarterStart = Math.floor((month - 1) / 3) * 3 + 1;
+              const quarterEnd = quarterStart + 2;
+              
+              return `${year}년 ${quarterStart}월 - ${quarterEnd}월 기준`;
+            })()}
           </h2>
           
           {/* 카드 캐러셀 */}
