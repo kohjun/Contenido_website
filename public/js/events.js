@@ -592,28 +592,24 @@ async function applyForEvent(eventId) {
 }
 
 async function cancelApplication(eventId) {
-  isConfirmed = confirm('해당 이벤트 신청을 취소하시겠습니까?');
+  const isConfirmed = confirm('정말로 신청을 취소하시겠습니까?\n이벤트 일주일 전 취소 시 경고 1회가 부여됩니다.');
+
   if (!isConfirmed) {
     return;
   }
+
   try {
     const response = await fetch(`/events/${eventId}/cancel-application`, { method: 'POST' });
+    const result = await response.json();
 
-    if (response.ok) {
-      alert('신청이 취소되었습니다.');
-      fetchEvents(); // 이벤트 목록 다시 로드
-    } else {
-      const error = await response.json();
-      alert(`취소 실패: ${error.message}`);
-    }
+    alert(result.message);
+    fetchEvents(); // 이벤트 목록 새로고침
+
   } catch (error) {
     console.error('Error canceling application:', error);
-    alert('취소 중 문제가 발생했습니다.');
+    alert('신청 취소 중 문제가 발생했습니다.');
   }
 }
-
-
-
 
 // Run fetchEvents when the document is ready
 document.addEventListener('DOMContentLoaded', async () => {

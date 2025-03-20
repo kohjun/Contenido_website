@@ -6,6 +6,7 @@
     <title>Home</title>
     <link rel="icon" href="/images/Contenido_Logo.ico" type="image/x-icon">
     <link rel="stylesheet" href="/css/styles.css" />
+    
   </head>
 
   <body>
@@ -19,12 +20,21 @@
         </div>
         
         <div>
-          <h2>공지사항</h3>
-          <h3 style="text-align: center;">2025-03-16 스타터팀 첫 OT 모임</h3>
-          <h3 style="text-align: center;">2025-03-24 콘테니도 웹사이트 베타테스트 오픈</h3>
-          <h3 style="text-align: center;">2025-03-26 대외협력팀 추가 제휴 안내 </h3>
-
+          <h2>공지사항</h2>
+          <div id="home-announcements" class="home-announcements">
+            <!-- 공지사항이 여기에 동적으로 로드됩니다 -->
+          </div>
         </div>
+
+        <!-- 공지사항 모달 추가 -->
+        <div id="announcement-modal" class="modal">
+          <div class="modal-content">
+            <span class="close-button" onclick="closeAnnouncementModal()">&times;</span>
+            <h2 id="modal-title"></h2>
+            <div id="modal-content"></div>
+          </div>
+        </div>
+
         <hr>
 
         <div class="home-buttons">       
@@ -147,6 +157,7 @@
         showPopup('popup2');
       }
       startImageSlider();
+      loadAnnouncements();
     });
 
     function showPopup(popupId) {
@@ -242,6 +253,42 @@
         });
       }
 
+      function showAnnouncementModal(title, content) {
+        document.getElementById('modal-title').textContent = title;
+        document.getElementById('modal-content').textContent = content;
+        document.getElementById('announcement-modal').style.display = 'block';
+      }
+  
+      function closeAnnouncementModal() {
+        document.getElementById('announcement-modal').style.display = 'none';
+      }
+  
+      // 모달 외부 클릭 시 닫기
+      window.onclick = function(event) {
+        const modal = document.getElementById('announcement-modal');
+        if (event.target == modal) {
+          modal.style.display = 'none';
+        }
+      }
+
+      // 공지사항 로드 함수 추가
+      async function loadAnnouncements() {
+        try {
+          const response = await fetch('/announcements');
+          if (!response.ok) throw new Error('서버 오류');
+          const announcements = await response.json();
+          const container = document.getElementById('home-announcements');
+          
+          container.innerHTML = announcements.map(announcement => `
+            <p class="home-announcement ${announcement.priority}" 
+               onclick="showAnnouncementModal('${announcement.title}', '${announcement.content}')">
+              ${announcement.title}
+            </p>
+          `).join('');
+        } catch (error) {
+          console.error('공지사항 로드 실패:', error);
+        }
+      }
     </script>
   <script src="/js/utils/nav-injector.js"></script>
   </body>

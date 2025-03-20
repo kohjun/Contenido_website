@@ -409,22 +409,54 @@ router.post('/:id/cancel-application',
       }
 
       // 신청 여부 확인
-      const participantIndex = event.appliedParticipants.findIndex(
+      const participant = event.appliedParticipants.find(
         p => p.userId.toString() === req.user.id
       );
 
-      if (participantIndex === -1) {
+      if (!participant) {
         return res.status(400).json({ message: 'You have not applied for this event' });
       }
 
-      // 참가자 제거
-      event.appliedParticipants.splice(participantIndex, 1);
+      // 참가 승인 상태 확인
+      if (participant.status === 'approved') {
+        // 이벤트 날짜와 현재 날짜 체크
+        const eventDate = new Date(event.date);
+        const oneWeekBefore = new Date(eventDate);
+        oneWeekBefore.setDate(oneWeekBefore.getDate() - 7);
+        oneWeekBefore.setHours(0, 0, 0, 0);
+        
+        const now = new Date();
+
+        // 이벤트 일주일 전부터 당일까지의 기간에 취소하는 경우
+        if (now >= oneWeekBefore && now <= eventDate) {
+          // 사용자의 경고 횟수 증가
+          await User.findByIdAndUpdate(req.user.id, {
+            $inc: { warningCount: 1 }
+          });
+          
+          // 참가자 제거
+          event.appliedParticipants = event.appliedParticipants.filter(
+            p => p.userId.toString() !== req.user.id
+          );
+          await event.save();
+
+          return res.status(200).json({ 
+            message: '신청이 취소되었습니다. 이벤트 일주일 전 취소로 인해 경고 1회가 부여되었습니다.' 
+          });
+        }
+      }
+
+      // 일반적인 취소 처리
+      event.appliedParticipants = event.appliedParticipants.filter(
+        p => p.userId.toString() !== req.user.id
+      );
       await event.save();
 
-      res.status(200).json({ message: 'Application canceled successfully' });
+      res.status(200).json({ message: '신청이 취소되었습니다.' });
+
     } catch (error) {
       console.error('Error canceling application:', error);
-      res.status(500).json({ message: 'Error canceling application', error });
+      res.status(500).json({ message: '신청 취소 중 오류가 발생했습니다.', error });
     }
 });
 

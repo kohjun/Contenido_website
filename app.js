@@ -61,7 +61,7 @@ app.use('/reviews', require('./routes/reviews'));
 app.use('/saved-places', require('./routes/savedPlaces'));
 app.use('/application', require('./routes/application'));
 app.use('/application-result', require('./routes/applicationResult'));
-app.use('/api/announcements', require('./routes/announcement'));
+app.use('/announcements', require('./routes/announcement')); // 경로 수정
 
 
 // 정적 파일 서빙 설정 전에 API 라우터 추가

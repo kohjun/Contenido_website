@@ -6,11 +6,19 @@ class AnnouncementManager {
 
   async loadAnnouncements() {
     try {
-      const response = await fetch('/api/announcements');
+      const response = await fetch('/announcements/admin', {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+      if (!response.ok) {
+        throw new Error('Failed to load announcements');
+      }
       const announcements = await response.json();
       this.renderAnnouncements(announcements);
     } catch (error) {
       console.error('Error loading announcements:', error);
+      alert('공지사항을 불러오는데 실패했습니다.');
     }
   }
 
@@ -43,17 +51,25 @@ class AnnouncementManager {
     e.preventDefault();
     const formData = new FormData(e.target);
     try {
-      const response = await fetch('/api/announcements', {
+      const response = await fetch('/announcements', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
         body: JSON.stringify(Object.fromEntries(formData))
       });
-      if (response.ok) {
-        this.loadAnnouncements();
-        e.target.reset();
+      
+      if (!response.ok) {
+        throw new Error('Failed to create announcement');
       }
+
+      await this.loadAnnouncements();
+      e.target.reset();
+      alert('공지사항이 성공적으로 등록되었습니다.');
     } catch (error) {
       console.error('Error creating announcement:', error);
+      alert('공지사항 등록에 실패했습니다.');
     }
   }
 
@@ -72,14 +88,57 @@ class AnnouncementManager {
 
   async deleteAnnouncement(id) {
     try {
-      const response = await fetch(`/api/announcements/${id}`, {
-        method: 'DELETE'
+      const response = await fetch(`/announcements/${id}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
       });
       if (response.ok) {
         this.loadAnnouncements();
       }
     } catch (error) {
       console.error('Error deleting announcement:', error);
+    }
+  }
+
+  showEditForm(id) {
+    const announcement = document.querySelector(`.announcement-item[data-id="${id}"]`);
+    const modal = document.getElementById('edit-modal');
+    
+    document.getElementById('edit-id').value = id;
+    document.getElementById('edit-title').value = announcement.querySelector('h3').textContent;
+    document.getElementById('edit-content').value = announcement.querySelector('.announcement-content').textContent;
+    document.getElementById('edit-priority').value = announcement.querySelector('.priority').textContent;
+    
+    modal.style.display = 'block';
+    
+    document.getElementById('edit-announcement-form').onsubmit = async (e) => {
+      e.preventDefault();
+      await this.updateAnnouncement(new FormData(e.target));
+      modal.style.display = 'none';
+    };
+  }
+
+  async updateAnnouncement(formData) {
+    const id = document.getElementById('edit-id').value;
+    try {
+      const response = await fetch(`/announcements/${id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify(Object.fromEntries(formData))
+      });
+
+      if (!response.ok) throw new Error('Failed to update announcement');
+      
+      await this.loadAnnouncements();
+      alert('공지사항이 성공적으로 수정되었습니다.');
+    } catch (error) {
+      console.error('Error updating announcement:', error);
+      alert('공지사항 수정에 실패했습니다.');
     }
   }
 }
