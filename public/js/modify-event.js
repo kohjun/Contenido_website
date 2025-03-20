@@ -148,11 +148,14 @@ async function initializeKakaoShare() {
   const kakaoButton = document.getElementById('kakao-share-button');
   if (!kakaoButton) return;
 
-  const testImageUrl = 'https://search.pstatic.net/common/?src=http%3A%2F%2Fblogfiles.naver.net%2FMjAyNDA0MjhfMTU1%2FMDAxNzE0Mjc3Mjg3MTUy.niRL4XUfCRd_vhpY6vLyEXHB6aKeTeFZaSOHhrb_XNAg.-jG6J0I32ie91PNsRW5qRuevckHtuQQE8JtW42IrMCAg.JPEG%2Fimage_0.jpg&type=a340';
+  // 이벤트 이미지 URL 설정 (절대 경로)
+  const eventImageUrl = currentEvent.images && currentEvent.images.length > 0
+    ? `${window.location.origin}${currentEvent.images[0]}`
+    : `${window.location.origin}/images/default-event.png`;
 
   // D-Day 계산 추가
   const today = new Date();
-  today.setHours(0, 0, 0, 0); // 시간 제거하고 날짜만 비교
+  today.setHours(0, 0, 0, 0);
   
   const eventDate = new Date(currentEvent.date);
   eventDate.setHours(0, 0, 0, 0);
@@ -175,7 +178,7 @@ async function initializeKakaoShare() {
     content: {
       title: `[${currentEvent.team}] ${currentEvent.title}`,
       description: currentEvent.contents,
-      imageUrl: testImageUrl, // 테스트 이미지 URL 사용
+      imageUrl: eventImageUrl,
       link: {
         mobileWebUrl: window.location.href,
         webUrl: window.location.href,
@@ -183,7 +186,7 @@ async function initializeKakaoShare() {
     },
     itemContent: {
 
-      profileImageUrl: testImageUrl, // 테스트 이미지 URL 사용
+      profileImageUrl: eventImageUrl,
       titleImageText: currentEvent.title,
       titleImageCategory: currentEvent.team,
       items: [
