@@ -68,10 +68,13 @@ const authorizeRoles = (...allowedRoles) => {
             if (eventId) {
                 try {
                     const event = await Event.findById(eventId);
-                    if (event && event.creator.toString() !== req.user.id) {
-                        return res.status(403).json({ 
-                            message: 'Only event creator can access this' 
-                        });
+                    // DELETE나 PUT 요청의 경우에만 creator 체크
+                    if (event && req.method === 'DELETE' || req.method === 'PUT') {
+                        if (event.creator.toString() !== req.user.id) {
+                            return res.status(403).json({ 
+                                message: 'Only event creator can modify or delete this event' 
+                            });
+                        }
                     }
                 } catch (error) {
                     return res.status(500).json({ 
