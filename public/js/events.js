@@ -94,7 +94,7 @@ function displayCurrentPage(currentUser) {
         ${statusBadge}
         ${event.images && event.images.length > 0 
           ? `<img src="${event.images[0]}" alt="${event.title}">` 
-          : `<img src="./images/sky_blue.jpg" alt="기본 이벤트 이미지">`
+          : `<img src="./images/Basic_Event_Image.png" alt="기본 이벤트 이미지">`
         }
       </div>
       <div class="event-content">
