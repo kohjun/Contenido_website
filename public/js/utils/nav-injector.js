@@ -5,6 +5,7 @@ const navStyles = `
     position: relative;
     min-height: 100vh;
     padding-bottom: 60px;
+    padding-top: 70px; /* 상단 네비게이션 높이만큼 여백 추가 */
 }
 
 .sidebar {
@@ -45,11 +46,16 @@ const navStyles = `
 }
 
 .custom-top-nav {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
     display: flex;
     align-items: center;
     padding: 15px;
     background-color: white;
     border-bottom: 1px solid #eee;
+    z-index: 1000;
 }
 
 .toggle-btn {
@@ -74,10 +80,10 @@ const navStyles = `
 }
 
 .custom-bottom-nav {
-    position: absolute;
+    position: fixed;
     bottom: 0;
     left: 0;
-    width: 100%;
+    right: 0;
     height: 65px;
     background-color: white;
     display: flex;
@@ -167,6 +173,15 @@ const navStyles = `
 }
 
 @media (max-width: 768px) {
+    .custom-top-nav {
+        padding: 10px;
+    }
+    
+    .container {
+        padding-top: 60px; /* 모바일에서 상단 여백 조정 */
+        padding-bottom: 55px; /* 모바일에서 하단 여백 조정 */
+    }
+
     .custom-nav-icon {
         font-size: 20px;
     }
@@ -179,6 +194,16 @@ const navStyles = `
     }
     .custom-bottom-nav {
         height: 55px;
+    }
+    .nav-title {
+        margin-top: 0;
+    }
+    .toggle-btn {
+        top: 0.5rem;
+        left: 0.5rem;
+        padding: 0.3rem;
+        width: 40px;
+        height: 35px;
     }
 }
 `;

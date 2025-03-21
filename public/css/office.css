@@ -218,6 +218,58 @@
   }
 }
 
+@media (max-width: 768px) {
+  .main-content {
+    margin-left: 0;
+    padding: 1rem;
+    width: 100%;
+  }
+
+  .org-sidebar {
+    transform: translateX(-100%);
+    width: 100%;
+    max-width: 300px;
+    z-index: 1000;
+  }
+
+  .org-sidebar.show {
+    transform: translateX(0);
+  }
+
+  .org-header h1 {
+    font-size: 1.5rem;
+  }
+
+  .org-menu-item {
+    padding: 0.5rem;
+  }
+
+  .org-menu-item-content {
+    margin-left: 0.5rem;
+  }
+
+  .org-menu-item-label {
+    font-size: 0.8rem;
+  }
+
+  .org-menu-item-description {
+    font-size: 0.7rem;
+  }
+
+  .org-submenu {
+    margin-left: 10px;
+  }
+}
+
+/* iOS 안전 영역 대응 */
+@supports (padding: max(0px)) {
+  .org-sidebar, .main-content {
+    padding-left: max(1rem, env(safe-area-inset-left));
+    padding-right: max(1rem, env(safe-area-inset-right));
+    padding-bottom: max(1rem, env(safe-area-inset-bottom));
+  }
+}
+
 /* 컨텐츠 영역 반응형 조정 */
 @media (max-width: 480px) {
   .main-content {

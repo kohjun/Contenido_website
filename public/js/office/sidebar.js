@@ -592,12 +592,64 @@ const Sidebar = (function() {
     const sidebar = container.querySelector('.org-sidebar');
     const header = container.querySelector('.org-header h1');
 
-    // 팀 메뉴 클릭 이벤트 위임
+    // 모바일 메뉴 토글 버튼 추가
+    const toggleButton = document.createElement('button');
+    toggleButton.className = 'mobile-toggle-btn';
+    toggleButton.innerHTML = '☰';
+    toggleButton.style.cssText = `
+      position: fixed;
+      top: 1rem;
+      left: 1rem;
+      z-index: 1001;
+      padding: 0.5rem;
+      font-size: 1.5rem;
+      background: white;
+      border: none;
+      border-radius: 5px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+      display: none;
+    `;
+
+    container.appendChild(toggleButton);
+
+    // 모바일 환경 체크 및 이벤트 리스너 추가
+    function checkMobile() {
+      if (window.innerWidth <= 768) {
+        toggleButton.style.display = 'block';
+        sidebar.classList.remove('show');
+      } else {
+        toggleButton.style.display = 'none';
+        sidebar.classList.remove('show');
+      }
+    }
+
+    // 토글 버튼 클릭 이벤트
+    toggleButton.addEventListener('click', () => {
+      sidebar.classList.toggle('show');
+    });
+
+    // 사이드바 외부 클릭 시 닫기
+    document.addEventListener('click', (e) => {
+      if (window.innerWidth <= 768 && 
+          !sidebar.contains(e.target) && 
+          e.target !== toggleButton) {
+        sidebar.classList.remove('show');
+      }
+    });
+
+    // 리사이즈 이벤트
+    window.addEventListener('resize', checkMobile);
+    checkMobile(); // 초기 실행
+
+    // 기존의 팀 메뉴 클릭 이벤트에 모바일 사이드바 닫기 추가
     container.addEventListener('click', async (e) => {
       const teamLink = e.target.closest('[data-team]');
       if (teamLink) {
         e.preventDefault();
         const teamId = teamLink.dataset.team;
+        if (window.innerWidth <= 768) {
+          sidebar.classList.remove('show');
+        }
         await loadPage(teamId);
       }
     });

@@ -658,26 +658,6 @@ p {
   background: linear-gradient(90deg, transparent, rgba(10, 132, 254, 0.2), transparent);
 }
 
-/* Responsive Design */
-@media (max-width: 768px) {
-  .dashboard-section {
-    padding: 1.5rem;
-  }
-
-  .form-actions {
-    flex-direction: column;
-  }
-
-  .button-primary,
-  .button-secondary,
-  .button-outline {
-    width: 100%;
-  }
-
-  .week-selection-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
 
 /* Custom Scrollbar */
 .participant-grid::-webkit-scrollbar {
@@ -1136,16 +1116,6 @@ button:hover, .submit-button:hover {
   color: #ffffff;
   transform: translateY(-3px); /* Hover effect */
 }
-/* 페이지 레이아웃 */
-.page-layout {
-  display: flex;
-  justify-content: space-between;
-  max-width: 1400px;
-  margin: 0 auto;
-  padding: 2rem;
-  gap: 2rem;
-}
-
 /* 광고 배너 */
 .ad-banner {
   width: 160px;
@@ -1166,13 +1136,16 @@ button:hover, .submit-button:hover {
 /* 메인 컨테이너 */
 
 .container {
-  width: 750px;
-  margin: 2rem auto;
-  padding: 2rem;
+  width: 100%;
+  max-width: 750px;
+  margin: 0 auto;  /* margin-top 제거 */
+  padding: 1rem;
   background: #fff;
   border-radius: 12px;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-  position: relative; /* Ensure the button is positioned relative to this container */
+  position: relative;
+  box-sizing: border-box;
+  min-height: calc(100vh - 70px - 65px); /* 상단 네비게이션과 하단 네비게이션 높이를 제외한 최소 높이 */
 }
 .container .nav-container {
   /* container 내부의 nav에 대한 스타일 */
@@ -1233,12 +1206,7 @@ footer {
   margin-top: 20px;
   font-size: 14px;
 }
- /* 모바일 환경에서 Footer 숨기기 */
- @media screen and (max-width: 768px) {
-  footer {
-      display: none;
-  }
-}
+
 /* 폼 */
 .form-group {
   margin-bottom: 1.5rem;
@@ -1746,12 +1714,6 @@ tr:hover {
   background-color: #5a6268;
 }
 
-@media (max-width: 768px) {
-  .events-grid {
-    grid-template-columns: 1fr;
-    padding: 1rem;
-  }
-}
 
 /* Status Badge Styles */
 .status-badge {
@@ -1828,26 +1790,7 @@ tr:hover {
     margin-bottom: 0.5rem;
   }
 
-  /* Responsive Design */
-  @media (max-width: 768px) {
-    .events-grid {
-      grid-template-columns: 1fr;
-      padding: 1rem 0.5rem;
-    }
   
-    .event-card {
-      margin-bottom: 1rem;
-    }
-  
-    .event-card-footer {
-      flex-wrap: wrap;
-    }
-  
-    .event-card-footer button {
-      flex: 1;
-      min-width: 120px;
-    }
-  }
 
   /* 후기 */
 
@@ -2301,7 +2244,61 @@ tr:hover {
   font-size: 0.9rem;
 }
 
+
+
+/* iOS 안전 영역 대응 */
+@supports (padding: max(0px)) {
+  .container {
+    padding-left: max(1rem, env(safe-area-inset-left));
+    padding-right: max(1rem, env(safe-area-inset-right));
+    padding-bottom: max(1rem, env(safe-area-inset-bottom));
+  }
+}
+ /* 모바일 환경*/
 @media (max-width: 768px) {
+  footer {
+      display: none;
+  }
+  .dashboard-section {
+    padding: 1.5rem;
+  }
+
+  .form-actions {
+    flex-direction: column;
+  }
+
+  .button-primary,
+  .button-secondary,
+  .button-outline {
+    width: 100%;
+  }
+  .events-grid {
+    grid-template-columns: 1fr;
+    padding: 1rem;
+  }
+
+  .events-grid {
+    grid-template-columns: 1fr;
+    padding: 1rem 0.5rem;
+  }
+
+  .event-card {
+    margin-bottom: 1rem;
+  }
+
+  .event-card-footer {
+    flex-wrap: wrap;
+  }
+
+  .event-card-footer button {
+    flex: 1;
+    min-width: 120px;
+  }
+  .toggle-btn {
+    font-size: 1.2rem; /* 모바일 화면에서는 글씨 크기 조정 */
+    top: 0.5rem;
+    left: 0.5rem;
+  }
   .event-details {
     flex-direction: column;
     gap: 0.5rem;
@@ -2315,5 +2312,100 @@ tr:hover {
 
   .review-action {
     margin-left: 0;
+  }
+
+
+  /* 이벤트 상세 페이지 스타일 */
+  .event-info {
+    padding: 0.5rem;
+  }
+
+  #event-details p {
+    font-size: 0.9rem;
+    margin: 0.5rem 0;
+  }
+
+  .event-image-container img {
+    width: 100%;
+    height: auto;
+  }
+
+  /* 이벤트 리스트 스타일 */
+  .events-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+    padding: 0.5rem;
+  }
+
+  .event-card {
+    margin-bottom: 1rem;
+  }
+
+  /* 버튼 스타일 조정 */
+  button, .submit-button {
+    width: 70%;
+    text-align: center;
+    max-width: none;
+    padding: 0.7rem;
+    margin: 0.5rem auto; /* Changed: 좌우 margin을 auto로 설정 */
+    display: block; /* Added: block으로 설정하여 중앙 정렬이 가능하게 함 */
+  }
+
+  /* 홈페이지 스타일 */
+  .title-container {
+    padding: 1rem 0;
+  }
+
+  .title-container img {
+    width: 200px;
+    height: 200px;
+    margin: 0 auto;
+  }
+
+  .home-buttons {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  /* 팝업 스타일 조정 */
+  .popup-content {
+    width: 95%;
+    margin: 10% auto;
+    left: 0 !important;
+    transform: translateY(-50%) !important;
+  }
+
+  /* 네비게이션 버튼 조정 */
+  .navigation-buttons {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .calendar-button,
+  .ended-events-button {
+    width: 100%;
+  }
+
+  /* 폼 요소 조정 */
+  input, select, textarea {
+    font-size: 16px; /* 모바일에서 자동 확대 방지 */
+  }
+
+  /* 테이블 반응형 처리 */
+  table {
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+
+  th, td {
+    padding: 0.5rem;
+  }
+
+  /* 모달 조정 */
+  .modal-content {
+    width: 95%;
+    margin: 5% auto;
+    padding: 1rem;
   }
 }
