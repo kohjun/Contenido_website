@@ -10,6 +10,21 @@ const RankingPage = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const cardsToShow = window.innerWidth <= 768 ? 1 : 3; // 모바일에서는 1개, 데스크톱에서는 3개 표시
 
+  // 분기 정보를 계산하는 함수 추가
+  const getQuarterInfo = () => {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = now.getMonth() + 1;
+    const quarter = Math.ceil(month / 3);
+    const quarterRanges = {
+      1: "1-3",
+      2: "4-6",
+      3: "7-9",
+      4: "10-12"
+    };
+    return `${year}년 ${quarterRanges[quarter]}월`;
+  };
+
   useEffect(() => {
     const fetchRankings = async () => {
       try {
@@ -100,9 +115,9 @@ const RankingPage = () => {
   }
 
   return (
-    <div className="w-full max-w-2xl mx-auto p-4 font-['Elice DX Neolli']">
+    <div className="w-full max-w-2xl mx-auto px-4 py-6 md:px-6 space-y-8">
       {/* 참여 랭킹 섹션 */}
-      <div className="mb-8">
+      <div className="mb-8 bg-white rounded-xl p-4 md:p-6 shadow-sm">
         <div className="flex justify-between items-center mb-2">
           <h1 className="text-3xl " >참여 랭킹</h1>
           <button className="text-gray-500 hover:text-gray-700" onClick={() => window.location.href = 'index.html'}>돌아가기</button>
@@ -111,7 +126,7 @@ const RankingPage = () => {
         
         <div className="relative">
           <h2 className="text-xl font-medium mb-2">
-            {new Date().getFullYear()}년 {new Date().getMonth() + 1}월 - {new Date().getMonth() + 2}월 기준
+            {getQuarterInfo()} 기준
           </h2>
           
           {/* 카드 캐러셀 */}
@@ -175,7 +190,7 @@ const RankingPage = () => {
       </div>
       <br></br>
       {/* 이벤트 랭킹 섹션 */}
-      <div>
+      <div className="bg-white rounded-xl p-4 md:p-6 shadow-sm">
         <div className="flex justify-between items-center mb-2">
           <h1 className="text-3xl font-medium">이벤트 랭킹</h1>
         </div>
@@ -183,11 +198,11 @@ const RankingPage = () => {
           종료된 이벤트를 정렬하여 상위 20개만 표시됩니다.
         </p>
         <br></br>
-        <div className="space-y-4">
+        <div className="space-y-6"> {/* 간격 늘림 */}
           {eventRankings.slice(0, 20).map((event) => (
             <div 
               key={event.id} 
-              className="border border-gray-300 rounded-lg overflow-hidden bg-white cursor-pointer hover:border-[#0A84FE] transition-colors" 
+              className="border border-gray-200 rounded-lg overflow-hidden bg-white cursor-pointer hover:border-[#0A84FE] transition-colors shadow-sm" 
               onClick={() => window.location.href = `/ranking/${event.eventId}`}
             >
               <div className="relative">
@@ -210,7 +225,7 @@ const RankingPage = () => {
                 />
               </div>
               
-              <div className="p-3 md:p-4"> {/* 모바일에서 패딩 조정 */}
+              <div className="p-4 md:p-5"> {/* 패딩 증가 */}
                 <div className="flex flex-col md:flex-row justify-between items-start gap-2">
                   <h3 className="text-xl md:text-2xl font-bold">{event.title}</h3>
                   <p className="text-gray-500 text-sm md:text-base">{event.date}</p>
