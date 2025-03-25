@@ -125,26 +125,26 @@ const EventDetail = () => {
   };
 
   return (
-    <div className="max-w-2xl mx-auto bg-white min-h-screen">
+    <div className="w-full max-w-[95%] md:max-w-2xl mx-auto bg-white min-h-screen px-2 md:px-4 py-4 md:py-6 rounded-xl shadow-sm">
       {/* Header */}
-      <div className="flex items-center p-4 border-b sticky top-0 bg-white z-10">
+      <div className="flex items-center p-4 border-b sticky top-0 bg-white z-10 rounded-t-xl">
         <button className="mr-4" onClick={() => window.history.back()}>
           <ArrowLeft className="w-6 h-6" />
         </button>
-        <h1 className="text-lg font-bold flex-1 text-center">{event.title}</h1>
+        <h1 className="text-lg font-bold flex-1 text-center mr-6">{event.title}</h1>
       </div>
 
       {/* Main image */}
-      <div className="p-4 bg-gray-50">
-        <div className="border rounded-lg p-4 bg-white">
+      <div className="p-4">
+        <div className="rounded-lg overflow-hidden">
           {event.images && event.images.length > 0 ? (
             <img 
               src={event.images[0]} 
               alt={event.title}
-              className="h-64 w-full object-cover rounded"
+              className="w-full h-48 md:h-64 object-cover rounded-lg"
             />
           ) : (
-            <div className="h-64 w-full bg-gray-100 rounded flex flex-col items-center justify-center">
+            <div className="w-full h-48 md:h-64 bg-gray-100 rounded-lg flex flex-col items-center justify-center">
               <Camera className="w-12 h-12 text-gray-400 mb-2" />
               <span className="text-gray-500">이미지 없음</span>
             </div>
@@ -153,12 +153,12 @@ const EventDetail = () => {
       </div>
 
       {/* Event info */}
-      <div className="p-4">
-        <h2 className="text-xl font-bold mb-2">{event.title}</h2>
-        <p className="text-gray-600 mb-2">{event.place}</p>
+      <div className="px-4">
+        <h2 className="text-2xl font-bold mb-2">{event.title}</h2>
+        <p className="text-gray-600 mb-4">{event.place}</p>
         
         {/* Stats */}
-        <div className="flex items-center gap-4 mb-4">
+        <div className="flex items-center gap-6 mb-6">
           <div className="flex items-center">
             <Star className="w-5 h-5 text-yellow-400 fill-current" />
             <span className="ml-1">4.5({reviews.length})</span>
@@ -177,9 +177,9 @@ const EventDetail = () => {
           {['info', 'review', 'community'].map((tab) => (
             <button
               key={tab}
-              className={`px-4 py-2 ${
+              className={`flex-1 px-4 py-3 text-center ${
                 activeTab === tab
-                  ? 'border-b-2 border-black font-bold'
+                  ? 'border-b-2 border-[#0A84FE] text-[#0A84FE] font-bold'
                   : 'text-gray-500'
               }`}
               onClick={() => setActiveTab(tab)}
@@ -189,20 +189,10 @@ const EventDetail = () => {
           ))}
         </div>
 
-        {/* Content with fixed height */}
-        <div className="h-96 overflow-y-auto">
+        {/* Content */}
+        <div className="min-h-[400px] max-h-[600px] overflow-y-auto px-1 md:px-2 pb-6">
           {renderContent()}
         </div>
-
-        {/* Action buttons
-        <div className="flex gap-4 mt-6 sticky bottom-0 bg-white py-4 border-t">
-          <button className="flex-1 bg-orange-500 text-white py-4 rounded-lg font-bold hover:bg-orange-600 transition-colors">
-            문의하기
-          </button>
-          <button className="flex-1 bg-yellow-400 text-black py-4 rounded-lg font-bold hover:bg-yellow-500 transition-colors">
-            신청하기
-          </button>
-        </div> */}
       </div>
     </div>
   );
