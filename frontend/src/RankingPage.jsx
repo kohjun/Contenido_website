@@ -49,7 +49,7 @@ const RankingPage = () => {
           ratingScore: (event.rating || 0) * (event.ratingCount || 0), // 평점 점수 추가
           description: event.contents,
           price: `${event.participation_fee.toLocaleString()}원`,
-          image: event.images?.[0] || '/api/placeholder/400/200'
+          image: event.images?.[0] ? event.images[0] : '/images/Basic_Event_Image.png',
         }));
 
         const sortedEvents = _.orderBy(
