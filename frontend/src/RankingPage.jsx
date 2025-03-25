@@ -8,7 +8,7 @@ const RankingPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [currentIndex, setCurrentIndex] = useState(0);
-  const cardsToShow = 3;
+  const cardsToShow = window.innerWidth <= 768 ? 1 : 3; // 모바일에서는 1개, 데스크톱에서는 3개 표시
 
   useEffect(() => {
     const fetchRankings = async () => {
@@ -55,6 +55,7 @@ const RankingPage = () => {
           }));
 
         const sortedUsers = _.orderBy(processedUsers, ['count'], ['desc'])
+          .slice(0, 20) // 상위 20명으로 제한
           .map((user, index) => ({
             ...user,
             id: index + 1 // 순위를 정렬 후 인덱스 기준으로 부여
@@ -99,7 +100,7 @@ const RankingPage = () => {
   }
 
   return (
-    <div className="max-w-2xl mx-auto p-4 font-['Elice DX Neolli']">
+    <div className="w-full max-w-2xl mx-auto p-4 font-['Elice DX Neolli']">
       {/* 참여 랭킹 섹션 */}
       <div className="mb-8">
         <div className="flex justify-between items-center mb-2">
@@ -123,7 +124,7 @@ const RankingPage = () => {
                 {participantRankings.map((user) => (
                   <div 
                     key={user.id} 
-                    className="flex-none w-1/3 px-2"
+                    className="flex-none w-full md:w-1/3 px-2" // 모바일에서는 전체 너비, 데스크톱에서는 1/3
                   >
                     <div className="relative rounded-lg overflow-hidden shadow-md bg-white">
                       <div className="absolute top-0 left-0 z-10">
@@ -139,7 +140,7 @@ const RankingPage = () => {
                       <img 
                         src={user.image} 
                         alt={user.name}
-                        className="w-full h-64 object-cover"
+                        className="w-full h-48 md:h-64 object-cover" // 모바일에서 높이 조정
                       />
                       <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black to-transparent p-4">
                         <div className="flex justify-between items-end">
@@ -205,29 +206,29 @@ const RankingPage = () => {
                 <img 
                   src={event.image} 
                   alt={event.title}
-                  className="w-full h-48 object-cover"
+                  className="w-full h-32 md:h-48 object-cover" // 모바일에서 높이 조정
                 />
               </div>
               
-              <div className="p-4">
-                <div className="flex justify-between items-start">
-                  <h3 className="text-2xl font-bold">{event.title}</h3>
-                  <p className="text-gray-500">{event.date}</p>
+              <div className="p-3 md:p-4"> {/* 모바일에서 패딩 조정 */}
+                <div className="flex flex-col md:flex-row justify-between items-start gap-2">
+                  <h3 className="text-xl md:text-2xl font-bold">{event.title}</h3>
+                  <p className="text-gray-500 text-sm md:text-base">{event.date}</p>
                 </div>
                 
-                <div className="flex justify-between items-center my-2">
-                  <p className="text-black-600">참가율 : {event.participation}</p>
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center my-2 gap-2">
+                  <p className="text-black-600 text-sm md:text-base">참가율 : {event.participation}</p>
                   <div className="flex items-center">
-                    <Star className="w-5 h-5 fill-yellow-400 stroke-yellow-400" />
-                    <span className="font-medium mx-1">{event.rating}</span>
-                    <span className="text-gray-500">({event.ratingCount})</span>
+                    <Star className="w-4 h-4 md:w-5 md:h-5 fill-yellow-400 stroke-yellow-400" />
+                    <span className="font-medium mx-1 text-sm md:text-base">{event.rating}</span>
+                    <span className="text-gray-500 text-sm">({event.ratingCount})</span>
                   </div>
                 </div>
                 
-                <p className="text-gray-700 my-3 line-clamp-3 font-medium">{event.description}</p>
+                <p className="text-gray-700 my-2 md:my-3 line-clamp-2 md:line-clamp-3 text-sm md:text-base">{event.description}</p>
                 
                 <div className="flex justify-end mt-2">
-                  <p className="text-xl font-medium">참가비 <span className="text-3xl ml-2">{event.price}</span></p>
+                  <p className="text-lg md:text-xl font-medium">참가비 <span className="text-2xl md:text-3xl ml-2">{event.price}</span></p>
                 </div>
               </div>
             </div>
