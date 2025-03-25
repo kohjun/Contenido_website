@@ -78,3 +78,9 @@ button:focus-visible {
     background-color: #f9f9f9;
   }
 }
+
+@media (max-width: 768px) {
+  body {
+    padding: 0 16px; /* 모바일에서 좌우 여백 추가 */
+  }
+}
