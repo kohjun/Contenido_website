@@ -81,6 +81,6 @@ button:focus-visible {
 
 @media (max-width: 768px) {
   body {
-    padding: 0 16px; /* 모바일에서 좌우 여백 추가 */
+    padding: 0 8px; /* 모바일에서 좌우 여백 축소 */
   }
 }
