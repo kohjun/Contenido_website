@@ -502,17 +502,25 @@ function changePage(page) {
 
 // 검색 기능
 function searchUsers() {
-    const searchOption = document.getElementById('search-option').value;
-    const searchInput = document.getElementById('search-input').value.toLowerCase();
+    const searchOption = document.getElementById('search-option')?.value || 'name';
+    const searchInputElement = document.getElementById('search-input');
+    if (!searchInputElement) {
+        console.error('Search input element not found');
+        return;
+    }
+    
+    const searchInput = searchInputElement.value?.toLowerCase() || '';
 
     const currentRoleUsers = currentRole === 'all' 
         ? users 
         : users.filter(user => user.role === currentRole);
 
     searchResults = currentRoleUsers.filter(user => {
+        if (!user) return false;
+
         switch(searchOption) {
             case 'name':
-                return user.name.toLowerCase().includes(searchInput);
+                return user.name?.toLowerCase()?.includes(searchInput) || false;
             case 'warningCount':
                 return (user.warningCount || 0).toString() === searchInput;
             case 'active':
@@ -527,44 +535,45 @@ function searchUsers() {
                     '게스트': 'guest'
                 };
                 const searchRole = roleMap[searchInput] || searchInput;
-                return user.role.toLowerCase() === searchRole.toLowerCase();
+                return (user.role || '').toLowerCase() === searchRole.toLowerCase();
             case 'gender':
+                if (!user.gender) return false;
                 if (searchInput === '남' || searchInput === 'male') {
-                    return user.gender === 'male';
+                    return user.gender.toLowerCase() === 'male';
                 }
                 if (searchInput === '여' || searchInput === 'female') {
-                    return user.gender === 'female';
+                    return user.gender.toLowerCase() === 'female';
                 }
                 return false;
             default:
                 return true;
-          }
-      });
-  
-      currentPage = 1;
-      displaySearchResults();
-  }
-  
-  // 검색 결과 표시
-  function displaySearchResults() {
-      const startIndex = (currentPage - 1) * usersPerPage;
-      const endIndex = startIndex + usersPerPage;
-      const usersToShow = searchResults.slice(startIndex, endIndex);
-  
-      const tableBody = document.getElementById('user-table-body');
-      if (!tableBody) {
-          console.error('Table body element not found');
-          return;
-      }
-  
-      tableBody.innerHTML = usersToShow.map(user => generateUserRow(user)).join('');
-      createPagination(searchResults.length);
-  }
-  
-  // 검색 초기화
-  function resetSearch() {
-      document.getElementById('search-input').value = '';
-      searchResults = [];
-      currentPage = 1;
-      showUsersByRole(currentRole, true);
-  }
+        }
+    });
+
+    currentPage = 1;
+    displaySearchResults();
+}
+
+// 검색 결과 표시
+function displaySearchResults() {
+    const startIndex = (currentPage - 1) * usersPerPage;
+    const endIndex = startIndex + usersPerPage;
+    const usersToShow = searchResults.slice(startIndex, endIndex);
+
+    const tableBody = document.getElementById('user-table-body');
+    if (!tableBody) {
+        console.error('Table body element not found');
+        return;
+    }
+
+    tableBody.innerHTML = usersToShow.map(user => generateUserRow(user)).join('');
+    createPagination(searchResults.length);
+}
+
+// 검색 초기화
+function resetSearch() {
+    document.getElementById('search-input').value = '';
+    searchResults = [];
+    currentPage = 1;
+    showUsersByRole(currentRole, true);
+}

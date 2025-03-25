@@ -26,32 +26,38 @@ app.use(cookieParser());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
-// CORS 설정 (필요한 경우)
+// CORS 설정 개선
 app.use((req, res, next) => {
     const allowedOrigins = ['https://contenido.kr', 'http://localhost:3000'];
     const origin = req.headers.origin;
     if (allowedOrigins.includes(origin)) {
         res.header('Access-Control-Allow-Origin', origin);
+        res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+        res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
+        res.header('Access-Control-Allow-Credentials', 'true');
     }
-    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-    res.header('Access-Control-Allow-Credentials', 'true');
+    if (req.method === 'OPTIONS') {
+        return res.sendStatus(200);
+    }
     next();
 });
 
-// Session configuration
+// 세션 설정 개선
 app.use(
     session({
         secret: process.env.SESSION_SECRET,
         resave: false,
         saveUninitialized: false,
+        rolling: true, // 활동할 때마다 세션 갱신
         cookie: {
             httpOnly: true,
-            secure: true, // HTTPS 사용시 true로 설정
-            sameSite: 'strict',
-            domain: '.contenido.kr', // 도메인 설정
-            maxAge: 24 * 60 * 60 * 1000 // 24시간
-        }
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
+            domain: process.env.NODE_ENV === 'production' ? '.contenido.kr' : undefined,
+            maxAge: 3 * 60 * 60 * 1000 // 3시간으로 조정
+        },
+        name: 'sessionId', // 기본 connect.sid 대신 사용자 정의 이름 사용
+        proxy: process.env.NODE_ENV === 'production' // 프록시 환경에서 보안 설정 유지
     })
 );
 
@@ -96,42 +102,63 @@ app.get('/applications', (req, res, next) => {
 
 
 // 업로드된 파일 서빙 설정
-app.use('/uploads', express.static(path.join(__dirname, 'public/uploads'), {
-    setHeaders: (res) => {
-        res.setHeader('Cache-Control', 'public, max-age=31536000'); // 1년
-    }
-}));
+const staticOptions = {
+    setHeaders: (res, path) => {
+        if (path.endsWith('.html')) {
+            // HTML은 캐시하지 않음
+            res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, private');
+        } else if (path.match(/\.(js|css)$/)) {
+            // JS와 CSS는 짧은 시간 캐시
+            res.setHeader('Cache-Control', 'public, max-age=3600'); // 1시간
+        } else if (path.match(/\.(png|jpg|jpeg|gif|ico|woff|woff2|ttf|eot)$/)) {
+            // 이미지와 폰트는 길게 캐시
+            res.setHeader('Cache-Control', 'public, max-age=2592000'); // 30일
+            res.setHeader('Vary', 'Accept-Encoding');
+        }
+    },
+    maxAge: '1d', // 기본 캐시 기간
+    etag: true,
+    lastModified: true
+};
+
+app.use(express.static('public', staticOptions));
+app.use('/uploads', express.static(path.join(__dirname, 'public/uploads'), staticOptions));
 
 // 정적 파일 서빙 설정 전에 favicon 미들웨어 추가
 app.use(favicon(path.join(__dirname, 'public', 'images', 'Contenido_Logo.ico')));
 
-// 정적 파일 서빙 설정 수정
-app.use(express.static('public', {
-    setHeaders: (res, filePath) => {
-        if (filePath.endsWith('.html')) {
-            res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
-            res.setHeader('Pragma', 'no-cache');
-            res.setHeader('Expires', '0');
-        } else if (filePath.match(/\.(js|css)$/)) {
-            // JavaScript와 CSS 파일에 대한 캐시 제어
-            res.setHeader('Cache-Control', 'no-cache, must-revalidate');
-            res.setHeader('Pragma', 'no-cache');
-            res.setHeader('Expires', '0');
-        } else if (filePath.match(/\.(png|jpg|jpeg|gif|ico)$/)) {
-            res.setHeader('Cache-Control', 'public, max-age=31536000');
-        }
-    }
-}));
-
-// Vite 빌드 파일 서빙 (React 사용 페이지)
+// React 빌드 경로 설정 및 확인
 const reactBuildPath = path.join(__dirname, 'frontend/dist');
-app.use(express.static(reactBuildPath, {
-    setHeaders: (res, filePath) => {
-        if (filePath.match(/\.(js|css|png|jpg|jpeg|gif|ico)$/)) {
-            res.setHeader('Cache-Control', 'public, max-age=31536000');
+// 빌드 폴더가 존재하는지 확인
+if (fs.existsSync(reactBuildPath)) {
+    // Vite 빌드 파일 서빙 설정
+    app.use(express.static(reactBuildPath, {
+        ...staticOptions,
+        index: false // SPA를 위해 index.html 직접 제어
+    }));
+
+    // React SPA 라우팅
+    app.get('*', (req, res, next) => {
+        // API 경로는 건너뛰기
+        if (req.path.startsWith('/auth') || 
+            req.path.startsWith('/events') || 
+            req.path.startsWith('/user') || 
+            req.path.startsWith('/reviews') ||
+            req.path.startsWith('/saved-places') ||
+            req.path.startsWith('/uploads')) {
+            return next();
         }
-    }
-}));
+
+        const indexPath = path.join(reactBuildPath, 'index.html');
+        if (fs.existsSync(indexPath)) {
+            res.sendFile(indexPath);
+        } else {
+            next();
+        }
+    });
+} else {
+    console.warn('React build directory not found at:', reactBuildPath);
+}
 
 // API 404 에러 핸들러는 모든 API 라우터 등록 후에 위치
 app.use('/api/*', (req, res) => {

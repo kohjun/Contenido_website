@@ -22,19 +22,26 @@ const RankingPage = () => {
         }
 
         const processedEvents = events.map((event, index) => ({
-          id: index + 1,        // 랭킹 표시용 id
-          eventId: event._id,   // 실제 MongoDB _id
+          id: index + 1,
+          eventId: event._id,
           title: event.title,
           date: new Date(event.date).toLocaleDateString('ko-KR', { year: 'numeric', month: '2-digit', day: '2-digit' }).replace(/\. /g, '.'),
+          participationRate: (event.finalParticipants?.length || 0) / event.participants,
           participation: `${Math.round((event.finalParticipants?.length || 0) / event.participants * 100)}%(${event.finalParticipants?.length || 0}/${event.participants})`,
+          participantsCount: event.participants,
           rating: event.rating || 0,
           ratingCount: event.ratingCount || 0,
+          ratingScore: (event.rating || 0) * (event.ratingCount || 0), // 평점 점수 추가
           description: event.contents,
           price: `${event.participation_fee.toLocaleString()}원`,
           image: event.images?.[0] || '/api/placeholder/400/200'
         }));
 
-        const sortedEvents = _.orderBy(processedEvents, ['rating', 'ratingCount'], ['desc', 'desc']);
+        const sortedEvents = _.orderBy(
+          processedEvents, 
+          ['ratingScore', 'participationRate'], 
+          ['desc', 'desc']
+        );
         setEventRankings(sortedEvents);
 
         const usersResponse = await fetch('/user/participants/users');
@@ -171,7 +178,9 @@ const RankingPage = () => {
         <div className="flex justify-between items-center mb-2">
           <h1 className="text-3xl font-medium">이벤트 랭킹</h1>
         </div>
-        <p className="text-gray-500 mb-4">종료된 이벤트 중 상위 20개의 이벤트만 표시됩니다.</p>
+        <p className="text-gray-500 mb-4">
+          종료된 이벤트를 정렬하여 상위 20개만 표시됩니다.
+        </p>
         <br></br>
         <div className="space-y-4">
           {eventRankings.slice(0, 20).map((event) => (
