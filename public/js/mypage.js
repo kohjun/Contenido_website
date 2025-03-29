@@ -293,6 +293,10 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('birthdate-input-container').style.display = 'block';
     document.getElementById('toggle-personal-info').style.display = 'none';
   });
+  //추가 정보 입력
+  document.getElementById("additional-info").addEventListener("click", () => {
+    window.location.href = "/additional-user-info.html";
+  });
 
   // 생년월일 확인 버튼 클릭 이벤트
   document.getElementById('confirm-birthdate').addEventListener('click', () => {

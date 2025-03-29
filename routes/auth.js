@@ -26,7 +26,6 @@ router.get(
           role: profile.role, 
           displayName: profile.displayName, 
           email: profile.email,
-          
         },
         JWT_SECRET,
         { expiresIn: '1h' }

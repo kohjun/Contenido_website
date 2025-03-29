@@ -218,93 +218,73 @@ class FeeVerification {
 
     async verifyFees() {
         const transactionData = this.transactionTable.getData();
-        if (!transactionData.length) {
+        if (!transactionData || !transactionData.length) {
             alert('거래 데이터를 먼저 업로드해주세요.');
             return;
         }
     
         const participants = await this.fetchParticipants();
         
-        
         this.verificationResults.processing = true;
         this.verificationResults.verified = [];
         this.verificationResults.unverified = [...participants];
     
-        // 이미 처리된 참가자 ID를 추적
         const processedParticipantIds = new Set();
     
-        // 12000원 입금 내역만 필터링
+        // 입금 & 12000원 입금 내역만 필터링 (null/undefined 체크 추가)
         const feeTransactions = transactionData.filter(trans => {
-            const amount = parseInt(trans.거래금액.replace(/,/g, ''), 10);
-            return amount === 12000;
+            try {
+                if (!trans || typeof trans !== 'object') return false;
+                if (!trans.구분 || !trans.거래금액 || !trans.내용) return false;
+                
+                const amount = parseInt(String(trans.거래금액).replace(/,/g, ''), 10);
+                return amount === 12000 && trans.구분 === '입금';
+            } catch (error) {
+                console.error('Invalid transaction data:', trans);
+                return false;
+            }
         });
     
         for (const transaction of feeTransactions) {
-            // 입금자 이름 추출 (내용 필드에서) - 숫자 유지
-            const depositorName = transaction.내용.replace('회비', '').trim();
-            
-            // 메모 필드에서 전화번호와 회비 여부 확인
-            const memo = transaction.메모;
-            const memoMatch = memo.match(/(\d{4})(회비)/);
-    
-            // 메모 형식이 맞지 않으면 건너뛰기
-            if (!memoMatch) {
-                console.warn(`메모 형식 불일치 - 입금자: ${depositorName}, 메모: ${memo}`);
-                continue;
-            }
-    
-            const phoneNumber = memoMatch[1];  // 전화번호 4자리
-            const feeType = memoMatch[2];      // "회비"
-    
-            // 이름과 전화번호 뒷자리가 모두 일치하는 참가자 찾기
-            let participant = null;
-            for (const p of participants) {
-                const nameMatches = p.name.replace(/\s+/g, '') === depositorName;
-                const phoneMatches = p.phonenumber?.slice(-4) === phoneNumber;
-                const notProcessed = !processedParticipantIds.has(p.id);
-    
-                if (nameMatches && phoneMatches && notProcessed) {
-                    participant = p;
-                    break;
+            try {
+                const depositorName = String(transaction.내용 || "").trim().replace(/\s+/g, '');
+                if (!depositorName) continue;
+                
+                const matchingParticipants = participants.filter(p => {
+                    if (!p) return false;
+                    
+                    // name이 있으면 name으로 비교, 없으면 displayName으로 비교
+                    const participantName = p.name ? 
+                        String(p.name).replace(/\s+/g, '') : 
+                        String(p.displayName || "").replace(/\s+/g, '');
+                    
+                    return participantName === depositorName && 
+                           !processedParticipantIds.has(p.id);
+                });
+
+                if (matchingParticipants.length === 1) {
+                    const participant = matchingParticipants[0];
+                    this.verificationResults.verified.push(participant);
+                    this.verificationResults.unverified = this.verificationResults.unverified
+                        .filter(p => p.id !== participant.id);
+                    processedParticipantIds.add(participant.id);
+                    await this.updateParticipantStatus(participant.id, true);
+                } else if (matchingParticipants.length > 1) {
+                    console.warn(`동명이인 발견: ${depositorName}`);
+                    matchingParticipants.forEach(p => {
+                        if (!processedParticipantIds.has(p.id)) {
+                            this.verificationResults.unverified.push(p);
+                        }
+                    });
+                } else {
+                    console.warn(`매칭 실패 - 입금자: ${depositorName}`);
                 }
-            }
-    
-            if (participant && feeType === '회비') {
-                // 모든 조건이 일치하는 경우
-                this.verificationResults.verified.push(participant);
-                this.verificationResults.unverified = this.verificationResults.unverified
-                    .filter(p => p.id !== participant.id);
-    
-                // 처리된 참가자 기록
-                processedParticipantIds.add(participant.id);
-    
-                // 활성 상태 업데이트
-                await this.updateParticipantStatus(participant.id, true);
-    
-            } else {
-                // 매칭 실패 원인 상세 로깅
-                const failureReasons = [];
-                const matchedByName = participants.find(p => 
-                    p.name.replace(/\s+/g, '') === depositorName
-                );
-                const matchedByPhone = participants.find(p => 
-                    p.phonenumber?.slice(-4) === phoneNumber
-                );
-    
-                if (!matchedByName) failureReasons.push('이름 불일치');
-                if (!matchedByPhone) failureReasons.push('전화번호 불일치');
-                if (feeType !== '회비') failureReasons.push('회비 타입 불일치');
-    
-                console.warn(
-                    `매칭 실패 - ` +
-                    `입금자: ${depositorName}, ` +
-                    `전화번호: ${phoneNumber}, ` +
-                    `실패 사유: ${failureReasons.join(', ')}`
-                );
+            } catch (error) {
+                console.error('Error processing transaction:', error);
+                continue;
             }
         }
     
-        // 미납 참가자 비활성화
         for (const unverifiedParticipant of this.verificationResults.unverified) {
             await this.updateParticipantStatus(unverifiedParticipant.id, false);
         }
