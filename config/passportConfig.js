@@ -39,8 +39,7 @@ module.exports = (passport) => {
               profileImage,
               kakaoId,
               isVerified: true,
-              role: 'participant',
-              
+              role: 'guest',
             });
           }
 
