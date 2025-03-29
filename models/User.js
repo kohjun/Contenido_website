@@ -32,6 +32,7 @@ const applicationSchema = new mongoose.Schema({
 
 const userSchema = new mongoose.Schema({
   email: { type: String, required: true, unique: true },
+  createdAt: { type: Date, default: Date.now }, // 회원가입 날짜 필드 추가
   displayName: { type: String, required: true },
   profileImage: { type: String },
   kakaoId: { type: String },
