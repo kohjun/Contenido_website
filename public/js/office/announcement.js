@@ -6,7 +6,7 @@ class AnnouncementManager {
 
   async loadAnnouncements() {
     try {
-      const response = await fetch('/announcements/admin');
+      const response = await fetch('/announcement/admin');
       if (!response.ok) {
         throw new Error('Failed to load announcements');
       }
@@ -47,7 +47,7 @@ class AnnouncementManager {
     e.preventDefault();
     const formData = new FormData(e.target);
     try {
-      const response = await fetch('/announcements', {
+      const response = await fetch('/announcement', {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json'
@@ -83,7 +83,7 @@ class AnnouncementManager {
 
   async deleteAnnouncement(id) {
     try {
-      const response = await fetch(`/announcements/${id}`, {
+      const response = await fetch(`/announcement/${id}`, {
         method: 'DELETE'
       });
       if (response.ok) {
@@ -115,7 +115,7 @@ class AnnouncementManager {
   async updateAnnouncement(formData) {
     const id = document.getElementById('edit-id').value;
     try {
-      const response = await fetch(`/announcements/${id}`, {
+      const response = await fetch(`/announcement/${id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json'
