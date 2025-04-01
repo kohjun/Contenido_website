@@ -215,9 +215,50 @@ mongoose
     process.exit(1); // 치명적인 데이터베이스 연결 오류시 프로세스 종료
   });
 
+// MongoDB 연결 재시도 로직 추가
+mongoose.connection.on('error', (error) => {
+    console.error('MongoDB connection error:', error);
+    setTimeout(() => {
+        mongoose.connect(process.env.MONGO_URI)
+            .catch(err => console.error('Retry connection failed:', err));
+    }, 5000); // 5초 후 재시도
+});
 
-// 서버 실행
+// 서버 실행 부분 수정
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
+const server = app.listen(PORT, '0.0.0.0', () => {
     console.log(`Server running on port ${PORT}`);
+});
+
+// 서버 에러 핸들링 추가
+server.on('error', (error) => {
+    console.error('Server error:', error);
+    if (error.code === 'EADDRINUSE') {
+        console.error(`Port ${PORT} is already in use`);
+        process.exit(1);
+    }
+});
+
+// Graceful shutdown 처리
+process.on('SIGTERM', () => {
+    console.info('SIGTERM signal received.');
+    server.close(() => {
+        console.log('Server closed');
+        mongoose.connection.close(false, () => {
+            console.log('MongoDB connection closed');
+            process.exit(0);
+        });
+    });
+});
+
+// 예기치 않은 에러 처리
+process.on('uncaughtException', (error) => {
+    console.error('Uncaught Exception:', error);
+    // 에러 로깅 후 프로세스 종료
+    process.exit(1);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+    console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+    // 에러 로깅만 하고 프로세스는 계속 실행
 });

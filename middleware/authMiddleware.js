@@ -1,7 +1,7 @@
 //middleware/authMiddlewares.js
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
-const { refreshAccessToken } = require('../config/passportConfig'); // Refresh Token 함수 가져오기
+const { refreshAccessToken } = require('../config/passportConfig');
 const JWT_SECRET = process.env.JWT_SECRET;
 
 const authenticateToken = async (req, res, next) => {
@@ -19,37 +19,29 @@ const authenticateToken = async (req, res, next) => {
       return res.status(401).json({ message: 'User not found' });
     }
 
-    // Access Token 만료 시 Refresh Token으로 갱신
-    if (user.tokenExpiresAt && new Date(user.tokenExpiresAt) <= Date.now()) {
-      if (user.kakaoRefreshToken) {
-        try {
-          const newAccessToken = await refreshAccessToken(user);
+    // 카카오 토큰 만료 확인
+    const kakaoToken = decoded.kakaoToken;
+    const tokenExpiry = new Date(Date.now() + kakaoToken.expires_in);
 
-          // 새로운 JWT 생성 및 쿠키에 저장
-          const newToken = jwt.sign(
-            { id: user._id, role: user.role, displayName: user.displayName, email: user.email },
-            JWT_SECRET,
-            { expiresIn: '5h' }
-          );
-
-          res.cookie('jwt', newToken, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            maxAge: 5 * 60 * 60 * 1000,
-            sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
-          });
-        } catch (error) {
-          console.error('Error refreshing access token:', error);
-          return res.status(401).json({ message: 'Failed to refresh access token' });
-        }
-      }
+    if (tokenExpiry <= Date.now()) {
+      // 토큰이 만료된 경우 재로그인 요청
+      res.clearCookie('jwt');
+      return res.status(401).json({ 
+        message: 'Token expired', 
+        redirect: '/auth/kakao' 
+      });
     }
 
     req.user = user;
+    req.kakaoToken = kakaoToken; // 카카오 토큰 정보 요청 객체에 추가
     next();
   } catch (error) {
     if (error.name === 'TokenExpiredError') {
-      return res.status(401).json({ message: 'Token expired' });
+      res.clearCookie('jwt');
+      return res.status(401).json({ 
+        message: 'Token expired',
+        redirect: '/auth/kakao'
+      });
     }
     return res.status(403).json({ message: 'Invalid token' });
   }
