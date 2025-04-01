@@ -270,7 +270,7 @@
       // 공지사항 로드 함수 추가
       async function loadAnnouncements() {
         try {
-          const response = await fetch('/announcements');
+          const response = await fetch('/announcement');
           if (!response.ok) throw new Error('서버 오류');
           const announcements = await response.json();
           const container = document.getElementById('home-announcements');

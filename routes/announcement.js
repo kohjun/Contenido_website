@@ -4,7 +4,7 @@ const Announcement = require('../models/announcement');
 const authenticateToken = require('../middleware/authMiddleware');
 
 // Get public announcements (메인 페이지용)
-router.get('/public', async (req, res) => {
+router.get('/', async (req, res) => {
   try {
     const announcements = await Announcement.find({ isActive: true })
       .sort({ priority: 1, createdAt: -1 })
@@ -43,7 +43,7 @@ router.post('/', authenticateToken, async (req, res) => {
   }
 });
 
-// Update announcement - PUT 메소드로 변경
+// Update announcement
 router.put('/:id', authenticateToken, async (req, res) => {
   try {
     const announcement = await Announcement.findByIdAndUpdate(
