@@ -2,7 +2,7 @@
 const express = require('express');
 const passport = require('passport');
 const jwt = require('jsonwebtoken');
-const authenticateToken = require('../middleware/authMiddleware'); // Ensure this middleware is availabl
+const authenticateToken = require('../middleware/authMiddleware'); 
 const User = require('../models/User');
 const KAKAO_CLIENT_ID = process.env.KAKAO_CLIENT_ID;
 const LOGOUT_REDIRECT_URI = 'http://localhost:3000/auth/final-logout';   // 웹사이트 주소 입력
@@ -38,7 +38,6 @@ router.get(
         return res.redirect('/additional-user-info.html');
       }
 
-      res.redirect('/index.html');
     } catch (error) {
       console.error('Error during user login:', error);
       res.redirect('/');
