@@ -20,29 +20,40 @@ router.get(
     try {
       const profile = req.user;
 
-      // JWT 생성
+      // 카카오에서 받은 토큰 저장
+      const kakaoToken = {
+        access_token: profile.kakaoAccessToken,
+        refresh_token: profile.kakaoRefreshToken,
+        expires_in: 5 * 60 * 60 * 1000 // 5시간
+      };
+
+      // 자체 JWT 토큰 생성
       const token = jwt.sign(
-        { id: profile._id, 
+        { 
+          id: profile._id, 
           role: profile.role, 
           displayName: profile.displayName, 
           email: profile.email,
+          kakaoToken: kakaoToken // 카카오 토큰 정보 포함
         },
         JWT_SECRET,
-        { expiresIn: '5h' } // 5시간으로 연장
+        { expiresIn: '5h' }
       );
 
-      // 쿠키 설정 수정
+      // 쿠키에 토큰 저장
       res.cookie('jwt', token, { 
         httpOnly: true, 
         secure: process.env.NODE_ENV === 'production',
-        maxAge: 5 * 60 * 60 * 1000, // 5시간으로 연장
+        maxAge: 5 * 60 * 60 * 1000,
         sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax'
       });
 
-      // 추가 정보가 필요한 경우 추가 정보 입력 페이지로 리디렉션
+      // 추가 정보 확인 및 리디렉션
       if (!profile.isAdditionalInfoComplete) {
         return res.redirect('/additional-user-info.html');
       }
+      
+      res.redirect('/'); // 메인 페이지로 리디렉션
 
     } catch (error) {
       console.error('Error during user login:', error);
