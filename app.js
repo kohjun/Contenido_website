@@ -54,7 +54,7 @@ app.use(
             secure: process.env.NODE_ENV === 'production',
             sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
             domain: process.env.NODE_ENV === 'production' ? '.contenido.kr' : undefined,
-            maxAge: 3 * 60 * 60 * 1000 // 3시간으로 조정
+            maxAge: 60 * 60 * 1000 // 1시간으로 설정
         },
         name: 'sessionId', // 기본 connect.sid 대신 사용자 정의 이름 사용
         proxy: process.env.NODE_ENV === 'production' // 프록시 환경에서 보안 설정 유지
