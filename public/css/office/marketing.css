@@ -4,9 +4,41 @@
     font-weight: normal;
     font-style: normal;
 }
+
 body {
     font-family: 'GmarketSansMedium', sans-serif;
-    background-color: #f5f6fa;
-    margin: 0;
-    font-family: 'Noto Sans KR', sans-serif;
+    line-height: 1.6;
+    margin: 20px;
+    padding: 20px;
+    background-color: #f9f9f9;
+}
+.container {
+    max-width: 800px;
+    margin: auto;
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+}
+h2 {
+    background: #0073e6;
+    color: white;
+    padding: 10px;
+    border-radius: 4px;
+}
+ul {
+    list-style: none;
+    padding: 0;
+}
+li {
+    padding: 8px;
+    border-bottom: 1px solid #ddd;
+}
+.checkbox {
+    margin-right: 10px;
+}
+.note {
+    font-size: 0.9em;
+    color: #555;
+    margin-top: 10px;
 }
