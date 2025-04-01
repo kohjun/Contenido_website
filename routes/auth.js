@@ -31,7 +31,13 @@ router.get(
         { expiresIn: '1h' }
       );
 
-      res.cookie('jwt', token, { httpOnly: true, secure: process.env.NODE_ENV === 'production' });
+      // 쿠키 설정 수정
+      res.cookie('jwt', token, { 
+        httpOnly: true, 
+        secure: process.env.NODE_ENV === 'production',
+        maxAge: 60 * 60 * 1000, // 1시간
+        sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax'
+      });
 
       // 추가 정보가 필요한 경우 추가 정보 입력 페이지로 리디렉션
       if (!profile.isAdditionalInfoComplete) {
