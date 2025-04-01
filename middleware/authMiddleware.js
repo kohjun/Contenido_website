@@ -1,6 +1,7 @@
 //middleware/authMiddlewares.js
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
+const { refreshAccessToken } = require('../config/passportConfig'); // Refresh Token 함수 가져오기
 const JWT_SECRET = process.env.JWT_SECRET;
 
 const authenticateToken = async (req, res, next) => {
@@ -18,34 +19,28 @@ const authenticateToken = async (req, res, next) => {
       return res.status(401).json({ message: 'User not found' });
     }
 
-    // 토큰 만료 1시간 전에 자동 갱신
-    if (user.tokenExpiresAt && new Date(user.tokenExpiresAt) - Date.now() < 60 * 60 * 1000) {
+    // Access Token 만료 시 Refresh Token으로 갱신
+    if (user.tokenExpiresAt && new Date(user.tokenExpiresAt) <= Date.now()) {
       if (user.kakaoRefreshToken) {
         try {
-          // 새로운 액세스 토큰 발급
+          const newAccessToken = await refreshAccessToken(user);
+
+          // 새로운 JWT 생성 및 쿠키에 저장
           const newToken = jwt.sign(
-            { 
-              id: user._id, 
-              role: user.role, 
-              displayName: user.displayName, 
-              email: user.email 
-            },
+            { id: user._id, role: user.role, displayName: user.displayName, email: user.email },
             JWT_SECRET,
             { expiresIn: '5h' }
           );
 
-          user.tokenExpiresAt = new Date(Date.now() + 5 * 60 * 60 * 1000);
-          await user.save();
-
-          // 새로운 토큰을 쿠키에 설정
           res.cookie('jwt', newToken, {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
             maxAge: 5 * 60 * 60 * 1000,
-            sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax'
+            sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
           });
         } catch (error) {
-          console.error('Token refresh error:', error);
+          console.error('Error refreshing access token:', error);
+          return res.status(401).json({ message: 'Failed to refresh access token' });
         }
       }
     }

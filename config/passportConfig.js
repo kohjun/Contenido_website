@@ -2,6 +2,7 @@
 require('dotenv').config();
 const KakaoStrategy = require('passport-kakao').Strategy;
 const User = require('../models/User');
+const axios = require('axios'); // Axios 추가
 
 module.exports = (passport) => {
   passport.use(
@@ -27,8 +28,7 @@ module.exports = (passport) => {
           let user = await User.findOne({ email });
 
           if (user) {
-            user.displayName = displayName;
-            user.kakaoId = kakaoId;
+            // Access Token 캐싱 및 Refresh Token 저장
             user.kakaoAccessToken = accessToken;
             user.kakaoRefreshToken = refreshToken;
             user.tokenExpiresAt = new Date(Date.now() + 5 * 60 * 60 * 1000); // 5시간
@@ -68,3 +68,25 @@ module.exports = (passport) => {
     }
   });
 };
+
+// Refresh Token을 사용해 Access Token 갱신 함수 추가
+async function refreshAccessToken(user) {
+  try {
+    const response = await axios.post('https://kauth.kakao.com/oauth/token', null, {
+      params: {
+        grant_type: 'refresh_token',
+        client_id: process.env.KAKAO_CLIENT_ID,
+        refresh_token: user.kakaoRefreshToken,
+      },
+    });
+
+    user.kakaoAccessToken = response.data.access_token;
+    user.tokenExpiresAt = new Date(Date.now() + response.data.expires_in * 1000);
+    await user.save();
+
+    return user.kakaoAccessToken;
+  } catch (error) {
+    console.error('Error refreshing access token:', error);
+    throw error;
+  }
+}
