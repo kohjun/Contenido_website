@@ -6,11 +6,15 @@ const Dashboard = {
         await this.loadChartJS();
       }
       
-      // 유저 데이터 가져오기
-      const userData = await this.fetchUserData();
+      // 유저 데이터와 회원가입 추이 데이터 동시에 가져오기
+      const [userData, membershipTrends] = await Promise.all([
+        this.fetchUserData(),
+        this.fetchMembershipTrends()
+      ]);
       
       // 차트 초기화
       this.initializeCharts(userData);
+      this.initializeMembershipTrendChart(membershipTrends);
       
       // 통계 정보 업데이트
       this.updateStatistics(userData);
@@ -34,6 +38,14 @@ const Dashboard = {
     const response = await fetch('/user/participants/users');
     if (!response.ok) {
       throw new Error('Failed to fetch user data');
+    }
+    return response.json();
+  },
+
+  async fetchMembershipTrends() {
+    const response = await fetch('/user/membership-trends');
+    if (!response.ok) {
+      throw new Error('Failed to fetch membership trends');
     }
     return response.json();
   },
@@ -169,6 +181,59 @@ const Dashboard = {
     // 연령 정보 업데이트
     document.getElementById('averageAge').textContent = 
       avgAge.toFixed(1);
+  },
+
+  initializeMembershipTrendChart(trendsData) {
+    const ctx = document.getElementById('membershipTrendChart');
+    if (!ctx) return;
+
+    new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: trendsData.map(d => {
+          const [year, month] = d.date.split('-');
+          return `${year}.${month}`;
+        }),
+        datasets: [{
+          label: '신규 가입자 수',
+          data: trendsData.map(d => d.count),
+          borderColor: '#36A2EB',
+          backgroundColor: 'rgba(54, 162, 235, 0.1)',
+          fill: true,
+          tension: 0.3
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            display: false
+          },
+          tooltip: {
+            callbacks: {
+              label: function(context) {
+                return `${context.parsed.y}명`;
+              }
+            }
+          }
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            ticks: {
+              precision: 0,
+              font: { size: 12 }
+            }
+          },
+          x: {
+            ticks: {
+              font: { size: 12 }
+            }
+          }
+        }
+      }
+    });
   },
 
   createChart(canvasId, config) {

@@ -1,0 +1,12 @@
+@font-face {
+    font-family: 'GmarketSansMedium';
+    src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_2001@1.1/GmarketSansMedium.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+}
+body {
+    font-family: 'GmarketSansMedium', sans-serif;
+    background-color: #f5f6fa;
+    margin: 0;
+    font-family: 'Noto Sans KR', sans-serif;
+}

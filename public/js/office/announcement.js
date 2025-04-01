@@ -6,11 +6,7 @@ class AnnouncementManager {
 
   async loadAnnouncements() {
     try {
-      const response = await fetch('/announcements/admin', {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        }
-      });
+      const response = await fetch('/announcements/admin');
       if (!response.ok) {
         throw new Error('Failed to load announcements');
       }
@@ -54,8 +50,7 @@ class AnnouncementManager {
       const response = await fetch('/announcements', {
         method: 'POST',
         headers: { 
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify(Object.fromEntries(formData))
       });
@@ -89,10 +84,7 @@ class AnnouncementManager {
   async deleteAnnouncement(id) {
     try {
       const response = await fetch(`/announcements/${id}`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        }
+        method: 'DELETE'
       });
       if (response.ok) {
         this.loadAnnouncements();
@@ -126,8 +118,7 @@ class AnnouncementManager {
       const response = await fetch(`/announcements/${id}`, {
         method: 'PUT',
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify(Object.fromEntries(formData))
       });
