@@ -28,14 +28,14 @@ router.get(
           email: profile.email,
         },
         JWT_SECRET,
-        { expiresIn: '1h' }
+        { expiresIn: '5h' } // 5시간으로 연장
       );
 
       // 쿠키 설정 수정
       res.cookie('jwt', token, { 
         httpOnly: true, 
         secure: process.env.NODE_ENV === 'production',
-        maxAge: 60 * 60 * 1000, // 1시간
+        maxAge: 5 * 60 * 60 * 1000, // 5시간으로 연장
         sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax'
       });
 
@@ -97,14 +97,12 @@ router.get('/logout', (req, res) => {
   res.redirect(kakaoLogoutUrl);
 });
 
-
-// 세션 쿠키 및 JWT 토큰 제거, 최종 로그아웃
+// 세션 쿠키 제거, JWT 토큰은 유지 (만료될 때까지 사용 가능)
 router.get('/final-logout', (req, res) => {
-  res.clearCookie('jwt');
-  res.clearCookie('connect.sid');
   req.session.destroy(err => {
-     if (err) return res.status(500).json({ message: 'Logout error' });
-     res.redirect('/index.html');
+    if (err) return res.status(500).json({ message: 'Logout error' });
+    // JWT 토큰은 제거하지 않고 자연 만료되도록 함
+    res.redirect('/index.html');
   });
 });
 

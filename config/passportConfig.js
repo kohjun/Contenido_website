@@ -29,6 +29,9 @@ module.exports = (passport) => {
           if (user) {
             user.displayName = displayName;
             user.kakaoId = kakaoId;
+            user.kakaoAccessToken = accessToken;
+            user.kakaoRefreshToken = refreshToken;
+            user.tokenExpiresAt = new Date(Date.now() + 5 * 60 * 60 * 1000); // 5시간
             if (profileImage) user.profileImage = profileImage;
 
             await user.save();
@@ -38,6 +41,9 @@ module.exports = (passport) => {
               displayName,
               profileImage,
               kakaoId,
+              kakaoAccessToken: accessToken,
+              kakaoRefreshToken: refreshToken,
+              tokenExpiresAt: new Date(Date.now() + 5 * 60 * 60 * 1000),
               isVerified: true,
               role: 'guest',
             });
