@@ -68,7 +68,7 @@ async function loadEventContent(eventId) {
         `;
       } else if (!isActive) {
         applicationSection.innerHTML = `
-          <p class="status-text">현재 지원이 불가능합니다</p>
+          <p class="status-text" 로그인 후 다시 시도해주세요. 활동부원이 아니므로 지원이 불가능합니다</p>
           <button class="submit-button" disabled>지원불가</button>
         `;
       } else if (isFull) {
@@ -101,7 +101,7 @@ async function loadEventContent(eventId) {
         `;
       } else if (!isActive) {
         applicationSection.innerHTML = `
-          <p class="status-text">현재 신청이 불가능합니다</p>
+          <p class="status-text"> 로그인 후 다시 시도해주세요. 활동부원이 아니므로 지원이 불가능합니다</p>
           <button class="submit-button" disabled>신청불가</button>
         `;
       } else if (isFull) {
