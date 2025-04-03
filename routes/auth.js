@@ -102,19 +102,32 @@ router.get('/user-role', authenticateToken, (req, res) => {
   }
 });
 
-// 카카오톡 로그아웃  및 리디렉션
+// 로그아웃 처리 수정
 router.get('/logout', (req, res) => {
-  const kakaoLogoutUrl = `https://kauth.kakao.com/oauth/logout?client_id=${KAKAO_CLIENT_ID}&logout_redirect_uri=${LOGOUT_REDIRECT_URI}`;
+  // JWT 토큰만 제거
+  res.clearCookie('jwt');
+  
+  // 세션 제거
+  req.session.destroy(err => {
+    if (err) {
+      console.error('Session destruction error:', err);
+    }
+    // 메인 페이지로 리디렉션
+    res.redirect('/index.html');
+  });
+});
+
+// 카카오 계정 완전 로그아웃 (선택적으로 사용)
+router.get('/kakao-logout', (req, res) => {
+  const kakaoLogoutUrl = `https://kauth.kakao.com/oauth/logout?client_id=${KAKAO_CLIENT_ID}&logout_redirect_uri=${encodeURIComponent(LOGOUT_REDIRECT_URI)}`;
   res.redirect(kakaoLogoutUrl);
 });
 
-// 세션 쿠키 제거, JWT 토큰은 유지 (만료될 때까지 사용 가능)
+// 최종 로그아웃 처리 (카카오 로그아웃 후 호출됨)
 router.get('/final-logout', (req, res) => {
-  req.session.destroy(err => {
-    if (err) return res.status(500).json({ message: 'Logout error' });
-    // JWT 토큰은 제거하지 않고 자연 만료되도록 함
-    res.redirect('/index.html');
-  });
+  // JWT 토큰 제거
+  res.clearCookie('jwt');
+  res.redirect('/index.html');
 });
 
 module.exports = router;
