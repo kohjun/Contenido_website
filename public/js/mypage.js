@@ -7,6 +7,12 @@ async function fetchUserInfo() {
   try {
     const response = await fetch('/user/info_database');
     
+    if (response.status === 401) {
+      // 로그인되지 않은 경우 카카오 로그인으로 리디렉션
+      window.location.href = '/auth/kakao';
+      return;
+    }
+
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
