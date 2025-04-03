@@ -61,8 +61,9 @@ app.use(
     })
 );
 
-// Passport configuration
-require('./config/passportConfig')(passport);
+// Passport configuration 부분 수정
+const { setupPassport } = require('./config/passportConfig');
+setupPassport(passport);
 app.use(passport.initialize());
 app.use(passport.session());
 

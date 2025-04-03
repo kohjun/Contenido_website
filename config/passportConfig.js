@@ -3,7 +3,8 @@ require('dotenv').config();
 const KakaoStrategy = require('passport-kakao').Strategy;
 const User = require('../models/User');
 
-module.exports.setupPassport = (passport) => {
+// setupPassport 함수 정의
+const setupPassport = (passport) => {
   passport.use(
     new KakaoStrategy(
       {
@@ -73,20 +74,8 @@ module.exports.setupPassport = (passport) => {
   });
 };
 
-// Refresh Token으로 새로운 Access Token 생성
-async function refreshAccessToken(user) {
-  try {
-    const newTokenExpiresAt = new Date(Date.now() + 5 * 60 * 60 * 1000); // 5시간
-    user.tokenExpiresAt = newTokenExpiresAt;
-    await user.save();
-    return true;
-  } catch (error) {
-    console.error('Error refreshing token:', error);
-    throw error;
-  }
-}
-
-async function verifyRefreshToken(user) {
+// 토큰 관련 함수들
+const verifyRefreshToken = async (user) => {
   try {
     // 리프레시 토큰이 없거나 만료된 경우
     if (!user.kakaoRefreshToken || !user.tokenExpiresAt || user.tokenExpiresAt <= Date.now()) {
@@ -97,7 +86,23 @@ async function verifyRefreshToken(user) {
     console.error('Error verifying refresh token:', error);
     return false;
   }
-}
+};
 
-module.exports.verifyRefreshToken = verifyRefreshToken;
-module.exports.refreshAccessToken = refreshAccessToken;
+const refreshAccessToken = async (user) => {
+  try {
+    const newTokenExpiresAt = new Date(Date.now() + 5 * 60 * 60 * 1000); // 5시간
+    user.tokenExpiresAt = newTokenExpiresAt;
+    await user.save();
+    return true;
+  } catch (error) {
+    console.error('Error refreshing token:', error);
+    throw error;
+  }
+};
+
+// 모듈 내보내기
+module.exports = {
+  setupPassport,
+  verifyRefreshToken,
+  refreshAccessToken
+};
