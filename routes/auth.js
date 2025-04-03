@@ -9,10 +9,47 @@ const LOGOUT_REDIRECT_URI = 'http://contenido.kr/auth/final-logout';   // 웹사
 const JWT_SECRET = process.env.JWT_SECRET;
 const router = express.Router();
 
+// 토큰 요청 대기열 관리를 위한 변수들
+let tokenRequestQueue = [];
+let isProcessing = false;
+const TOKEN_RATE_LIMIT = 20; // 10분당 최대 토큰 발급 수
+let tokenCount = 0;
+let lastResetTime = Date.now();
+
+// 토큰 발급 요청을 처리하는 함수
+async function processTokenQueue() {
+  if (isProcessing || tokenRequestQueue.length === 0) return;
+  
+  isProcessing = true;
+  
+  // 10분마다 토큰 카운트 초기화
+  if (Date.now() - lastResetTime > 600000) {
+    tokenCount = 0;
+    lastResetTime = Date.now();
+  }
+
+  while (tokenRequestQueue.length > 0 && tokenCount < TOKEN_RATE_LIMIT) {
+    const request = tokenRequestQueue.shift();
+    try {
+      tokenCount++;
+      await request.resolve();
+    } catch (error) {
+      request.reject(error);
+    }
+  }
+
+  isProcessing = false;
+  
+  // 대기열에 요청이 남아있으면 10분 후 다시 처리
+  if (tokenRequestQueue.length > 0) {
+    setTimeout(processTokenQueue, 600000);
+  }
+}
+
 // 카카오 로그인 초기화
 router.get('/kakao', passport.authenticate('kakao'));
 
-// JWT 토큰 생성 및 카카오 로그인 콜백 핸들링
+// JWT 토큰 생성 및 카카오 로그인 콜백 핸들링 수정
 router.get(
   '/kakao/callback',
   passport.authenticate('kakao', { failureRedirect: '/' }),
@@ -24,27 +61,25 @@ router.get(
       const kakaoToken = {
         access_token: profile.kakaoAccessToken,
         refresh_token: profile.kakaoRefreshToken,
-        expires_in: 5 * 60 * 60 * 1000 // 5시간
+        expires_in: 60 * 24 * 60 * 60 * 1000 // 60일
       };
 
-      // 자체 JWT 토큰 생성
+      // JWT 토큰 생성 (1일 유효)
       const token = jwt.sign(
         { 
           id: profile._id, 
           role: profile.role, 
-          displayName: profile.displayName, 
-          email: profile.email,
-          kakaoToken: kakaoToken // 카카오 토큰 정보 포함
+          email: profile.email 
         },
         JWT_SECRET,
-        { expiresIn: '5h' }
+        { expiresIn: '1d' }
       );
 
       // 쿠키에 토큰 저장
       res.cookie('jwt', token, { 
         httpOnly: true, 
         secure: process.env.NODE_ENV === 'production',
-        maxAge: 5 * 60 * 60 * 1000,
+        maxAge: 24 * 60 * 60 * 1000, // 1일
         sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax'
       });
 
@@ -52,9 +87,26 @@ router.get(
       if (!profile.isAdditionalInfoComplete) {
         return res.redirect('/additional-user-info.html');
       }
-      
-      res.redirect('/'); // 메인 페이지로 리디렉션
 
+      // 대기 상태 UI 제공
+      if (tokenRequestQueue.length > 0) {
+        const position = tokenRequestQueue.length;
+        return res.send(`
+          <html>
+            <body>
+              <h2>로그인 대기 중...</h2>
+              <p>현재 대기 순서: ${position}번째</p>
+              <p>예상 대기 시간: 약 ${Math.ceil(position / TOKEN_RATE_LIMIT * 10)}분</p>
+              <script>
+                setTimeout(() => { window.location.reload(); }, 30000);
+              </script>
+            </body>
+          </html>
+        `);
+      }
+
+      processTokenQueue();
+      res.redirect('/');
     } catch (error) {
       console.error('Error during user login:', error);
       res.redirect('/');
