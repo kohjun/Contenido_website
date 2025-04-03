@@ -299,8 +299,8 @@ function toggleQuestionSection() {
 }
 
 function addQuestion() {
-  if (questionCount >= 3) {
-    alert('최대 3개의 질문만 추가할 수 있습니다.');
+  if (questionCount >= 5) {
+    alert('최대 5개의 질문만 추가할 수 있습니다.');
     return;
   }
 
