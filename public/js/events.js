@@ -320,7 +320,7 @@ function addQuestion() {
   container.appendChild(questionDiv);
   questionCount++;
 
-  document.getElementById('add-question-btn').disabled = questionCount >= 3;
+  document.getElementById('add-question-btn').disabled = questionCount >= 5;
 }
 
 function deleteQuestion(button) {
