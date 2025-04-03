@@ -3,7 +3,7 @@ require('dotenv').config();
 const KakaoStrategy = require('passport-kakao').Strategy;
 const User = require('../models/User');
 
-module.exports = (passport) => {
+module.exports.setupPassport = (passport) => {
   passport.use(
     new KakaoStrategy(
       {
@@ -14,43 +14,48 @@ module.exports = (passport) => {
       },
       async (req, accessToken, refreshToken, profile, done) => {
         try {
-          const kakaoId = profile.id;
-          const displayName = profile._json.properties.nickname;
-          const profileImage = profile._json.properties.profile_image || '/images/basic_Image.png';
           const email = profile._json.kakao_account?.email;
 
+          // 이메일이 없는 경우 처리
           if (!email) {
-            console.error("Error: Kakao did not provide an email.");
             return done(null, false, { message: 'Email is required.' });
           }
 
           let user = await User.findOne({ email });
 
           if (user) {
-            // Access Token 캐싱 및 Refresh Token 저장
-            user.kakaoAccessToken = accessToken;
-            user.kakaoRefreshToken = refreshToken;
-            user.tokenExpiresAt = new Date(Date.now() + 5 * 60 * 60 * 1000); // 5시간
-            if (profileImage) user.profileImage = profileImage;
+            // 기존 토큰이 유효한 경우 재사용
+            if (user.tokenExpiresAt && user.tokenExpiresAt > Date.now()) {
+              return done(null, user);
+            }
 
-            await user.save();
-          } else {
-            user = await User.create({
-              email,
-              displayName,
-              profileImage,
-              kakaoId,
-              kakaoAccessToken: accessToken,
-              kakaoRefreshToken: refreshToken,
-              tokenExpiresAt: new Date(Date.now() + 5 * 60 * 60 * 1000),
-              isVerified: true,
-              role: 'guest',
-            });
+            // 토큰 업데이트는 background로 처리
+            setTimeout(async () => {
+              try {
+                user.kakaoAccessToken = accessToken;
+                user.kakaoRefreshToken = refreshToken;
+                user.tokenExpiresAt = new Date(Date.now() + 5 * 60 * 60 * 1000);
+                await user.save();
+              } catch (err) {
+                console.error('Background token update failed:', err);
+              }
+            }, 0);
+
+            return done(null, user);
           }
+
+          // 신규 사용자 생성
+          user = await User.create({
+            email,
+            displayName: profile._json.properties.nickname,
+            profileImage: profile._json.properties.profile_image,
+            kakaoId: profile.id,
+            isVerified: true,
+            role: 'guest',
+          });
 
           return done(null, user);
         } catch (err) {
-          console.error("Error during user login:", err);
           return done(err, null);
         }
       }
@@ -81,4 +86,18 @@ async function refreshAccessToken(user) {
   }
 }
 
+async function verifyRefreshToken(user) {
+  try {
+    // 리프레시 토큰이 없거나 만료된 경우
+    if (!user.kakaoRefreshToken || !user.tokenExpiresAt || user.tokenExpiresAt <= Date.now()) {
+      return false;
+    }
+    return true;
+  } catch (error) {
+    console.error('Error verifying refresh token:', error);
+    return false;
+  }
+}
+
+module.exports.verifyRefreshToken = verifyRefreshToken;
 module.exports.refreshAccessToken = refreshAccessToken;

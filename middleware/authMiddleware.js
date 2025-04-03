@@ -1,8 +1,7 @@
 //middleware/authMiddlewares.js
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
-const { refreshAccessToken } = require('../config/passportConfig');
-const JWT_SECRET = process.env.JWT_SECRET;
+const { verifyRefreshToken } = require('../config/passportConfig');
 
 const authenticateToken = async (req, res, next) => {
   const token = req.cookies.jwt || req.headers['authorization']?.split(' ')[1];
@@ -12,32 +11,52 @@ const authenticateToken = async (req, res, next) => {
   }
 
   try {
-    const decoded = await jwt.verify(token, JWT_SECRET);
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
     const user = await User.findById(decoded.id);
 
     if (!user) {
       return res.status(401).json({ message: 'User not found' });
     }
 
-    // 카카오 토큰 만료 확인
-    const kakaoToken = decoded.kakaoToken;
-    const tokenExpiry = new Date(Date.now() + kakaoToken.expires_in);
-
-    if (tokenExpiry <= Date.now()) {
-      // 토큰이 만료된 경우 재로그인 요청
-      res.clearCookie('jwt');
-      return res.status(401).json({ 
-        message: 'Token expired', 
-        redirect: '/auth/kakao' 
-      });
-    }
-
     req.user = user;
-    req.kakaoToken = kakaoToken; // 카카오 토큰 정보 요청 객체에 추가
     next();
+
   } catch (error) {
     if (error.name === 'TokenExpiredError') {
-      res.clearCookie('jwt');
+      try {
+        const decoded = jwt.decode(token);
+        const user = await User.findById(decoded.id);
+
+        if (!user) {
+          return res.status(401).json({ message: 'User not found' });
+        }
+
+        // 리프레시 토큰 확인
+        const isRefreshValid = await verifyRefreshToken(user);
+
+        if (isRefreshValid) {
+          // 새로운 JWT 토큰 발급
+          const newToken = jwt.sign(
+            { id: user._id, role: user.role, email: user.email },
+            process.env.JWT_SECRET,
+            { expiresIn: '1d' }
+          );
+
+          // 새 토큰을 쿠키에 설정
+          res.cookie('jwt', newToken, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            maxAge: 24 * 60 * 60 * 1000, // 1일
+            sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax'
+          });
+
+          req.user = user;
+          return next();
+        }
+      } catch (err) {
+        console.error('Error refreshing token:', err);
+      }
+      
       return res.status(401).json({ 
         message: 'Token expired',
         redirect: '/auth/kakao'
