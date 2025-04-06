@@ -234,78 +234,52 @@ const Dashboard = {
     const today = new Date();
     const activeUsers = userData.filter(user => user.active);
     
-    // 월별 회원가입 데이터 처리
-    const signupsByMonth = userData.reduce((acc, user) => {
-      if (user.createdAt) {
-        const date = new Date(user.createdAt);
-        const year = date.getFullYear();
-        const month = date.getMonth() + 1;
-        const key = `${year}-${month}`;
-        
-        if (!acc[key]) {
-          acc[key] = {
-            year,
-            month,
-            count: 0
-          };
-        }
-        acc[key].count++;
-      }
-      return acc;
-    }, {});
-
-    // 최근 12개월 데이터를 위한 모든 월 초기화
-    const last12Months = new Array(12).fill(0).map((_, i) => {
-      const date = new Date(today.getFullYear(), today.getMonth() - i, 1);
-      return {
-        year: date.getFullYear(),
-        month: date.getMonth() + 1,
-        count: 0
-      };
-    }).reverse();
-
-    // 실제 데이터로 채우기
-    last12Months.forEach(monthData => {
-      const key = `${monthData.year}-${monthData.month}`;
-      if (signupsByMonth[key]) {
-        monthData.count = signupsByMonth[key].count;
-      }
-    });
-
-    // 분기별 데이터 처리
+    // 분기별 범위 정의
     const quarterMonths = {
-      1: [1], // 1분기 (1월)
-      2: [4], // 2분기 (4월)
-      3: [7], // 3분기 (7월)
-      4: [10] // 4분기 (10월)
+      1: [1, 2, 3],    // 1분기
+      2: [4, 5, 6],    // 2분기
+      3: [7, 8, 9],    // 3분기
+      4: [10, 11, 12]  // 4분기
+    };
+
+    const getQuarterFromMonth = (month) => {
+      for (const [quarter, months] of Object.entries(quarterMonths)) {
+        if (months.includes(month)) {
+          return parseInt(quarter);
+        }
+      }
+      return 1;
+    };
+
+    // 실제 회원 수 계산 (게스트 제외)
+    const calculateActualMembers = (users, beforeDate) => {
+      return users.filter(user => {
+        const createdAt = new Date(user.createdAt);
+        return createdAt <= beforeDate && 
+               ['officer', 'participant', 'starter'].includes(user.role);
+      }).length;
     };
 
     const quarterlyData = {};
-    let runningTotal = 0;
-
     userData.forEach(user => {
       if (user.createdAt) {
         const date = new Date(user.createdAt);
         const year = date.getFullYear();
         const month = date.getMonth() + 1;
-        
-        // 해당 월이 속한 분기 찾기
-        const quarter = Object.entries(quarterMonths).find(([_, months]) => 
-          months.includes(month))?.[0];
+        const quarter = getQuarterFromMonth(month);
+        const key = `${year}-${quarter}`;
 
-        if (quarter) {
-          const key = `${year}-${quarter}`;
-          if (!quarterlyData[key]) {
-            quarterlyData[key] = {
-              year,
-              quarter,
-              newMembers: 0,
-              totalMembers: 0
-            };
-          }
+        if (!quarterlyData[key]) {
+          quarterlyData[key] = {
+            year,
+            quarter,
+            newMembers: 0,
+            totalMembers: 0
+          };
+        }
+        // 게스트가 아닌 경우만 카운트
+        if (['officer', 'participant', 'starter'].includes(user.role)) {
           quarterlyData[key].newMembers++;
-          runningTotal++;
-          quarterlyData[key].totalMembers = runningTotal;
         }
       }
     });
@@ -316,13 +290,14 @@ const Dashboard = {
     let currentQuarter = Math.floor((today.getMonth() / 3)) + 1;
 
     for (let i = 0; i < 8; i++) {
+      const quarterEndDate = new Date(currentYear, quarterMonths[currentQuarter][2], 31);
       const key = `${currentYear}-${currentQuarter}`;
+      
       last8Quarters.unshift({
         year: currentYear,
         quarter: currentQuarter,
         newMembers: quarterlyData[key]?.newMembers || 0,
-        totalMembers: quarterlyData[key]?.totalMembers || 
-          (last8Quarters[0]?.totalMembers || 0)
+        totalMembers: calculateActualMembers(userData, quarterEndDate)
       });
 
       currentQuarter--;
@@ -373,12 +348,15 @@ const Dashboard = {
       return;
     }
 
-    document.getElementById('totalMembers').textContent = userData.length+'명';
+    const actualMembers = userData.filter(u => 
+      ['officer', 'participant', 'starter'].includes(u.role));
+
+    document.getElementById('totalMembers').textContent = actualMembers.length+'명';
     document.getElementById('activeMembers').textContent = 
-      userData.filter(u => u.active).length+'명';
+      actualMembers.filter(u => u.active).length+'명';
     document.getElementById('avgParticipation').textContent = 
-      (userData.reduce((acc, user) => 
-        acc + (user.participationCount?.regularCount || 0), 0) / userData.length)
+      (actualMembers.reduce((acc, user) => 
+        acc + (user.participationCount?.regularCount || 0), 0) / actualMembers.length)
       .toFixed(1)+'번';
   }
 };
