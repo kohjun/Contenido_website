@@ -126,6 +126,12 @@
     margin: 0 auto;
 }
 
+#membershipTrendChart {
+    max-width: 500px;
+    max-height: 300px;
+    margin: 0 auto;
+}
+
 #activityChart {
     max-width: 500px;
     max-height: 400px;
