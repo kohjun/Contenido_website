@@ -2442,3 +2442,42 @@ tr:hover {
 .announcement-item button:hover {
   background-color: #0056b3;
 }
+
+/* 검색 컨테이너 스타일 */
+.search-container {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  align-items: center; /* 중앙 정렬로 변경 */
+}
+
+.search-container input {
+  flex: 3; /* flex 값을 증가시켜 더 많은 공간 차지 */
+  min-width: 0;
+  height: 40px;
+  border-radius: 8px;
+  padding: 0.75rem;
+  line-height: 40px;
+}
+
+.search-button {
+  flex: 0.5; /* flex 값을 감소시켜 더 작은 공간 차지 */
+  height: 40px;
+  padding: 0 1rem; /* 좌우 패딩 감소 */
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  background: #0A84FE;
+  color: white;
+  align-items: center;
+  justify-content: center;
+  min-width: 60px; /* 최소 너비 설정 */
+}
+
+.search-button:hover {
+  background: #0875e0;
+  transform: translateY(-2px);
+}

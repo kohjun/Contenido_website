@@ -141,6 +141,15 @@
 
         <div class="participant-selection-container">
           <label>참가자 선택</label>
+          <div class="search-container">
+            <input type="text" 
+                   id="participant-search" 
+                   placeholder="참가자 검색...">
+            <button onclick="searchParticipant(document.getElementById('participant-search').value)" 
+                    class="search-button">
+              검색
+            </button>
+          </div>
           <div id="participant-list" class="participant-grid"></div>
         </div>
 
