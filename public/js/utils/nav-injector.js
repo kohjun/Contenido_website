@@ -167,11 +167,11 @@ const navStyles = `
 }
 
 .left-banner {
-    left: 50px !important;
+    left: 250px !important;
 }
 
 .right-banner {
-    right: 50px !important;
+    right: 250px !important;
 }
 
 @media (max-width: 1700px) {  /* 반응형 breakpoint 수정 */
