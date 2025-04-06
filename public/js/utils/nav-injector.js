@@ -71,7 +71,7 @@ const navStyles = `
     top: 1rem;
     left: 1rem;
     background: #fff;
-    color: #0A84FE;
+6    color: #0A84FE;
     padding: 0.5rem;
     font-size: 1.5rem;
     border: none;
