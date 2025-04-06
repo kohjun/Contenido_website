@@ -1,18 +1,11 @@
 const Dashboard = {
   async initialize() {
     try {
-      // Chart.js 로드
       if (!window.Chart) {
         await this.loadChartJS();
       }
-      
-      // 유저 데이터만 가져오기
       const userData = await this.fetchUserData();
-      
-      // 차트 초기화
       this.initializeCharts(userData);
-      
-      // 통계 정보 업데이트
       this.updateStatistics(userData);
     } catch (error) {
       console.error('Dashboard initialization error:', error);
@@ -319,7 +312,6 @@ const Dashboard = {
 
     // 최근 8분기(2년) 데이터 생성
     const last8Quarters = [];
-    const today = new Date();
     let currentYear = today.getFullYear();
     let currentQuarter = Math.floor((today.getMonth() / 3)) + 1;
 
@@ -356,9 +348,7 @@ const Dashboard = {
       }, {}),
       
       activityData: userData.reduce((acc, user) => {
-        // preferredActivity가 있고 '-'가 아닌 경우에만 카운트
         if (user.preferredActivity && user.preferredActivity !== '-') {
-          // 기존 값이 있으면 증가, 없으면 1로 초기화
           acc[user.preferredActivity] = (acc[user.preferredActivity] || 0) + 1;
         }
         return acc;
@@ -377,39 +367,12 @@ const Dashboard = {
     };
   },
 
-  getMonthlySignups(userData) {
-    const signupsByMonth = userData.reduce((acc, user) => {
-      if (user.createdAt) {
-        const date = new Date(user.createdAt);
-        const year = date.getFullYear();
-        const month = date.getMonth() + 1;
-        const key = `${year}-${month}`;
-        
-        if (!acc[key]) {
-          acc[key] = {
-            year,
-            month,
-            count: 0
-          };
-        }
-        acc[key].count++;
-      }
-      return acc;
-    }, {});
-
-    // 최근 12개월의 데이터만 반환
-    return Object.values(signupsByMonth)
-      .sort((a, b) => (a.year - b.year) || (a.month - b.month))
-      .slice(-12);
-  },
-
   updateStatistics(userData) {
     if (!userData || !Array.isArray(userData)) {
       console.error('Invalid user data in updateStatistics');
       return;
     }
 
-    // 기본 통계 업데이트
     document.getElementById('totalMembers').textContent = userData.length+'명';
     document.getElementById('activeMembers').textContent = 
       userData.filter(u => u.active).length+'명';
@@ -417,12 +380,7 @@ const Dashboard = {
       (userData.reduce((acc, user) => 
         acc + (user.participationCount?.regularCount || 0), 0) / userData.length)
       .toFixed(1)+'번';
-  },
-
-  // 불필요한 메서드 제거
-  getDepartmentName: undefined,
-  getTeamName: undefined,
-  updateDepartmentDetails: undefined
+  }
 };
 
 if (typeof window !== 'undefined') {
