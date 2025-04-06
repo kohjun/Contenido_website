@@ -3,9 +3,17 @@
 const navStyles = `
 .container {
     position: relative;
-    min-height: 100vh;
+    width: 100%;
+    max-width: 750px;
+    margin: 0 auto;
+    padding: 1rem;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    min-height: calc(100vh - 70px - 65px);
+    box-sizing: border-box;
     padding-bottom: 60px;
-    padding-top: 70px; /* 상단 네비게이션 높이만큼 여백 추가 */
+    padding-top: 70px;
 }
 
 .sidebar {
@@ -140,30 +148,30 @@ const navStyles = `
     height: auto;
 }
 .ad-banner {
-    position: fixed;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 150px;  /* 고정 너비 300px로 변경 */
-    height: 600px; /* 고정 높이 600px 유지 */
-    background-color: #f5f5f5;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    border: 1px solid #ddd;
-    z-index: 999;
+    position: fixed !important;
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+    width: 160px !important;
+    height: 600px !important;
+    background: #fff !important;
+    border-radius: 12px !important;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1) !important;
+    padding: 1rem !important;
+    z-index: 999 !important;
 }
 
-.ad-banner p {
-    color: #999;
-    font-size: 14px;
+.ad-banner img {
+    width: 100% !important;
+    height: auto !important;
+    border-radius: 8px !important;
 }
 
 .left-banner {
-    left: 250px;  /* 위치 조정 */
+    left: 50px !important;
 }
 
 .right-banner {
-    right: 250px;  /* 위치 조정 */
+    right: 50px !important;
 }
 
 @media (max-width: 1700px) {  /* 반응형 breakpoint 수정 */
@@ -262,14 +270,16 @@ const adBannersHTML = `
         <a href="https://picore.co.kr" target="_blank" rel="noopener noreferrer">
         <img src="./images/picore1.jpg" alt="Left Advertisement">
         </a>
-
+        <h3>PiCore</h3>
+        <p>좋은 피부의 개념을 다시 씁니다.</p>
         
     </div>
     <div class="ad-banner right-banner">
        <a href="https://picore.co.kr" target="_blank" rel="noopener noreferrer">
         <img src="./images/picore2.jpg" alt="Left Advertisement">
         </a>
-
+        <h3>PiCore</h3>
+        <p>좋은 피부의 개념을 다시 씁니다.</p>
     </div>
 `;
 
