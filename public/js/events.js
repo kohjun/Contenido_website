@@ -382,6 +382,7 @@ async function loadReportFormOptions() {
     activeParticipants.forEach(participant => {
       const div = document.createElement('div');
       div.className = 'participant-item';
+      div.setAttribute('data-name', participant.name.toLowerCase());
 
       const checkbox = document.createElement('input');
       checkbox.type = 'checkbox';
@@ -402,6 +403,37 @@ async function loadReportFormOptions() {
   }
 }
 
+function searchParticipant(searchText) {
+  if (!searchText.trim()) {
+    alert('검색어를 입력해주세요.');
+    return;
+  }
+
+  const participantList = document.getElementById('participant-list');
+  const items = participantList.getElementsByClassName('participant-item');
+  searchText = searchText.toLowerCase();
+
+  let found = false;
+  for (const item of items) {
+    const name = item.getAttribute('data-name');
+    if (name.includes(searchText)) {
+      // 검색된 참가자로 스크롤
+      item.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      // 검색된 항목 강조 표시
+      item.style.backgroundColor = '#fff3cd';
+      // 1초 후 강조 표시 제거
+      setTimeout(() => {
+        item.style.backgroundColor = '';
+      }, 1000);
+      found = true;
+      break;
+    }
+  }
+
+  if (!found) {
+    alert('검색 결과가 없습니다.');
+  }
+}
 
 // 결과 보고서 제출
 async function submitReport() {

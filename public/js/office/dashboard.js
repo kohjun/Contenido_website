@@ -44,7 +44,7 @@ const Dashboard = {
       return;
     }
 
-    const { roleCounts, genderData, activityData, avgAge } = this.processData(userData);
+    const { roleCounts, genderData, activityData, avgAge, monthlySignups } = this.processData(userData);
 
     const commonChartOptions = {
       plugins: {
@@ -166,6 +166,55 @@ const Dashboard = {
       }
     });
 
+    // 분기별 회원 현황 차트
+    this.createChart('growthChart', {
+      type: 'line',
+      data: {
+        labels: monthlySignups.map(d => `${d.year}년 ${d.quarter}분기`),
+        datasets: [{
+          label: '신규 가입자',
+          data: monthlySignups.map(d => d.newMembers),
+          borderColor: '#4BC0C0',
+          backgroundColor: 'rgba(75, 192, 192, 0.1)',
+          tension: 0.3,
+          fill: true
+        },
+        {
+          label: '총 회원수',
+          data: monthlySignups.map(d => d.totalMembers),
+          borderColor: '#FF6384',
+          backgroundColor: 'rgba(255, 99, 132, 0.1)',
+          tension: 0.3,
+          fill: true
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            display: true,
+            position: 'top'
+          },
+          tooltip: {
+            callbacks: {
+              label: function(context) {
+                return `${context.dataset.label}: ${context.parsed.y}명`;
+              }
+            }
+          }
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            ticks: {
+              precision: 0
+            }
+          }
+        }
+      }
+    });
+
     // 연령 정보 업데이트
     document.getElementById('averageAge').textContent = 
       avgAge.toFixed(1);
@@ -184,13 +233,113 @@ const Dashboard = {
         roleCounts: {},
         genderData: {},
         activityData: {},
-        avgAge: 0
+        avgAge: 0,
+        monthlySignups: []
       };
     }
 
     const today = new Date();
     const activeUsers = userData.filter(user => user.active);
     
+    // 월별 회원가입 데이터 처리
+    const signupsByMonth = userData.reduce((acc, user) => {
+      if (user.createdAt) {
+        const date = new Date(user.createdAt);
+        const year = date.getFullYear();
+        const month = date.getMonth() + 1;
+        const key = `${year}-${month}`;
+        
+        if (!acc[key]) {
+          acc[key] = {
+            year,
+            month,
+            count: 0
+          };
+        }
+        acc[key].count++;
+      }
+      return acc;
+    }, {});
+
+    // 최근 12개월 데이터를 위한 모든 월 초기화
+    const last12Months = new Array(12).fill(0).map((_, i) => {
+      const date = new Date(today.getFullYear(), today.getMonth() - i, 1);
+      return {
+        year: date.getFullYear(),
+        month: date.getMonth() + 1,
+        count: 0
+      };
+    }).reverse();
+
+    // 실제 데이터로 채우기
+    last12Months.forEach(monthData => {
+      const key = `${monthData.year}-${monthData.month}`;
+      if (signupsByMonth[key]) {
+        monthData.count = signupsByMonth[key].count;
+      }
+    });
+
+    // 분기별 데이터 처리
+    const quarterMonths = {
+      1: [1], // 1분기 (1월)
+      2: [4], // 2분기 (4월)
+      3: [7], // 3분기 (7월)
+      4: [10] // 4분기 (10월)
+    };
+
+    const quarterlyData = {};
+    let runningTotal = 0;
+
+    userData.forEach(user => {
+      if (user.createdAt) {
+        const date = new Date(user.createdAt);
+        const year = date.getFullYear();
+        const month = date.getMonth() + 1;
+        
+        // 해당 월이 속한 분기 찾기
+        const quarter = Object.entries(quarterMonths).find(([_, months]) => 
+          months.includes(month))?.[0];
+
+        if (quarter) {
+          const key = `${year}-${quarter}`;
+          if (!quarterlyData[key]) {
+            quarterlyData[key] = {
+              year,
+              quarter,
+              newMembers: 0,
+              totalMembers: 0
+            };
+          }
+          quarterlyData[key].newMembers++;
+          runningTotal++;
+          quarterlyData[key].totalMembers = runningTotal;
+        }
+      }
+    });
+
+    // 최근 8분기(2년) 데이터 생성
+    const last8Quarters = [];
+    const today = new Date();
+    let currentYear = today.getFullYear();
+    let currentQuarter = Math.floor((today.getMonth() / 3)) + 1;
+
+    for (let i = 0; i < 8; i++) {
+      const key = `${currentYear}-${currentQuarter}`;
+      last8Quarters.unshift({
+        year: currentYear,
+        quarter: currentQuarter,
+        newMembers: quarterlyData[key]?.newMembers || 0,
+        totalMembers: quarterlyData[key]?.totalMembers || 
+          (last8Quarters[0]?.totalMembers || 0)
+      });
+
+      currentQuarter--;
+      if (currentQuarter < 1) {
+        currentQuarter = 4;
+        currentYear--;
+      }
+    }
+
     return {
       roleCounts: userData.reduce((acc, user) => {
         if (user.role) {
@@ -222,8 +371,36 @@ const Dashboard = {
           return acc + age;
         }
         return acc;
-      }, 0) / (activeUsers.filter(user => user.birthDate).length || 1)
+      }, 0) / (activeUsers.filter(user => user.birthDate).length || 1),
+
+      monthlySignups: last8Quarters
     };
+  },
+
+  getMonthlySignups(userData) {
+    const signupsByMonth = userData.reduce((acc, user) => {
+      if (user.createdAt) {
+        const date = new Date(user.createdAt);
+        const year = date.getFullYear();
+        const month = date.getMonth() + 1;
+        const key = `${year}-${month}`;
+        
+        if (!acc[key]) {
+          acc[key] = {
+            year,
+            month,
+            count: 0
+          };
+        }
+        acc[key].count++;
+      }
+      return acc;
+    }, {});
+
+    // 최근 12개월의 데이터만 반환
+    return Object.values(signupsByMonth)
+      .sort((a, b) => (a.year - b.year) || (a.month - b.month))
+      .slice(-12);
   },
 
   updateStatistics(userData) {

@@ -132,6 +132,21 @@
     margin: 0 auto;
 }
 
+.growth-chart {
+    grid-column: 1 / -1;
+    min-height: 300px;
+}
+
+#growthChart {
+    max-height: 250px;
+    margin: 0 auto;
+}
+
+#newMembersChart, #totalMembersChart {
+    max-height: 250px;
+    margin: 0 auto;
+}
+
 /* 반응형 디자인 */
 @media (max-width: 768px) {
     .dashboard-grid {

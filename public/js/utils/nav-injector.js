@@ -259,12 +259,17 @@ const bottomNavHTML = `
 // 광고 배너 HTML 수정
 const adBannersHTML = `
     <div class="ad-banner left-banner">
-        <!-- <img src="./images/sample.jpeg" alt="Left Advertisement"> -->
-        <p>Advertisement</p>
+        <a href="https://picore.co.kr" target="_blank" rel="noopener noreferrer">
+        <img src="./images/picore1.jpg" alt="Left Advertisement">
+        </a>
+
+        
     </div>
     <div class="ad-banner right-banner">
-        <!-- <img src="./images/sample.jpeg" alt="Right Advertisement"> -->
-        <p>Advertisement</p>
+       <a href="https://picore.co.kr" target="_blank" rel="noopener noreferrer">
+        <img src="./images/picore2.jpg" alt="Left Advertisement">
+        </a>
+
     </div>
 `;
 
