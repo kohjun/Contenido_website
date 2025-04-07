@@ -258,7 +258,7 @@ const bottomNavHTML = `
         <i class="custom-nav-icon"><img src="./images/Home.jpeg"></i>
         <span>홈</span>
     </button>
-    <button class="custom-nav-button" onclick="goToMyPage()">
+    <button class="custom-nav-button" onclick="handleMyPageClick(event)">
         <i class="custom-nav-icon"><img src="./images/mypage.jpeg"></i>
         <span>마이</span>
     </button>
@@ -304,9 +304,28 @@ function goHome() {
     window.location.href = '/';
 }
 
-function goToMyPage() {
-    window.location.href = '/mypage.html';
+function createMyPageLink() {
+  return `<a href="/mypage.html" class="nav-link" onclick="handleMyPageClick(event)">마이페이지</a>`;
 }
+
+// 마이페이지 클릭 핸들러 추가
+async function handleMyPageClick(event) {
+  event.preventDefault();
+  try {
+    const response = await fetch('/user/info');
+    if (!response.ok) {
+      // 로그인이 필요한 경우
+      const currentUrl = encodeURIComponent('/mypage.html');
+      window.location.href = `/auth/kakao?state=${currentUrl}`;
+      return;
+    }
+    // 이미 로그인된 경우
+    window.location.href = '/mypage.html';
+  } catch (error) {
+    console.error('Error:', error);
+  }
+}
+
 // 광고 배너 삽입
 document.body.insertAdjacentHTML('beforeend', adBannersHTML);
 

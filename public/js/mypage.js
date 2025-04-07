@@ -8,8 +8,9 @@ async function fetchUserInfo() {
     const response = await fetch('/user/info_database');
     
     if (response.status === 401) {
-      // 로그인되지 않은 경우 카카오 로그인으로 리디렉션
-      window.location.href = '/auth/kakao';
+      // 로그인되지 않은 경우 현재 URL을 state 파라미터로 전달하여 카카오 로그인으로 리디렉션
+      const currentUrl = encodeURIComponent(window.location.href);
+      window.location.href = `/auth/kakao?state=${currentUrl}`;
       return;
     }
 
