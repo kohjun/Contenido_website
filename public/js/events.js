@@ -376,22 +376,29 @@ async function loadReportFormOptions() {
 
     participantList.innerHTML = ''; // Clear existing options
     
-    // active가 true인 유저만 필터링
+    // active가 true인 유저만 필터링하고 이름+전화번호 형식으로 표시
     const activeParticipants = participants.filter(participant => participant.active);
     
     activeParticipants.forEach(participant => {
       const div = document.createElement('div');
       div.className = 'participant-item';
-      div.setAttribute('data-name', participant.name.toLowerCase());
+      
+      // 전화번호 뒷 4자리 추출
+      const phoneLastFour = participant.phonenumber ? participant.phonenumber.slice(-4) : '';
+      const displayText = `${participant.name}${phoneLastFour}`;
+      
+      div.setAttribute('data-name', displayText.toLowerCase());
+      div.setAttribute('data-display', displayText); // 표시용 텍스트 저장
 
       const checkbox = document.createElement('input');
       checkbox.type = 'checkbox';
       checkbox.value = participant.id;
       checkbox.id = `participant-${participant.id}`;
+      checkbox.setAttribute('data-display', displayText); // 체크박스에도 표시용 텍스트 저장
 
       const label = document.createElement('label');
       label.htmlFor = checkbox.id;
-      label.textContent = participant.name; // displayName 대신 name 사용
+      label.textContent = displayText; // 이름+전화번호 뒷자리 표시
 
       div.appendChild(checkbox);
       div.appendChild(label);
@@ -443,7 +450,10 @@ async function submitReport() {
     const accessCode = document.getElementById('report-access-code').value;
 
     const selectedParticipants = Array.from(document.querySelectorAll('#participant-list input:checked'))
-      .map(checkbox => checkbox.value);
+      .map(checkbox => ({
+        id: checkbox.value,
+        displayName: checkbox.getAttribute('data-display')
+      }));
 
     if (!selectedEventId) {
       alert('이벤트를 선택하세요.');
@@ -477,7 +487,7 @@ async function submitReport() {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        participants: selectedParticipants
+        participants: selectedParticipants.map(p => p.id) // 서버에는 ID만 전송
       })
     });
 

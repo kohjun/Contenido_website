@@ -66,11 +66,6 @@ async function loadEventContent(eventId) {
             </form>
           </div>
         `;
-      } else if (!isActive) {
-        applicationSection.innerHTML = `
-          <p class="status-text" 로그인 후 다시 시도해주세요. 활동부원이 아니므로 지원이 불가능합니다</p>
-          <button class="submit-button" disabled>지원불가</button>
-        `;
       } else if (isFull) {
         applicationSection.innerHTML = `
           <p class="status-text">모집이 마감되었습니다</p>
@@ -98,11 +93,6 @@ async function loadEventContent(eventId) {
         applicationSection.innerHTML = `
           <p class="status-text">신청이 완료되었습니다</p>
           <button class="submit-button" disabled>신청완료</button>
-        `;
-      } else if (!isActive) {
-        applicationSection.innerHTML = `
-          <p class="status-text"> 로그인 후 다시 시도해주세요. 활동부원이 아니므로 지원이 불가능합니다</p>
-          <button class="submit-button" disabled>신청불가</button>
         `;
       } else if (isFull) {
         applicationSection.innerHTML = `
@@ -299,9 +289,25 @@ async function submitApplication(e) {
   }
 }
 
-// 일반 이벤트 신청 함수
-async function applyForEvent(eventId) {
+// 일반 이벤트 신청 함수 수정
+async function applyForEvent(eventId, isAutoApply = false) {
   try {
+    // 먼저 로그인 상태 확인
+    const userResponse = await fetch('/user/info');
+    if (!userResponse.ok) {
+      // 로그인되지 않은 경우
+      const returnUrl = new URL(window.location.href);
+      returnUrl.searchParams.set('auto_apply', 'true'); // 자동 신청 파라미터 추가
+      window.location.href = `/auth/kakao?state=${encodeURIComponent(returnUrl.toString())}`;
+      return;
+    }
+
+    const userData = await userResponse.json();
+    if (!userData.active) {
+      alert('활동부원만 신청이 가능합니다.');
+      return;
+    }
+
     const response = await fetch(`/events/${eventId}/apply`, {
       method: 'POST',
       headers: {
@@ -522,11 +528,25 @@ function cancelEdit() {
   location.reload();
 }
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
   const eventId = new URLSearchParams(window.location.search).get('id');
-  if (eventId) {
-    loadEventContent(eventId);
-  } else {
+  const autoApply = new URLSearchParams(window.location.search).get('auto_apply');
+  
+  if (!eventId) {
     alert('이벤트 ID가 없습니다.');
+    return;
+  }
+
+  await loadEventContent(eventId);
+
+  // 자동 신청 파라미터가 있으면 신청 처리
+  if (autoApply === 'true') {
+    // URL에서 auto_apply 파라미터 제거 (히스토리 관리)
+    const newUrl = new URL(window.location.href);
+    newUrl.searchParams.delete('auto_apply');
+    window.history.replaceState({}, '', newUrl.toString());
+    
+    // 자동 신청 실행
+    await applyForEvent(eventId, true);
   }
 });

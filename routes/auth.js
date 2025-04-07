@@ -46,8 +46,15 @@ async function processTokenQueue() {
   }
 }
 
-// 카카오 로그인 초기화
-router.get('/kakao', passport.authenticate('kakao'));
+// 카카오 로그인 초기화 수정
+router.get('/kakao', (req, res, next) => {
+  // state 파라미터로 전달된 리턴 URL 저장
+  const returnUrl = req.query.state || '/';
+  
+  passport.authenticate('kakao', {
+    state: returnUrl
+  })(req, res, next);
+});
 
 // JWT 토큰 생성 및 카카오 로그인 콜백 핸들링 수정
 router.get(
@@ -56,6 +63,7 @@ router.get(
   async (req, res) => {
     try {
       const profile = req.user;
+      const returnUrl = req.query.state || '/'; // state 파라미터에서 리턴 URL 가져오기
 
       // 카카오에서 받은 토큰 저장
       const kakaoToken = {
@@ -106,7 +114,7 @@ router.get(
       }
 
       processTokenQueue();
-      res.redirect('/');
+      res.redirect(decodeURIComponent(returnUrl));
     } catch (error) {
       console.error('Error during user login:', error);
       res.redirect('/');
