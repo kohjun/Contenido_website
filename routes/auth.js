@@ -4,9 +4,6 @@ const passport = require('passport');
 const jwt = require('jsonwebtoken');
 const authenticateToken = require('../middleware/authMiddleware'); 
 const User = require('../models/User');
-const KAKAO_CLIENT_ID = process.env.KAKAO_CLIENT_ID;
-const LOGOUT_REDIRECT_URI = 'http://localhost:3000/auth/final-logout';   // 웹사이트 주소 입력
-const JWT_SECRET = process.env.JWT_SECRET;
 const router = express.Router();
 
 // 토큰 요청 대기열 관리를 위한 변수들
@@ -46,55 +43,59 @@ async function processTokenQueue() {
   }
 }
 
-// 토큰 상태 확인 엔드포인트
+// 토큰 상태 확인 엔드포인트 - 수정
 router.get('/check-token', (req, res) => {
-  const jwt = req.cookies.jwt;
-  const refreshToken = req.cookies.refreshToken;
-  
-  if (!jwt) {
-    return res.status(401).json({ message: 'No access token found' });
-  }
-  
   try {
-    // JWT 토큰 검증
-    const decoded = require('jsonwebtoken').verify(jwt, process.env.JWT_SECRET);
-    return res.status(200).json({ message: 'Valid token', user: decoded });
-  } catch (error) {
-    if (error.name === 'TokenExpiredError' && refreshToken) {
-      // 토큰이 만료되었으나 리프레시 토큰이 있는 경우
-      // 클라이언트가 /refresh-token 엔드포인트를 호출하도록 유도
-      return res.status(401).json({ message: 'Token expired, refresh required' });
+    const token = req.cookies.jwt;
+    if (!token) {
+      return res.status(401).json({ message: 'No token found' });
     }
+    
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    
+    // 토큰이 유효한 경우
+    return res.status(200).json({ 
+      message: 'Valid token', 
+      user: {
+        id: decoded.id,
+        role: decoded.role
+      }
+    });
+  } catch (error) {
+    console.error('Token verification error:', error);
+    
+    if (error.name === 'TokenExpiredError') {
+      return res.status(401).json({ message: 'Token expired' });
+    }
+    
     return res.status(401).json({ message: 'Invalid token' });
   }
 });
 
-// 리프레시 토큰을 사용한 액세스 토큰 갱신 엔드포인트
+// 리프레시 토큰을 사용한 액세스 토큰 갱신 엔드포인트 - 수정
 router.post('/refresh-token', async (req, res) => {
-  const refreshToken = req.cookies.refreshToken;
-  
-  if (!refreshToken) {
-    return res.status(401).json({ message: 'No refresh token found' });
-  }
-  
   try {
-    // 사용자 찾기
-    const user = await User.findOne({ refreshToken });
+    const refreshToken = req.cookies.refreshToken;
+    
+    if (!refreshToken) {
+      return res.status(401).json({ message: 'No refresh token found' });
+    }
+    
+    // 여기서 사용자 정보를 가져올 때 필요한 필드 명시
+    const user = await User.findOne({ refreshToken }).select('+refreshToken +refreshTokenExpiry +lastRefreshTokenUse');
     
     if (!user) {
       return res.status(401).json({ message: 'Invalid refresh token' });
     }
     
-    // 리프레시 토큰 검증
-    const isRefreshValid = await verifyRefreshToken(user);
-    
-    if (!isRefreshValid) {
+    // 리프레시 토큰 만료 시간 확인
+    if (!user.refreshTokenExpiry || new Date() > new Date(user.refreshTokenExpiry)) {
       return res.status(401).json({ message: 'Refresh token expired' });
     }
     
     // 토큰 재사용 감지 (선택적)
     if (user.lastRefreshTokenUse && 
-        new Date() - user.lastRefreshTokenUse < 1000) { // 1초 이내 재사용
+        new Date() - new Date(user.lastRefreshTokenUse) < 1000) { // 1초 이내 재사용
       await User.updateOne({ _id: user._id }, { 
         $unset: { refreshToken: 1, refreshTokenExpiry: 1 } 
       });
@@ -111,25 +112,32 @@ router.post('/refresh-token', async (req, res) => {
     // 새 리프레시 토큰 발급 (선택적)
     const newRefreshToken = jwt.sign(
       { id: user._id },
-      process.env.REFRESH_TOKEN_SECRET,
+      process.env.REFRESH_TOKEN_SECRET || process.env.JWT_SECRET, // 폴백 추가
       { expiresIn: '14d' } // 14일
     );
     
+    // 만료 시간 계산
+    const refreshExpiry = new Date();
+    refreshExpiry.setDate(refreshExpiry.getDate() + 14); // 14일 후 만료
+    
     // 사용자 정보 업데이트
-    await saveRefreshToken(user._id, newRefreshToken);
+    user.refreshToken = newRefreshToken;
+    user.refreshTokenExpiry = refreshExpiry;
+    user.lastRefreshTokenUse = new Date();
+    await user.save();
     
     // 쿠키 설정
     res.cookie('jwt', newAccessToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
+      sameSite: 'lax', // 'strict'에서 'lax'로 변경하여 리디렉션 시 쿠키 전송 허용
       maxAge: 6 * 60 * 60 * 1000 // 6시간
     });
     
     res.cookie('refreshToken', newRefreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
+      sameSite: 'lax', // 'strict'에서 'lax'로 변경
       maxAge: 14 * 24 * 60 * 60 * 1000 // 14일
     });
     
@@ -139,13 +147,16 @@ router.post('/refresh-token', async (req, res) => {
     return res.status(500).json({ message: 'Error refreshing token' });
   }
 });
+
 // 카카오 로그인 초기화 수정
 router.get('/kakao', (req, res, next) => {
   // state 파라미터로 전달된 리턴 URL 저장
   const returnUrl = req.query.state || '/';
   
+  // 명시적으로 scope 지정
   passport.authenticate('kakao', {
-    state: returnUrl
+    state: returnUrl,
+    scope: ['profile_nickname', 'profile_image', 'account_email']
   })(req, res, next);
 });
 
@@ -177,24 +188,37 @@ router.get(
           { expiresIn: '6h' }
         );
 
+        // 리프레시 토큰에 대한 시크릿 키 확인
+        const refreshSecret = process.env.REFRESH_TOKEN_SECRET || process.env.JWT_SECRET;
+        
         const refreshToken = jwt.sign(
           { id: user._id },
-          process.env.REFRESH_TOKEN_SECRET || 'refresh-secret',
+          refreshSecret,
           { expiresIn: '14d' }
         );
+
+        // 리프레시 토큰 만료일 계산
+        const refreshExpiry = new Date();
+        refreshExpiry.setDate(refreshExpiry.getDate() + 14); // 14일 후
+
+        // 리프레시 토큰 저장
+        user.refreshToken = refreshToken;
+        user.refreshTokenExpiry = refreshExpiry;
+        user.lastRefreshTokenUse = new Date();
+        user.save().catch(err => console.error('Error saving refresh token:', err));
 
         // 쿠키 설정
         res.cookie('jwt', accessToken, {
           httpOnly: true,
           secure: process.env.NODE_ENV === 'production',
-          sameSite: 'lax',
+          sameSite: 'lax', // 'strict'에서 'lax'로 변경
           maxAge: 6 * 60 * 60 * 1000 // 6시간
         });
 
         res.cookie('refreshToken', refreshToken, {
           httpOnly: true,
           secure: process.env.NODE_ENV === 'production',
-          sameSite: 'lax',
+          sameSite: 'lax', // 'strict'에서 'lax'로 변경
           maxAge: 14 * 24 * 60 * 60 * 1000 // 14일
         });
         
@@ -247,45 +271,41 @@ router.get('/user-role', authenticateToken, (req, res) => {
 
 // 로그아웃 처리 수정
 router.get('/logout', async (req, res) => {
-  const user = req.user;
-  if (user) {
-    await User.updateOne({ _id: user._id }, {
-      $unset: { refreshToken: 1, refreshTokenExpiry: 1 }
-    });
-  }
-  
-  res.clearCookie('jwt', { 
-    httpOnly: true, 
-    secure: true, 
-    sameSite: 'strict' 
-  });
-  res.clearCookie('refreshToken', { 
-    httpOnly: true, 
-    secure: true, 
-    sameSite: 'strict' 
-  });
-  
-  // 세션 제거
-  req.session.destroy(err => {
-    if (err) {
-      console.error('Session destruction error:', err);
+  try {
+    const user = req.user;
+    if (user) {
+      await User.updateOne({ _id: user._id }, {
+        $unset: { refreshToken: 1, refreshTokenExpiry: 1 }
+      });
     }
-    // 메인 페이지로 리디렉션
+    
+    res.clearCookie('jwt', { 
+      httpOnly: true, 
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax' // 'strict'에서 'lax'로 변경
+    });
+    res.clearCookie('refreshToken', { 
+      httpOnly: true, 
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax' // 'strict'에서 'lax'로 변경
+    });
+    
+    // 세션 제거
+    if (req.session) {
+      req.session.destroy(err => {
+        if (err) {
+          console.error('Session destruction error:', err);
+        }
+        // 메인 페이지로 리디렉션
+        res.redirect('/index.html');
+      });
+    } else {
+      res.redirect('/index.html');
+    }
+  } catch (error) {
+    console.error('Logout error:', error);
     res.redirect('/index.html');
-  });
-});
-
-// 카카오 계정 완전 로그아웃 (선택적으로 사용)
-router.get('/kakao-logout', (req, res) => {
-  const kakaoLogoutUrl = `https://kauth.kakao.com/oauth/logout?client_id=${KAKAO_CLIENT_ID}&logout_redirect_uri=${encodeURIComponent(LOGOUT_REDIRECT_URI)}`;
-  res.redirect(kakaoLogoutUrl);
-});
-
-// 최종 로그아웃 처리 (카카오 로그아웃 후 호출됨)
-router.get('/final-logout', (req, res) => {
-  // JWT 토큰 제거
-  res.clearCookie('jwt');
-  res.redirect('/index.html');
+  }
 });
 
 module.exports = router;

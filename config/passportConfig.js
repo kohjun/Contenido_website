@@ -1,24 +1,31 @@
-// config/passportConfig.js 파일 수정
-const passport = require('passport'); // 이 줄을 추가해야 합니다
+// config/passportConfig.js
 const KakaoStrategy = require('passport-kakao').Strategy;
 const User = require('../models/User');
 const jwt = require('jsonwebtoken');
 
-// 리프레시 토큰 검증
+/**
+ * 리프레시 토큰 검증
+ * @param {Object} user - 사용자 객체
+ * @returns {Boolean} 토큰이 유효한지 여부
+ */
 const verifyRefreshToken = async (user) => {
   if (!user.refreshToken || !user.refreshTokenExpiry) {
     return false;
   }
   
-  // 만료 시간 확인
-  if (new Date() > user.refreshTokenExpiry) {
-    return false;
-  }
-
-  return true;
+  // 만료 시간 확인 (Date 객체가 아닐 경우 변환)
+  const expiryDate = user.refreshTokenExpiry instanceof Date 
+    ? user.refreshTokenExpiry 
+    : new Date(user.refreshTokenExpiry);
+    
+  return new Date() < expiryDate;
 };
 
-// 리프레시 토큰 저장
+/**
+ * 리프레시 토큰 저장
+ * @param {String} userId - 사용자 ID
+ * @param {String} refreshToken - 리프레시 토큰
+ */
 const saveRefreshToken = async (userId, refreshToken) => {
   const expiry = new Date();
   expiry.setDate(expiry.getDate() + 14); // 14일 후 만료
@@ -30,6 +37,10 @@ const saveRefreshToken = async (userId, refreshToken) => {
   });
 };
 
+/**
+ * Passport 설정
+ * @param {Object} passport - Passport 인스턴스
+ */
 const setupPassport = (passport) => {
   passport.use(
     new KakaoStrategy(
@@ -41,8 +52,12 @@ const setupPassport = (passport) => {
       },
       async (accessToken, refreshToken, profile, done) => {
         try {
+         
+          
+          // 이메일 확인 (필수)
           const email = profile._json.kakao_account?.email;
           if (!email) {
+            console.log('이메일 정보가 없습니다');
             return done(null, false, { message: '이메일이 필요합니다' });
           }
 
@@ -51,8 +66,10 @@ const setupPassport = (passport) => {
           if (user) {
             // 기존 사용자의 카카오 토큰 업데이트
             user.kakaoAccessToken = accessToken;
-            user.kakaoRefreshToken = refreshToken;
+            user.profileImage = profile._json.properties.profile_image || user.profileImage;
+            user.displayName = profile._json.properties.nickname || user.displayName;
             await user.save();
+            console.log('기존 사용자 로그인:', user.email);
           } else {
             // 새 사용자 생성
             user = await User.create({
@@ -60,15 +77,14 @@ const setupPassport = (passport) => {
               displayName: profile._json.properties.nickname,
               profileImage: profile._json.properties.profile_image,
               kakaoId: profile.id,
-              kakaoAccessToken: accessToken,
-              kakaoRefreshToken: refreshToken,
               role: 'guest'
             });
+            console.log('새 사용자 생성:', user.email);
           }
 
-          // 토큰 정보를 포함하여 사용자 객체 전달
           return done(null, user);
         } catch (err) {
+          console.error('카카오 인증 오류:', err);
           return done(err, null);
         }
       }
@@ -77,7 +93,7 @@ const setupPassport = (passport) => {
 
   passport.serializeUser((user, done) => {
     try {
-      done(null, user.id || user._id);
+      done(null, user.id);
     } catch (err) {
       console.error('Serialize error:', err);
       done(err);
@@ -88,6 +104,7 @@ const setupPassport = (passport) => {
     try {
       const user = await User.findById(id);
       if (!user) {
+        console.log('사용자를 찾을 수 없음:', id);
         return done(null, false);
       }
       done(null, user);
