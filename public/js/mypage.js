@@ -2,16 +2,32 @@
 
 let userData; // 사용자 데이터를 전역 변수로 저장
 
-// mypage.js를 수정
+// 사용자 정보 가져오기
 async function fetchUserInfo() {
   try {
-    const response = await fetch('/user/info_database');
+    const response = await fetch('/user/info_database', {
+      credentials: 'include', // 쿠키를 포함하여 요청
+      headers: {
+        'Accept': 'application/json'
+      }
+    });
     
-    if (response.status === 401) {
-      // 로그인되지 않은 경우 현재 URL을 state 파라미터로 전달하여 카카오 로그인으로 리디렉션
-      const currentUrl = encodeURIComponent(window.location.href);
-      window.location.href = `/auth/kakao?state=${currentUrl}`;
-      return;
+    if (response.status === 401 || response.status === 403) {
+      // 인증되지 않은 경우 - 리프레시 토큰 시도
+      const refreshResponse = await fetch('/auth/refresh-token', {
+        method: 'POST',
+        credentials: 'include'
+      });
+      
+      if (refreshResponse.ok) {
+        // 토큰 갱신 성공, 다시 요청
+        return fetchUserInfo();
+      } else {
+        // 리프레시 토큰도 실패 - 로그인 필요
+        const currentUrl = encodeURIComponent(window.location.href);
+        window.location.href = `/auth/kakao?state=${currentUrl}`;
+        return;
+      }
     }
 
     if (!response.ok) {
@@ -95,11 +111,17 @@ async function fetchUserInfo() {
 
     // 각 섹션 표시
     document.getElementById('user-info').style.display = 'block';
+    document.getElementById('personal-info').style.display = 'block';
     document.getElementById('activity-info').style.display = 'block';
 
   } catch (error) {
     console.error('Error fetching user info:', error);
-    alert('사용자 정보를 불러오는데 실패했습니다. 다시 로그인해주세요.');
+    // 오류 메시지를 더 유용하게 표시
+    if (error.message.includes('403')) {
+      alert('인증 오류가 발생했습니다. 잠시 후 다시 시도해주세요.');
+    } else {
+      alert('사용자 정보를 불러오는데 실패했습니다. 다시 로그인해주세요.');
+    }
   }
 }
 
@@ -191,10 +213,29 @@ async function saveEdit(id) {
       headers: {
         'Content-Type': 'application/json',
       },
+      credentials: 'include', // 쿠키 포함
       body: JSON.stringify({
         [field]: value
       })
     });
+
+    if (response.status === 401 || response.status === 403) {
+      // 인증 오류 - 리프레시 토큰 시도
+      const refreshResponse = await fetch('/auth/refresh-token', {
+        method: 'POST',
+        credentials: 'include'
+      });
+      
+      if (refreshResponse.ok) {
+        // 토큰 갱신 성공, 다시 시도
+        return saveEdit(id);
+      } else {
+        // 리프레시 토큰도 실패 - 로그인 필요
+        const currentUrl = encodeURIComponent(window.location.href);
+        window.location.href = `/auth/kakao?state=${currentUrl}`;
+        return;
+      }
+    }
 
     if (!response.ok) {
       throw new Error('프로필 업데이트에 실패했습니다.');
@@ -203,6 +244,7 @@ async function saveEdit(id) {
     // 성공적으로 업데이트된 경우 UI 갱신
     fetchUserInfo();
     cancelEdit(id);
+    alert('프로필이 성공적으로 업데이트되었습니다.');
   } catch (error) {
     console.error('Error updating profile:', error);
     alert('프로필 업데이트 중 오류가 발생했습니다.');
@@ -213,38 +255,95 @@ async function saveEdit(id) {
 async function fetchUserEvents() {
   try {
     // 현재 사용자 정보 가져오기
-    const userResponse = await fetch('/user/info');
+    const userResponse = await fetch('/user/info', {
+      credentials: 'include'
+    });
+    
+    if (userResponse.status === 401 || userResponse.status === 403) {
+      // 인증 오류 - 리프레시 토큰 시도
+      const refreshResponse = await fetch('/auth/refresh-token', {
+        method: 'POST',
+        credentials: 'include'
+      });
+      
+      if (refreshResponse.ok) {
+        // 토큰 갱신 성공, 다시 시도
+        return fetchUserEvents();
+      } else {
+        // 리프레시 토큰도 실패 - 로그인 필요
+        const currentUrl = encodeURIComponent(window.location.href);
+        window.location.href = `/auth/kakao?state=${currentUrl}`;
+        return;
+      }
+    }
+    
+    if (!userResponse.ok) {
+      throw new Error(`사용자 정보를 가져오는데 실패했습니다: ${userResponse.status}`);
+    }
+    
     const user = await userResponse.json();
 
     // 모든 이벤트 가져오기
-    const eventsResponse = await fetch('/events');
+    const eventsResponse = await fetch('/events', {
+      credentials: 'include'
+    });
+    
+    if (!eventsResponse.ok) {
+      throw new Error(`이벤트를 가져오는데 실패했습니다: ${eventsResponse.status}`);
+    }
+    
     const events = await eventsResponse.json();
 
     // 종료된 이벤트 가져오기
-    const endedEventsResponse = await fetch('/events/ended');
+    const endedEventsResponse = await fetch('/events/ended', {
+      credentials: 'include'
+    });
+    
+    if (!endedEventsResponse.ok) {
+      throw new Error(`종료된 이벤트를 가져오는데 실패했습니다: ${endedEventsResponse.status}`);
+    }
+    
     const endedEvents = await endedEventsResponse.json();
+    
+    // 배열 확인 로직 추가
+    if (!Array.isArray(endedEvents)) {
+      console.error('종료된 이벤트가 배열 형식이 아닙니다:', endedEvents);
+      // 기본 빈 배열로 처리
+      displayEvents('participated-events', [], '참여한 이벤트가 없습니다.');
+      return;
+    }
 
     // 신청한 이벤트 필터링 (진행 중인 이벤트 중에서)
     const appliedEvents = events.filter(event => 
+      event.appliedParticipants && 
       event.appliedParticipants.some(p => p.userId === user.id)
     );
 
     // 참여한 이벤트 필터링 (종료된 이벤트 중에서)
     const participatedEvents = endedEvents.filter(event => 
+      event.finalParticipants && 
       event.finalParticipants.includes(user.id)
     );
 
-    displayEvents('applied-events', appliedEvents, '신청한 이벤트가 없습니다.');
-    displayEvents('participated-events', participatedEvents, '참여한 이벤트가 없습니다.');
+    // 이벤트 목록 표시
+    if (document.getElementById('applied-events')) {
+      displayEvents('applied-events', appliedEvents, '신청한 이벤트가 없습니다.');
+    }
+    
+    if (document.getElementById('participated-events')) {
+      displayEvents('participated-events', participatedEvents, '참여한 이벤트가 없습니다.');
+    }
   } catch (error) {
-    console.error('Error fetching events:', error);
+    console.error('이벤트 정보를 가져오는 중 오류 발생:', error);
   }
 }
 
 // 이벤트 목록을 화면에 표시하는 함수
 function displayEvents(containerId, events, emptyMessage) {
   const container = document.getElementById(containerId);
-  if (events.length === 0) {
+  if (!container) return;
+  
+  if (!events || events.length === 0) {
     container.innerHTML = `<p class="empty-message">${emptyMessage}</p>`;
     return;
   }
@@ -270,7 +369,11 @@ function getStatusClass(event, containerId) {
     return 'status-completed';
   }
   
+  if (!userData || !event.appliedParticipants) return '';
+  
   const participant = event.appliedParticipants.find(p => p.userId === userData.id);
+  if (!participant) return '';
+  
   return participant.status === 'approved' ? 'status-approved' : 'status-pending';
 }
 
@@ -280,8 +383,12 @@ function getEventStatus(event, containerId) {
     return '참여 완료';
   }
   
+  if (!userData || !event.appliedParticipants) return '';
+  
   // 신청한 이벤트의 경우
   const participant = event.appliedParticipants.find(p => p.userId === userData.id);
+  if (!participant) return '';
+  
   return participant.status === 'approved' ? '참가 확정' : '승인 대기중';
 }
 
@@ -295,26 +402,45 @@ document.addEventListener('DOMContentLoaded', () => {
   fetchUserInfo();
   fetchUserEvents();
 
-  // 개인 정보 보기 버튼 클릭 이벤트
-  document.getElementById('toggle-personal-info').addEventListener('click', () => {
-    document.getElementById('birthdate-input-container').style.display = 'block';
-    document.getElementById('toggle-personal-info').style.display = 'none';
-  });
-  //추가 정보 입력
-  document.getElementById("additional-info").addEventListener("click", () => {
-    window.location.href = "/additional-user-info.html";
-  });
+  // 개인 정보 보기 버튼 클릭 이벤트 (있는 경우에만)
+  const togglePersonalInfoBtn = document.getElementById('toggle-personal-info');
+  if (togglePersonalInfoBtn) {
+    togglePersonalInfoBtn.addEventListener('click', () => {
+      const container = document.getElementById('birthdate-input-container');
+      if (container) {
+        container.style.display = 'block';
+        togglePersonalInfoBtn.style.display = 'none';
+      }
+    });
+  }
+  
+  // 추가 정보 입력 버튼 (있는 경우에만)
+  const additionalInfoBtn = document.getElementById('additional-info');
+  if (additionalInfoBtn) {
+    additionalInfoBtn.addEventListener('click', () => {
+      window.location.href = '/additional-user-info.html';
+    });
+  }
 
-  // 생년월일 확인 버튼 클릭 이벤트
-  document.getElementById('confirm-birthdate').addEventListener('click', () => {
-    const inputBirthdate = document.getElementById('birthdate-input').value;
-    const userBirthdate = new Date(userData.birthDate).toISOString().slice(2, 10).replace(/-/g, '');
+  // 생년월일 확인 버튼 클릭 이벤트 (있는 경우에만)
+  const confirmBirthdateBtn = document.getElementById('confirm-birthdate');
+  if (confirmBirthdateBtn) {
+    confirmBirthdateBtn.addEventListener('click', () => {
+      const inputField = document.getElementById('birthdate-input');
+      if (!inputField || !userData || !userData.birthDate) return;
+      
+      const inputBirthdate = inputField.value;
+      const userBirthdate = new Date(userData.birthDate).toISOString().slice(2, 10).replace(/-/g, '');
 
-    if (inputBirthdate === userBirthdate) {
-      document.getElementById('personal-info').style.display = 'block';
-      document.getElementById('birthdate-input-container').style.display = 'none';
-    } else {
-      alert('생년월일이 일치하지 않습니다.');
-    }
-  });
+      if (inputBirthdate === userBirthdate) {
+        const personalInfo = document.getElementById('personal-info');
+        const birthdateContainer = document.getElementById('birthdate-input-container');
+        
+        if (personalInfo) personalInfo.style.display = 'block';
+        if (birthdateContainer) birthdateContainer.style.display = 'none';
+      } else {
+        alert('생년월일이 일치하지 않습니다.');
+      }
+    });
+  }
 });
