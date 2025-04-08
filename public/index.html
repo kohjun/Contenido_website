@@ -220,18 +220,58 @@
 
       document.addEventListener('DOMContentLoaded', updateButtonVisibility);
 
-      function loginWithKakao() {
-        window.location.href = '/auth/kakao';
-      }
+      async function loginWithKakao() {
+        try {
+          // 먼저 토큰 검증 요청
+          const response = await fetch('/auth/check-token', {
+            method: 'GET',
+            credentials: 'include'
+          });
 
+          const data = await response.json();
+          
+          if (data.isValid) {
+            // 유효한 토큰이 있으면 메인 페이지로
+            window.location.href = '/';
+          } else {
+            // 토큰이 없거나 만료되었으면 카카오 로그인
+            const currentUrl = encodeURIComponent(window.location.href);
+            window.location.href = `/auth/kakao?state=${currentUrl}`;
+          }
+        } catch (error) {
+          console.error('토큰 검증 실패:', error);
+          // 에러 발생 시 카카오 로그인으로
+          const currentUrl = encodeURIComponent(window.location.href);
+          window.location.href = `/auth/kakao?state=${currentUrl}`;
+        }
+      }
       function OnEvents() {
         window.location.href = '/events.html';
       }
       function OnOfficer() {
         window.location.href = '/officer.html';
       }
-      function logout() {
-        window.location.href = '/auth/logout';
+      async function logout() {
+        try {
+          const response = await fetch('/auth/logout', {
+            method: 'GET',
+            credentials: 'include'
+          });
+      
+          if (response.ok) {
+            // 로컬 스토리지/세션 스토리지 클리어
+            localStorage.clear();
+            sessionStorage.clear();
+            // 페이지 리로드
+            window.location.href = '/index.html';
+          } else {
+            console.error('로그아웃 실패');
+            alert('로그아웃 처리 중 오류가 발생했습니다.');
+          }
+        } catch (error) {
+          console.error('로그아웃 에러:', error);
+          alert('로그아웃 처리 중 오류가 발생했습니다.');
+        }
       }
 
       function startImageSlider() {
