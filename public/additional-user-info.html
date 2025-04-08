@@ -10,6 +10,9 @@
   <div class="container">
     <h1>추가 정보 입력</h1>
     <form id="additional-info-form">
+      <!-- CSRF 토큰을 위한 숨겨진 필드 추가 -->
+      <input type="hidden" id="_csrf" name="_csrf">
+      
       <label for="name">이름:</label>
       <input type="text" id="name" name="name" required>
 
@@ -61,6 +64,39 @@
   </div>
 
   <script>
+    // 페이지 로드 시 사용자 정보 확인 및 폼 초기화
+    document.addEventListener('DOMContentLoaded', async () => {
+      try {
+        // CSRF 토큰 가져오기 (서버에서 제공한다고 가정)
+        const csrfResponse = await fetch('/auth/csrf-token');
+        if (csrfResponse.ok) {
+          const csrfData = await csrfResponse.json();
+          document.getElementById('_csrf').value = csrfData.token;
+        }
+
+        // 현재 로그인한 사용자 정보 가져오기
+        const response = await fetch('/user/info');
+        if (response.status === 401) {
+          // 로그인되지 않은 경우 로그인 페이지로 리디렉션
+          window.location.href = '/auth/kakao?state=' + encodeURIComponent(window.location.href);
+          return;
+        }
+
+        const user = await response.json();
+        
+        // 사용자 정보가 이미 있으면 폼에 미리 채우기
+        if(user.name) document.getElementById('name').value = user.name;
+        if(user.gender) document.getElementById('gender').value = user.gender;
+        if(user.birthDate) document.getElementById('birthDate').value = new Date(user.birthDate).toISOString().split('T')[0];
+        if(user.phonenumber) document.getElementById('phonenumber').value = user.phonenumber;
+        if(user.preferredActivity) document.getElementById('preferredActivity').value = user.preferredActivity;
+      } catch (error) {
+        console.error('Error fetching user data:', error);
+        alert('사용자 정보를 불러오는데 실패했습니다.');
+      }
+    });
+
+    // 폼 제출 핸들러
     document.getElementById('additional-info-form').addEventListener('submit', async function (e) {
       e.preventDefault();
 
@@ -69,14 +105,19 @@
         gender: document.getElementById('gender').value,
         birthDate: document.getElementById('birthDate').value,
         phonenumber: document.getElementById('phonenumber').value,
-        preferredActivity: document.getElementById('preferredActivity').value
+        preferredActivity: document.getElementById('preferredActivity').value,
+        _csrf: document.getElementById('_csrf').value // CSRF 토큰 포함
       };
 
       try {
         const response = await fetch('/auth/additional-info', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 
+            'Content-Type': 'application/json',
+            'X-CSRF-Token': document.getElementById('_csrf').value // 헤더에도 CSRF 토큰 포함
+          },
           body: JSON.stringify(formData),
+          credentials: 'same-origin' // 쿠키 포함하여 요청
         });
 
         const result = await response.json();

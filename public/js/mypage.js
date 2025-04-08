@@ -1,7 +1,12 @@
 // 사용자 정보 표시
 
 let userData; // 사용자 데이터를 전역 변수로 저장
-
+// 성별 표시 매핑
+const genderDisplay = {
+  'male': '남성',
+  'female': '여성',
+  'other': '기타'
+};
 // mypage.js를 수정
 async function fetchUserInfo() {
   try {
@@ -63,12 +68,7 @@ async function fetchUserInfo() {
       'starterTeam' :'스타터팀'
     };
 
-    // 성별 표시 매핑
-    const genderDisplay = {
-      'male': '남성',
-      'female': '여성',
-      'other': '기타'
-    };
+    
 
     // 기본 정보 업데이트
     updateElement('user-name', `이름 : ${data.name || '-'}`);
