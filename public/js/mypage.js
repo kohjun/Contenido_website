@@ -73,19 +73,9 @@ async function fetchUserInfo() {
     // 기본 정보 업데이트
     updateElement('user-name', `이름 : ${data.name || '-'}`);
     updateElement('user-nickname', `프로필 이름 : ${data.displayName || '-'}`);
-    updateElement('user-email', `이메일 : ${data.email ? data.email: '-'}`);
     updateElement('user-role', `역할 : ${roleDisplay[data.role] || data.role || '-'}`);
     updateElement('user-department', `부서 : ${departmentDisplay[data.department] || data.department || '-'}`);
     updateElement('user-team', `팀 이름 : ${teamDisplay[data.team] || data.team || '-'}`);
-
-    // 개인 정보 업데이트 (수정 가능한 필드로 변경)
-    updateElement('user-phonenumber', `전화번호 : ${data.phonenumber || '-'}`, true);
-    updateElement('user-gender', `성별 : ${genderDisplay[data.gender] || '-'}`);
-    updateElement('user-preferred-activity', `선호 활동 지역 : ${data.preferredActivity || '-'}`, true);
-    if (data.birthDate) {
-      const birthDate = new Date(data.birthDate).toISOString().slice(0, 10).replace(/-/g, '.');
-      updateElement('user-birthdate', `생년월일 : ${birthDate}`);
-    }
 
     // 활동 정보 업데이트
     updateElement('user-active', `활성상태 : ${data.active ? '✅활동 , *동아리 부원임을 인증하는 마크입니다.*'  : '❌비활동 , *동아리 부원이 아님을 인증하는 마크입니다.*'}`);
@@ -96,6 +86,7 @@ async function fetchUserInfo() {
     // 각 섹션 표시
     document.getElementById('user-info').style.display = 'block';
     document.getElementById('activity-info').style.display = 'block';
+    document.getElementById('personal-info').style.display = 'none'; // 개인정보는 처음에 숨김
 
   } catch (error) {
     console.error('Error fetching user info:', error);
@@ -290,6 +281,26 @@ function goToEventDetails(eventId) {
   window.location.href = `additional-info.html?id=${eventId}`;
 }
 
+// 생년월일 확인 후 개인정보 표시 함수 수정
+function showPersonalInfo() {
+  const inputBirthdate = document.getElementById('birthdate-input').value;
+  const userBirthdate = new Date(userData.birthDate).toISOString().slice(2, 10).replace(/-/g, '');
+
+  if (inputBirthdate === userBirthdate) {
+    // 개인정보 업데이트 및 표시
+    updateElement('user-email', `이메일 : ${userData.email || '-'}`);
+    updateElement('user-phonenumber', `전화번호 : ${userData.phonenumber || '-'}`, true);
+    updateElement('user-gender', `성별 : ${genderDisplay[userData.gender] || '-'}`);
+    updateElement('user-birthdate', `생년월일 : ${new Date(userData.birthDate).toISOString().slice(0, 10).replace(/-/g, '.')}`);
+    updateElement('user-preferred-activity', `선호 활동 지역 : ${userData.preferredActivity || '-'}`, true);
+
+    document.getElementById('personal-info').style.display = 'block';
+    document.getElementById('birthdate-input-container').style.display = 'none';
+  } else {
+    alert('생년월일이 일치하지 않습니다.');
+  }
+}
+
 // 페이지 로드 시 실행
 document.addEventListener('DOMContentLoaded', () => {
   fetchUserInfo();
@@ -306,15 +317,5 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // 생년월일 확인 버튼 클릭 이벤트
-  document.getElementById('confirm-birthdate').addEventListener('click', () => {
-    const inputBirthdate = document.getElementById('birthdate-input').value;
-    const userBirthdate = new Date(userData.birthDate).toISOString().slice(2, 10).replace(/-/g, '');
-
-    if (inputBirthdate === userBirthdate) {
-      document.getElementById('personal-info').style.display = 'block';
-      document.getElementById('birthdate-input-container').style.display = 'none';
-    } else {
-      alert('생년월일이 일치하지 않습니다.');
-    }
-  });
+  document.getElementById('confirm-birthdate').addEventListener('click', showPersonalInfo);
 });
