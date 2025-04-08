@@ -95,7 +95,23 @@ const userSchema = new mongoose.Schema({
   createdEvents: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Event' }],
   participatedEvents: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Event' }],
   reviews: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Review' }],
-  application: applicationSchema
+  application: applicationSchema,
+  refreshToken: { 
+    type: String,
+    select: false // 기본 쿼리에서 제외
+  },
+  refreshTokenExpiry: {
+    type: Date,
+    select: false
+  },
+  lastRefreshTokenUse: {
+    type: Date,
+    select: false
+  },
+  kakaoRefreshToken: {
+    type: String,
+    select: false
+  }
 });
 
 // 커스텀 검증: officer 역할일 때 부서 및 조건 확인
@@ -139,6 +155,36 @@ userSchema.methods.updateApplicationStatus = async function(status) {
     this.role = this.application.wantOfficer ? 'starter' : 'participant';
     this.active = true;
   }
+  
+  return this.save();
+};
+
+// 리프레시 토큰 검증 메서드
+userSchema.methods.verifyRefreshToken = function() {
+  if (!this.refreshToken || !this.refreshTokenExpiry) {
+    return false;
+  }
+  return new Date() < this.refreshTokenExpiry;
+};
+
+// 리프레시 토큰 업데이트 메서드
+userSchema.methods.updateRefreshToken = async function(refreshToken) {
+  const expiry = new Date();
+  expiry.setDate(expiry.getDate() + 14); // 14일 후 만료
+
+  this.refreshToken = refreshToken;
+  this.refreshTokenExpiry = expiry;
+  this.lastRefreshTokenUse = new Date();
+  
+  return this.save();
+};
+
+// 토큰 무효화 메서드
+userSchema.methods.invalidateTokens = async function() {
+  this.refreshToken = null;
+  this.refreshTokenExpiry = null;
+  this.lastRefreshTokenUse = null;
+  this.kakaoRefreshToken = null;
   
   return this.save();
 };
