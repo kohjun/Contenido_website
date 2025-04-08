@@ -10,6 +10,38 @@
     .hidden {
       display: none;
     }
+    
+    /* 모바일 반응형 스타일 추가 */
+    @media (max-width: 768px) {
+      table th, table td {
+        padding: 6px 4px;
+        font-size: 0.85rem;
+      }
+      
+      .role-badge {
+        font-size: 0.7rem;
+        padding: 2px 4px;
+        min-width: 40px;
+      }
+      
+      .application-item {
+        padding: 10px;
+      }
+    }
+    
+    /* 역할과 성별 표시를 위한 추가 스타일 */
+    .role-gender {
+      margin-top: 5px;
+      display: inline-block;
+    }
+    
+    /* 지원서 항목 스타일 개선 */
+    .participant-info {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 10px;
+    }
   </style>
 </head>
 <body>
@@ -19,8 +51,8 @@
     <table id="participant-table">
       <thead>
         <tr>
-          <th>이름</th>
-          <th>성별</th>
+          <th>이름(생년)</th>
+          <th>역할(성별)</th>
           <th>전화번호</th>
           <th>신청일시</th>
           <th>상태</th>
