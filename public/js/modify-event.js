@@ -10,8 +10,19 @@ async function loadEventContent(eventId) {
     originalData = { ...event };
 
     // 사용자 정보 조회
-    const userResponse = await fetch('/user/info');
-    const user = await userResponse.json();
+    let user = null;
+    let isLoggedIn = false;
+    
+    try {
+      const userResponse = await fetch('/user/info');
+      if (userResponse.ok) {
+        user = await userResponse.json();
+        isLoggedIn = true;
+      }
+    } catch (error) {
+      console.log('사용자가 로그인하지 않았습니다');
+      isLoggedIn = false;
+    }
 
     // 기본 정보 표시
     document.getElementById('event-title').textContent = currentEvent.title;
@@ -37,18 +48,25 @@ async function loadEventContent(eventId) {
     }
 
     // 생성자인 경우 수정 버튼 표시
-    if (currentEvent.creator === user.id && (user.role === 'officer' || user.role === 'admin')) {
+    if (isLoggedIn && currentEvent.creator === user.id && (user.role === 'officer' || user.role === 'admin')) {
       document.getElementById('modify-button').style.display = 'block';
     }
 
     // 신청 상태 확인 및 버튼 업데이트
-    const hasApplied = currentEvent.appliedParticipants.some(p => p.userId === user.id);
-    const isActive = user.active;
+    const hasApplied = isLoggedIn && currentEvent.appliedParticipants.some(p => p.userId === user.id);
+    const isActive = isLoggedIn && user.active;
     const approvedCount = currentEvent.appliedParticipants.filter(p => p.status === 'approved').length;
     const isFull = approvedCount >= currentEvent.participants;
 
     const applicationSection = document.getElementById('application-section');
-    if (currentEvent.isSelective) {
+    
+    if (!isLoggedIn) {
+      // 로그인하지 않은 경우
+      applicationSection.innerHTML = `
+        <p class="status-text">로그인 후 신청할 수 있습니다</p>
+        <button class="submit-button" onclick="loginAndApply('${currentEvent._id}')">로그인 후 신청</button>
+      `;
+    } else if (currentEvent.isSelective) {
       // 선별적 이벤트
       if (hasApplied) {
         applicationSection.innerHTML = `
@@ -68,7 +86,7 @@ async function loadEventContent(eventId) {
         `;
       } else if (!isActive) {
         applicationSection.innerHTML = `
-          <p class="status-text" 로그인 후 다시 시도해주세요. 활동부원이 아니므로 지원이 불가능합니다</p>
+          <p class="status-text">활동부원이 아니므로 지원이 불가능합니다</p>
           <button class="submit-button" disabled>지원불가</button>
         `;
       } else if (isFull) {
@@ -101,7 +119,7 @@ async function loadEventContent(eventId) {
         `;
       } else if (!isActive) {
         applicationSection.innerHTML = `
-          <p class="status-text"> 로그인 후 다시 시도해주세요. 활동부원이 아니므로 지원이 불가능합니다</p>
+          <p class="status-text">활동부원이 아니므로 지원이 불가능합니다</p>
           <button class="submit-button" disabled>신청불가</button>
         `;
       } else if (isFull) {
@@ -122,6 +140,34 @@ async function loadEventContent(eventId) {
   } catch (error) {
     console.error('Error:', error);
     alert('이벤트 정보를 불러오는데 실패했습니다.');
+  }
+}
+
+async function loginAndApply(eventId) {
+  try {
+    // 현재 URL을 저장해서 로그인 후 돌아올 수 있도록 함
+    const currentUrl = encodeURIComponent(window.location.href);
+    
+    // 토큰 유효성 검사 요청
+    const response = await fetch('/auth/check-token', {
+      method: 'GET',
+      credentials: 'include'
+    });
+    
+    const data = await response.json();
+    
+    if (data.isValid) {
+      // 이미 유효한 토큰이 있으면 페이지를 새로고침하여 신청 상태 업데이트
+      window.location.reload();
+    } else {
+      // 리프레시 토큰도 만료되었거나 없는 경우에만 카카오 로그인으로 리다이렉트
+      window.location.href = `/auth/kakao?state=${currentUrl}`;
+    }
+  } catch (error) {
+    console.error('토큰 검증 실패:', error);
+    // 에러 발생 시 카카오 로그인으로 리다이렉트
+    const currentUrl = encodeURIComponent(window.location.href);
+    window.location.href = `/auth/kakao?state=${currentUrl}`;
   }
 }
 
