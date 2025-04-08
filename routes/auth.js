@@ -1,191 +1,159 @@
-// routes/auth.js
 const express = require('express');
 const passport = require('passport');
-const jwt = require('jsonwebtoken');
-const authenticateToken = require('../middleware/authMiddleware'); 
+const authenticateToken = require('../middleware/authMiddleware');
+const TokenService = require('../utils/TokenService');
 const User = require('../models/User');
-const KAKAO_CLIENT_ID = process.env.KAKAO_CLIENT_ID;
-const LOGOUT_REDIRECT_URI = 'http://localhost:3000/auth/final-logout';   // 웹사이트 주소 입력
-const JWT_SECRET = process.env.JWT_SECRET;
 const router = express.Router();
 
-// 토큰 요청 대기열 관리를 위한 변수들
-let tokenRequestQueue = [];
-let isProcessing = false;
-const TOKEN_RATE_LIMIT = 20; // 10분당 최대 토큰 발급 수
-let tokenCount = 0;
-let lastResetTime = Date.now();
+const KAKAO_CLIENT_ID = process.env.KAKAO_CLIENT_ID;
+const LOGOUT_REDIRECT_URI = process.env.LOGOUT_REDIRECT_URI || 'http://localhost:3000/auth/final-logout';
 
-// 토큰 발급 요청을 처리하는 함수
-async function processTokenQueue() {
-  if (isProcessing || tokenRequestQueue.length === 0) return;
-  
-  isProcessing = true;
-  
-  // 10분마다 토큰 카운트 초기화
-  if (Date.now() - lastResetTime > 600000) {
-    tokenCount = 0;
-    lastResetTime = Date.now();
-  }
-
-  while (tokenRequestQueue.length > 0 && tokenCount < TOKEN_RATE_LIMIT) {
-    const request = tokenRequestQueue.shift();
-    try {
-      tokenCount++;
-      await request.resolve();
-    } catch (error) {
-      request.reject(error);
-    }
-  }
-
-  isProcessing = false;
-  
-  // 대기열에 요청이 남아있으면 10분 후 다시 처리
-  if (tokenRequestQueue.length > 0) {
-    setTimeout(processTokenQueue, 600000);
-  }
-}
-
-// 카카오 로그인 초기화 수정
+// 카카오 로그인 초기화
 router.get('/kakao', (req, res, next) => {
-  // state 파라미터로 전달된 리턴 URL 저장
   const returnUrl = req.query.state || '/';
-  
   passport.authenticate('kakao', {
-    state: returnUrl
+    state: returnUrl,
+    prompt: req.query.prompt || 'select_account',
+    scope: ['profile_nickname', 'profile_image', 'account_email', 'openid']
   })(req, res, next);
 });
 
-// JWT 토큰 생성 및 카카오 로그인 콜백 핸들링 수정
+// 카카오 로그인 콜백 처리
 router.get(
   '/kakao/callback',
   passport.authenticate('kakao', { failureRedirect: '/' }),
   async (req, res) => {
     try {
       const profile = req.user;
-      const returnUrl = req.query.state || '/'; // state 파라미터에서 리턴 URL 가져오기
+      const returnUrl = req.query.state || '/';
 
-      // 카카오에서 받은 토큰 저장
-      const kakaoToken = {
-        access_token: profile.kakaoAccessToken,
-        refresh_token: profile.kakaoRefreshToken,
-        expires_in: 60 * 24 * 60 * 60 * 1000 // 60일
-      };
-
-      // JWT 토큰 생성 (1일 유효)
-      const token = jwt.sign(
-        { 
-          id: profile._id, 
-          role: profile.role, 
-          email: profile.email 
-        },
-        JWT_SECRET,
-        { expiresIn: '1d' }
-      );
-
-      // 쿠키에 토큰 저장
+      // JWT 토큰 생성 및 저장
+      const token = TokenService.createJwtToken(profile);
       res.cookie('jwt', token, { 
         httpOnly: true, 
         secure: process.env.NODE_ENV === 'production',
-        maxAge: 24 * 60 * 60 * 1000, // 1일
+        maxAge: 43200000, // 12시간
         sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax'
       });
 
-      // 추가 정보 확인 및 리디렉션
+      // 추가 정보 입력 필요 시 리다이렉션
       if (!profile.isAdditionalInfoComplete) {
         return res.redirect('/additional-user-info.html');
       }
 
-      // 대기 상태 UI 제공
-      if (tokenRequestQueue.length > 0) {
-        const position = tokenRequestQueue.length;
-        return res.send(`
-          <html>
-            <body>
-              <h2>로그인 대기 중...</h2>
-              <p>현재 대기 순서: ${position}번째</p>
-              <p>예상 대기 시간: 약 ${Math.ceil(position / TOKEN_RATE_LIMIT * 10)}분</p>
-              <script>
-                setTimeout(() => { window.location.reload(); }, 30000);
-              </script>
-            </body>
-          </html>
-        `);
-      }
-
-      processTokenQueue();
       res.redirect(decodeURIComponent(returnUrl));
     } catch (error) {
-      console.error('Error during user login:', error);
+      console.error('Login error:', error);
       res.redirect('/');
     }
   }
 );
 
-// 회원가입 추가 정보 입력
+// 토큰 유효성 검사
+router.get('/check-token', async (req, res) => {
+  try {
+    const isValid = await TokenService.verifyToken(req.cookies.jwt);
+    res.json({ isValid });
+  } catch (error) {
+    console.error('Token check error:', error);
+    res.json({ isValid: false });
+  }
+});
+
+// 추가 정보 저장
 router.post('/additional-info', authenticateToken, async (req, res) => {
   try {
     const user = await User.findById(req.user.id);
     if (!user) {
-      return res.status(404).json({ message: 'User not found' });
+      return res.status(404).json({ message: '사용자를 찾을 수 없습니다.' });
     }
 
-    // 추가 정보 저장
-    user.name = req.body.name;
-    user.gender = req.body.gender;
-    user.birthDate = req.body.birthDate;
-    user.phonenumber = req.body.phonenumber;
-    user.preferredActivity = req.body.preferredActivity;
-    user.isAdditionalInfoComplete = true;
+    // 필수 필드 검증
+    const requiredFields = ['name', 'gender', 'birthDate', 'phonenumber', 'preferredActivity'];
+    const missingFields = requiredFields.filter(field => !req.body[field]);
+    
+    if (missingFields.length > 0) {
+      return res.status(400).json({
+        message: '필수 정보가 누락되었습니다.',
+        missingFields
+      });
+    }
+
+    // 정보 업데이트
+    Object.assign(user, {
+      ...req.body,
+      isAdditionalInfoComplete: true
+    });
 
     await user.save();
-
-    res.status(200).json({ 
-      message: '추가 정보가 성공적으로 저장되었습니다.', 
-      redirectUrl: '/index.html' 
+    res.json({ 
+      message: '추가 정보가 저장되었습니다.',
+      redirectUrl: '/index.html'
     });
+
   } catch (error) {
-    console.error('Error saving additional info:', error);
+    console.error('Additional info save error:', error);
     res.status(500).json({ 
-      message: '추가 정보를 저장하는 중 문제가 발생했습니다.',
+      message: '서버 오류가 발생했습니다.',
       error: error.message 
     });
   }
 });
 
-// 사용자 역할 검증
+// 사용자 역할 확인
 router.get('/user-role', authenticateToken, (req, res) => {
-  if (req.user) {
-      res.json({ role: req.user.role });
-  } else {
-      res.status(401).json({ message: 'Unauthorized' });
+  res.json({ role: req.user?.role || 'guest' });
+});
+
+// 일반 로그아웃 수정
+router.get('/logout', authenticateToken, async (req, res) => {
+  try {
+    // 1. 데이터베이스에서 사용자의 토큰 정보 초기화
+    const user = await User.findById(req.user.id);
+    if (user) {
+      user.kakaoAccessToken = undefined;
+      user.kakaoRefreshToken = undefined;
+      user.tokenExpiresAt = undefined;
+      user.refreshTokenExpiresAt = undefined;
+      await user.save();
+    }
+
+    // 2. 카카오 로그아웃
+    await fetch('https://kapi.kakao.com/v1/user/logout', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${req.user.kakaoAccessToken}`
+      }
+    });
+
+    // 3. 모든 쿠키 삭제
+    res.clearCookie('jwt');
+    res.clearCookie('connect.sid'); // 세션 쿠키
+
+    // 4. 세션 삭제
+    if (req.session) {
+      req.session.destroy();
+    }
+
+    // 5. 클라이언트에 응답
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Logout error:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: '로그아웃 처리 중 오류가 발생했습니다.' 
+    });
   }
 });
 
-// 로그아웃 처리 수정
-router.get('/logout', (req, res) => {
-  // JWT 토큰만 제거
-  res.clearCookie('jwt');
-  
-  // 세션 제거
-  req.session.destroy(err => {
-    if (err) {
-      console.error('Session destruction error:', err);
-    }
-    // 메인 페이지로 리디렉션
-    res.redirect('/index.html');
-  });
-});
-
-// 카카오 계정 완전 로그아웃 (선택적으로 사용)
+// 카카오 연동 해제
 router.get('/kakao-logout', (req, res) => {
   const kakaoLogoutUrl = `https://kauth.kakao.com/oauth/logout?client_id=${KAKAO_CLIENT_ID}&logout_redirect_uri=${encodeURIComponent(LOGOUT_REDIRECT_URI)}`;
   res.redirect(kakaoLogoutUrl);
 });
 
-// 최종 로그아웃 처리 (카카오 로그아웃 후 호출됨)
+// 최종 로그아웃 처리
 router.get('/final-logout', (req, res) => {
-  // JWT 토큰 제거
   res.clearCookie('jwt');
   res.redirect('/index.html');
 });

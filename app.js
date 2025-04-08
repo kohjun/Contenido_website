@@ -15,7 +15,7 @@ const app = express();
 // 스케줄러 추가
 const scheduler = require('./utils/Scheduler');
 console.log('All schedulers initialized');
-
+const TokenService = require('./utils/TokenService');
 // 업로드 디렉토리 생성
 const uploadDir = path.join(__dirname, 'public/uploads/events');
 if (!fs.existsSync(uploadDir)) {

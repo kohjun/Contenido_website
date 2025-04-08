@@ -95,8 +95,54 @@ const userSchema = new mongoose.Schema({
   createdEvents: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Event' }],
   participatedEvents: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Event' }],
   reviews: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Review' }],
-  application: applicationSchema
+  application: applicationSchema,
+   // 카카오 인증 관련 필드 정리
+   kakaoAccessToken: {
+    type: String,
+    select: false  // 기본 쿼리에서 제외
+  },
+  kakaoRefreshToken: {
+    type: String,
+    select: false
+  },
+  tokenExpiresAt: {
+    type: Date,
+    select: false
+  },
+  refreshTokenExpiresAt: {
+    type: Date,
+    select: false
+  },
+  lastLogin: {
+    type: Date,
+    default: Date.now
+  },
 });
+// 토큰 갱신 메서드 최적화
+userSchema.methods.updateTokens = async function(tokens) {
+  const tokenExpiresIn = tokens.expires_in || 43199; // 12시간
+  const refreshTokenExpiresIn = tokens.refresh_token_expires_in || 5184000; // 60일
+
+  this.kakaoAccessToken = tokens.access_token;
+  if (tokens.refresh_token) {
+    this.kakaoRefreshToken = tokens.refresh_token;
+    this.refreshTokenExpiresAt = new Date(Date.now() + (refreshTokenExpiresIn * 1000));
+  }
+  this.tokenExpiresAt = new Date(Date.now() + (tokenExpiresIn * 1000));
+  this.lastLogin = new Date();
+  
+  return this.save();
+};
+
+// 토큰 유효성 검사 메서드
+userSchema.methods.isTokenValid = function() {
+  return this.tokenExpiresAt && this.tokenExpiresAt > new Date();
+};
+
+// 리프레시 토큰 유효성 검사 메서드
+userSchema.methods.isRefreshTokenValid = function() {
+  return this.refreshTokenExpiresAt && this.refreshTokenExpiresAt > new Date();
+};
 
 // 커스텀 검증: officer 역할일 때 부서 및 조건 확인
 userSchema.pre('save', function (next) {
