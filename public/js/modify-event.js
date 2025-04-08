@@ -290,14 +290,13 @@ async function submitApplication(e) {
 }
 
 // 일반 이벤트 신청 함수 수정
-async function applyForEvent(eventId, isAutoApply = false) {
+async function applyForEvent(eventId) {
   try {
     // 먼저 로그인 상태 확인
     const userResponse = await fetch('/user/info');
     if (!userResponse.ok) {
       // 로그인되지 않은 경우
       const returnUrl = new URL(window.location.href);
-      returnUrl.searchParams.set('auto_apply', 'true'); // 자동 신청 파라미터 추가
       window.location.href = `/auth/kakao?state=${encodeURIComponent(returnUrl.toString())}`;
       return;
     }
@@ -530,7 +529,6 @@ function cancelEdit() {
 
 document.addEventListener('DOMContentLoaded', async () => {
   const eventId = new URLSearchParams(window.location.search).get('id');
-  const autoApply = new URLSearchParams(window.location.search).get('auto_apply');
   
   if (!eventId) {
     alert('이벤트 ID가 없습니다.');
@@ -538,15 +536,4 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   await loadEventContent(eventId);
-
-  // 자동 신청 파라미터가 있으면 신청 처리
-  if (autoApply === 'true') {
-    // URL에서 auto_apply 파라미터 제거 (히스토리 관리)
-    const newUrl = new URL(window.location.href);
-    newUrl.searchParams.delete('auto_apply');
-    window.history.replaceState({}, '', newUrl.toString());
-    
-    // 자동 신청 실행
-    await applyForEvent(eventId, true);
-  }
 });
