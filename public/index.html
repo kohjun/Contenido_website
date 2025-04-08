@@ -217,52 +217,11 @@
           document.getElementById('logout-button').style.display = 'none';
         }
       }
-      async function updateLoginStatus() {
-        try {
-          // 서버에 현재 로그인 상태 확인 요청
-          const response = await fetch('/auth/check-token', {
-            method: 'GET',
-            credentials: 'include' // 쿠키 포함
-          });
-          
-          if (response.status === 200) {
-            // 토큰이 유효한 경우
-            document.getElementById('kakao-login-button').style.display = 'none';
-            document.getElementById('logout-button').style.display = 'block';
-          } else if (response.status === 401) {
-            // 액세스 토큰이 만료되었지만 리프레시 토큰이 유효한 경우
-            const refreshResponse = await fetch('/auth/refresh-token', {
-              method: 'POST',
-              credentials: 'include'
-            });
-            
-            if (refreshResponse.status === 200) {
-              // 토큰 갱신 성공
-              document.getElementById('kakao-login-button').style.display = 'none';
-              document.getElementById('logout-button').style.display = 'block';
-            } else {
-              // 리프레시 토큰도 만료된 경우
-              document.getElementById('kakao-login-button').style.display = 'block';
-              document.getElementById('logout-button').style.display = 'none';
-            }
-          } else {
-            // 로그인 되지 않은 상태
-            document.getElementById('kakao-login-button').style.display = 'block';
-            document.getElementById('logout-button').style.display = 'none';
-          }
-        } catch (error) {
-          console.error('Error checking login status:', error);
-          document.getElementById('kakao-login-button').style.display = 'block';
-          document.getElementById('logout-button').style.display = 'none';
-        }
-      }
 
       document.addEventListener('DOMContentLoaded', updateButtonVisibility);
-      document.addEventListener('DOMContentLoaded', updateLoginStatus);
+
       function loginWithKakao() {
-        // 현재 페이지 URL을 state 파라미터에 추가하여 로그인 후 돌아올 수 있도록 함
-        const returnUrl = encodeURIComponent(window.location.href);
-        window.location.href = `/auth/kakao?state=${returnUrl}`;
+        window.location.href = '/auth/kakao';
       }
 
       function OnEvents() {

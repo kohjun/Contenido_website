@@ -4,58 +4,13 @@ let currentEvent = null; // 전역 변수로 현재 이벤트 데이터 저장
 
 async function loadEventContent(eventId) {
   try {
-    const response = await fetch(`/events/${eventId}`, {
-      credentials: 'include' // 쿠키를 포함하여 요청
-    });
-    
-    if (!response.ok) {
-      // 인증 오류 처리
-      if (response.status === 401 || response.status === 403) {
-        // 리프레시 토큰으로 인증 시도
-        const refreshResponse = await fetch('/auth/refresh-token', {
-          method: 'POST',
-          credentials: 'include'
-        });
-        
-        if (refreshResponse.ok) {
-          // 토큰 갱신 성공, 다시 요청
-          return loadEventContent(eventId);
-        } else {
-          // 로그인 필요
-          const returnUrl = encodeURIComponent(window.location.href);
-          window.location.href = `/auth/kakao?state=${returnUrl}`;
-          return;
-        }
-      }
-      throw new Error(`이벤트 정보를 불러오는데 실패했습니다: ${response.status}`);
-    }
-    
+    const response = await fetch(`/events/${eventId}`);
     const event = await response.json();
     currentEvent = event;  // 전역 변수에 저장
     originalData = { ...event };
 
     // 사용자 정보 조회
-    const userResponse = await fetch('/user/info', {
-      credentials: 'include'
-    });
-    
-    if (!userResponse.ok) {
-      // 인증 오류 처리
-      if (userResponse.status === 401 || userResponse.status === 403) {
-        const refreshResponse = await fetch('/auth/refresh-token', {
-          method: 'POST',
-          credentials: 'include'
-        });
-        
-        if (!refreshResponse.ok) {
-          const returnUrl = encodeURIComponent(window.location.href);
-          window.location.href = `/auth/kakao?state=${returnUrl}`;
-          return;
-        }
-      }
-      throw new Error(`사용자 정보를 불러오는데 실패했습니다: ${userResponse.status}`);
-    }
-    
+    const userResponse = await fetch('/user/info');
     const user = await userResponse.json();
 
     // 기본 정보 표시
@@ -111,6 +66,11 @@ async function loadEventContent(eventId) {
             </form>
           </div>
         `;
+      } else if (!isActive) {
+        applicationSection.innerHTML = `
+          <p class="status-text" 로그인 후 다시 시도해주세요. 활동부원이 아니므로 지원이 불가능합니다</p>
+          <button class="submit-button" disabled>지원불가</button>
+        `;
       } else if (isFull) {
         applicationSection.innerHTML = `
           <p class="status-text">모집이 마감되었습니다</p>
@@ -139,6 +99,11 @@ async function loadEventContent(eventId) {
           <p class="status-text">신청이 완료되었습니다</p>
           <button class="submit-button" disabled>신청완료</button>
         `;
+      } else if (!isActive) {
+        applicationSection.innerHTML = `
+          <p class="status-text"> 로그인 후 다시 시도해주세요. 활동부원이 아니므로 지원이 불가능합니다</p>
+          <button class="submit-button" disabled>신청불가</button>
+        `;
       } else if (isFull) {
         applicationSection.innerHTML = `
           <p class="status-text">모집이 마감되었습니다</p>
@@ -156,22 +121,14 @@ async function loadEventContent(eventId) {
 
   } catch (error) {
     console.error('Error:', error);
-    if (error.message.includes('401') || error.message.includes('403')) {
-      alert('로그인이 필요하거나 권한이 없습니다.');
-      const returnUrl = encodeURIComponent(window.location.href);
-      window.location.href = `/auth/kakao?state=${returnUrl}`;
-    } else {
-      alert('이벤트 정보를 불러오는데 실패했습니다.');
-    }
+    alert('이벤트 정보를 불러오는데 실패했습니다.');
   }
 }
 
 // 카카오 초기화 함수
 async function initializeKakao() {
   try {
-    const response = await fetch('/events/kakao-key', {
-      credentials: 'include'
-    });
+    const response = await fetch('/events/kakao-key');
     const data = await response.json();
     Kakao.init(data.kakaoKey);
   } catch (error) {
@@ -228,6 +185,7 @@ async function initializeKakaoShare() {
       },
     },
     itemContent: {
+
       profileImageUrl: eventImageUrl,
       titleImageText: currentEvent.title,
       titleImageCategory: currentEvent.team,
@@ -325,28 +283,10 @@ async function submitApplication(e) {
       headers: {
         'Content-Type': 'application/json'
       },
-      credentials: 'include',
       body: JSON.stringify({ answers })
     });
 
     if (!response.ok) {
-      // 인증 오류 처리
-      if (response.status === 401 || response.status === 403) {
-        const refreshResponse = await fetch('/auth/refresh-token', {
-          method: 'POST',
-          credentials: 'include'
-        });
-        
-        if (refreshResponse.ok) {
-          // 토큰 갱신 성공, 다시 시도
-          return submitApplication(e);
-        } else {
-          const returnUrl = encodeURIComponent(window.location.href);
-          window.location.href = `/auth/kakao?state=${returnUrl}`;
-          return;
-        }
-      }
-      
       const error = await response.json();
       throw new Error(error.message || '신청 실패');
     }
@@ -359,65 +299,17 @@ async function submitApplication(e) {
   }
 }
 
-// 일반 이벤트 신청 함수 수정
+// 일반 이벤트 신청 함수
 async function applyForEvent(eventId) {
   try {
-    // 먼저 로그인 상태 확인
-    const userResponse = await fetch('/user/info', {
-      credentials: 'include'
-    });
-    
-    if (!userResponse.ok) {
-      // 인증 오류 처리
-      if (userResponse.status === 401 || userResponse.status === 403) {
-        const refreshResponse = await fetch('/auth/refresh-token', {
-          method: 'POST',
-          credentials: 'include'
-        });
-        
-        if (refreshResponse.ok) {
-          // 토큰 갱신 성공, 다시 시도
-          return applyForEvent(eventId, isAutoApply);
-        }
-      }
-      
-      // 로그인되지 않은 경우
-      const returnUrl = new URL(window.location.href);
-      window.location.href = `/auth/kakao?state=${encodeURIComponent(returnUrl.toString())}`;
-      return;
-    }
-
-    const userData = await userResponse.json();
-    if (!userData.active) {
-      alert('활동부원만 신청이 가능합니다.');
-      return;
-    }
-
     const response = await fetch(`/events/${eventId}/apply`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
-      },
-      credentials: 'include'
+      }
     });
 
     if (!response.ok) {
-      if (response.status === 401 || response.status === 403) {
-        // 인증 오류, 리프레시 시도 후 실패하면 로그인 페이지로
-        const refreshResponse = await fetch('/auth/refresh-token', {
-          method: 'POST',
-          credentials: 'include'
-        });
-        
-        if (refreshResponse.ok) {
-          return applyForEvent(eventId, isAutoApply);
-        } else {
-          const returnUrl = encodeURIComponent(window.location.href);
-          window.location.href = `/auth/kakao?state=${returnUrl}`;
-          return;
-        }
-      }
-      
       const error = await response.json();
       throw new Error(error.message || '신청 실패');
     }
@@ -573,28 +465,10 @@ async function submitEdit() {
       // 이미지 업로드 요청
       const imageResponse = await fetch('/events/upload-images', {
         method: 'POST',
-        body: formData,
-        credentials: 'include'
+        body: formData
       });
 
       if (!imageResponse.ok) {
-        // 인증 오류 처리
-        if (imageResponse.status === 401 || imageResponse.status === 403) {
-          const refreshResponse = await fetch('/auth/refresh-token', {
-            method: 'POST',
-            credentials: 'include'
-          });
-          
-          if (refreshResponse.ok) {
-            // 토큰 갱신 성공, 다시 시도
-            return submitEdit();
-          } else {
-            const returnUrl = encodeURIComponent(window.location.href);
-            window.location.href = `/auth/kakao?state=${returnUrl}`;
-            return;
-          }
-        }
-        
         const errorData = await imageResponse.json();
         throw new Error(errorData.message);
       }
@@ -627,28 +501,10 @@ async function submitEdit() {
     const response = await fetch(`/events/update-content`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ eventId, ...updatedData }),
-      credentials: 'include'
+      body: JSON.stringify({ eventId, ...updatedData })
     });
 
     if (!response.ok) {
-      // 인증 오류 처리
-      if (response.status === 401 || response.status === 403) {
-        const refreshResponse = await fetch('/auth/refresh-token', {
-          method: 'POST',
-          credentials: 'include'
-        });
-        
-        if (refreshResponse.ok) {
-          // 토큰 갱신 성공, 다시 시도
-          return submitEdit();
-        } else {
-          const returnUrl = encodeURIComponent(window.location.href);
-          window.location.href = `/auth/kakao?state=${returnUrl}`;
-          return;
-        }
-      }
-      
       const errorData = await response.json();
       throw new Error(errorData.message);
     }
@@ -666,27 +522,11 @@ function cancelEdit() {
   location.reload();
 }
 
-// 토큰 갱신 헬퍼 함수
-async function refreshToken() {
-  try {
-    const response = await fetch('/auth/refresh-token', {
-      method: 'POST',
-      credentials: 'include'
-    });
-    return response.ok;
-  } catch (error) {
-    console.error('Error refreshing token:', error);
-    return false;
-  }
-}
-
-document.addEventListener('DOMContentLoaded', async () => {
+document.addEventListener('DOMContentLoaded', () => {
   const eventId = new URLSearchParams(window.location.search).get('id');
-  
-  if (!eventId) {
+  if (eventId) {
+    loadEventContent(eventId);
+  } else {
     alert('이벤트 ID가 없습니다.');
-    return;
   }
-
-  await loadEventContent(eventId);
 });
