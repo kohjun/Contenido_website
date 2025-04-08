@@ -1,5 +1,49 @@
 const eventAccessMap = new Map();
 
+// 역할 한글 표시 함수
+function formatRole(role) {
+  switch(role) {
+    case 'starter': return '스타터';
+    case 'officer': return '운영진';
+    case 'participant': return '참가자';
+    case 'admin': return '관리자';
+    case 'guest': return '게스트';
+    case 'applicant': return '지원자';
+    default: return role || '게스트';
+  }
+}
+function formatTeam(team) {
+  switch(team) {
+    case 'operationTeam': return '운영팀';
+    case 'HumanResourceTeam': return '인사팀';
+    case 'financeTeam': return '재무팀';
+    case 'cooperationTeam': return '대외협력팀';
+    case 'marketingTeam': return '홍보팀';
+    case 'designTeam': return '디자인팀';
+    case 'videoTeam': return '영상제작팀';
+    case 'PlanningTeam': return '기획팀';
+    case 'regularTeam': return '정기모임팀';
+    case 'staffTeam': return '스태프팀';
+    case 'starterTeam': return '스타터팀';
+    default: return team || '-';
+  }
+}
+// 생년월일에서 년도만 추출하여 포맷팅하는 함수
+function formatBirthYear(birthDate) {
+  if (!birthDate) return '';
+  
+  const year = new Date(birthDate).getFullYear();
+  const shortYear = year.toString().slice(2);
+  return shortYear;
+}
+
+// 성별 표시 함수
+function formatGender(gender) {
+  const genderText = gender === 'male' ? '남' : gender === 'female' ? '여' : '기타';
+  const genderClass = `gender-${gender || 'other'}`;
+  return `<span class="${genderClass}">${genderText}</span>`;
+}
+
 async function fetchEventStatus() {
   const urlParams = new URLSearchParams(window.location.search);
   const eventId = urlParams.get('id');
@@ -42,33 +86,48 @@ async function fetchEventStatus() {
         <h2>지원서 목록</h2>
         ${participantsData.participants.map(participant => `
           <div class="application-item" id="application-${participant.userId}">
-            <div class="application-header">
-              <h3>${participant.name}님의 지원서</h3>
-              <div class="application-actions">
-                ${participant.status === 'approved' ? 
-                  '<span class="status-confirmed">✓ 참가확정</span>' :
-                  participant.status === 'rejected' ?
-                  '<span class="status-rejected">거절됨</span>' :
-                  `<button onclick="updateParticipantStatus('${eventId}', '${participant.userId}', 'approved')" class="approve-btn">승인</button>
-                   <button onclick="updateParticipantStatus('${eventId}', '${participant.userId}', 'rejected')" class="reject-btn">거절</button>`
-                }
-              </div>
-            </div>
-            <p><strong>성별:</strong> ${participant.gender === 'male' ? '남' : participant.gender === 'female' ? '여' : '그외'}</p>
-            <p><strong>전화번호:</strong> ${participant.phonenumber || '-'}</p>
-            <p><strong>신청일시:</strong> ${new Date(participant.appliedAt).toLocaleString('ko-KR', {
-              year: 'numeric',
-              month: '2-digit',
-              day: '2-digit',
-              hour: '2-digit',
-              minute: '2-digit'
-            })}</p>
-            ${participant.answers ? participant.answers.map((answer, index) => `
-              <div class="answer-section">
-                <p class="question-text">Q${index + 1}. ${event.additionalQuestions[index].questionText}</p>
-                <div class="answer-text">${answer.answerText}</div>
-              </div>
-            `).join('') : '<p>지원서가 없습니다.</p>'}
+        <div class="application-header">
+          <div class="participant-info">
+        <h3>${participant.name}(${formatBirthYear(participant.birthDate)})</h3>
+          </div>
+          <div class="application-actions">
+        ${participant.status === 'approved' ? 
+          '<span class="status-confirmed">✓ 참가확정</span>' :
+          participant.status === 'rejected' ?
+          '<span class="status-rejected">거절됨</span>' :
+          `<button onclick="updateParticipantStatus('${eventId}', '${participant.userId}', 'approved')" class="approve-btn">승인</button>
+           <button onclick="updateParticipantStatus('${eventId}', '${participant.userId}', 'rejected')" class="reject-btn">거절</button>`
+        }
+          </div>
+        </div>
+        <p><strong>역할:</strong> ${formatRole(participant.role)}</p>
+        <p><strong>팀(성별):</strong> ${formatTeam(participant.team)}(${formatGender(participant.gender)})</p>
+        <p><strong>전화번호:</strong> ${participant.phonenumber || '-'}</p>
+        <p><strong>신청일시:</strong> ${new Date(participant.appliedAt).toLocaleString('ko-KR', {
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit',
+          hour: '2-digit',
+          minute: '2-digit'
+        })}</p>
+        ${participant.answers ? participant.answers.map((answer, index) => {
+          // 추가 질문이 존재하는지 확인
+          if (event.additionalQuestions && event.additionalQuestions[index]) {
+        return `
+          <div class="answer-section">
+        <p class="question-text">Q${index + 1}. ${event.additionalQuestions[index].questionText}</p>
+        <div class="answer-text">${answer.answerText}</div>
+          </div>
+        `;
+          } else {
+        return `
+          <div class="answer-section">
+        <p class="question-text">Q${index + 1}. 질문이 없습니다</p>
+        <div class="answer-text">${answer.answerText}</div>
+          </div>
+        `;
+          }
+        }).join('') : '<p>지원서가 없습니다.</p>'}
           </div>
         `).join('')}
       `;
@@ -78,7 +137,6 @@ async function fetchEventStatus() {
       const participantList = document.getElementById('participant-list');
       participantList.innerHTML = participantsData.participants
         .map(participant => {
-          const genderDisplay = participant.gender === 'male' ? '남' : participant.gender === 'female' ? '여' : '그외';
           const appliedDate = new Date(participant.appliedAt).toLocaleString('ko-KR', {
             year: 'numeric',
             month: '2-digit',
@@ -109,16 +167,16 @@ async function fetchEventStatus() {
             `;
           }
 
-          return `
+            return `
             <tr data-user-id="${participant.userId}">
-              <td>${participant.name}</td>
-              <td>${genderDisplay}</td>
+              <td>${participant.name}(${formatBirthYear(participant.birthDate)})</td>
+              <td>${formatRole(participant.role)}[${formatTeam(participant.team)}](${formatGender(participant.gender)})</td>
               <td>${participant.phonenumber || '-'}</td>
               <td>${appliedDate}</td>
               <td>${statusText}</td>
               <td>${buttonsHtml}</td>
             </tr>
-          `;
+            `;
         })
         .join('');
     }
@@ -128,26 +186,79 @@ async function fetchEventStatus() {
   }
 }
 
-// 지원서 보기 모달 함수 추가
+// 지원서 보기 모달 함수 
 function viewApplication(participantId) {
-  const participant = event.appliedParticipants.find(p => p.userId === participantId);
-  if (!participant || !participant.answers) return;
+  const urlParams = new URLSearchParams(window.location.search);
+  const eventId = urlParams.get('id');
+  
+  // 이벤트와 참가자 정보를 다시 가져와야 함
+  fetch(`/events/${eventId}`)
+    .then(response => response.json())
+    .then(event => {
+      // 참가자 세부 정보도 가져오기
+      fetch(`/events/${eventId}/participants`)
+        .then(response => response.json())
+        .then(participantsData => {
+          const participant = participantsData.participants.find(p => p.userId === participantId);
+          if (!participant || !participant.answers) return;
 
-  const modal = document.getElementById('application-modal');
-  const content = document.getElementById('application-content');
+          const modal = document.getElementById('application-modal');
+          const content = document.getElementById('application-content');
 
-  content.innerHTML = `
-    <h3>${participant.name}님의 지원서</h3>
-    ${participant.answers.map((answer, index) => `
-      <div class="answer-section">
-        <p class="question-text">Q${index + 1}. ${event.additionalQuestions[index].questionText}</p>
-        <div class="answer-text">${answer.answerText}</div>
-      </div>
-    `).join('')}
-  `;
+            content.innerHTML = `
+            <h3>${participant.name}(${formatBirthYear(participant.birthDate)})님의 지원서</h3>
+            <p><strong>역할[팀](성별):</strong> ${formatRole(participant.role)}[${formatTeam(participant.team)}](${formatGender(participant.gender)})</p>
+            <p><strong>전화번호:</strong> ${participant.phonenumber || '-'}</p>
+            <p><strong>신청일시:</strong> ${new Date(participant.appliedAt).toLocaleString('ko-KR', {
+              year: 'numeric',
+              month: '2-digit',
+              day: '2-digit',
+              hour: '2-digit',
+              minute: '2-digit'
+            })}</p>
+            ${participant.answers.map((answer, index) => {
+              if (event.additionalQuestions && event.additionalQuestions[index]) {
+              return `
+                <div class="answer-section">
+                <p class="question-text">Q${index + 1}. ${event.additionalQuestions[index].questionText}</p>
+                <div class="answer-text">${answer.answerText}</div>
+                </div>
+              `;
+              } else {
+              return `
+                <div class="answer-section">
+                <p class="question-text">Q${index + 1}. 질문이 없습니다</p>
+                <div class="answer-text">${answer.answerText}</div>
+                </div>
+              `;
+              }
+            }).join('')}
+            `;
 
-  modal.style.display = 'block';
+          modal.style.display = 'block';
+        })
+        .catch(error => {
+          console.error('Error loading participant data:', error);
+          alert('참가자 정보를 불러오는 중 오류가 발생했습니다.');
+        });
+    })
+    .catch(error => {
+      console.error('Error loading event data:', error);
+      alert('이벤트 정보를 불러오는 중 오류가 발생했습니다.');
+    });
 }
+
+function closeModal() {
+  document.getElementById('application-modal').style.display = 'none';
+}
+
+// 모달 외부 클릭 시 닫기
+window.onclick = function(event) {
+  const modal = document.getElementById('application-modal');
+  if (event.target == modal) {
+    modal.style.display = 'none';
+  }
+};
 
 async function verifyEventAccess(eventId) {
   const accessCode = prompt('이벤트 접근 코드를 입력하세요 (4자리):');

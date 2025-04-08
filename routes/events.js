@@ -173,14 +173,13 @@ router.get('/:id/participants',
       const event = await Event.findById(req.params.id)
         .populate({
           path: 'appliedParticipants.userId',
-          select: 'name displayName gender phonenumber'
+          select: 'name displayName gender phonenumber birthDate role team' // birthDate와 role 추가
         });
 
       if (!event) {
         return res.status(404).json({ message: '이벤트를 찾을 수 없습니다.' });
       }
       
-
       // 참가자 데이터 포맷팅
       const participants = event.appliedParticipants.map(participant => ({
         userId: participant.userId._id,
@@ -190,7 +189,10 @@ router.get('/:id/participants',
         phonenumber: participant.userId.phonenumber,
         status: participant.status,
         appliedAt: participant.appliedAt,
-        answers: participant.answers
+        answers: participant.answers,
+        birthDate: participant.userId.birthDate, // birthDate 추가
+        role: participant.userId.role,
+        team : participant.userId.team,
       }));
 
       res.json({
