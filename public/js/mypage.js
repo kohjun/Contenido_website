@@ -2,11 +2,11 @@
 
 let userData; // 사용자 데이터를 전역 변수로 저장
 // 성별 표시 매핑
-    const genderDisplay = {
-      'male': '남성',
-      'female': '여성',
-      'other': '기타'
-    };
+const genderDisplay = {
+  'male': '남성',
+  'female': '여성',
+  'other': '기타'
+};
 // mypage.js를 수정
 async function fetchUserInfo() {
   try {
