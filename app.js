@@ -9,6 +9,7 @@ const cookieParser = require('cookie-parser');
 const path = require('path');
 const fs = require('fs');
 const favicon = require('serve-favicon');
+const MongoStore = require('connect-mongo');
 const app = express();
 
 // 스케줄러 추가
@@ -49,6 +50,12 @@ app.use(
         resave: false,
         saveUninitialized: false,
         rolling: true, // 활동할 때마다 세션 갱신
+        store: MongoStore.create({
+            mongoUrl: process.env.MONGO_URI,
+            ttl: 5 * 60 * 60, // 5시간
+            autoRemove: 'native',
+            touchAfter: 24 * 3600 // 24시간마다 세션 업데이트
+        }),
         cookie: {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
