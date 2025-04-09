@@ -5,14 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>추가 정보 입력</title>
   <link rel="stylesheet" href="/css/styles.css">
+  <!-- 통합된 nav-injector.js만 포함 -->
+  <script src="/js/utils/nav-injector.js" defer></script>
 </head>
 <body>
   <div class="container">
     <h1>추가 정보 입력</h1>
     <form id="additional-info-form">
-      <!-- CSRF 토큰을 위한 숨겨진 필드 추가 -->
-      <input type="hidden" id="_csrf" name="_csrf">
-      
       <label for="name">이름:</label>
       <input type="text" id="name" name="name" required>
 
@@ -64,74 +63,61 @@
   </div>
 
   <script>
-    // 페이지 로드 시 사용자 정보 확인 및 폼 초기화
-    document.addEventListener('DOMContentLoaded', async () => {
+    // 사용자 인증 확인
+    async function checkUserAuth() {
       try {
-        // CSRF 토큰 가져오기 (서버에서 제공한다고 가정)
-        const csrfResponse = await fetch('/auth/csrf-token');
-        if (csrfResponse.ok) {
-          const csrfData = await csrfResponse.json();
-          document.getElementById('_csrf').value = csrfData.token;
-        }
-
-        // 현재 로그인한 사용자 정보 가져오기
-        const response = await fetch('/user/info');
-        if (response.status === 401) {
-          // 로그인되지 않은 경우 로그인 페이지로 리디렉션
-          window.location.href = '/auth/kakao?state=' + encodeURIComponent(window.location.href);
+        // AuthModule 사용 (nav-injector.js에서 제공)
+        const isAuthenticated = await AuthModule.checkAuthentication();
+        if (!isAuthenticated) {
+          console.log('인증되지 않은 사용자');
           return;
         }
-
-        const user = await response.json();
         
-        // 사용자 정보가 이미 있으면 폼에 미리 채우기
-        if(user.name) document.getElementById('name').value = user.name;
-        if(user.gender) document.getElementById('gender').value = user.gender;
-        if(user.birthDate) document.getElementById('birthDate').value = new Date(user.birthDate).toISOString().split('T')[0];
-        if(user.phonenumber) document.getElementById('phonenumber').value = user.phonenumber;
-        if(user.preferredActivity) document.getElementById('preferredActivity').value = user.preferredActivity;
+        console.log('사용자 인증 완료, 폼 제출 기능 활성화');
       } catch (error) {
-        console.error('Error fetching user data:', error);
-        alert('사용자 정보를 불러오는데 실패했습니다.');
+        console.error('인증 확인 중 오류:', error);
       }
-    });
+    }
+    
+    document.addEventListener('DOMContentLoaded', function() {
+      // 인증 확인
+      checkUserAuth();
+      
+      // 폼 제출 이벤트 핸들러
+      document.getElementById('additional-info-form').addEventListener('submit', async function (e) {
+        e.preventDefault();
 
-    // 폼 제출 핸들러
-    document.getElementById('additional-info-form').addEventListener('submit', async function (e) {
-      e.preventDefault();
+        const formData = {
+          name: document.getElementById('name').value,
+          gender: document.getElementById('gender').value,
+          birthDate: document.getElementById('birthDate').value,
+          phonenumber: document.getElementById('phonenumber').value,
+          preferredActivity: document.getElementById('preferredActivity').value
+        };
 
-      const formData = {
-        name: document.getElementById('name').value,
-        gender: document.getElementById('gender').value,
-        birthDate: document.getElementById('birthDate').value,
-        phonenumber: document.getElementById('phonenumber').value,
-        preferredActivity: document.getElementById('preferredActivity').value,
-        _csrf: document.getElementById('_csrf').value // CSRF 토큰 포함
-      };
+        try {
+          console.log('추가 정보 제출 중...');
+          const response = await fetch('/auth/additional-info', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(formData),
+          });
 
-      try {
-        const response = await fetch('/auth/additional-info', {
-          method: 'POST',
-          headers: { 
-            'Content-Type': 'application/json',
-            'X-CSRF-Token': document.getElementById('_csrf').value // 헤더에도 CSRF 토큰 포함
-          },
-          body: JSON.stringify(formData),
-          credentials: 'same-origin' // 쿠키 포함하여 요청
-        });
+          const result = await response.json();
 
-        const result = await response.json();
-
-        if (response.ok) {
-          alert(result.message);
-          window.location.href = result.redirectUrl || '/events.html';
-        } else {
-          alert(`에러: ${result.message}`);
+          if (response.ok) {
+            console.log('추가 정보 제출 성공');
+            alert(result.message);
+            window.location.href = result.redirectUrl || '/events.html';
+          } else {
+            console.error('추가 정보 제출 실패:', result.message);
+            alert(`에러: ${result.message}`);
+          }
+        } catch (error) {
+          console.error('추가 정보 제출 중 오류:', error);
+          alert('추가 정보 제출 중 문제가 발생했습니다.');
         }
-      } catch (error) {
-        console.error('Error submitting additional info:', error);
-        alert('추가 정보 제출 중 문제가 발생했습니다.');
-      }
+      });
     });
   </script>
 </body>

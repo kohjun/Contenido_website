@@ -6,7 +6,8 @@
     <title>Home</title>
     <link rel="icon" href="/images/Contenido_Logo.ico" type="image/x-icon">
     <link rel="stylesheet" href="/css/styles.css" />
-    
+    <!-- 통합된 nav-injector.js만 포함 -->
+    <script src="/js/utils/nav-injector.js" defer></script>
   </head>
 
   <body>
@@ -44,15 +45,11 @@
         </button>
       </div>      
        
-
-
       <div> 
         <button onclick="OnEvents()">이벤트 신청</button>
         <button onclick="window.location.href='/ranking'">👑 활동 랭킹 👑</button>
       </div>
-
-      <button id="kakao-login-button" class="kakao-login-button" onclick="loginWithKakao()">Login with Kakao</button>
-      <button id="logout-button" style="display: none;" onclick="logout()">로그아웃</button>
+      
       <div style="text-align: center; margin-top: 2rem;">
         <a href="https://m.youtube.com/@CONTENIDO-f6w" target="_blank" rel="noopener noreferrer" style="text-decoration: none;">
           <img src="/images/youtube-icon.png" alt="YouTube Icon" style="width: 55px; height: 55px;" />
@@ -140,9 +137,6 @@
       </div>
     </footer>
       
-    
-
-    
     <script>
       document.addEventListener('DOMContentLoaded', function() {
       // 쿠키 체크
@@ -197,135 +191,65 @@
       });
     });
       
-      function checkParticipationStatus() {
-        window.location.href = '/participation-status.html';
-      }
+    function OnEvents() {
+      window.location.href = '/events.html';
+    }
+    
+    function OnOfficer() {
+      window.location.href = '/officer.html';
+    }
+    
+    function startImageSlider() {
+      document.querySelectorAll('.popup-images').forEach(popupImages => {
+        const images = popupImages.querySelectorAll('img');
+        let currentIndex = 0;
 
-      async function updateButtonVisibility() {
-        try {
-          const response = await fetch('/user/info');
-          if (response.status === 200) {
-            document.getElementById('kakao-login-button').style.display = 'none';
-            document.getElementById('logout-button').style.display = 'block';
-          } else {
-            document.getElementById('kakao-login-button').style.display = 'block';
-            document.getElementById('logout-button').style.display = 'none';
-          }
-        } catch (error) {
-          console.error('Error checking login status:', error);
-          document.getElementById('kakao-login-button').style.display = 'block';
-          document.getElementById('logout-button').style.display = 'none';
-        }
-      }
+        images[currentIndex].style.display = 'block';
 
-      document.addEventListener('DOMContentLoaded', updateButtonVisibility);
-
-      async function loginWithKakao() {
-        try {
-          // 먼저 토큰 검증 요청
-          const response = await fetch('/auth/check-token', {
-            method: 'GET',
-            credentials: 'include'
-          });
-
-          const data = await response.json();
-          
-          if (data.isValid) {
-            // 유효한 토큰이 있으면 메인 페이지로
-            window.location.href = '/';
-          } else {
-            // 토큰이 없거나 만료되었으면 카카오 로그인
-            const currentUrl = encodeURIComponent(window.location.href);
-            window.location.href = `/auth/kakao?state=${currentUrl}`;
-          }
-        } catch (error) {
-          console.error('토큰 검증 실패:', error);
-          // 에러 발생 시 카카오 로그인으로
-          const currentUrl = encodeURIComponent(window.location.href);
-          window.location.href = `/auth/kakao?state=${currentUrl}`;
-        }
-      }
-      function OnEvents() {
-        window.location.href = '/events.html';
-      }
-      function OnOfficer() {
-        window.location.href = '/officer.html';
-      }
-      async function logout() {
-        try {
-          const response = await fetch('/auth/logout', {
-            method: 'GET',
-            credentials: 'include'
-          });
-      
-          if (response.ok) {
-            // 로컬 스토리지/세션 스토리지 클리어
-            localStorage.clear();
-            sessionStorage.clear();
-            // 페이지 리로드
-            window.location.href = '/index.html';
-          } else {
-            console.error('로그아웃 실패');
-            alert('로그아웃 처리 중 오류가 발생했습니다.');
-          }
-        } catch (error) {
-          console.error('로그아웃 에러:', error);
-          alert('로그아웃 처리 중 오류가 발생했습니다.');
-        }
-      }
-
-      function startImageSlider() {
-        document.querySelectorAll('.popup-images').forEach(popupImages => {
-          const images = popupImages.querySelectorAll('img');
-          let currentIndex = 0;
-  
+        setInterval(() => {
+          images[currentIndex].style.display = 'none';
+          currentIndex = (currentIndex + 1) % images.length;
           images[currentIndex].style.display = 'block';
-  
-          setInterval(() => {
-            images[currentIndex].style.display = 'none';
-            currentIndex = (currentIndex + 1) % images.length;
-            images[currentIndex].style.display = 'block';
-          }, 3000);
-        });
-      }
+        }, 3000);
+      });
+    }
 
-      function showAnnouncementModal(title, content) {
-        document.getElementById('modal-title').textContent = title;
-        document.getElementById('modal-content').textContent = content;
-        document.getElementById('announcement-modal').style.display = 'block';
-      }
+    function showAnnouncementModal(title, content) {
+      document.getElementById('modal-title').textContent = title;
+      document.getElementById('modal-content').textContent = content;
+      document.getElementById('announcement-modal').style.display = 'block';
+    }
   
-      function closeAnnouncementModal() {
-        document.getElementById('announcement-modal').style.display = 'none';
-      }
+    function closeAnnouncementModal() {
+      document.getElementById('announcement-modal').style.display = 'none';
+    }
   
-      // 모달 외부 클릭 시 닫기
-      window.onclick = function(event) {
-        const modal = document.getElementById('announcement-modal');
-        if (event.target == modal) {
-          modal.style.display = 'none';
-        }
+    // 모달 외부 클릭 시 닫기
+    window.onclick = function(event) {
+      const modal = document.getElementById('announcement-modal');
+      if (event.target == modal) {
+        modal.style.display = 'none';
       }
+    }
 
-      // 공지사항 로드 함수 추가
-      async function loadAnnouncements() {
-        try {
-          const response = await fetch('/announcement');
-          if (!response.ok) throw new Error('서버 오류');
-          const announcements = await response.json();
-          const container = document.getElementById('home-announcements');
-          
-          container.innerHTML = announcements.map(announcement => `
-            <p class="home-announcement ${announcement.priority}" 
-               onclick="showAnnouncementModal('${announcement.title}', '${announcement.content}')">
-              ${announcement.title}
-            </p>
-          `).join('');
-        } catch (error) {
-          console.error('공지사항 로드 실패:', error);
-        }
+    // 공지사항 로드 함수 추가
+    async function loadAnnouncements() {
+      try {
+        const response = await fetch('/announcement');
+        if (!response.ok) throw new Error('서버 오류');
+        const announcements = await response.json();
+        const container = document.getElementById('home-announcements');
+        
+        container.innerHTML = announcements.map(announcement => `
+          <p class="home-announcement ${announcement.priority}" 
+             onclick="showAnnouncementModal('${announcement.title}', '${announcement.content}')">
+            ${announcement.title}
+          </p>
+        `).join('');
+      } catch (error) {
+        console.error('공지사항 로드 실패:', error);
       }
+    }
     </script>
-  <script src="/js/utils/nav-injector.js"></script>
   </body>
   </html>
