@@ -1,28 +1,31 @@
 let originalData = {};
 let deletedImages = new Set();
 let currentEvent = null; // 전역 변수로 현재 이벤트 데이터 저장
+let currentUser = null; // 현재 사용자 정보 저장
 
 async function loadEventContent(eventId) {
   try {
+    // 인증 상태 확인 (이제 nav-injector에 포함된 AuthModule 사용)
+    const isAuthenticated = await AuthModule.checkAuthentication();
+    if (!isAuthenticated) return;
+    
+    // 사용자 정보 로드
+    const user = await AuthModule.loadUserInfo();
+    if (!user) {
+      alert('사용자 정보를 불러오는데 실패했습니다.');
+      return;
+    }
+    
+    console.log(`이벤트 ID ${eventId} 정보 로드 시도`);
     const response = await fetch(`/events/${eventId}`);
+    if (!response.ok) {
+      throw new Error(`이벤트 정보를 가져오는데 실패했습니다. 상태: ${response.status}`);
+    }
+    
     const event = await response.json();
     currentEvent = event;  // 전역 변수에 저장
     originalData = { ...event };
-
-    // 사용자 정보 조회
-    let user = null;
-    let isLoggedIn = false;
-    
-    try {
-      const userResponse = await fetch('/user/info');
-      if (userResponse.ok) {
-        user = await userResponse.json();
-        isLoggedIn = true;
-      }
-    } catch (error) {
-      console.log('사용자가 로그인하지 않았습니다');
-      isLoggedIn = false;
-    }
+    console.log(`이벤트 정보 로드 성공: ${event.title}`);
 
     // 기본 정보 표시
     document.getElementById('event-title').textContent = currentEvent.title;
@@ -48,27 +51,26 @@ async function loadEventContent(eventId) {
     }
 
     // 생성자인 경우 수정 버튼 표시
-    if (isLoggedIn && currentEvent.creator === user.id && (user.role === 'officer' || user.role === 'admin')) {
+    if (currentEvent.creator === user.id && (user.role === 'officer' || user.role === 'admin')) {
+      console.log('이벤트 수정 권한 있음, 수정 버튼 표시');
       document.getElementById('modify-button').style.display = 'block';
+    } else {
+      console.log(`이벤트 수정 권한 없음 (사용자 ID: ${user.id}, 생성자 ID: ${currentEvent.creator})`);
     }
 
     // 신청 상태 확인 및 버튼 업데이트
-    const hasApplied = isLoggedIn && currentEvent.appliedParticipants.some(p => p.userId === user.id);
-    const isActive = isLoggedIn && user.active;
+    const hasApplied = currentEvent.appliedParticipants.some(p => p.userId === user.id);
+    const isActive = user.active;
     const approvedCount = currentEvent.appliedParticipants.filter(p => p.status === 'approved').length;
     const isFull = approvedCount >= currentEvent.participants;
 
+    console.log(`신청 상태: 신청여부=${hasApplied}, 활성상태=${isActive}, 승인인원=${approvedCount}/${currentEvent.participants}, 마감여부=${isFull}`);
+
     const applicationSection = document.getElementById('application-section');
-    
-    if (!isLoggedIn) {
-      // 로그인하지 않은 경우
-      applicationSection.innerHTML = `
-        <p class="status-text">로그인 후 신청할 수 있습니다</p>
-        <button class="submit-button" onclick="loginAndApply('${currentEvent._id}')">로그인 후 신청</button>
-      `;
-    } else if (currentEvent.isSelective) {
+    if (currentEvent.isSelective) {
       // 선별적 이벤트
       if (hasApplied) {
+        console.log('이미 지원한 선별적 이벤트');
         applicationSection.innerHTML = `
           <p class="status-text">지원이 완료되었습니다</p>
           <div class="application-form" style="pointer-events: none; opacity: 0.7;">
@@ -85,16 +87,19 @@ async function loadEventContent(eventId) {
           </div>
         `;
       } else if (!isActive) {
+        console.log('활동부원이 아닌 사용자');
         applicationSection.innerHTML = `
-          <p class="status-text">활동부원이 아니므로 지원이 불가능합니다</p>
+          <p class="status-text">로그인 후 다시 시도해주세요. 활동부원이 아니므로 지원이 불가능합니다</p>
           <button class="submit-button" disabled>지원불가</button>
         `;
       } else if (isFull) {
+        console.log('모집 마감된 이벤트');
         applicationSection.innerHTML = `
           <p class="status-text">모집이 마감되었습니다</p>
           <button class="submit-button" disabled>마감</button>
         `;
       } else {
+        console.log('지원 가능한 선별적 이벤트');
         applicationSection.innerHTML = `
           <div class="application-form">
             <h3>지원서 작성</h3>
@@ -113,21 +118,25 @@ async function loadEventContent(eventId) {
     } else {
       // 일반 이벤트
       if (hasApplied) {
+        console.log('이미 신청한 일반 이벤트');
         applicationSection.innerHTML = `
           <p class="status-text">신청이 완료되었습니다</p>
           <button class="submit-button" disabled>신청완료</button>
         `;
       } else if (!isActive) {
+        console.log('활동부원이 아닌 사용자');
         applicationSection.innerHTML = `
-          <p class="status-text">활동부원이 아니므로 지원이 불가능합니다</p>
+          <p class="status-text">로그인 후 다시 시도해주세요. 활동부원이 아니므로 지원이 불가능합니다</p>
           <button class="submit-button" disabled>신청불가</button>
         `;
       } else if (isFull) {
+        console.log('모집 마감된 이벤트');
         applicationSection.innerHTML = `
           <p class="status-text">모집이 마감되었습니다</p>
           <button class="submit-button" disabled>마감</button>
         `;
       } else {
+        console.log('신청 가능한 일반 이벤트');
         applicationSection.innerHTML = `
           <button onclick="applyForEvent('${currentEvent._id}')" class="submit-button">신청하기</button>
         `;
@@ -138,45 +147,20 @@ async function loadEventContent(eventId) {
     await initializeKakaoShare();
 
   } catch (error) {
-    console.error('Error:', error);
+    console.error('이벤트 정보 로드 중 에러:', error);
     alert('이벤트 정보를 불러오는데 실패했습니다.');
-  }
-}
-
-async function loginAndApply(eventId) {
-  try {
-    // 현재 URL을 저장해서 로그인 후 돌아올 수 있도록 함
-    const currentUrl = encodeURIComponent(window.location.href);
-    
-    // 토큰 유효성 검사 요청
-    const response = await fetch('/auth/check-token', {
-      method: 'GET',
-      credentials: 'include'
-    });
-    
-    const data = await response.json();
-    
-    if (data.isValid) {
-      // 이미 유효한 토큰이 있으면 페이지를 새로고침하여 신청 상태 업데이트
-      window.location.reload();
-    } else {
-      // 리프레시 토큰도 만료되었거나 없는 경우에만 카카오 로그인으로 리다이렉트
-      window.location.href = `/auth/kakao?state=${currentUrl}`;
-    }
-  } catch (error) {
-    console.error('토큰 검증 실패:', error);
-    // 에러 발생 시 카카오 로그인으로 리다이렉트
-    const currentUrl = encodeURIComponent(window.location.href);
-    window.location.href = `/auth/kakao?state=${currentUrl}`;
   }
 }
 
 // 카카오 초기화 함수
 async function initializeKakao() {
   try {
+    console.log('카카오 API 키 요청');
     const response = await fetch('/events/kakao-key');
     const data = await response.json();
+    console.log('카카오 API 초기화 시작');
     Kakao.init(data.kakaoKey);
+    console.log('카카오 API 초기화 완료');
   } catch (error) {
     console.error('카카오 키 초기화 실패:', error);
   }
@@ -192,7 +176,10 @@ async function initializeKakaoShare() {
   await initializeKakao();
 
   const kakaoButton = document.getElementById('kakao-share-button');
-  if (!kakaoButton) return;
+  if (!kakaoButton) {
+    console.log('카카오 공유 버튼을 찾을 수 없음');
+    return;
+  }
 
   // 이벤트 이미지 URL 설정 (절대 경로)
   const eventImageUrl = currentEvent.images && currentEvent.images.length > 0
@@ -218,6 +205,7 @@ async function initializeKakaoShare() {
     dDayText = '종료';
   }
 
+  console.log('카카오 공유 버튼 설정');
   Kakao.Share.createDefaultButton({
     container: '#kakao-share-button',
     objectType: 'feed',
@@ -231,7 +219,6 @@ async function initializeKakaoShare() {
       },
     },
     itemContent: {
-
       profileImageUrl: eventImageUrl,
       titleImageText: currentEvent.title,
       titleImageCategory: currentEvent.team,
@@ -270,48 +257,7 @@ async function initializeKakaoShare() {
       }
     ],
   });
-}
-
-// 신청 상태 확인 함수
-function isApplied(event, user) {
-  return event.applicants && event.applicants.includes(user.id);
-}
-
-// 신청 버튼 업데이트 함수
-function updateApplicationButton(event, user) {
-  const applicationSection = document.getElementById('application-section');
-  if (isApplied(event, user)) {
-    applicationSection.innerHTML = `
-      <p>신청이 완료되었습니다.</p>
-      <button class="submit-button" disabled>신청완료</button>
-    `;
-  } else if (event.isSelective && event.additionalQuestions?.length > 0) {
-    // 선별적 이벤트: 지원서 폼 표시
-    applicationSection.innerHTML = `
-      <div class="application-form">
-        <h3>지원서 작성</h3>
-        <form id="application-form" onsubmit="submitApplication(event)">
-          ${event.additionalQuestions.map((question, index) => `
-            <div class="question-section">
-              <p class="question-text">Q${index + 1}. ${question.questionText}</p>
-              <textarea 
-                class="answer-textarea" 
-                name="answer_${index}" 
-                required
-                placeholder="답변을 입력하세요"
-              ></textarea>
-            </div>
-          `).join('')}
-          <button type="submit" class="submit-button">신청하기</button>
-        </form>
-      </div>
-    `;
-  } else {
-    // 일반 이벤트: 기본 신청 버튼
-    applicationSection.innerHTML = `
-      <button onclick="applyForEvent('${event._id}')" class="submit-button">신청하기</button>
-    `;
-  }
+  console.log('카카오 공유 버튼 설정 완료');
 }
 
 // 지원서 제출 함수
@@ -319,6 +265,11 @@ async function submitApplication(e) {
   e.preventDefault();
   const eventId = new URLSearchParams(window.location.search).get('id');
   
+  // 인증 상태 확인
+  const isAuthenticated = await AuthModule.checkAuthentication();
+  if (!isAuthenticated) return;
+  
+  console.log(`이벤트 ${eventId} 지원서 제출 시도`);
   const answers = Array.from(document.querySelectorAll('.answer-textarea')).map(textarea => ({
     answerText: textarea.value
   }));
@@ -337,16 +288,22 @@ async function submitApplication(e) {
       throw new Error(error.message || '신청 실패');
     }
 
+    console.log('지원서 제출 성공');
     alert('지원서가 성공적으로 제출되었습니다.');
     updateApplicationStatus();
   } catch (error) {
-    console.error('Error:', error);
+    console.error('지원서 제출 에러:', error);
     alert(error.message);
   }
 }
 
 // 일반 이벤트 신청 함수
 async function applyForEvent(eventId) {
+  // 인증 상태 확인
+  const isAuthenticated = await AuthModule.checkAuthentication();
+  if (!isAuthenticated) return;
+  
+  console.log(`이벤트 ${eventId} 신청 시도`);
   try {
     const response = await fetch(`/events/${eventId}/apply`, {
       method: 'POST',
@@ -360,10 +317,11 @@ async function applyForEvent(eventId) {
       throw new Error(error.message || '신청 실패');
     }
 
+    console.log('이벤트 신청 성공');
     alert('이벤트 신청이 성공적으로 완료되었습니다.');
     updateApplicationStatus();
   } catch (error) {
-    console.error('Error:', error);
+    console.error('이벤트 신청 에러:', error);
     alert(error.message);
   }
 }
@@ -378,6 +336,7 @@ function updateApplicationStatus() {
 }
 
 function enableEdit() {
+  console.log('이벤트 수정 모드 활성화');
   // 기존 필드 변환
   const fields = [
     { id: 'event-title', type: 'text', key: 'title' },
@@ -430,6 +389,7 @@ function enableEdit() {
 
   // 이미지 업로드 상태 갱신
   updateImageUploadStatus();
+  console.log('이벤트 수정 모드 활성화 완료');
 }
 
 
@@ -439,14 +399,17 @@ function updateImageUploadStatus() {
   const uploadButton = document.getElementById('image-upload-label');
   const imageInput = document.getElementById('edit-image');
 
+  console.log(`현재 이미지 ${currentImagesCount}개`);
   if (currentImagesCount >= 3) {
     uploadButton.classList.add('disabled');
     imageInput.disabled = true;
     uploadButton.style.display = 'none';  // 3개 이상이면 + 버튼 숨김
+    console.log('이미지 최대 개수(3개) 도달, 업로드 버튼 비활성화');
   } else {
     uploadButton.classList.remove('disabled');
     imageInput.disabled = false;
     uploadButton.style.display = 'flex';  // 3개 미만이면 + 버튼 표시
+    console.log(`이미지 추가 가능 (${currentImagesCount}/3)`);
   }
 }
 
@@ -456,6 +419,7 @@ function handleImageDelete(button) {
   const imagePath = wrapper.dataset.imagePath;
   
   if (imagePath) {
+    console.log(`이미지 삭제: ${imagePath}`);
     deletedImages.add(imagePath);
   }
   wrapper.remove();
@@ -468,6 +432,8 @@ async function handleImagePreview(e) {
   const currentImagesCount = document.querySelectorAll('.image-wrapper').length;
   const remainingSlots = 3 - currentImagesCount;
 
+  console.log(`이미지 미리보기: ${files.length}개 선택됨, 남은 슬롯 ${remainingSlots}개`);
+
   if (files.length > remainingSlots) {
     alert(`최대 ${remainingSlots}장의 이미지만 추가할 수 있습니다.`);
     e.target.value = '';
@@ -478,6 +444,7 @@ async function handleImagePreview(e) {
   imagePreview.innerHTML = ''; // 미리보기 초기화
 
   for (const file of files) {
+    console.log(`이미지 미리보기 생성: ${file.name}`);
     const reader = new FileReader();
     reader.onload = function(e) {
       imagePreview.innerHTML += `
@@ -492,7 +459,12 @@ async function handleImagePreview(e) {
 }
 
 async function submitEdit() {
+  // 인증 상태 확인
+  const isAuthenticated = await AuthModule.checkAuthentication();
+  if (!isAuthenticated) return;
+
   const eventId = new URLSearchParams(window.location.search).get('id');
+  console.log(`이벤트 ${eventId} 수정 제출`);
 
   try {
     let newImageUrls = [];
@@ -500,6 +472,7 @@ async function submitEdit() {
 
     // 새 이미지 업로드 처리
     if (imageInput && imageInput.files.length > 0) {
+      console.log(`새 이미지 ${imageInput.files.length}개 업로드 시도`);
       const formData = new FormData();
       formData.append('eventId', eventId);
       
@@ -521,6 +494,7 @@ async function submitEdit() {
 
       const imageResult = await imageResponse.json();
       newImageUrls = imageResult.images;
+      console.log(`새 이미지 업로드 성공: ${newImageUrls.length}개`);
     }
 
     // 현재 표시된 이미지들 수집 (삭제되지 않은 기존 이미지들)
@@ -528,6 +502,8 @@ async function submitEdit() {
       .filter(wrapper => !deletedImages.has(wrapper.dataset.imagePath))
       .map(wrapper => wrapper.dataset.imagePath)
       .filter(path => path); // null/undefined 제거
+
+    console.log(`현재 이미지: ${currentImages.length}개, 삭제된 이미지: ${deletedImages.size}개, 새 이미지: ${newImageUrls.length}개`);
 
     // 이벤트 데이터 업데이트
     const updatedData = {
@@ -544,6 +520,7 @@ async function submitEdit() {
       deletedImages: Array.from(deletedImages)
     };
 
+    console.log('이벤트 업데이트 요청');
     const response = await fetch(`/events/update-content`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
@@ -555,24 +532,29 @@ async function submitEdit() {
       throw new Error(errorData.message);
     }
 
+    console.log('이벤트 수정 성공');
     alert('이벤트가 성공적으로 수정되었습니다.');
     location.reload();
   } catch (error) {
-    console.error('Error:', error);
+    console.error('이벤트 수정 에러:', error);
     alert(error.message || '수정 중 오류가 발생했습니다.');
   }
 }
 
 function cancelEdit() {
+  console.log('이벤트 수정 취소');
   isImageDeleted = false;
   location.reload();
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+  console.log('이벤트 상세 페이지 로드');
   const eventId = new URLSearchParams(window.location.search).get('id');
   if (eventId) {
+    console.log(`이벤트 ID: ${eventId}`);
     loadEventContent(eventId);
   } else {
+    console.error('이벤트 ID가 없음');
     alert('이벤트 ID가 없습니다.');
   }
 });

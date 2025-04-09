@@ -1,5 +1,4 @@
 // 사용자 정보 표시
-
 let userData; // 사용자 데이터를 전역 변수로 저장
 // 성별 표시 매핑
 const genderDisplay = {
@@ -7,14 +6,18 @@ const genderDisplay = {
   'female': '여성',
   'other': '기타'
 };
-// mypage.js를 수정
+// 사용자 정보 가져오기 함수 수정
 async function fetchUserInfo() {
   try {
+    console.log('사용자 정보 요청 시작');
+    // 인증 모듈을 사용한 토큰 검증 (이제 nav-injector.js에 통합됨)
+    const isAuthenticated = await AuthModule.checkAuthentication();
+    if (!isAuthenticated) return;
+    
     const response = await fetch('/user/info_database');
     if (response.status === 401) {
-      // 로그인되지 않은 경우 현재 URL을 state 파라미터로 전달하여 카카오 로그인으로 리디렉션
-      const currentUrl = encodeURIComponent(window.location.href);
-      window.location.href = `/auth/kakao?state=${currentUrl}`;
+      console.log('인증되지 않은 요청, 로그인 페이지로 이동');
+      AuthModule.redirectToLogin();
       return;
     }
 
@@ -24,6 +27,7 @@ async function fetchUserInfo() {
 
     const data = await response.json();
     userData = data; // 사용자 데이터를 전역 변수에 저장
+    console.log(`사용자 정보 가져오기 성공: ${data.displayName}`);
 
     if (!data) {
       throw new Error('No data received');
@@ -89,6 +93,9 @@ async function fetchUserInfo() {
   } catch (error) {
     console.error('Error fetching user info:', error);
     alert('사용자 정보를 불러오는데 실패했습니다. 다시 로그인해주세요.');
+    
+    // 로그인 페이지로 리디렉션
+    AuthModule.redirectToLogin();
   }
 }
 
@@ -172,6 +179,7 @@ async function saveEdit(id) {
   }
 
   try {
+    console.log(`프로필 정보 업데이트 시도: ${id}`);
     const field = id === 'user-phonenumber' ? 'phonenumber' : 'preferredActivity';
     const response = await fetch(`/user/update-profile`, {
       method: 'POST',
@@ -187,6 +195,7 @@ async function saveEdit(id) {
       throw new Error('프로필 업데이트에 실패했습니다.');
     }
 
+    console.log(`프로필 정보 업데이트 성공: ${field}=${value}`);
     // 성공적으로 업데이트된 경우 UI 갱신
     fetchUserInfo();
     cancelEdit(id);
@@ -199,32 +208,47 @@ async function saveEdit(id) {
 // 신청한 이벤트와 참여한 이벤트를 가져오는 함수
 async function fetchUserEvents() {
   try {
+    console.log('사용자 이벤트 정보 요청');
     // 현재 사용자 정보 가져오기
     const userResponse = await fetch('/user/info');
+    if (!userResponse.ok) {
+      throw new Error('사용자 정보를 가져올 수 없습니다.');
+    }
+    
     const user = await userResponse.json();
+    console.log(`로그인된 사용자 ID: ${user.id}`);
 
     // 모든 이벤트 가져오기
     const eventsResponse = await fetch('/events');
     const events = await eventsResponse.json();
+    console.log(`전체 이벤트 ${events.length}개 로드 완료`);
 
     // 종료된 이벤트 가져오기
     const endedEventsResponse = await fetch('/events/ended');
     const endedEvents = await endedEventsResponse.json();
+    console.log(`종료된 이벤트 ${endedEvents.length}개 로드 완료`);
 
     // 신청한 이벤트 필터링 (진행 중인 이벤트 중에서)
     const appliedEvents = events.filter(event => 
       event.appliedParticipants.some(p => p.userId === user.id)
     );
+    console.log(`신청한 이벤트 ${appliedEvents.length}개 필터링 완료`);
 
     // 참여한 이벤트 필터링 (종료된 이벤트 중에서)
     const participatedEvents = endedEvents.filter(event => 
-      event.finalParticipants.includes(user.id)
+      event.finalParticipants && event.finalParticipants.includes(user.id)
     );
+    console.log(`참여한 이벤트 ${participatedEvents.length}개 필터링 완료`);
 
     displayEvents('applied-events', appliedEvents, '신청한 이벤트가 없습니다.');
     displayEvents('participated-events', participatedEvents, '참여한 이벤트가 없습니다.');
   } catch (error) {
     console.error('Error fetching events:', error);
+    const appliedEvents = document.getElementById('applied-events');
+    const participatedEvents = document.getElementById('participated-events');
+    
+    appliedEvents.innerHTML = '<p class="error-message">이벤트 정보를 불러오는데 실패했습니다.</p>';
+    participatedEvents.innerHTML = '<p class="error-message">이벤트 정보를 불러오는데 실패했습니다.</p>';
   }
 }
 
@@ -258,6 +282,7 @@ function getStatusClass(event, containerId) {
   }
   
   const participant = event.appliedParticipants.find(p => p.userId === userData.id);
+  if (!participant) return 'status-pending';
   return participant.status === 'approved' ? 'status-approved' : 'status-pending';
 }
 
@@ -269,21 +294,35 @@ function getEventStatus(event, containerId) {
   
   // 신청한 이벤트의 경우
   const participant = event.appliedParticipants.find(p => p.userId === userData.id);
+  if (!participant) return '상태 확인 불가';
   return participant.status === 'approved' ? '참가 확정' : '승인 대기중';
 }
 
 // 이벤트 상세 페이지로 이동하는 함수
 function goToEventDetails(eventId) {
-  window.location.href = `additional-info.html?id=${eventId}`;
+  window.location.href = `event-detail.html?id=${eventId}`;
 }
 
 // 생년월일 확인 후 개인정보 표시 함수 수정
 function showPersonalInfo() {
   const inputBirthdate = document.getElementById('birthdate-input').value;
+  if (!userData || !userData.birthDate) {
+    alert('사용자 정보가 올바르게 로드되지 않았습니다. 페이지를 새로고침 해주세요.');
+    return;
+  }
+  
   const userBirthdate = new Date(userData.birthDate).toISOString().slice(2, 10).replace(/-/g, '');
+  console.log(`입력한 생년월일: ${inputBirthdate}, 실제 생년월일: ${userBirthdate}`);
 
   if (inputBirthdate === userBirthdate) {
+    console.log('생년월일 일치, 개인정보 표시');
     // 개인정보 업데이트 및 표시
+    const genderDisplay = {
+      'male': '남성',
+      'female': '여성',
+      'other': '기타'
+    };
+    
     updateElement('user-email', `이메일 : ${userData.email || '-'}`);
     updateElement('user-phonenumber', `전화번호 : ${userData.phonenumber || '-'}`, true);
     updateElement('user-gender', `성별 : ${genderDisplay[userData.gender] || '-'}`);
@@ -299,6 +338,7 @@ function showPersonalInfo() {
 
 // 페이지 로드 시 실행
 document.addEventListener('DOMContentLoaded', () => {
+  console.log('마이페이지 로드');
   fetchUserInfo();
   fetchUserEvents();
 
@@ -307,7 +347,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('birthdate-input-container').style.display = 'block';
     document.getElementById('toggle-personal-info').style.display = 'none';
   });
-  //추가 정보 입력
+  //추가 정보 입력 버튼 이벤트
   document.getElementById("additional-info").addEventListener("click", () => {
     window.location.href = "/additional-user-info.html";
   });
