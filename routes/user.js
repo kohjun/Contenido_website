@@ -7,6 +7,16 @@ const User = require('../models/User');
 // 토큰을 사용해서 유저 정보 얻기
 router.get('/info', authenticateToken, (req, res) => {
   if (req.user) {
+    // console.log(`사용자 ${req.user.id} 기본 정보 요청`);
+    
+    // 세션 ID와 현재 사용자 ID 비교
+    if (req.session.userId && req.session.userId !== req.user.id.toString()) {
+      // console.log(`세션/토큰 불일치: 세션 ID ${req.session.userId}, 토큰 ID ${req.user.id}`);
+      // 세션 ID 업데이트
+      req.session.userId = req.user.id.toString();
+      // console.log(`세션 ID를 ${req.session.userId}로 업데이트`);
+    }
+    
     res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
     res.setHeader('Pragma', 'no-cache');
     res.setHeader('Expires', '0');
@@ -24,19 +34,30 @@ router.get('/info', authenticateToken, (req, res) => {
       profileImage: req.user.profileImage || '/images/basic_Image.png'
     });
   } else {
+    // console.log('인증되지 않은 사용자의 정보 요청');
     res.status(401).json({ message: 'Unauthorized' });
   }
 });
 
 // 데이터베이스에서 유저 정보 얻기
-
 router.get('/info_database', authenticateToken, async (req, res) => {
   try {
+    // console.log(`사용자 ${req.user.id} 전체 정보 요청`);
+    
+    // 세션 ID와 현재 사용자 ID 비교
+    if (req.session.userId && req.session.userId !== req.user.id.toString()) {
+      // console.log(`세션/토큰 불일치: 세션 ID ${req.session.userId}, 토큰 ID ${req.user.id}`);
+      // 세션 ID 업데이트
+      req.session.userId = req.user.id.toString();
+      // console.log(`세션 ID를 ${req.session.userId}로 업데이트`);
+    }
+    
     // JWT 토큰에서 받은 userId를 사용하여 데이터베이스에서 전체 정보 조회
     const user = await User.findById(req.user.id)
       .select('id name displayName email role active department team profileImage warningCount participationCount phonenumber gender birthDate preferredActivity isDepartmentHead'); // isDepartmentHead 추가
     
     if (!user) {
+      console.log(`사용자 ${req.user.id}를 데이터베이스에서 찾을 수 없음`);
       return res.status(404).json({ message: 'User not found' });
     }
 
@@ -66,9 +87,10 @@ router.get('/info_database', authenticateToken, async (req, res) => {
       isDepartmentHead: user.isDepartmentHead, // 추가
     };
 
+    console.log(`사용자 ${req.user.id} 정보 반환 성공`);
     res.json(userInfo);
   } catch (error) {
-    console.error('Error fetching user info from database:', error);
+    console.error(`사용자 정보 조회 중 오류 발생:`, error);
     res.status(500).json({ message: 'Error fetching user info' });
   }
 });
@@ -76,6 +98,7 @@ router.get('/info_database', authenticateToken, async (req, res) => {
 //여러 참가자 데이터 조회
 router.get('/participants/users', async (req, res) => {
   try {
+    console.log('모든 사용자 목록 요청');
     const users = await User.find({ isVerified: true })
       .select('displayName name participationCount profileImage status active role gender phonenumber warningCount team department preferredActivity birthDate isTeamLeader createdAt'); // createdAt 추가
     
@@ -98,16 +121,17 @@ router.get('/participants/users', async (req, res) => {
       createdAt: user.createdAt  // createdAt 추가
     }));
 
+    // console.log(`${userData.length}명의 사용자 정보 반환`);
     res.status(200).json(userData);
   } catch (error) {
-    console.error('Error fetching users:', error.message);
+    console.error('사용자 목록 조회 중 오류 발생:', error.message);
     res.status(500).json({ message: 'Error fetching users', error: error.message });
   }
 });
 
 // 유저의 역할 검증
 router.get('/user-role', authenticateToken, (req, res) => {
-  console.log('Authenticated user role:', req.user?.role);
+  // console.log(`사용자 ${req.user?.id} 역할 요청: ${req.user?.role || 'guest'}`);
 
   if (req.user) {
     res.json({ role: req.user.role });
@@ -123,33 +147,42 @@ router.post('/toggle-active/:userId', authenticateToken, async (req, res) => {
     const { userId } = req.params;
     const { active } = req.body;
 
+    // console.log(`사용자 ${userId} 활성화 상태 변경 요청: ${active}`);
+
     const user = await User.findById(userId);
     if (!user) {
+      console.log(`사용자 ${userId}를 찾을 수 없음`);
       return res.status(404).json({ message: 'User not found' });
     }
 
     user.active = active;
     await user.save();
 
+    // console.log(`사용자 ${userId} 활성화 상태 변경 완료: ${active}`);
     res.status(200).json({ message: 'User active status updated successfully' });
   } catch (error) {
-    console.error('Error toggling user active status:', error);
+    console.error(`활성화 상태 변경 중 오류:`, error);
     res.status(500).json({ message: 'Error updating user active status' });
   }
 });
+
 // 참가 횟수 업데이트
 router.post('/update-participation/:userId', authenticateToken, async (req, res) => {
   try {
     const { userId } = req.params;
     const { regularCount } = req.body;
 
+    // console.log(`사용자 ${userId} 참가 횟수 업데이트 요청: ${regularCount}`);
+
     // 유효성 검사
     if (typeof regularCount !== 'number' || regularCount < 0) {
+      // console.log(`유효하지 않은 참가 횟수: ${regularCount}`);
       return res.status(400).json({ message: '유효하지 않은 참가 횟수입니다.' });
     }
 
     const user = await User.findById(userId);
     if (!user) {
+      console.log(`사용자 ${userId}를 찾을 수 없음`);
       return res.status(404).json({ message: '사용자를 찾을 수 없습니다.' });
     }
 
@@ -157,28 +190,34 @@ router.post('/update-participation/:userId', authenticateToken, async (req, res)
     user.participationCount.regularCount = regularCount;
     await user.save();
 
+    // console.log(`사용자 ${userId} 참가 횟수 업데이트 완료: ${regularCount}`);
     res.status(200).json({ 
       message: '참가 횟수가 업데이트되었습니다.',
       regularCount: user.participationCount.regularCount 
     });
   } catch (error) {
-    console.error('Error updating participation count:', error);
+    console.error(`참가 횟수 업데이트 중 오류:`, error);
     res.status(500).json({ message: '참가 횟수 업데이트 중 오류가 발생했습니다.' });
   }
 });
+
 // 경고 횟수 업데이트 - authorizeRoles 미들웨어 추가
 router.post('/update-warning/:userId', authenticateToken, async (req, res) => {
   try {
     const { userId } = req.params;
     const { warningCount } = req.body;
 
+    // console.log(`사용자 ${userId} 경고 횟수 업데이트 요청: ${warningCount}`);
+
     // 유효성 검사
     if (typeof warningCount !== 'number' || warningCount < 0) {
+      // console.log(`유효하지 않은 경고 횟수: ${warningCount}`);
       return res.status(400).json({ message: '유효하지 않은 경고 횟수입니다.' });
     }
 
     const user = await User.findById(userId);
     if (!user) {
+      console.log(`사용자 ${userId}를 찾을 수 없음`);
       return res.status(404).json({ message: '사용자를 찾을 수 없습니다.' });
     }
 
@@ -186,12 +225,13 @@ router.post('/update-warning/:userId', authenticateToken, async (req, res) => {
     user.warningCount = warningCount;
     await user.save();
 
+    // console.log(`사용자 ${userId} 경고 횟수 업데이트 완료: ${warningCount}`);
     res.status(200).json({ 
       message: '경고 횟수가 업데이트되었습니다.',
       warningCount: user.warningCount 
     });
   } catch (error) {
-    console.error('Error updating warning count:', error);
+    console.error(`경고 횟수 업데이트 중 오류:`, error);
     res.status(500).json({ message: '경고 횟수 업데이트 중 오류가 발생했습니다.' });
   }
 });
@@ -203,13 +243,17 @@ router.post('/update-role/:userId', authenticateToken, async (req, res) => {
     const { userId } = req.params;
     const { role } = req.body;
 
+    // console.log(`사용자 ${userId} 역할 변경 요청: ${role}`);
+
     const validRoles = ['participant', 'starter', 'officer', 'guest'];
     if (!validRoles.includes(role)) {
+      console.log(`유효하지 않은 역할: ${role}`);
       return res.status(400).json({ message: '유효하지 않은 역할입니다.' });
     }
 
     const user = await User.findById(userId);
     if (!user) {
+      console.log(`사용자 ${userId}를 찾을 수 없음`);
       return res.status(404).json({ message: '사용자를 찾을 수 없습니다.' });
     }
 
@@ -218,6 +262,7 @@ router.post('/update-role/:userId', authenticateToken, async (req, res) => {
     if (role === 'officer') {
       // officer로 변경 시 부서와 팀 정보 필요
       if (!req.body.department) {
+        console.log('운영진 변경 시 부서 정보 누락');
         return res.status(400).json({ message: '운영진의 경우 부서 정보가 필요합니다.' });
       }
       updateFields.department = req.body.department;
@@ -238,6 +283,7 @@ router.post('/update-role/:userId', authenticateToken, async (req, res) => {
       { new: true }
     );
 
+    // console.log(`사용자 ${userId} 역할 변경 완료: ${updatedUser.role}`);
     res.status(200).json({
       message: '역할이 성공적으로 변경되었습니다.',
       role: updatedUser.role,
@@ -245,7 +291,7 @@ router.post('/update-role/:userId', authenticateToken, async (req, res) => {
       team: updatedUser.team
     });
   } catch (error) {
-    console.error('Error updating user role:', error);
+    console.error(`역할 변경 중 오류:`, error);
     res.status(500).json({ message: '역할 변경 중 오류가 발생했습니다.' });
   }
 });
@@ -256,13 +302,17 @@ router.post('/update-team/:userId', authenticateToken, async (req, res) => {
       const { userId } = req.params;
       const { team, department } = req.body;
 
+      // console.log(`사용자 ${userId} 팀 변경 요청: 부서=${department}, 팀=${team}`);
+
       const user = await User.findById(userId);
       if (!user) {
+          console.log(`사용자 ${userId}를 찾을 수 없음`);
           return res.status(404).json({ message: '사용자를 찾을 수 없습니다.' });
       }
 
       // officer 역할인지 확인
       if (user.role !== 'officer') {
+          console.log(`사용자 ${userId}는 운영진이 아님`);
           return res.status(400).json({ message: '운영진만 팀을 변경할 수 있습니다.' });
       }
 
@@ -271,13 +321,14 @@ router.post('/update-team/:userId', authenticateToken, async (req, res) => {
       user.department = department;
       await user.save();
 
+      // console.log(`사용자 ${userId} 팀 변경 완료: 부서=${user.department}, 팀=${user.team}`);
       res.status(200).json({
           message: '팀이 성공적으로 변경되었습니다.',
           team: user.team,
           department: user.department
       });
   } catch (error) {
-      console.error('Error updating user team:', error);
+      console.error(`팀 변경 중 오류:`, error);
       res.status(500).json({ message: '팀 변경 중 오류가 발생했습니다.' });
   }
 });
@@ -288,11 +339,15 @@ router.post('/update-profile', authenticateToken, async (req, res) => {
     const { phonenumber, preferredActivity } = req.body;
     const updateFields = {};
 
+    // console.log(`사용자 ${req.user.id} 프로필 업데이트 요청`);
+
     if (phonenumber !== undefined) {
       if (!/^[0-9]{11}$/.test(phonenumber)) {
+        console.log(`유효하지 않은 전화번호 형식: ${phonenumber}`);
         return res.status(400).json({ message: '유효하지 않은 전화번호 형식입니다.' });
       }
       updateFields.phonenumber = phonenumber;
+      // console.log(`전화번호 업데이트: ${phonenumber}`);
     }
 
     if (preferredActivity !== undefined) {
@@ -305,9 +360,11 @@ router.post('/update-profile', authenticateToken, async (req, res) => {
       ];
       
       if (!validDistricts.includes(preferredActivity)) {
+        console.log(`유효하지 않은 지역: ${preferredActivity}`);
         return res.status(400).json({ message: '유효하지 않은 지역입니다.' });
       }
       updateFields.preferredActivity = preferredActivity;
+      console.log(`선호 지역 업데이트: ${preferredActivity}`);
     }
 
     const user = await User.findByIdAndUpdate(
@@ -317,9 +374,11 @@ router.post('/update-profile', authenticateToken, async (req, res) => {
     );
 
     if (!user) {
+      console.log(`사용자 ${req.user.id}를 찾을 수 없음`);
       return res.status(404).json({ message: '사용자를 찾을 수 없습니다.' });
     }
 
+    // console.log(`사용자 ${req.user.id} 프로필 업데이트 완료`);
     res.json({
       message: '프로필이 성공적으로 업데이트되었습니다.',
       user: {
@@ -328,7 +387,7 @@ router.post('/update-profile', authenticateToken, async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Error updating profile:', error);
+    console.error(`프로필 업데이트 중 오류:`, error);
     res.status(500).json({ message: '프로필 업데이트 중 오류가 발생했습니다.' });
   }
 });
@@ -339,25 +398,30 @@ router.post('/update-team-leader/:userId', authenticateToken, authorizeRoles('ad
         const { userId } = req.params;
         const { isTeamLeader } = req.body;
 
+        // console.log(`사용자 ${userId} 팀장 상태 변경 요청: ${isTeamLeader}`);
+
         const user = await User.findById(userId);
         if (!user) {
+            console.log(`사용자 ${userId}를 찾을 수 없음`);
             return res.status(404).json({ message: '사용자를 찾을 수 없습니다.' });
         }
 
         // officer만 팀장 지정 가능
         if (user.role !== 'officer') {
+            console.log(`사용자 ${userId}는 운영진이 아님`);
             return res.status(400).json({ message: '운영진만 팀장으로 지정할 수 있습니다.' });
         }
 
         user.isTeamLeader = isTeamLeader;
         await user.save();
 
+        // console.log(`사용자 ${userId} 팀장 상태 변경 완료: ${isTeamLeader}`);
         res.json({
             success: true,
             message: `팀장 ${isTeamLeader ? '지정' : '해제'}이 완료되었습니다.`
         });
     } catch (error) {
-        console.error('팀장 상태 업데이트 중 오류:', error);
+        console.error(`팀장 상태 업데이트 중 오류:`, error);
         res.status(500).json({ message: '팀장 상태 업데이트에 실패했습니다.' });
     }
 });
