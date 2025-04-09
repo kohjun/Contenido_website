@@ -122,26 +122,48 @@ const AuthModule = {
      * 카카오 로그인 실행
      */
     loginWithKakao: async function() {
-      try {
-        console.log('카카오 로그인 시도');
-        // 먼저 토큰 검증 요청
-        const isValid = await this.verifyToken();
-        
-        if (isValid) {
-          // 유효한 토큰이 있으면 메인 페이지로
-          console.log('유효한 토큰이 있음, 메인 페이지로 이동');
-          window.location.href = '/';
-        } else {
-          // 토큰이 없거나 만료되었으면 카카오 로그인
-          console.log('유효한 토큰이 없음, 카카오 로그인으로 이동');
-          this.redirectToLogin(false);
+        try {
+          console.log('카카오 로그인 시도');
+          
+          // 서버의 TokenService를 이용한 토큰 검증 요청
+          const response = await fetch('/auth/check-token', {
+            method: 'GET',
+            credentials: 'include', // 쿠키 포함
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            }
+          });
+      
+          const data = await response.json();
+          
+          if (data.isValid) {
+            // 토큰이 유효하면 메인 페이지로 리디렉션
+            console.log('유효한 토큰이 있음, 메인 페이지로 이동');
+            window.location.href = '/';
+          } else {
+            // 토큰/세션 불일치 감지 시 로그아웃 처리 후 로그인
+            if (data.reason === 'session_mismatch') {
+              console.log('세션과 토큰 불일치 감지, 재로그인 필요');
+              // 로그아웃 처리 (리디렉션 없이)
+              await fetch('/auth/logout', {
+                method: 'GET',
+                credentials: 'include'
+              });
+            }
+            
+            // 카카오 로그인으로 리디렉션
+            console.log('카카오 로그인으로 이동');
+            const currentUrl = encodeURIComponent(window.location.pathname + window.location.search);
+            window.location.href = `/auth/kakao?state=${currentUrl}`;
+          }
+        } catch (error) {
+          console.error('토큰 검증 실패:', error);
+          // 오류 발생 시 카카오 로그인으로 리디렉션
+          const currentUrl = encodeURIComponent(window.location.pathname + window.location.search);
+          window.location.href = `/auth/kakao?state=${currentUrl}`;
         }
-      } catch (error) {
-        console.error('토큰 검증 실패:', error);
-        // 에러 발생 시 카카오 로그인으로
-        this.redirectToLogin(false);
       }
-    }
   };
   
   // 다른 페이지에서 import할 수 있도록 전역 객체에 등록

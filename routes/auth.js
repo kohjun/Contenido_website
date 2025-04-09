@@ -27,24 +27,21 @@ router.get(
     try {
       const profile = req.user;
       const returnUrl = req.query.state || '/';
-      // console.log(`카카오 로그인 성공, 사용자 ID: ${profile._id}, 반환 URL: ${returnUrl}`);
 
-      // JWT 토큰 생성 및 저장
+      // JWT 토큰 생성 및 저장 (사용자별)
       const token = TokenService.createJwtToken(profile);
       res.cookie('jwt', token, { 
         httpOnly: true, 
         secure: process.env.NODE_ENV === 'production',
-        maxAge: 43200000, // 12시간
-        sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax'
+        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+        domain: process.env.NODE_ENV === 'production' ? '.contenido.kr' : undefined,
+        maxAge: 43200000
       });
 
-      // 세션에 사용자 ID 저장 (이중 확인을 위해)
+      // 세션에 사용자별 ID 저장
       req.session.userId = profile._id.toString();
-      // console.log(`세션에 사용자 ID 저장: ${req.session.userId}`);
 
-      // 추가 정보 입력 필요 시 리다이렉션
       if (!profile.isAdditionalInfoComplete) {
-        console.log(`사용자 ${profile._id}의 추가 정보 입력 필요`);
         return res.redirect('/additional-user-info.html');
       }
 

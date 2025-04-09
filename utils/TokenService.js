@@ -2,10 +2,16 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 
 class TokenService {
-  // JWT 토큰 생성
+  // JWT 토큰 생성 - 사용자별 고유 식별자 추가
   static createJwtToken(user) {
     return jwt.sign(
-      { id: user._id, role: user.role, email: user.email },
+      {
+        id: user._id,
+        role: user.role,
+        email: user.email,
+        sessionId: user.sessionId, // 세션 ID 추가
+        iat: Math.floor(Date.now() / 1000)
+      },
       process.env.JWT_SECRET,
       { expiresIn: '12h' }
     );
@@ -66,37 +72,34 @@ class TokenService {
     }
   }
 
-  // JWT 토큰 검증 메서드 수정
-  static async verifyToken(token) {
+  // JWT 토큰 검증 메서드 수정 - 사용자별 검증
+  static async verifyToken(token, sessionId) {
     if (!token) return false;
     
     try {
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
-      // console.log(`토큰에서 추출한 사용자 ID: ${decoded.id}`);
       
-      const user = await User.findById(decoded.id)
-        .select('+kakaoAccessToken +kakaoRefreshToken +tokenExpiresAt +refreshTokenExpiresAt');
-      
-      if (!user) {
-        console.log(`ID ${decoded.id}에 해당하는 사용자가 없음`);
+      // 세션 ID 검증 추가
+      if (decoded.sessionId !== sessionId) {
+        console.log('세션 불일치');
         return false;
       }
 
-      // 카카오 토큰도 유효한지 확인
+      const user = await User.findById(decoded.id)
+        .select('+kakaoAccessToken +kakaoRefreshToken +tokenExpiresAt +refreshTokenExpiresAt');
+      
+      if (!user) return false;
+
+      // 카카오 토큰 유효성 검사
       const isKakaoTokenValid = await this.verifyKakaoToken(user.kakaoAccessToken);
       if (!isKakaoTokenValid) {
-        console.log(`사용자 ${user._id}의 카카오 토큰이 만료됨, 토큰 갱신 시도`);
         const refreshedUser = await this.refreshAccessToken(user);
         return !!refreshedUser;
       }
 
       return true;
     } catch (error) {
-      if (error.name === 'TokenExpiredError') {
-        console.log('JWT 토큰 만료됨');
-      } else {
-        console.error('토큰 검증 에러:', error);
-      }
+      console.error('토큰 검증 에러:', error);
       return false;
     }
   }
