@@ -67,6 +67,14 @@ app.use(
         proxy: process.env.NODE_ENV === 'production' // 프록시 환경에서 보안 설정 유지
     })
 );
+app.use((req, res, next) => {
+    // 세션 ID와 사용자 ID 일관성 확인
+    if (req.session && req.user && req.session.userId && req.session.userId !== req.user.id.toString()) {
+        // console.log(`세션/사용자 불일치 감지: 세션 ID=${req.session.userId}, 사용자 ID=${req.user.id}`);
+        req.session.userId = req.user.id.toString();
+    }
+    next();
+});
 
 // Passport configuration 부분 수정
 const { setupPassport } = require('./config/passportConfig');
