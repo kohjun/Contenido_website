@@ -1,127 +1,144 @@
 // calendar.js
 if (!window.calendarInitialized) {
-    const container = document.getElementById('calendar');
-    const currentDateElement = document.getElementById('current-date');
-  
-    // Calendar initialization
-    const calendar = new tui.Calendar(container, {
-      defaultView: 'month',
-      month: {
-        dayNames: ['일', '월', '화', '수', '목', '금', '토'],
-        isAlways6Weeks: true,
-      },
-      calendars: [
-        {
-          id: 'cal1',
-          name: '스태프 이벤트',
-          backgroundColor: '#03bd9e',
-        },
-        {
-          id: 'cal2',
-          name: '정기모임',
-          backgroundColor: '#00a9ff',
-        }
-      ],
-      useFormPopup: false,
-      useDetailPopup: true,
-      gridSelection: {
-        enableDblClick: false,
-        enableClick: false,
-      }
-    });
-  
-    // Load events from server
-    async function loadEvents() {
-      try {
-        const response = await fetch('/events/calendar');
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        const calendarEvents = await response.json();
-        
-        // Clear existing events
-        calendar.clear();
-        
-        // Create events in calendar
-        calendar.createEvents(calendarEvents);
-      } catch (error) {
-        console.error('Error loading events:', error);
-      }
+  // 화면 방향 처리 함수 추가
+  function setLandscapeMode() {
+    if (window.screen.orientation) {
+      window.screen.orientation.lock('landscape')
+        .catch(error => console.log('화면 회전 잠금 실패:', error));
     }
-    async function checkPlanningDepartmentAccess() {
-      try {
-        const response = await fetch('/user/info');
-        const userData = await response.json();
-        
-        // 기획부 소속인지 확인 (department가 planning)
-        const isPlanningDepartment = userData.department === 'planning';
-        const isAdmin = userData.role === 'admin';
-        const eventManageButton = document.querySelector('.event-manage-button');
-        
-        if (eventManageButton) {
-          if (isPlanningDepartment||isAdmin) {
-            eventManageButton.style.display = 'block';
-          } else {
-            eventManageButton.style.display = 'none';
-          }
-        }
-      } catch (error) {
-        console.error('Error checking user department:', error);
-      }
-    }
-    // Update current date display
-    function updateCurrentDate() {
-      const date = calendar.getDate();
-      const year = date.getFullYear();
-      const month = date.getMonth() + 1;
-      currentDateElement.textContent = `${year}년 ${month}월`;
-    }
-  
-    // Event Handlers
-    calendar.on('beforeCreateEvent', event => {
-      calendar.createEvents([event]);
-    });
-  
-    calendar.on('beforeUpdateEvent', ({event, changes}) => {
-      calendar.updateEvent(event.id, event.calendarId, changes);
-    });
-  
-    calendar.on('beforeDeleteEvent', event => {
-      calendar.deleteEvent(event.id, event.calendarId);
-    });
-  
-    // UI Event Listeners
-    document.getElementById('change-view').addEventListener('click', () => {
-      const currentView = calendar.getViewName();
-      calendar.changeView(currentView === 'week' ? 'month' : 'week');
-      updateCurrentDate();
-    });
-  
-    document.getElementById('prev-week').addEventListener('click', () => {
-      calendar.prev();
-      updateCurrentDate();
-    });
-  
-    document.getElementById('this-week').addEventListener('click', () => {
-      calendar.today();
-      updateCurrentDate();
-    });
-  
-    document.getElementById('next-week').addEventListener('click', () => {
-      calendar.next();
-      updateCurrentDate();
-    });
-  
-    // Initialize
-    updateCurrentDate();
-    loadEvents();
-    checkPlanningDepartmentAccess();
     
-    // Auto refresh events every 5 minutes
-    setInterval(loadEvents, 5 * 60 * 1000);
-    
-    // Refresh when window gains focus
-    window.addEventListener('focus', loadEvents);
-  
-    window.calendarInitialized = true;
+    // iOS Safari 대응
+    if (window.orientation !== undefined && Math.abs(window.orientation) !== 90) {
+      alert('더 나은 사용을 위해 기기를 가로로 돌려주세요.');
+    }
   }
+
+  // 페이지 로드 및 방향 변경 시 처리
+  window.addEventListener('load', setLandscapeMode);
+  window.addEventListener('orientationchange', setLandscapeMode);
+
+  const container = document.getElementById('calendar');
+  const currentDateElement = document.getElementById('current-date');
+  
+  // Calendar initialization
+  const calendar = new tui.Calendar(container, {
+    defaultView: 'month',
+    month: {
+      dayNames: ['일', '월', '화', '수', '목', '금', '토'],
+      isAlways6Weeks: true,
+    },
+    calendars: [
+      {
+        id: 'cal1',
+        name: '스태프 이벤트',
+        backgroundColor: '#03bd9e',
+      },
+      {
+        id: 'cal2',
+        name: '정기모임',
+        backgroundColor: '#00a9ff',
+      }
+    ],
+    useFormPopup: false,
+    useDetailPopup: true,
+    gridSelection: {
+      enableDblClick: false,
+      enableClick: false,
+    }
+  });
+  
+  // Load events from server
+  async function loadEvents() {
+    try {
+      const response = await fetch('/events/calendar');
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const calendarEvents = await response.json();
+      
+      // Clear existing events
+      calendar.clear();
+      
+      // Create events in calendar
+      calendar.createEvents(calendarEvents);
+    } catch (error) {
+      console.error('Error loading events:', error);
+    }
+  }
+  async function checkPlanningDepartmentAccess() {
+    try {
+      const response = await fetch('/user/info');
+      const userData = await response.json();
+      
+      // 기획부 소속인지 확인 (department가 planning)
+      const isPlanningDepartment = userData.department === 'planning';
+      const isAdmin = userData.role === 'admin';
+      const eventManageButton = document.querySelector('.event-manage-button');
+      
+      if (eventManageButton) {
+        if (isPlanningDepartment||isAdmin) {
+          eventManageButton.style.display = 'block';
+        } else {
+          eventManageButton.style.display = 'none';
+        }
+      }
+    } catch (error) {
+      console.error('Error checking user department:', error);
+    }
+  }
+  // Update current date display
+  function updateCurrentDate() {
+    const date = calendar.getDate();
+    const year = date.getFullYear();
+    const month = date.getMonth() + 1;
+    currentDateElement.textContent = `${year}년 ${month}월`;
+  }
+
+  // Event Handlers
+  calendar.on('beforeCreateEvent', event => {
+    calendar.createEvents([event]);
+  });
+
+  calendar.on('beforeUpdateEvent', ({event, changes}) => {
+    calendar.updateEvent(event.id, event.calendarId, changes);
+  });
+
+  calendar.on('beforeDeleteEvent', event => {
+    calendar.deleteEvent(event.id, event.calendarId);
+  });
+
+  // UI Event Listeners
+  document.getElementById('change-view').addEventListener('click', () => {
+    const currentView = calendar.getViewName();
+    calendar.changeView(currentView === 'week' ? 'month' : 'week');
+    updateCurrentDate();
+  });
+
+  document.getElementById('prev-week').addEventListener('click', () => {
+    calendar.prev();
+    updateCurrentDate();
+  });
+
+  document.getElementById('this-week').addEventListener('click', () => {
+    calendar.today();
+    updateCurrentDate();
+  });
+
+  document.getElementById('next-week').addEventListener('click', () => {
+    calendar.next();
+    updateCurrentDate();
+  });
+
+  // Initialize
+  updateCurrentDate();
+  loadEvents();
+  checkPlanningDepartmentAccess();
+  
+  // Auto refresh events every 5 minutes
+  setInterval(loadEvents, 5 * 60 * 1000);
+  
+  // Refresh when window gains focus
+  window.addEventListener('focus', loadEvents);
+
+  window.calendarInitialized = true;
+}
