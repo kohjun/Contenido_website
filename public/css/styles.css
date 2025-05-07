@@ -2623,3 +2623,84 @@ tr:hover {
 .selected-participant:hover {
   background-color: #e2e8f0;
 }
+
+/* 참가자 목록 검색 컨테이너 */
+.search-container {
+  padding: 1rem;
+  background: #f8fafc;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+}
+
+.search-container input {
+  width: 100%;
+  padding: 0.8rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  transition: all 0.3s ease;
+}
+
+.search-container input:focus {
+  border-color: #0A84FE;
+  box-shadow: 0 0 0 3px rgba(10, 132, 254, 0.1);
+}
+
+/* 참가자 카드 개선 */
+.participants-list {
+  display: grid;
+  gap: 0.5rem;
+  max-height: 400px;
+  overflow-y: auto;
+  padding: 0.5rem;
+}
+
+.participant-card {
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 1rem;
+  transition: all 0.2s ease;
+}
+
+.participant-card:hover {
+  border-color: #0A84FE;
+  transform: translateX(5px);
+}
+
+.participant-details {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.participant-name {
+  font-weight: 500;
+  color: #2d3748;
+}
+
+.participant-phone {
+  color: #718096;
+  font-size: 0.9rem;
+}
+
+/* 체크박스 커스텀 스타일 */
+.checkbox-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.custom-checkbox {
+  width: 20px;
+  height: 20px;
+  border: 2px solid #0A84FE;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.custom-checkbox:checked {
+  background-color: #0A84FE;
+  border-color: #0A84FE;
+}

@@ -701,59 +701,91 @@ async function loadApprovedParticipants() {
       return;
     }
 
-    // 인증 토큰을 헤더에 추가
-    const response = await fetch(`/events/${eventId}/approved-participants`, {
-      headers: {
-        'Authorization': `Bearer ${localStorage.getItem('token')}` // 저장된 토큰 사용
-      }
-    });
-
+    const response = await fetch(`/events/${eventId}/approved-participants`);
     if (!response.ok) throw new Error('승인된 참가자 목록을 불러올 수 없습니다.');
 
     const approvedParticipants = await response.json();
     
-    // 참가자 목록 컨테이너 스타일 개선
     const participantList = document.getElementById('participant-list');
-    participantList.innerHTML = ''; // 기존 목록 초기화
+    participantList.innerHTML = '';
+    
+    // 검색 기능 추가
+    const searchContainer = document.createElement('div');
+    searchContainer.className = 'search-container';
+    searchContainer.innerHTML = `
+      <input type="text" 
+             id="search-input" 
+             placeholder="이름 또는 전화번호로 검색..."
+             onkeyup="filterParticipants()">
+    `;
+    participantList.appendChild(searchContainer);
+
+    // 참가자 목록 컨테이너 생성
+    const listContainer = document.createElement('div');
+    listContainer.className = 'participants-list';
     
     approvedParticipants.forEach(participant => {
       const participantDiv = document.createElement('div');
       participantDiv.className = 'participant-card';
       participantDiv.innerHTML = `
         <div class="participant-info">
-          <input type="checkbox" 
-                 id="participant-${participant.id}" 
-                 value="${participant.id}" 
-                 data-display="${participant.displayName}"
-                 class="custom-checkbox">
-          <label for="participant-${participant.id}" class="participant-label">
+          <label class="checkbox-wrapper">
+            <input type="checkbox" 
+                   value="${participant.id}" 
+                   data-display="${participant.displayName}"
+                   class="custom-checkbox"
+                   onchange="handleParticipantSelection(this)">
+            <span class="checkmark"></span>
+          </label>
+          <div class="participant-details">
             <span class="participant-name">${participant.displayName}</span>
             ${participant.phonenumber ? 
-              `<span class="participant-phone">${participant.phonenumber}</span>` : 
+              `<span class="participant-phone">${formatPhoneNumber(participant.phonenumber)}</span>` : 
               ''}
-          </label>
+          </div>
         </div>
       `;
-      participantList.appendChild(participantDiv);
+      listContainer.appendChild(participantDiv);
     });
 
-    // 체크박스 이벤트 리스너 추가
-    const checkboxes = participantList.querySelectorAll('input[type="checkbox"]');
-    checkboxes.forEach(checkbox => {
-      checkbox.addEventListener('change', () => {
-        if (checkbox.checked) {
-          selectedParticipants.add(checkbox.value);
-        } else {
-          selectedParticipants.delete(checkbox.value);
-        }
-        updateSelectedParticipantsPreview();
-      });
-    });
+    participantList.appendChild(listContainer);
+    updateSelectedCount();
 
   } catch (error) {
     console.error('Error loading approved participants:', error);
     alert('승인된 참가자 목록을 불러오는 중 오류가 발생했습니다.');
   }
+}
+
+function handleParticipantSelection(checkbox) {
+  if (checkbox.checked) {
+    selectedParticipants.add(checkbox.value);
+  } else {
+    selectedParticipants.delete(checkbox.value);
+  }
+  updateSelectedParticipantsPreview();
+  updateSelectedCount();
+}
+
+function filterParticipants() {
+  const searchInput = document.getElementById('search-input');
+  const filter = searchInput.value.toLowerCase();
+  const participantCards = document.querySelectorAll('.participant-card');
+
+  participantCards.forEach(card => {
+    const name = card.querySelector('.participant-name').textContent.toLowerCase();
+    const phone = card.querySelector('.participant-phone')?.textContent.toLowerCase() || '';
+    
+    if (name.includes(filter) || phone.includes(filter)) {
+      card.style.display = '';
+    } else {
+      card.style.display = 'none';
+    }
+  });
+}
+
+function formatPhoneNumber(phone) {
+  return phone.replace(/(\d{3})(\d{4})(\d{4})/, '$1-$2-$3');
 }
 
 // 체크박스 이벤트 리스너
