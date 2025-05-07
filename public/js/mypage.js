@@ -80,6 +80,7 @@ async function fetchUserInfo() {
     updateElement('user-role', `역할 : ${roleDisplay[data.role] || data.role || '-'}`);
     updateElement('user-department', `부서 : ${departmentDisplay[data.department] || data.department || '-'}`);
     updateElement('user-team', `팀 이름 : ${teamDisplay[data.team] || data.team || '-'}`);
+    updateElement('user-createdAt', `가입일 : ${new Date(data.createdAt).toLocaleDateString()||'-'}`);
 
     // 활동 정보 업데이트
     updateElement('user-active', `활성상태 : ${data.active ? '✅활동 , *동아리 부원임을 인증하는 마크입니다.*'  : '❌비활동 , *동아리 부원이 아님을 인증하는 마크입니다.*'}`);
@@ -346,7 +347,6 @@ function showPersonalInfo() {
     updateElement('user-gender', `성별 : ${genderDisplay[userData.gender] || '-'}`);
     updateElement('user-birthdate', `생년월일 : ${new Date(userData.birthDate).toISOString().slice(0, 10).replace(/-/g, '.')}`);
     updateElement('user-preferred-activity', `선호 활동 지역 : ${userData.preferredActivity || '-'}`, true);
-    updateElement('user-createdAt', `가입일 : ${new Date(userData.createdAt).toLocaleDateString()}`);
 
     document.getElementById('personal-info').style.display = 'block';
     document.getElementById('birthdate-input-container').style.display = 'none';

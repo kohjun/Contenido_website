@@ -54,7 +54,7 @@ router.get('/info_database', authenticateToken, async (req, res) => {
     
     // JWT 토큰에서 받은 userId를 사용하여 데이터베이스에서 전체 정보 조회
     const user = await User.findById(req.user.id)
-      .select('id name displayName email role active department team profileImage warningCount participationCount phonenumber gender birthDate preferredActivity isDepartmentHead'); // isDepartmentHead 추가
+      .select('id name displayName email role active department team profileImage warningCount participationCount phonenumber gender birthDate preferredActivity isDepartmentHead createdAt');
     
     if (!user) {
       console.log(`사용자 ${req.user.id}를 데이터베이스에서 찾을 수 없음`);
@@ -85,6 +85,7 @@ router.get('/info_database', authenticateToken, async (req, res) => {
       birthDate: user.birthDate,
       preferredActivity: user.preferredActivity,
       isDepartmentHead: user.isDepartmentHead, // 추가
+      createdAt: user.createdAt,
     };
 
     console.log(`사용자 ${req.user.id} 정보 반환 성공`);
