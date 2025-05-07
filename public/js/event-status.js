@@ -348,5 +348,57 @@ function formatDate(dateString) {
   });
 }
 
+// 엑셀 다운로드 함수 추가
+function downloadExcel() {
+  const urlParams = new URLSearchParams(window.location.search);
+  const eventId = urlParams.get('id');
+  
+  // 이벤트와 참가자 정보를 가져오기
+  Promise.all([
+    fetch(`/events/${eventId}`).then(res => res.json()),
+    fetch(`/events/${eventId}/participants`).then(res => res.json())
+  ]).then(([event, participantsData]) => {
+    let csvContent = "이름(생년),역할[팀](성별),전화번호,신청일시,상태\n";
+    
+    participantsData.participants.forEach(participant => {
+      const appliedDate = new Date(participant.appliedAt).toLocaleString('ko-KR', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+      
+      const status = participant.status === 'approved' ? '승인완료' : 
+                     participant.status === 'rejected' ? '거절됨' : '승인대기';
+      
+      // CSV 행 생성
+      const row = [
+        `${participant.name}(${formatBirthYear(participant.birthDate)})`,
+        `${formatRole(participant.role)}[${formatTeam(participant.team)}](${participant.gender === 'male' ? '남' : '여'})`,
+        participant.phonenumber || '-',
+        appliedDate,
+        status
+      ].map(cell => `"${cell}"`).join(',');
+      
+      csvContent += row + '\n';
+    });
+    
+    // CSV 파일 다운로드
+    const blob = new Blob(["\uFEFF" + csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    
+    link.setAttribute('href', url);
+    link.setAttribute('download', `${event.title}_참가자명단.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }).catch(error => {
+    console.error('Error downloading Excel:', error);
+    alert('엑셀 다운로드 중 오류가 발생했습니다.');
+  });
+}
+
 // Initialize event status page
 document.addEventListener('DOMContentLoaded', fetchEventStatus);

@@ -1381,7 +1381,29 @@ input:focus, select:focus, textarea:focus {
     text-align: center; /* 셀 내용 가운데 정렬 */
   }
 
+  
+.applied-download-btn {
+  background-color: #28a745;
+  color: white;
+  padding: 10px 16px;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: background-color 0.3s ease;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+}
 
+.applied-download-btn:hover {
+  background-color: #218838;
+}
+
+.icon {
+  font-size: 18px;
+}
   /* 취소 버튼 스타일 */
   td img {
     cursor: pointer;
