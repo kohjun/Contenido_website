@@ -59,7 +59,7 @@ app.use(
         cookie: {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
-            sameSite: process.env.NODE_ENV === 'production' ? 'lax' : 'lax',
+            sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
             domain: process.env.NODE_ENV === 'production' ? '.contenido.kr' : undefined,
             maxAge: 5 * 60 * 60 * 1000 // 5시간으로 연장
         },
@@ -185,8 +185,14 @@ app.get('*', (req, res, next) => {
         return next();
     }
 
-    // HTML 직접 접근 차단
+    // office로 시작하는 HTML 파일 접근 허용
+    if (req.path.startsWith('/office') && req.path.endsWith('.html')) {
+        return res.sendFile(path.join(__dirname, 'public', req.path));
+    }
+
+    // HTML 직접 접근 차단 (office 페이지 제외)
     if (req.path.endsWith('.html') && !req.path.endsWith('index.html')) {
+        return res.status(404).send('Not Found');
     }
 
     // React 앱으로 라우팅

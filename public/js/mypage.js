@@ -15,6 +15,7 @@ async function fetchUserInfo() {
     if (!isAuthenticated) return;
     
     const response = await fetch('/user/info_database');
+    
     if (response.status === 401) {
       console.log('인증되지 않은 요청, 로그인 페이지로 이동');
       AuthModule.redirectToLogin();
@@ -71,6 +72,7 @@ async function fetchUserInfo() {
       'starterTeam' :'스타터팀'
     };
 
+    
 
     // 기본 정보 업데이트
     updateElement('user-name', `이름 : ${data.name || '-'}`);
@@ -78,6 +80,7 @@ async function fetchUserInfo() {
     updateElement('user-role', `역할 : ${roleDisplay[data.role] || data.role || '-'}`);
     updateElement('user-department', `부서 : ${departmentDisplay[data.department] || data.department || '-'}`);
     updateElement('user-team', `팀 이름 : ${teamDisplay[data.team] || data.team || '-'}`);
+    updateElement('user-createdAt', `가입일 : ${new Date(data.createdAt).toLocaleDateString()||'-'}`);
 
     // 활동 정보 업데이트
     updateElement('user-active', `활성상태 : ${data.active ? '✅활동 , *동아리 부원임을 인증하는 마크입니다.*'  : '❌비활동 , *동아리 부원이 아님을 인증하는 마크입니다.*'}`);
@@ -156,9 +159,11 @@ function showEditForm(id, currentValue) {
   const container = document.getElementById(id);
   const editForm = container.querySelector('.edit-form');
   const input = document.getElementById(`${id}-input`);
+  
   if (id === 'user-preferred-activity' && currentValue !== '-') {
     input.value = currentValue;
   }
+  
   editForm.style.display = 'block';
   container.querySelector('.edit-button').style.display = 'none';
 }
@@ -218,7 +223,7 @@ async function fetchUserEvents() {
     const user = await userResponse.json();
     console.log(`로그인된 사용자 ID: ${user.id}`);
 
-	    // 모든 이벤트 가져오기
+    // 모든 이벤트 가져오기
     const eventsResponse = await fetch('/events');
     const events = await eventsResponse.json();
     console.log(`전체 이벤트 ${events.length}개 로드 완료`);
@@ -342,7 +347,6 @@ function showPersonalInfo() {
     updateElement('user-gender', `성별 : ${genderDisplay[userData.gender] || '-'}`);
     updateElement('user-birthdate', `생년월일 : ${new Date(userData.birthDate).toISOString().slice(0, 10).replace(/-/g, '.')}`);
     updateElement('user-preferred-activity', `선호 활동 지역 : ${userData.preferredActivity || '-'}`, true);
-    updateElement('user-createdAt', `가입일 : ${new Date(userData.createdAt).toLocaleDateString()}`);
 
     document.getElementById('personal-info').style.display = 'block';
     document.getElementById('birthdate-input-container').style.display = 'none';
