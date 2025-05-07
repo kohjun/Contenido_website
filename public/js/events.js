@@ -696,10 +696,29 @@ function removeParticipant(participantId) {
 async function loadApprovedParticipants() {
   try {
     const eventId = document.getElementById('report-event').value;
+    const accessCode = document.getElementById('report-access-code').value;
+
     if (!eventId) {
       alert('이벤트를 선택해주세요.');
       return;
     }
+
+    if (!accessCode) {
+      alert('접근 코드를 입력해주세요.');
+      return;
+    }
+
+    // 접근 코드 검증
+    const verifyResponse = await fetch(`/events/${eventId}/verify-access`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ accessCode })
+    });
+
+    if (!verifyResponse.ok) {
+      alert('잘못된 접근 코드입니다.');
+      return;
+    }  
 
     const response = await fetch(`/events/${eventId}/approved-participants`);
     if (!response.ok) throw new Error('승인된 참가자 목록을 불러올 수 없습니다.');
@@ -710,6 +729,7 @@ async function loadApprovedParticipants() {
     document.querySelectorAll('#participant-list input[type="checkbox"]')
       .forEach(checkbox => {
         checkbox.checked = false;
+        selectedParticipants.delete(checkbox.value);
       });
 
     // 승인된 참가자의 체크박스만 체크
@@ -723,7 +743,14 @@ async function loadApprovedParticipants() {
 
     // 선택된 참가자 미리보기 업데이트
     updateSelectedParticipantsPreview();
-    updateSelectedCount();
+    
+    // 선택된 참가자 수 업데이트
+    const countElement = document.getElementById('selected-count');
+    if (countElement) {
+      countElement.textContent = selectedParticipants.size;
+    }
+
+    alert('승인된 참가자 목록을 불러왔습니다.');
 
   } catch (error) {
     console.error('Error loading approved participants:', error);

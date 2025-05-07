@@ -155,7 +155,17 @@
               </button>
             </div>
           </div>
-          
+          <div class="form-group">
+            <label for="report-access-code">접근 코드</label>
+            <input type="password" 
+                   id="report-access-code" 
+                   pattern="\d{4}" 
+                   maxlength="4" 
+                   placeholder="4자리 숫자" 
+                   required>
+            <small>* 이벤트 생성 시 설정한 접근 코드를 입력하여 보고서를 제출하세요.</small>
+            
+          </div>
           <div class="selection-preview">
             <h4>선택된 참가자 미리보기</h4>
             <div id="selected-participants-preview" class="preview-container">
@@ -167,17 +177,7 @@
           <div id="participant-list" class="participant-grid"></div>
         </div>
 
-        <div class="form-group">
-          <label for="report-access-code">접근 코드</label>
-          <input type="password" 
-                 id="report-access-code" 
-                 pattern="\d{4}" 
-                 maxlength="4" 
-                 placeholder="4자리 숫자" 
-                 required>
-          <small>* 이벤트 생성 시 설정한 접근 코드를 입력하여 보고서를 제출하세요.</small>
-          
-        </div>
+        
 
         <div class="form-actions">
           <button class="button-primary" onclick="submitReport()">보고서 제출</button>
