@@ -370,31 +370,40 @@ const AuthModule = {
       background-color: #e0e0e0;
   }
   
-  .ad-banner {
-      position: fixed !important;
-      top: 50% !important;
-      transform: translateY(-50%) !important;
-      width: 160px !important;
-      height: 600px !important;
-      background: #fff !important;
-      border-radius: 12px !important;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1) !important;
-      padding: 1rem !important;
-      z-index: 999 !important;
+  .ad-banner-wrapper {
+      position: relative;
+      width: 100%;
+      height: 0;
+      z-index: 999;
   }
   
-  .ad-banner img {
-      width: 100% !important;
-      height: auto !important;
-      border-radius: 8px !important;
+  .ad-banner {
+      position: fixed;
+      top: 50%;
+      width: 160px;
+      height: 600px;
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+      padding: 1rem;
+      transform: translateY(-50%);
+      -webkit-transform: translateY(-50%);
+      -moz-transform: translateY(-50%);
+      -ms-transform: translateY(-50%);
   }
   
   .left-banner {
-      left: 250px !important;
+      left: calc((100% - 850px) / 2 - 180px);
   }
   
   .right-banner {
-      right: 250px !important;
+      right: calc((100% - 850px) / 2 - 180px);
+  }
+  
+  .ad-banner img {
+      width: 100%;
+      height: auto;
+      border-radius: 8px;
   }
   
   @media (max-width: 1700px) {  /* 반응형 breakpoint 수정 */
@@ -528,20 +537,22 @@ const AuthModule = {
   `;
   // 광고 배너 HTML 수정
   const adBannersHTML = `
-      <div class="ad-banner left-banner">
-          <a href="https://picore.co.kr" target="_blank" rel="noopener noreferrer">
-          <img src="./images/picore1.jpg" alt="Left Advertisement">
-          </a>
-          <h3>PiCore</h3>
-          <p>좋은 피부의 개념을 다시 씁니다.</p>
-          
-      </div>
-      <div class="ad-banner right-banner">
-         <a href="https://picore.co.kr" target="_blank" rel="noopener noreferrer">
-          <img src="./images/picore2.jpg" alt="Left Advertisement">
-          </a>
-          <h3>PiCore</h3>
-          <p>좋은 피부의 개념을 다시 씁니다.</p>
+      <div class="ad-banner-wrapper">
+          <div class="ad-banner left-banner">
+              <a href="https://picore.co.kr" target="_blank" rel="noopener noreferrer">
+              <img src="./images/picore1.jpg" alt="Left Advertisement">
+              </a>
+              <h3>PiCore</h3>
+              <p>좋은 피부의 개념을 다시 씁니다.</p>
+              
+          </div>
+          <div class="ad-banner right-banner">
+             <a href="https://picore.co.kr" target="_blank" rel="noopener noreferrer">
+              <img src="./images/picore2.jpg" alt="Left Advertisement">
+              </a>
+              <h3>PiCore</h3>
+              <p>좋은 피부의 개념을 다시 씁니다.</p>
+          </div>
       </div>
   `;
   
