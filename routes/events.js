@@ -207,6 +207,35 @@ router.get('/:id/participants',
     }
 });
 
+// 승인된 참가자 목록 가져오기
+router.get('/:id/approved-participants', authenticateToken, async (req, res) => {
+  try {
+    const event = await Event.findById(req.params.id)
+      .populate({
+        path: 'appliedParticipants.userId',
+        select: 'name phonenumber'
+      });
+
+    if (!event) {
+      return res.status(404).json({ message: '이벤트를 찾을 수 없습니다.' });
+    }
+
+    const approvedParticipants = event.appliedParticipants
+      .filter(p => p.status === 'approved')
+      .map(p => ({
+        id: p.userId._id,
+        name: p.userId.name,
+        phonenumber: p.userId.phonenumber,
+        displayName: `${p.userId.name}${p.userId.phonenumber ? p.userId.phonenumber.slice(-4) : ''}`
+      }));
+
+    res.json(approvedParticipants);
+  } catch (error) {
+    console.error('Error fetching approved participants:', error);
+    res.status(500).json({ message: '승인된 참가자 목록을 가져오는 중 오류가 발생했습니다.' });
+  }
+});
+
 // POST 요청
 // 새로운 이벤트 등록
 router.post('/', 
@@ -639,13 +668,32 @@ router.put('/update-content',
 
     } catch (error) {
       console.error('Error updating event:', error);
-      res.status(500).json({ 
+      res.status(500).json({
         message: '이벤트 수정 중 오류가 발생했습니다.',
-        error: error.message 
+        error: error.message
       });
     }
 });
 
+// 이벤트 종료 처리
+router.post('/:id/end',
+  authenticateToken,
+  authorizeRoles('officer', 'admin'),
+  async (req, res) => {
+    try {
+      const event = await Event.findById(req.params.id);
+      if (!event) {
+        return res.status(404).json({ message: '이벤트를 찾을 수 없습니다.' });
+      }
 
+      event.isEnded = true;
+      await event.save();
+
+      res.json({ message: '이벤트가 종료되었습니다.' });
+    } catch (error) {
+      console.error('Error ending event:', error);
+      res.status(500).json({ message: '이벤트 종료 처리 중 오류가 발생했습니다.' });
+    }
+});
 
 module.exports = router;

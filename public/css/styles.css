@@ -338,7 +338,7 @@ p {
 }
 
 /* Week Selection Styles */
-.week-selection-container {
+.week-container {
   margin-bottom: 2rem;
 }
 
@@ -547,10 +547,17 @@ p {
   justify-content: flex-end;
   margin-top: 2rem;
 }
-
+.selected-participant-cancel{
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
 .button-primary,
 .button-secondary,
-.button-outline {
+.button-outline,.load-participants-btn {
   padding: 0.75rem 1.5rem;
   border-radius: 8px;
   font-size: 0.875rem;
@@ -559,13 +566,13 @@ p {
   transition: all 0.2s;
 }
 
-.button-primary {
+.button-primary,.load-participants-btn {
   background: #0A84FE;
   color: white;
   border: none;
 }
 
-.button-primary:hover {
+.button-primary,.load-participants-btn:hover {
   background: #0875e0;
   transform: translateY(-2px);
 }
@@ -2537,4 +2544,82 @@ tr:hover {
 .search-button:hover {
   background: #0875e0;
   transform: translateY(-2px);
+}
+
+/* 참가자 카드 스타일 개선 */
+.participant-card {
+  background: white;
+  border-radius: 10px;
+  padding: 1rem;
+  margin: 0.5rem 0;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  transition: all 0.3s ease;
+}
+
+.participant-card:hover {
+  transform: translateX(5px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+.participant-info {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.custom-checkbox {
+  width: 20px;
+  height: 20px;
+  border: 2px solid #0A84FE;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.custom-checkbox:checked {
+  background-color: #0A84FE;
+  border-color: #0A84FE;
+}
+
+.participant-label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.participant-name {
+  font-weight: 500;
+  color: #333;
+}
+
+.participant-phone {
+  font-size: 0.9rem;
+  color: #666;
+}
+
+/* 선택된 참가자 미리보기 스타일 */
+#selected-participants-preview {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  padding: 1rem;
+  background: #f8fafc;
+  border-radius: 10px;
+  min-height: 100px;
+}
+
+.selected-participant {
+  display: inline-flex;
+  align-items: center;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  padding: 0.4rem 0.8rem;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  font-size: 0.9rem;
+}
+
+.selected-participant:hover {
+  background-color: #e2e8f0;
 }

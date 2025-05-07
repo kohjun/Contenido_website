@@ -657,3 +657,118 @@ async function cancelApplication(eventId) {
 document.addEventListener('DOMContentLoaded', async () => {
   await fetchEvents();
 });
+
+let selectedParticipants = new Set();
+
+function updateSelectedParticipantsPreview() {
+  const previewContainer = document.getElementById('selected-participants-preview');
+  if (!previewContainer) return;
+
+  const participantElements = Array.from(selectedParticipants).map(participantId => {
+    const checkbox = document.querySelector(`input[value="${participantId}"]`);
+    const displayName = checkbox?.getAttribute('data-display') || '';
+    return `
+      <div class="selected-participant" onclick="removeParticipant('${participantId}')">
+        <span>${displayName}</span>
+      </div>
+    `;
+  });
+
+  previewContainer.innerHTML = participantElements.length ? 
+    participantElements.join('') : 
+    '<p>선택된 참가자가 없습니다</p>';
+
+  const countElement = document.getElementById('selected-count');
+  if (countElement) {
+    countElement.textContent = selectedParticipants.size;
+  }
+}
+
+function removeParticipant(participantId) {
+  const checkbox = document.querySelector(`input[value="${participantId}"]`);
+  if (checkbox) {
+    checkbox.checked = false;
+  }
+  selectedParticipants.delete(participantId);
+  updateSelectedParticipantsPreview();
+}
+
+async function loadApprovedParticipants() {
+  try {
+    const eventId = document.getElementById('report-event').value;
+    if (!eventId) {
+      alert('이벤트를 선택해주세요.');
+      return;
+    }
+
+    // 인증 토큰을 헤더에 추가
+    const response = await fetch(`/events/${eventId}/approved-participants`, {
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('token')}` // 저장된 토큰 사용
+      }
+    });
+
+    if (!response.ok) throw new Error('승인된 참가자 목록을 불러올 수 없습니다.');
+
+    const approvedParticipants = await response.json();
+    
+    // 참가자 목록 컨테이너 스타일 개선
+    const participantList = document.getElementById('participant-list');
+    participantList.innerHTML = ''; // 기존 목록 초기화
+    
+    approvedParticipants.forEach(participant => {
+      const participantDiv = document.createElement('div');
+      participantDiv.className = 'participant-card';
+      participantDiv.innerHTML = `
+        <div class="participant-info">
+          <input type="checkbox" 
+                 id="participant-${participant.id}" 
+                 value="${participant.id}" 
+                 data-display="${participant.displayName}"
+                 class="custom-checkbox">
+          <label for="participant-${participant.id}" class="participant-label">
+            <span class="participant-name">${participant.displayName}</span>
+            ${participant.phonenumber ? 
+              `<span class="participant-phone">${participant.phonenumber}</span>` : 
+              ''}
+          </label>
+        </div>
+      `;
+      participantList.appendChild(participantDiv);
+    });
+
+    // 체크박스 이벤트 리스너 추가
+    const checkboxes = participantList.querySelectorAll('input[type="checkbox"]');
+    checkboxes.forEach(checkbox => {
+      checkbox.addEventListener('change', () => {
+        if (checkbox.checked) {
+          selectedParticipants.add(checkbox.value);
+        } else {
+          selectedParticipants.delete(checkbox.value);
+        }
+        updateSelectedParticipantsPreview();
+      });
+    });
+
+  } catch (error) {
+    console.error('Error loading approved participants:', error);
+    alert('승인된 참가자 목록을 불러오는 중 오류가 발생했습니다.');
+  }
+}
+
+// 체크박스 이벤트 리스너
+document.addEventListener('DOMContentLoaded', function() {
+  const participantList = document.getElementById('participant-list');
+  if (participantList) {
+    participantList.addEventListener('change', function(e) {
+      if (e.target.type === 'checkbox') {
+        if (e.target.checked) {
+          selectedParticipants.add(e.target.value);
+        } else {
+          selectedParticipants.delete(e.target.value);
+        }
+        updateSelectedParticipantsPreview();
+      }
+    });
+  }
+});
