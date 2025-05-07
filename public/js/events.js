@@ -706,49 +706,23 @@ async function loadApprovedParticipants() {
 
     const approvedParticipants = await response.json();
     
-    const participantList = document.getElementById('participant-list');
-    participantList.innerHTML = '';
-    
-    // 검색 기능 추가
-    const searchContainer = document.createElement('div');
-    searchContainer.className = 'search-container';
-    searchContainer.innerHTML = `
-      <input type="text" 
-             id="search-input" 
-             placeholder="이름 또는 전화번호로 검색..."
-             onkeyup="filterParticipants()">
-    `;
-    participantList.appendChild(searchContainer);
+    // 기존 체크박스 모두 해제
+    document.querySelectorAll('#participant-list input[type="checkbox"]')
+      .forEach(checkbox => {
+        checkbox.checked = false;
+      });
 
-    // 참가자 목록 컨테이너 생성
-    const listContainer = document.createElement('div');
-    listContainer.className = 'participants-list';
-    
+    // 승인된 참가자의 체크박스만 체크
     approvedParticipants.forEach(participant => {
-      const participantDiv = document.createElement('div');
-      participantDiv.className = 'participant-card';
-      participantDiv.innerHTML = `
-        <div class="participant-info">
-          <label class="checkbox-wrapper">
-            <input type="checkbox" 
-                   value="${participant.id}" 
-                   data-display="${participant.displayName}"
-                   class="custom-checkbox"
-                   onchange="handleParticipantSelection(this)">
-            <span class="checkmark"></span>
-          </label>
-          <div class="participant-details">
-            <span class="participant-name">${participant.displayName}</span>
-            ${participant.phonenumber ? 
-              `<span class="participant-phone">${formatPhoneNumber(participant.phonenumber)}</span>` : 
-              ''}
-          </div>
-        </div>
-      `;
-      listContainer.appendChild(participantDiv);
+      const checkbox = document.querySelector(`#participant-list input[value="${participant.id}"]`);
+      if (checkbox) {
+        checkbox.checked = true;
+        selectedParticipants.add(participant.id);
+      }
     });
 
-    participantList.appendChild(listContainer);
+    // 선택된 참가자 미리보기 업데이트
+    updateSelectedParticipantsPreview();
     updateSelectedCount();
 
   } catch (error) {
