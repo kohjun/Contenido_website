@@ -19,6 +19,14 @@ router.get('/kakao', (req, res, next) => {
   })(req, res, next);
 });
 
+// URL을 HTTPS로 변경하는 헬퍼 함수 추가
+function ensureHttps(url) {
+  if (url && url.startsWith('http://')) {
+    return url.replace('http://', 'https://');
+  }
+  return url;
+}
+
 // 카카오 로그인 콜백 처리
 router.get(
   '/kakao/callback',
@@ -27,6 +35,12 @@ router.get(
     try {
       const profile = req.user;
       const returnUrl = req.query.state || '/';
+
+      // 프로필 이미지 URL을 HTTPS로 변환
+      if (req.user && req.user.profileImage) {
+        req.user.profileImage = ensureHttps(req.user.profileImage);
+        await req.user.save();
+      }
 
       // JWT 토큰 생성 및 저장 (사용자별)
       const token = TokenService.createJwtToken(profile);
