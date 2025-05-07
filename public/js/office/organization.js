@@ -124,6 +124,20 @@ class OrganizationChart {
     }
 }
 
+function createMemberElement(member) {
+    // HTTP URL을 HTTPS로 변환
+    const secureProfileImage = member.profileImage?.replace('http://', 'https://') || '/images/basic_Image.png';
+    
+    return `
+      <div class="member">
+        <img src="${secureProfileImage}" alt="Profile" 
+             onerror="this.src='/images/basic_Image.png'">
+        <span>${member.name}</span>
+        ${member.isTeamLeader ? '<span class="leader-badge">팀장</span>' : ''}
+      </div>
+    `;
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     OrganizationChart.init();
 });

@@ -292,7 +292,7 @@ function generateUserRow(user) {
       <tr oncontextmenu="handleContextMenu(event, '${user.id}', '${user.name}', '${user.role}')" 
           data-warning="${warningCount}">
           <td><img src="${user.profileImage}" alt="Profile" class="profile-image"></td>
-          <td>${user.name}(${user.displayName})</td>
+          <td>${user.birthDate ? new Date(user.birthDate.$date).getFullYear().toString().substring(2) : ''}${user.name}(${user.displayName})</td>
           <td>${roleDisplay[user.role] || user.role}</td>
           <td>${teamName || '-'}</td>
           <td>${getGenderDisplay(user.gender)}</td>
