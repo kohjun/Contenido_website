@@ -13,7 +13,7 @@ const MongoStore = require('connect-mongo');
 const app = express();
 
 // 스케줄러 추가
-const scheduler = require('./utils/Scheduler');
+const scheduler = require('./utils/SchedulerService');
 console.log('All schedulers initialized');
 const TokenService = require('./utils/TokenService');
 // 업로드 디렉토리 생성

@@ -487,6 +487,7 @@ const AuthModule = {
                   <li><a href="ended-events.html">종료된 이벤트</a></li>
                   <li><a href="/calendar.html">이벤트 캘린더</a></li>
                   <li><a href="/ranking">활동 랭킹</a></li>
+                  <li><a href="/event-staff.html" id="staffPageLink">이벤트 관리(운영진 전용)</a></li>
                   <li><a href="">익명제보(예정)</a></li>
               </ul>
               <a href="/apply"><h3>신입부원 지원하기</h3></a>

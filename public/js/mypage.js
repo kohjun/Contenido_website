@@ -265,16 +265,25 @@ function displayEvents(containerId, events, emptyMessage) {
   }
 
   container.innerHTML = events.map(event => `
-    <div class="event-item" onclick="goToEventDetails('${event._id}')">
-      <div class="event-title">${event.title}</div>
-      <div class="event-details">
-        <div>일시: ${new Date(event.date).toLocaleDateString()} ${event.startTime} ~ ${event.endTime}</div>
-        <div>장소: ${event.place}</div>
-        <div>참가비: ${event.participation_fee.toLocaleString()}원</div>
-        <div class="event-status ${getStatusClass(event, containerId)}">
-          ${getEventStatus(event, containerId)}
+    <div class="event-item">
+      <div class="event-content" onclick="goToEventDetails('${event._id}')">
+        <div class="event-title">${event.title}</div>
+        <div class="event-details">
+          <div>일시: ${new Date(event.date).toLocaleDateString()} ${event.startTime} ~ ${event.endTime}</div>
+          <div>장소: ${event.place}</div>
+          <div>참가비: ${event.participation_fee.toLocaleString()}원</div>
+          <div class="event-status ${getStatusClass(event, containerId)}">
+            ${getEventStatus(event, containerId)}
+          </div>
         </div>
       </div>
+      ${containerId === 'participated-events' ? `
+        <div class="event-actions">
+          <button class="review-button" onclick="goToEventReview('${event._id}')">
+            리뷰 남기기
+          </button>
+        </div>
+      ` : ''}
     </div>
   `).join('');
 }
@@ -304,7 +313,12 @@ function getEventStatus(event, containerId) {
 
 // 이벤트 상세 페이지로 이동하는 함수
 function goToEventDetails(eventId) {
-  window.location.href = `event-detail.html?id=${eventId}`;
+  window.location.href = `additional-info.html?id=${eventId}`;
+}
+
+// 리뷰 페이지로 이동하는 함수 추가
+function goToEventReview(eventId) {
+  window.location.href = `event-review.html?id=${eventId}`;
 }
 
 // 생년월일 확인 후 개인정보 표시 함수 수정
@@ -332,6 +346,7 @@ function showPersonalInfo() {
     updateElement('user-gender', `성별 : ${genderDisplay[userData.gender] || '-'}`);
     updateElement('user-birthdate', `생년월일 : ${new Date(userData.birthDate).toISOString().slice(0, 10).replace(/-/g, '.')}`);
     updateElement('user-preferred-activity', `선호 활동 지역 : ${userData.preferredActivity || '-'}`, true);
+    updateElement('user-createdAt', `가입일 : ${new Date(userData.createdAt).toLocaleDateString()}`);
 
     document.getElementById('personal-info').style.display = 'block';
     document.getElementById('birthdate-input-container').style.display = 'none';
