@@ -348,7 +348,23 @@ function formatDate(dateString) {
   });
 }
 
-// 엑셀 다운로드 함수 추가
+// 전화번호 마스킹 함수 추가
+function maskPhoneNumber(phoneNumber) {
+  if (!phoneNumber || phoneNumber === '-') return '-';
+  
+  // 전화번호에서 숫자만 추출
+  const numbers = phoneNumber.replace(/[^0-9]/g, '');
+  
+  if (numbers.length === 11) {
+    return `${numbers.slice(0,3)}-****-${numbers.slice(7)}`;
+  } else if (numbers.length === 10) {
+    return `${numbers.slice(0,3)}-***-${numbers.slice(6)}`;
+  } else {
+    return phoneNumber; // 형식이 다른 경우 원본 반환
+  }
+}
+
+// 엑셀 다운로드 함수 수정
 function downloadExcel() {
   const urlParams = new URLSearchParams(window.location.search);
   const eventId = urlParams.get('id');
@@ -372,11 +388,14 @@ function downloadExcel() {
       const status = participant.status === 'approved' ? '승인완료' : 
                      participant.status === 'rejected' ? '거절됨' : '승인대기';
       
+      // 전화번호 마스킹 처리 추가
+      const maskedPhone = maskPhoneNumber(participant.phonenumber);
+      
       // CSV 행 생성
       const row = [
         `${participant.name}(${formatBirthYear(participant.birthDate)})`,
         `${formatRole(participant.role)}[${formatTeam(participant.team)}](${participant.gender === 'male' ? '남' : '여'})`,
-        participant.phonenumber || '-',
+        maskedPhone,
         appliedDate,
         status
       ].map(cell => `"${cell}"`).join(',');
