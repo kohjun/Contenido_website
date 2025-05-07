@@ -251,12 +251,41 @@
 }
 
 .event-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   padding: 15px;
   background-color: #f8f9fa;
   border: 1px solid #dee2e6;
   border-radius: 8px;
-  cursor: pointer;
+  margin-bottom: 10px;
   transition: all 0.2s ease;
+}
+
+.event-content {
+  flex-grow: 1;
+  cursor: pointer;
+}
+
+.event-actions {
+  margin-left: 15px;
+}
+
+.review-button {
+  padding: 8px 16px;
+  background-color: #0A84FE;
+  color: white;
+  border: none;
+  border-radius: 20px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+}
+
+.review-button:hover {
+  background-color: #0056b3;
+  transform: translateY(-2px);
 }
 
 .event-item:hover {

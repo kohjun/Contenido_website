@@ -79,27 +79,28 @@ router.get('/calendar', async (req, res) => {
     
     const calendarEvents = populatedEvents.map(event => {
       
+      const approvedCount = event.appliedParticipants.filter(p => p.status === 'approved').length;
       return {
-      id: event._id,
-      calendarId: event.team === 'R' ? 'cal2' : 'cal1',
-      title: event.title,
-      body: event.contents,
-      location: event.place,
-      start: `${event.date.toISOString().split('T')[0]}T${event.startTime}`,
-      end: `${event.date.toISOString().split('T')[0]}T${event.endTime}`,
-      category: 'time',
-      isReadOnly: true,
-      state: event.appliedParticipants?.length >= event.participants ? '마감' : '모집중',
-      attendees: [event.participants],
-      isVisible: true,
-      backgroundColor: event.appliedParticipants?.length >= event.participants ? '#FF6B6B' : '#03bd9e',
-      dragBackgroundColor: event.appliedParticipants?.length >= event.participants ? '#FF6B6B' : '#03bd9e',
-      borderColor: event.appliedParticipants?.length >= event.participants ? '#FF6B6B' : '#03bd9e',
-      raw: {
-        participation_fee: event.participation_fee,
-        current: event.appliedParticipants?.length || 0,
-        max: event.participants
-      }
+        id: event._id,
+        calendarId: event.team === 'R' ? 'cal2' : 'cal1', 
+        title: event.title,
+        body: event.contents,
+        location: event.place,
+        start: `${event.date.toISOString().split('T')[0]}T${event.startTime}`,
+        end: `${event.date.toISOString().split('T')[0]}T${event.endTime}`,
+        category: 'time',
+        isReadOnly: true,
+        state: approvedCount >= event.participants ? '마감' : '모집중',
+        attendees: [event.participants],
+        isVisible: true,
+        backgroundColor: approvedCount >= event.participants ? '#FF6B6B' : '#03bd9e',
+        dragBackgroundColor: approvedCount >= event.participants ? '#FF6B6B' : '#03bd9e',
+        borderColor: approvedCount >= event.participants ? '#FF6B6B' : '#03bd9e',
+        raw: {
+          participation_fee: event.participation_fee,
+          current: approvedCount,
+          max: event.participants
+        }
       };
     });
 

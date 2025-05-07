@@ -185,7 +185,7 @@ userSchema.methods.updateApplicationStatus = async function(status) {
     this.role = this.application.wantOfficer ? 'starter' : 'participant';
     this.active = true;
   }
-  
+    
   return this.save();
 };
 

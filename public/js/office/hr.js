@@ -278,6 +278,7 @@ function generateUserRow(user) {
     const warningCount = user.warningCount;
     const regularCount = user.participationCount?.regularCount || 0;
     const teamName = getTeamNameInKorean(user.team);
+    const joinDate = new Date(user.createdAt).toLocaleDateString();
     
     const roleDisplay = {
         'officer': '운영진',
@@ -316,9 +317,10 @@ function generateUserRow(user) {
                   <span class="slider"></span>
               </label>
           </td>
+          <td>${joinDate}</td>
       </tr>
     `;
-  }
+}
 
 function getTeamNameInKorean(team) {
   const teamMapping = {
