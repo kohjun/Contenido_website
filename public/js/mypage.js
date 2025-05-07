@@ -218,7 +218,7 @@ async function fetchUserEvents() {
     const user = await userResponse.json();
     console.log(`로그인된 사용자 ID: ${user.id}`);
 
-    // 모든 이벤트 가져오기
+	    // 모든 이벤트 가져오기
     const eventsResponse = await fetch('/events');
     const events = await eventsResponse.json();
     console.log(`전체 이벤트 ${events.length}개 로드 완료`);
@@ -300,7 +300,7 @@ function getEventStatus(event, containerId) {
 
 // 이벤트 상세 페이지로 이동하는 함수
 function goToEventDetails(eventId) {
-  window.location.href = `event-detail.html?id=${eventId}`;
+  window.location.href = `additional-info.html?id=${eventId}`;
 }
 
 // 생년월일 확인 후 개인정보 표시 함수 수정
