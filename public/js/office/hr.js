@@ -273,12 +273,20 @@ function getGenderDisplay(gender) {
     }
 }
 
-// 사용자 행 HTML 생성
+// HTTP URL을 HTTPS로 변환하는 헬퍼 함수 추가
+function ensureHttps(url) {
+  if (!url) return '/images/basic_Image.png';
+  return url.replace(/^http:/, 'https:');
+}
+
 function generateUserRow(user) {
     const warningCount = user.warningCount;
     const regularCount = user.participationCount?.regularCount || 0;
     const teamName = getTeamNameInKorean(user.team);
     const joinDate = new Date(user.createdAt).toLocaleDateString();
+    
+    // 프로필 이미지 URL을 HTTPS로 변환
+    const secureProfileImage = ensureHttps(user.profileImage);
     
     const roleDisplay = {
         'officer': '운영진',
@@ -291,7 +299,8 @@ function generateUserRow(user) {
     return `
       <tr oncontextmenu="handleContextMenu(event, '${user.id}', '${user.name}', '${user.role}')" 
           data-warning="${warningCount}">
-          <td><img src="${user.profileImage}" alt="Profile" class="profile-image"></td>
+          <td><img src="${secureProfileImage}" alt="Profile" class="profile-image" 
+                   onerror="this.src='/images/basic_Image.png'"></td>
           <td>${user.birthDate ? new Date(user.birthDate.$date).getFullYear().toString().substring(2) : ''}${user.name}(${user.displayName})</td>
           <td>${roleDisplay[user.role] || user.role}</td>
           <td>${teamName || '-'}</td>
