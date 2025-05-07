@@ -99,7 +99,6 @@ router.get('/info_database', authenticateToken, async (req, res) => {
 //여러 참가자 데이터 조회
 router.get('/participants/users', async (req, res) => {
   try {
-    console.log('모든 사용자 목록 요청');
     const users = await User.find({ isVerified: true })
       .select('displayName name participationCount profileImage status active role gender phonenumber warningCount team department preferredActivity birthDate isTeamLeader createdAt'); // createdAt 추가
     
