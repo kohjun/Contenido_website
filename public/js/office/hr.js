@@ -285,6 +285,11 @@ function generateUserRow(user) {
     const teamName = getTeamNameInKorean(user.team);
     const joinDate = new Date(user.createdAt).toLocaleDateString();
     
+    // 생년 표시 방식 수정
+    const birthYear = user.birthDate ? 
+        new Date(user.birthDate).getFullYear().toString().substring(2, 4) : 
+        '--';
+    
     // 프로필 이미지 URL을 HTTPS로 변환
     const secureProfileImage = ensureHttps(user.profileImage);
     
@@ -301,7 +306,7 @@ function generateUserRow(user) {
           data-warning="${warningCount}">
           <td><img src="${secureProfileImage}" alt="Profile" class="profile-image" 
                    onerror="this.src='/images/basic_Image.png'"></td>
-          <td>${user.birthDate ? new Date(user.birthDate.$date).getFullYear().toString().substring(2) : ''}${user.name}(${user.displayName})</td>
+          <td>${birthYear}${user.name || '--'}(${user.displayName})</td>
           <td>${roleDisplay[user.role] || user.role}</td>
           <td>${teamName || '-'}</td>
           <td>${getGenderDisplay(user.gender)}</td>
@@ -353,10 +358,6 @@ function getTeamNameInKorean(team) {
 async function updateParticipationCount(userId, newCount) {
     try {
       const response = await fetch(`/user/update-participation/${userId}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ regularCount: newCount })
-      });
   
       if (!response.ok) {
         throw new Error('Failed to update participation count');
