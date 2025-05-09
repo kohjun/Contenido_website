@@ -1,0 +1,199 @@
+@font-face {
+    font-family: 'GmarketSansMedium';
+    src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_2001@1.1/GmarketSansMedium.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+  }
+body {
+    font-family: 'GmarketSansMedium', sans-serif;
+    background-color: #f4f4f4;
+    color: #333;
+    margin: 0;
+    padding: 0;
+    line-height: 1.6;
+  }
+  ol {
+    list-style-type: decimal; /* 기본 아라비아 숫자 (1, 2, 3 ...) */
+    margin-bottom: 15px;
+    padding-left: 20px; /* 목록 들여쓰기 */
+}
+ol ol {
+     margin-bottom: 8px; /* 중첩 목록 간 간격 조정 */
+}
+ ol li {
+    margin-bottom: 8px;
+ }
+
+/* ===== 테이블 스타일 수정 부분 시작 ===== */
+table {
+    border-collapse: collapse;
+    width: 100%;
+    margin-top: 15px;
+    margin-bottom: 15px;
+    /* 가운데 정렬을 위해 margin auto 사용 가능 (width가 100%면 효과 없음) */
+    /* margin-left: auto; */
+    /* margin-right: auto; */
+}
+th, td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: center; /* 텍스트 가운데 정렬 */
+    vertical-align: middle; /* 세로 가운데 정렬 */
+}
+th {
+    background-color: #0056b3;
+    color: white;
+}
+tr:nth-child(even) {
+    background-color: #f2f2f2;
+}
+/* 첫 번째 td와 마지막 td에는 border-bottom을 제거하여 merge된 것처럼 보이게 할 수 있으나, */
+/* 여기서는 명확성을 위해 모든 border를 유지합니다. */
+/* ===== 테이블 스타일 수정 부분 끝 ===== */
+
+
+.rules-nav {
+    display: flex;
+    justify-content: center;
+    gap: 1.5rem;
+    margin: 2rem 0 3rem;
+    flex-wrap: wrap;
+    padding: 1rem;
+    background: rgba(10, 132, 254, 0.03);
+    border-radius: 16px;
+}
+
+.rules-button {
+    max-width: 180px;
+    padding: 1rem 1.5rem;
+    border-radius: 25px;
+    font-size: 1rem;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    background: white;
+    color: #0A84FE;
+    border: 2px solid #0A84FE;
+}
+
+.rules-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(10, 132, 254, 0.2);
+}
+
+.rules-button.active {
+    background: #0A84FE;
+    color: white;
+    transform: scale(1.05);
+}
+
+.rules-section {
+    display: none;
+    padding: 20px;
+}
+
+.rules-section.active {
+    display: block;
+    animation: fadeIn 0.6s ease-in-out;
+}
+
+.rule-card {
+    background: #ffffff;
+    border-radius: 16px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    border: 1px solid rgba(10, 132, 254, 0.1);
+}
+
+.rule-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 25px rgba(10, 132, 254, 0.15);
+}
+
+.rule-card img {
+    width: 100%;
+    max-width: 500px;
+    height: auto;
+    border-radius: 12px;
+    margin: 0 auto;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease;
+}
+
+.rule-card img:hover {
+    transform: scale(1.02);
+}
+
+.rule-text {
+    flex: 1;
+    padding: 1rem;
+    background: rgba(10, 132, 254, 0.02);
+    border-radius: 12px;
+}
+
+.rule-text h3 {
+    color: #0A84FE;
+    margin-bottom: 1.5rem;
+    font-size: 1.5rem;
+    position: relative;
+    padding-bottom: 0.5rem;
+}
+
+.rule-text h3::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 50px;
+    height: 3px;
+    background: #0A84FE;
+    border-radius: 2px;
+}
+
+.rule-text p {
+    line-height: 1.8;
+    color: #555;
+    font-size: 1rem;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.section-title {
+    text-align: center;
+    margin-bottom: 2rem;
+    color: #0A84FE;
+    font-size: 2rem;
+    font-weight: bold;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+@media (max-width: 768px) {
+    .rules-nav {
+        flex-direction: column;
+        align-items: center;
+        padding: 1rem 0.5rem;
+    }
+
+    .rules-button {
+        width: 90%;
+        max-width: none;
+        margin: 0.5rem 0;
+    }
+
+    .rule-card {
+        padding: 1.5rem;
+    }
+}

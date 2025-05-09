@@ -286,6 +286,11 @@ function generateUserRow(user) {
     const joinDate = new Date(user.createdAt).toLocaleDateString();
     const birthYear = user.birthDate ? new Date(user.birthDate).getFullYear().toString().slice(-2) : '--';
     
+    // 생년 표시 방식 수정
+    const birthYear = user.birthDate ? 
+        new Date(user.birthDate).getFullYear().toString().substring(2, 4) : 
+        '--';
+    
     // 프로필 이미지 URL을 HTTPS로 변환
     const secureProfileImage = ensureHttps(user.profileImage);
     
@@ -354,10 +359,6 @@ function getTeamNameInKorean(team) {
 async function updateParticipationCount(userId, newCount) {
     try {
       const response = await fetch(`/user/update-participation/${userId}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ regularCount: newCount })
-      });
   
       if (!response.ok) {
         throw new Error('Failed to update participation count');
