@@ -6,7 +6,7 @@ const User = require('../models/User');
 const router = express.Router();
 
 const KAKAO_CLIENT_ID = process.env.KAKAO_CLIENT_ID;
-const LOGOUT_REDIRECT_URI = process.env.LOGOUT_REDIRECT_URI || 'https://contenido.kr/auth/final-logout';
+const LOGOUT_REDIRECT_URI = process.env.LOGOUT_REDIRECT_URI || 'http://localhost:3000/auth/final-logout';
 
 // 카카오 로그인 초기화
 router.get('/kakao', (req, res, next) => {

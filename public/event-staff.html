@@ -3,83 +3,194 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>이벤트 참가 현황</title>
+  <title>기획부 - 이벤트 관리 페이지</title>
   <link rel="stylesheet" href="/css/styles.css" />
-  <style>
-    /* isSelective가 true일 때 기존 표 형식 숨기기 */
-    .hidden {
-      display: none;
-    }
-    
-    /* 모바일 반응형 스타일 추가 */
-    @media (max-width: 768px) {
-      table th, table td {
-        padding: 6px 4px;
-        font-size: 0.85rem;
-      }
-      
-      .role-badge {
-        font-size: 0.7rem;
-        padding: 2px 4px;
-        min-width: 40px;
-      }
-      
-      .application-item {
-        padding: 10px;
-      }
-    }
-    
-    /* 역할과 성별 표시를 위한 추가 스타일 */
-    .role-gender {
-      margin-top: 5px;
-      display: inline-block;
-    }
-    
-    /* 지원서 항목 스타일 개선 */
-    .participant-info {
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      gap: 10px;
-    }
-  </style>
 </head>
 <body>
   <div class="container">
-    <h1>이벤트 참가 현황</h1>
-    <div id="event-details"></div>
-    
-    <button onclick="downloadExcel()" class="applied-download-button"><svg xmlns="http://www.w3.org/2000/svg" class="icon" viewBox="0 0 24 24" fill="white" width="20" height="20">
-      <path d="M12 16l4-5h-3V4h-2v7H8l4 5zm-9 2h18v2H3v-2z"/>
-    </svg>
-    신청자 목록 Download</button>
-    
-    <table id="participant-table">
-      <thead>
-        <tr>
-          <th>이름(생년)</th>
-          <th>역할(성별)</th>
-          <th>전화번호</th>
-          <th>신청일시</th>
-          <th>상태</th>
-          <th>관리</th>
-        </tr>
-      </thead>
-      <tbody id="participant-list"></tbody>
-    </table>
-    <div id="application-list"></div>
+    <div class="dashboard-header">
+      <h1>이벤트 관리</h1>
+      <p class="subtitle">기획부 전용 대시보드</p>
+    </div>
 
-    <!-- 지원서 모달 -->
-    <div id="application-modal" class="modal">
-      <div class="modal-content">
-        <span class="close-modal" onclick="closeModal()">&times;</span>
-        <div id="application-content"></div>
+    <!-- 새로운 이벤트 작성 섹션 -->
+    <div class="dashboard-section">
+      <div class="section-header">
+        <h2>새로운 이벤트 작성</h2>
+        <span class="section-description">새로운 이벤트를 생성하고 관리하세요</span>
+      </div>
+      
+      <div class="event-form-container">
+        <div class="form-group">
+          <label for="event-title">이벤트 제목</label>
+          <input type="text" id="event-title" placeholder="이벤트 제목을 입력하세요" required>
+          <span class="form-hint">참가자들이 쉽게 이해할 수 있는 제목을 작성해주세요</span>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="event-place">장소</label>
+            <input type="text" id="event-place" placeholder="장소 주소를 입력하세요" required>
+          </div>
+          <div class="form-group">
+            <label for="event-participants">참가 인원</label>
+            <input type="number" id="event-participants" placeholder="최대 참가 인원" required>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="event-date">날짜</label>
+            <input type="date" id="event-date" required>
+          </div>
+          <div class="form-group">
+            <label for="event-start-time">시작 시간</label>
+            <input type="time" id="event-start-time" required>
+          </div>
+          <div class="form-group">
+            <label for="event-end-time">종료 시간</label>
+            <input type="time" id="event-end-time" required>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="event-participation-fee">참가비</label>
+            <div class="input-with-icon">
+              <input type="text" id="event-participation-fee" placeholder="참가비를 입력하세요" required>
+              <span class="input-suffix">원</span>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="event-team">담당 팀</label>
+            <select id="event-team" required>
+              <option value="">팀 선택</option>
+              <option value="A-1">A-1</option>
+              <option value="A-2">A-2</option>
+              <option value="B-1">B-1</option>
+              <option value="B-2">B-2</option>
+              <option value="C-1">C-1</option>
+              <option value="C-2">C-2</option>
+              <option value="R">정기모임</option>
+              <option value="S">스타터</option>
+            
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="event-contents">이벤트 내용</label>
+          <textarea id="event-contents" rows="6" placeholder="이벤트에 대한 상세한 설명을 작성해주세요" required></textarea>
+          <span class="form-hint">이벤트의 목적, 진행 방식, 준비물 등을 자세히 설명해주세요</span>
+        </div>
+        <!-- 선별적 이벤트 옵션 -->
+        <div class="form-group">
+          <label class="checkbox-label">
+            <input type="checkbox" id="is-selective" onchange="toggleQuestionSection()">
+            <br>일반 이벤트(지원서 X) < ---- > 선발 이벤트 (지원서 O)
+          </label>
+          <span class="form-hint">참가자를 선발하기 위한 추가 질문을 입력할 수 있습니다</span>
+        </div>
+
+        <!-- 추가 질문 섹션 -->
+        <div id="question-section" class="question-container" style="display: none;">
+          <h3>추가 질문</h3>
+          <div id="questions-container"></div>
+          <button type="button" 
+                  id="add-question-btn" 
+                  class="add-question" 
+                  onclick="addQuestion()">
+            + 질문 추가
+          </button>
+          <span class="form-hint">최대 5개의 질문을 추가할 수 있습니다</span>
+        </div>
+
+        <div class="form-group">
+          <label>이미지</label>
+          <input type="file" id="event-images" multiple accept="image/*"><br>
+        </div>
+        <label>접근 코드 (4자리)</label>
+        <input type="password" 
+               id="event-access-code" 
+               pattern="\d{4}" 
+               maxlength="4" 
+               placeholder="4자리 숫자" 
+               required>
+        <small>* 이벤트 참가자 현황을 보기 위한 접근 코드입니다</small>
+
+        <div class="form-actions">
+          <button class="button-primary" onclick="submitEvent()">이벤트 등록</button>
+        </div>
       </div>
     </div>
 
-    <button onclick="window.location.href='event-staff.html'" class="back-button">돌아가기</button>
+    <!-- 이벤트 결과 보고서 섹션 -->
+    <div class="dashboard-section">
+      <div class="section-header">
+        <h2>이벤트 최종 참가자 보고서</h2>
+        <span class="section-description">완료된 이벤트의 최종 참가자를 보고하세요</span>
+      </div>
+
+      <div class="report-form-container">
+        <div class="form-group">
+          <label for="report-event">이벤트 선택</label>
+          <select id="report-event" required>
+            <option value="">이벤트를 선택하세요...</option>
+          </select>
+          <button onclick="loadApprovedParticipants()" class="load-participants-btn">
+            승인된 참가자 불러오기
+          </button>
+        </div>
+        <div class="form-group">
+          <label for="report-access-code">접근 코드</label>
+          <input type="password" 
+                 id="report-access-code" 
+                 pattern="\d{4}" 
+                 maxlength="4" 
+                 placeholder="4자리 숫자" 
+                 required>
+          <small>* 이벤트 생성 시 설정한 접근 코드를 입력하여 보고서를 제출하세요.</small>
+          
+        </div>
+
+        <div class="participant-selection-container">
+          <div class="selection-header">
+            <h3>참가자 선택 (<span id="selected-count">0</span>명 선택됨)</h3>
+            <div class="search-container">
+              <input type="text" 
+                     id="participant-search" 
+                     placeholder="참가자 검색...">
+              <button onclick="searchParticipant(document.getElementById('participant-search').value)" 
+                      class="search-button">
+                검색
+              </button>
+            </div>
+          </div>
+          <div class="selection-preview">
+            <h4>선택된 참가자 미리보기</h4>
+            <div id="selected-participants-preview" class="preview-container">
+              <p>선택된 참가자가 없습니다</p>
+            </div>
+          </div>
+
+          <small>* 일일 스태프를 포함하고 노쇼자는 제외하여 체크해주세요.</small>
+          <div id="participant-list" class="participant-grid"></div>
+        </div>
+
+        
+
+        <div class="form-actions">
+          <button class="button-primary" onclick="submitReport()">보고서 제출</button>
+          <button class="button-secondary" onclick="viewEventStatus()">참가 현황 보기</button>
+          <button class="button-outline" onclick="window.location.href='events.html'">진행중인 이벤트</button>
+        </div>
+      </div>
+    </div>
   </div>
 
-  <script src="/js/event-status.js"></script>
+  <script src="/js/events.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', loadReportFormOptions);
+  </script>
 </body>
 </html>
