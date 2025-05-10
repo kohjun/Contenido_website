@@ -279,18 +279,17 @@ function ensureHttps(url) {
   return url.replace(/^http:/, 'https:');
 }
 
+// 중복된 generateUserRow 함수를 하나로 통합하고 수정
 function generateUserRow(user) {
-    const warningCount = user.warningCount;
+    if (!user) return '';
+    
+    const warningCount = user.warningCount || 0;
     const regularCount = user.participationCount?.regularCount || 0;
     const teamName = getTeamNameInKorean(user.team);
-    const joinDate = new Date(user.createdAt).toLocaleDateString();
-    
-    // 생년 표시 방식 수정
-    const birthYear = user.birthDate ? 
+    const joinDate = user.createdAt ? new Date(user.createdAt).toLocaleDateString() : '-';
+    const birthYearStr = user.birthDate ? 
         new Date(user.birthDate).getFullYear().toString().substring(2, 4) : 
         '--';
-    
-    // 프로필 이미지 URL을 HTTPS로 변환
     const secureProfileImage = ensureHttps(user.profileImage);
     
     const roleDisplay = {
@@ -302,11 +301,11 @@ function generateUserRow(user) {
     };
 
     return `
-      <tr oncontextmenu="handleContextMenu(event, '${user.id}', '${user.name}', '${user.role}')" 
+      <tr oncontextmenu="handleContextMenu(event, '${user.id}', '${user.name || ''}', '${user.role}')" 
           data-warning="${warningCount}">
           <td><img src="${secureProfileImage}" alt="Profile" class="profile-image" 
                    onerror="this.src='/images/basic_Image.png'"></td>
-          <td>${birthYear}${user.name || '--'}(${user.displayName})</td>
+          <td>${birthYearStr}${user.name || '--'}(${user.displayName || '--'})</td>
           <td>${roleDisplay[user.role] || user.role}</td>
           <td>${teamName || '-'}</td>
           <td>${getGenderDisplay(user.gender)}</td>
