@@ -354,32 +354,37 @@ function getTeamNameInKorean(team) {
 }
 
 
-// 참가 횟수 업데이트
+// 참가 횟수 업데이트 함수 수정
 async function updateParticipationCount(userId, newCount) {
     try {
-      const response = await fetch(`/user/update-participation/${userId}`, {
-  
-      if (!response.ok) {
-        throw new Error('Failed to update participation count');
-      }
-  
-      users = users.map(user =>
-        user.id === userId ? { 
-          ...user, 
-          participationCount: {
-            ...user.participationCount,
-            regularCount: newCount
-          }
-        } : user
-      );
-      
-      showUsersByRole(currentRole, false);
-      alert('참가 횟수가 업데이트되었습니다.');
+        const response = await fetch(`/user/update-participation/${userId}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ regularCount: newCount })
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to update participation count');
+        }
+
+        users = users.map(user =>
+            user.id === userId ? {
+                ...user,
+                participationCount: {
+                    ...user.participationCount,
+                    regularCount: newCount
+                }
+            } : user
+        );
+        
+        showUsersByRole(currentRole, false);
+        alert('참가 횟수가 업데이트되었습니다.');
     } catch (error) {
-      console.error('Error updating participation count:', error);
-      alert('참가 횟수 업데이트에 실패했습니다.');
+        console.error('Error updating participation count:', error);
+        alert('참가 횟수 업데이트에 실패했습니다.');
     }
-  }
+}
+
 // 경고 횟수 업데이트
 async function updateWarningCount(userId, newCount) {
     try {
