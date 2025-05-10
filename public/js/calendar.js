@@ -108,26 +108,38 @@ if (!window.calendarInitialized) {
   });
 
   // UI Event Listeners
-  document.getElementById('change-view').addEventListener('click', () => {
-    const currentView = calendar.getViewName();
-    calendar.changeView(currentView === 'week' ? 'month' : 'week');
-    updateCurrentDate();
-  });
+  const changeViewButton = document.getElementById('change-view');
+  if (changeViewButton) {
+    changeViewButton.addEventListener('click', () => {
+      const currentView = calendar.getViewName();
+      calendar.changeView(currentView === 'week' ? 'month' : 'week');
+      updateCurrentDate();
+    });
+  }
 
-  document.getElementById('prev-week').addEventListener('click', () => {
-    calendar.prev();
-    updateCurrentDate();
-  });
+  const prevWeekButton = document.getElementById('prev-week');
+  if (prevWeekButton) {
+    prevWeekButton.addEventListener('click', () => {
+      calendar.prev();
+      updateCurrentDate();
+    });
+  }
 
-  document.getElementById('this-week').addEventListener('click', () => {
-    calendar.today();
-    updateCurrentDate();
-  });
+  const thisWeekButton = document.getElementById('this-week');
+  if (thisWeekButton) {
+    thisWeekButton.addEventListener('click', () => {
+      calendar.today();
+      updateCurrentDate();
+    });
+  }
 
-  document.getElementById('next-week').addEventListener('click', () => {
-    calendar.next();
-    updateCurrentDate();
-  });
+  const nextWeekButton = document.getElementById('next-week');
+  if (nextWeekButton) {
+    nextWeekButton.addEventListener('click', () => {
+      calendar.next();
+      updateCurrentDate();
+    });
+  }
 
   // Initialize
   updateCurrentDate();
