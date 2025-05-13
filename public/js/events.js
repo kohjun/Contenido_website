@@ -102,7 +102,7 @@ function displayCurrentPage(currentUser) {
           <h3 class="event-title">${event.title}</h3>
           <span class="event-team">${event.team}</span>
           ${event.isSelective ? '<span class="selective-badge">📝 지원서 필요</span>' : ''}
-          ${event.hasParticipantRules ? '<span class="rules-badge">⚠️ 규칙적용</span>' : ''}
+          ${event.hasParticipantRules ? '<span class="rules-badge">✔ 참가자 규칙 적용</span>' : ''}
         </div>
         
         <div class="event-info">
@@ -198,6 +198,7 @@ async function submitEvent() {
     const team = document.getElementById('event-team').value;
     const accessCode = document.getElementById('event-access-code').value;
     const isSelective = document.getElementById('is-selective').checked;
+    const hasParticipantRules = document.getElementById('hasParticipantRules').checked;
     
 
     
@@ -237,6 +238,7 @@ async function submitEvent() {
     formData.append('team', team);
     formData.append('accessCode', accessCode);
     formData.append('isSelective', isSelective);
+    formData.append('hasParticipantRules',hasParticipantRules);
     if (isSelective) {
       const questions = Array.from(document.querySelectorAll('.question-item')).map(item => ({
         questionText: item.querySelector('.question-text').value
