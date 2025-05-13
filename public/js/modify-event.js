@@ -41,7 +41,7 @@ async function loadEventContent(eventId) {
     const rulesStatus = document.createElement('p');
     rulesStatus.className = 'rules-status';
     rulesStatus.innerHTML = currentEvent.hasParticipantRules ? 
-      '⚠️ <strong>참가자 규칙이 적용되는 이벤트입니다.</strong><br>활동부원은 일주일 이내 취소 시 경고 1회가 부과됩니다.' :
+      '✔  <strong>참가자 규칙이 적용되는 이벤트입니다.</strong><br>활동부원은 일주일 이내 취소 시 경고 1회가 부과됩니다.' :
       '참가자 규칙이 적용되지 않는 일반 이벤트입니다.';
     document.getElementById('event-details').insertBefore(rulesStatus, document.getElementById('kakao-share-button'));
 
@@ -196,7 +196,7 @@ async function initializeKakaoShare() {
 
   // hasParticipantRules 상태에 따라 표시할 텍스트
   const rulesText = currentEvent.hasParticipantRules ? 
-    '⚠️ 참가자 규칙 적용' : 
+    '✔ 참가자 규칙 적용' : 
     '참가자 규칙 미적용';
 
   console.log('카카오 공유 버튼 설정');

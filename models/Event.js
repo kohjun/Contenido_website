@@ -102,7 +102,7 @@ const eventSchema = new mongoose.Schema({
   },
   hasParticipantRules: {
     type: Boolean,
-    default: false
+    default: true
   },
   additionalQuestions: [questionSchema]
 });
