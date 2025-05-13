@@ -933,6 +933,9 @@ dot {
   cursor: pointer;
 }
 
+/* 모바일 환경에서의 팝업 스타일 수정 */
+
+
 /* 지원서 스타일 */
 .modal {
   display: none;
@@ -2400,6 +2403,21 @@ tr:hover {
     margin-left: 0;
   }
 
+  
+  .popup-footer {
+    flex-direction: column; /* 세로 정렬 */
+    align-items: flex-start; /* 왼쪽 정렬 */
+  }
+
+  .dont-show-today {
+    display: flex;
+    flex-direction: column; /* 체크박스 위, 텍스트 아래 */
+    align-items: flex-start;
+  }
+
+  .popup-footer button {
+    align-self: flex-end; /* 버튼은 오른쪽에 */
+  }
 
   /* 이벤트 상세 페이지 스타일 */
   .event-info {
@@ -2725,4 +2743,31 @@ tr:hover {
 .custom-checkbox:checked {
   background-color: #0A84FE;
   border-color: #0A84FE;
+}
+
+.rules-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.3rem 0.8rem;
+  background-color: #fff3cd;
+  color: #856404;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  margin-left: 0.5rem;
+}
+
+.rules-status {
+  margin: 1rem 0;
+  padding: 0.8rem;
+  background-color: #fff3cd;
+  border: 1px solid #ffeeba;
+  border-radius: 8px;
+  color: #856404;
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+.rules-status strong {
+  color: #533f03;
 }

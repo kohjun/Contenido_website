@@ -252,7 +252,10 @@ router.post('/',
         });
       }
 
-      const { title, date, place, participants, startTime, endTime, participation_fee, contents, team, accessCode } = req.body;
+      const { 
+        title, date, place, participants, startTime, endTime, 
+        participation_fee, contents, team, accessCode, hasParticipantRules 
+      } = req.body;
 
       const eventData = {
         title,
@@ -269,7 +272,8 @@ router.post('/',
         creator: req.user.id,
         isSelective: req.body.isSelective === 'true',
         additionalQuestions: req.body.isSelective === 'true' && req.body.additionalQuestions ? 
-          JSON.parse(req.body.additionalQuestions) : []
+          JSON.parse(req.body.additionalQuestions) : [],
+        hasParticipantRules: hasParticipantRules === 'true'
       };
 
       // 입력값 검증
@@ -608,7 +612,10 @@ router.put('/update-content',
   authenticateToken,
   authorizeRoles('officer','admin'),
   async (req, res) => {
-    const { eventId, currentImages, newImages, deletedImages, ...updatedData } = req.body;
+    const { 
+      eventId, currentImages, newImages, deletedImages, 
+      hasParticipantRules, ...updatedData 
+    } = req.body;
 
     try {
       const event = await Event.findById(eventId);
@@ -654,6 +661,7 @@ router.put('/update-content',
 
       // 이벤트 업데이트
       event.images = finalImages;
+      event.hasParticipantRules = hasParticipantRules;
       
       // 나머지 필드 업데이트
       Object.keys(updatedData).forEach(key => {

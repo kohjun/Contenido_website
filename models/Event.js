@@ -100,6 +100,10 @@ const eventSchema = new mongoose.Schema({
     type: Boolean,
     default: false
   },
+  hasParticipantRules: {
+    type: Boolean,
+    default: false
+  },
   additionalQuestions: [questionSchema]
 });
 eventSchema.pre('save', async function(next) {
