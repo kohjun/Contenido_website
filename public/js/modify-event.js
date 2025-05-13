@@ -353,7 +353,6 @@ function enableEdit() {
     input.id = `edit-${field.id}`;
     input.type = field.type;
     
-    // 기존 값 설정
     if (field.type === 'number') {
       input.value = element.textContent.replace(/[^\d]/g, '');
     } else {
@@ -373,28 +372,27 @@ function enableEdit() {
     </label>
     <span class="form-hint">활동부원은 취소 시 경고, 스타터/기존 참가자 패널티 없음</span>
   `;
-  document.getElementById('event-details').insertBefore(
-    rulesCheckboxContainer,
-    document.getElementById('event-image-container')
-  );
+
+  // 이벤트 디테일과 이미지 컨테이너 참조 가져오기
+  const eventDetails = document.getElementById('event-details');
+  const imageContainer = document.getElementById('event-image-container');
+  
+  // 이미지 컨테이너가 있는지 확인하고 있다면 그 앞에 체크박스 컨테이너 삽입
+  if (imageContainer && imageContainer.parentNode) {
+    imageContainer.parentNode.insertBefore(rulesCheckboxContainer, imageContainer);
+  } else {
+    // 이미지 컨테이너가 없다면 이벤트 디테일 끝에 추가
+    eventDetails.appendChild(rulesCheckboxContainer);
+  }
 
   // 이미지 관련 UI 활성화
-  const imageContainer = document.getElementById('event-image-container');
-  const currentImages = imageContainer.querySelectorAll('.image-wrapper');
-
-  // 각 이미지에 삭제 버튼 표시
+  const currentImages = document.querySelectorAll('.image-wrapper');
   currentImages.forEach(wrapper => {
     const deleteBtn = wrapper.querySelector('.image-delete-btn');
     if (deleteBtn) {
       deleteBtn.style.display = 'block';
     }
   });
-
-  // 이미지 업로드 입력 활성화
-  const imageInput = document.getElementById('edit-image');
-  if (imageInput) {
-    imageInput.addEventListener('change', handleImagePreview);
-  }
 
   // UI 상태 업데이트
   document.getElementById('modify-button').style.display = 'none';
