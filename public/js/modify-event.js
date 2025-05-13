@@ -36,6 +36,14 @@ async function loadEventContent(eventId) {
     document.getElementById('event-end-time').textContent = currentEvent.endTime;
     document.getElementById('event-fee').textContent = currentEvent.participation_fee.toLocaleString() + '원';
     document.getElementById('event-contents').innerHTML = currentEvent.contents.replace(/\n/g, "<br>");
+    
+    // 참가자 규칙 상태 표시
+    const rulesStatus = document.createElement('p');
+    rulesStatus.className = 'rules-status';
+    rulesStatus.innerHTML = currentEvent.hasParticipantRules ? 
+      '⚠️ <strong>참가자 규칙이 적용되는 이벤트입니다.</strong><br>활동부원은 일주일 이내 취소 시 경고 1회가 부과됩니다.' :
+      '참가자 규칙이 적용되지 않는 일반 이벤트입니다.';
+    document.getElementById('event-details').insertBefore(rulesStatus, document.getElementById('kakao-share-button'));
 
     // 이미지 표시
     const imageContainer = document.getElementById('event-image-container');
@@ -186,24 +194,10 @@ async function initializeKakaoShare() {
     ? `${window.location.origin}${currentEvent.images[0]}`
     : `${window.location.origin}/images/default-event.png`;
 
-  // D-Day 계산 추가
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  
-  const eventDate = new Date(currentEvent.date);
-  eventDate.setHours(0, 0, 0, 0);
-  
-  const diffTime = eventDate.getTime() - today.getTime();
-  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-  
-  let dDayText;
-  if (diffDays > 0) {
-    dDayText = `D-${diffDays}`;
-  } else if (diffDays === 0) {
-    dDayText = 'D-Day';
-  } else {
-    dDayText = '종료';
-  }
+  // hasParticipantRules 상태에 따라 표시할 텍스트
+  const rulesText = currentEvent.hasParticipantRules ? 
+    '⚠️ 참가자 규칙 적용' : 
+    '참가자 규칙 미적용';
 
   console.log('카카오 공유 버튼 설정');
   Kakao.Share.createDefaultButton({
@@ -243,9 +237,13 @@ async function initializeKakaoShare() {
           item: '참가비',
           itemOp: `${currentEvent.participation_fee.toLocaleString()}원`,
         },
+        {
+          item: '규칙',
+          itemOp: rulesText,
+        },
       ],
-      sum: '행사일',
-      sumOp: dDayText, // 계산된 D-Day 텍스트 적용
+      sum: '이벤트 상태',
+      sumOp: currentEvent.hasParticipantRules ? '⚠️ 규칙적용' : '일반이벤트'
     },
     buttons: [
       {
@@ -337,7 +335,7 @@ function updateApplicationStatus() {
 
 function enableEdit() {
   console.log('이벤트 수정 모드 활성화');
-  // 기존 필드 변환
+  
   const fields = [
     { id: 'event-title', type: 'text', key: 'title' },
     { id: 'event-place', type: 'text', key: 'place' },
@@ -350,20 +348,35 @@ function enableEdit() {
   ];
 
   fields.forEach(field => {
-    const span = document.getElementById(field.id);
+    const element = document.getElementById(field.id);
     const input = document.createElement(field.type === 'textarea' ? 'textarea' : 'input');
-
     input.id = `edit-${field.id}`;
     input.type = field.type;
-
+    
+    // 기존 값 설정
     if (field.type === 'number') {
-      input.value = span.textContent.replace(/[^\d]/g, '');
+      input.value = element.textContent.replace(/[^\d]/g, '');
     } else {
-      input.value = span.textContent;
+      input.value = element.textContent.trim();
     }
-
-    span.replaceWith(input);
+    
+    element.parentNode.replaceChild(input, element);
   });
+
+  // 참가자 규칙 체크박스 추가
+  const rulesCheckboxContainer = document.createElement('div');
+  rulesCheckboxContainer.className = 'form-group';
+  rulesCheckboxContainer.innerHTML = `
+    <label class="checkbox-label">
+      <input type="checkbox" id="edit-hasParticipantRules" ${currentEvent.hasParticipantRules ? 'checked' : ''}>
+      <span>참가자 규칙 적용</span>
+    </label>
+    <span class="form-hint">활동부원은 취소 시 경고, 스타터/기존 참가자 패널티 없음</span>
+  `;
+  document.getElementById('event-details').insertBefore(
+    rulesCheckboxContainer,
+    document.getElementById('event-image-container')
+  );
 
   // 이미지 관련 UI 활성화
   const imageContainer = document.getElementById('event-image-container');
@@ -391,7 +404,6 @@ function enableEdit() {
   updateImageUploadStatus();
   console.log('이벤트 수정 모드 활성화 완료');
 }
-
 
 // 이미지 업로드 상태 업데이트 함수
 function updateImageUploadStatus() {
@@ -432,7 +444,7 @@ async function handleImagePreview(e) {
   const currentImagesCount = document.querySelectorAll('.image-wrapper').length;
   const remainingSlots = 3 - currentImagesCount;
 
-  console.log(`이미지 미리보기: ${files.length}개 선택됨, 남은 슬롯 ${remainingSlots}개`);
+  console.log(`이미지 미리보기: ${files.length}개 선택됨, 남은 슬롯 ${remainingSlots}개`); // 수정된 부분
 
   if (files.length > remainingSlots) {
     alert(`최대 ${remainingSlots}장의 이미지만 추가할 수 있습니다.`);
@@ -517,7 +529,8 @@ async function submitEdit() {
       contents: document.getElementById('edit-event-contents').value,
       currentImages,
       newImages: newImageUrls,
-      deletedImages: Array.from(deletedImages)
+      deletedImages: Array.from(deletedImages),
+      hasParticipantRules: document.getElementById('edit-hasParticipantRules').checked,
     };
 
     console.log('이벤트 업데이트 요청');
