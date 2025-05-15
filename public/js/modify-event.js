@@ -239,7 +239,7 @@ async function initializeKakaoShare() {
           itemOp: `${currentEvent.participation_fee.toLocaleString()}원`,
         },
       ],
-        sum: '참가자 규칙 여부',
+        sum: '규칙 적용',
         sumOp: rulesText
       },
       buttons: [
