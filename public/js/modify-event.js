@@ -194,26 +194,40 @@ async function initializeKakaoShare() {
     ? `${window.location.origin}${currentEvent.images[0]}`
     : `${window.location.origin}/images/default-event.png`;
 
-  // 참가자 규칙 상태 텍스트
-  const rulesText = currentEvent.hasParticipantRules ? 
-    'O' : 
-    'X';
+  // D-Day 계산 추가
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  
+  const eventDate = new Date(currentEvent.date);
+  eventDate.setHours(0, 0, 0, 0);
+  
+  const diffTime = eventDate.getTime() - today.getTime();
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  
+  let dDayText;
+  if (diffDays > 0) {
+    dDayText = `D-${diffDays}`;
+  } else if (diffDays === 0) {
+    dDayText = 'D-Day';
+  } else {
+    dDayText = '종료';
+  }
+
 
   console.log('카카오 공유 버튼 설정');
-  try {
-    Kakao.Share.createDefaultButton({
-      container: '#kakao-share-button',
-      objectType: 'feed',
-      content: {
-        title: `[${currentEvent.team}] ${currentEvent.title}`,
-        description: currentEvent.contents,
-        imageUrl: eventImageUrl,
-        link: {
-          mobileWebUrl: window.location.href,
-          webUrl: window.location.href,
-        },
+  Kakao.Share.createDefaultButton({
+    container: '#kakao-share-button',
+    objectType: 'feed',
+    content: {
+      title: `[${currentEvent.team}] ${currentEvent.title}`,
+      description: currentEvent.contents,
+      imageUrl: eventImageUrl,
+      link: {
+        mobileWebUrl: window.location.href,
+        webUrl: window.location.href,
       },
-      itemContent: {
+    },
+    itemContent: {
       profileImageUrl: eventImageUrl,
       titleImageText: currentEvent.title,
       titleImageCategory: currentEvent.team,
@@ -239,23 +253,20 @@ async function initializeKakaoShare() {
           itemOp: `${currentEvent.participation_fee.toLocaleString()}원`,
         },
       ],
-        sum: '규칙 적용',
-        sumOp: rulesText
-      },
-      buttons: [
-        {
-          title: '이벤트 신청하기',
-          link: {
-            mobileWebUrl: window.location.href,
-            webUrl: window.location.href,
-          },
-        }
-      ],
-    });
-    console.log('카카오 공유 버튼 설정 완료');
-  } catch (error) {
-    console.error('카카오 공유 버튼 설정 실패:', error);
-  }
+      sum: '행사일',
+      sumOp: dDayText, // 계산된 D-Day 텍스트 적용
+    },
+    buttons: [
+      {
+        title: '이벤트 신청하기',
+        link: {
+          mobileWebUrl: window.location.href,
+          webUrl: window.location.href,
+        },
+      }
+    ],
+  });
+  console.log('카카오 공유 버튼 설정 완료');
 }
 
 // 지원서 제출 함수
