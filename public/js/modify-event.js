@@ -213,30 +213,32 @@ async function initializeKakaoShare() {
           webUrl: window.location.href,
         },
       },
-      social: {
-        likeCount: currentEvent.participants,
-        commentCount: currentEvent.appliedParticipants.length,
-        sharedCount: currentEvent.hasParticipantRules ? 1 : 0
-      },
       itemContent: {
-        items: [
-          {
-            item: '일시',
-            itemOp: new Date(currentEvent.date).toLocaleDateString()
-          },
-          {
-            item: '시간',
-            itemOp: `${currentEvent.startTime}~${currentEvent.endTime}`
-          },
-          {
-            item: '장소',
-            itemOp: currentEvent.place
-          },
-          {
-            item: '참가비',
-            itemOp: `${currentEvent.participation_fee.toLocaleString()}원`
-          }
-        ],
+      profileImageUrl: eventImageUrl,
+      titleImageText: currentEvent.title,
+      titleImageCategory: currentEvent.team,
+      items: [
+        {
+          item: '일시',
+          itemOp: `${new Date(currentEvent.date).toLocaleDateString()}`,
+        },
+        {
+          item: '시간',
+          itemOp: `${currentEvent.startTime}~${currentEvent.endTime}`,
+        },
+        {
+          item: '장소',
+          itemOp: currentEvent.place,
+        },
+        {
+          item: '인원',
+          itemOp: `${currentEvent.participants}명`,
+        },
+        {
+          item: '참가비',
+          itemOp: `${currentEvent.participation_fee.toLocaleString()}원`,
+        },
+      ],
         sum: '참가자 규칙 여부',
         sumOp: rulesText
       },
