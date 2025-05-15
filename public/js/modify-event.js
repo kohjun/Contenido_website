@@ -194,68 +194,66 @@ async function initializeKakaoShare() {
     ? `${window.location.origin}${currentEvent.images[0]}`
     : `${window.location.origin}/images/default-event.png`;
 
-  // hasParticipantRules 상태에 따라 표시할 텍스트
+  // 참가자 규칙 상태 텍스트
   const rulesText = currentEvent.hasParticipantRules ? 
-    '✔ 참가자 규칙 적용' : 
-    '참가자 규칙 미적용';
+    'O' : 
+    'X';
 
   console.log('카카오 공유 버튼 설정');
-  Kakao.Share.createDefaultButton({
-    container: '#kakao-share-button',
-    objectType: 'feed',
-    content: {
-      title: `[${currentEvent.team}] ${currentEvent.title}`,
-      description: currentEvent.contents,
-      imageUrl: eventImageUrl,
-      link: {
-        mobileWebUrl: window.location.href,
-        webUrl: window.location.href,
-      },
-    },
-    itemContent: {
-      profileImageUrl: eventImageUrl,
-      titleImageText: currentEvent.title,
-      titleImageCategory: currentEvent.team,
-      items: [
-        {
-          item: '일시',
-          itemOp: `${new Date(currentEvent.date).toLocaleDateString()}`,
-        },
-        {
-          item: '시간',
-          itemOp: `${currentEvent.startTime}~${currentEvent.endTime}`,
-        },
-        {
-          item: '장소',
-          itemOp: currentEvent.place,
-        },
-        {
-          item: '인원',
-          itemOp: `${currentEvent.participants}명`,
-        },
-        {
-          item: '참가비',
-          itemOp: `${currentEvent.participation_fee.toLocaleString()}원`,
-        },
-        {
-          item: '규칙',
-          itemOp: rulesText,
-        },
-      ],
-      sum: '이벤트 상태',
-      sumOp: currentEvent.hasParticipantRules ? '⚠️ 규칙적용' : '일반이벤트'
-    },
-    buttons: [
-      {
-        title: '이벤트 신청하기',
+  try {
+    Kakao.Share.createDefaultButton({
+      container: '#kakao-share-button',
+      objectType: 'feed',
+      content: {
+        title: `[${currentEvent.team}] ${currentEvent.title}`,
+        description: currentEvent.contents,
+        imageUrl: eventImageUrl,
         link: {
           mobileWebUrl: window.location.href,
           webUrl: window.location.href,
         },
-      }
-    ],
-  });
-  console.log('카카오 공유 버튼 설정 완료');
+      },
+      social: {
+        likeCount: currentEvent.participants,
+        commentCount: currentEvent.appliedParticipants.length,
+        sharedCount: currentEvent.hasParticipantRules ? 1 : 0
+      },
+      itemContent: {
+        items: [
+          {
+            item: '일시',
+            itemOp: new Date(currentEvent.date).toLocaleDateString()
+          },
+          {
+            item: '시간',
+            itemOp: `${currentEvent.startTime}~${currentEvent.endTime}`
+          },
+          {
+            item: '장소',
+            itemOp: currentEvent.place
+          },
+          {
+            item: '참가비',
+            itemOp: `${currentEvent.participation_fee.toLocaleString()}원`
+          }
+        ],
+        sum: '참가자 규칙 여부',
+        sumOp: rulesText
+      },
+      buttons: [
+        {
+          title: '이벤트 신청하기',
+          link: {
+            mobileWebUrl: window.location.href,
+            webUrl: window.location.href,
+          },
+        }
+      ],
+    });
+    console.log('카카오 공유 버튼 설정 완료');
+  } catch (error) {
+    console.error('카카오 공유 버튼 설정 실패:', error);
+  }
 }
 
 // 지원서 제출 함수
