@@ -257,11 +257,15 @@ async function submitEvent() {
       formData.append('additionalQuestions', JSON.stringify(questions));
     }
 
-    // 이미지 파일이 있는 경우 추가
+    // 이미지 파일이 있는 경우 추가 (파일 크기 검증 추가)
     const images = document.getElementById('event-images')?.files || [];
-    Array.from(images).forEach(image => {
+    for (const image of Array.from(images)) {
+      if (image.size > 2 * 1024 * 1024) { // 2MB
+        alert('이미지 크기는 2MB를 초과할 수 없습니다.');
+        return;
+      }
       formData.append('images', image);
-    });
+    }
 
     const response = await fetch('/events', {
       method: 'POST',
@@ -284,7 +288,7 @@ async function submitEvent() {
     window.location.href = 'events.html';
   } catch (error) {
     console.error('Error submitting event:', error);
-    alert(error.message || '이벤트 등록 중 오류가 발생했습니다.');
+    alert('이미지 업로드 중 오류가 발생했습니다. 이미지 크기와 형식을 확인해주세요.');
   }
 }
 

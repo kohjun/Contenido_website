@@ -16,6 +16,24 @@ const app = express();
 const scheduler = require('./utils/SchedulerService');
 console.log('All schedulers initialized');
 const TokenService = require('./utils/TokenService');
+const multer = require('multer');
+const optimizeImage = require('./middleware/imageMiddleware');
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, 'public/uploads/events');
+  },
+  filename: function (req, file, cb) {
+    cb(null, Date.now() + '-' + file.originalname);
+  }
+});
+
+const upload = multer({ 
+  storage: storage,
+  limits: {
+    fileSize: 2 * 1024 * 1024 // 2MB 제한
+  }
+});
+
 // 업로드 디렉토리 생성
 const uploadDir = path.join(__dirname, 'public/uploads/events');
 if (!fs.existsSync(uploadDir)) {
