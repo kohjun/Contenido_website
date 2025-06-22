@@ -68,7 +68,6 @@ async function loadEventContent(eventId) {
       let mainImageUrl = '/images/Basic_Event_Image.png';
       if (currentEvent.images && currentEvent.images.length > 0) {
         mainImageUrl = currentEvent.images[0];
-        // 썸네일 렌더링
         imageContainer.innerHTML = currentEvent.images.map((image, index) => `
           <div class="image-wrapper" data-image-path="${image}">
             <div class="event-image">
@@ -80,7 +79,6 @@ async function loadEventContent(eventId) {
       } else {
         imageContainer.innerHTML = '';
       }
-      // 메인 이미지 로드 실패 시 기본 이미지로 대체
       mainEventImage.onerror = function() {
         mainEventImage.src = '/images/Basic_Event_Image.png';
       };
@@ -484,45 +482,32 @@ async function handleImagePreview(e) {
     return;
   }
 
+  // 메인 이미지 미리보기
   const mainEventImage = document.getElementById('main-event-image');
-  if (files.length > 0) {
+  if (mainEventImage && files.length > 0) {
     const reader = new FileReader();
     reader.onload = function(e) {
       mainEventImage.src = e.target.result;
     };
     reader.readAsDataURL(files[0]);
   }
-}
 
-// 이미지 미리보기 처리
-async function handleImagePreview(e) {
-  const files = e.target.files;
-  const currentImagesCount = document.querySelectorAll('.image-wrapper').length;
-  const remainingSlots = 3 - currentImagesCount;
-
-  console.log(`이미지 미리보기: ${files.length}개 선택됨, 남은 슬롯 ${remainingSlots}개`); // 수정된 부분
-
-  if (files.length > remainingSlots) {
-    alert(`최대 ${remainingSlots}장의 이미지만 추가할 수 있습니다.`);
-    e.target.value = '';
-    return;
-  }
-
+  // 썸네일 미리보기 (image-preview가 있을 때만)
   const imagePreview = document.getElementById('image-preview');
-  imagePreview.innerHTML = ''; // 미리보기 초기화
-
-  for (const file of files) {
-    console.log(`이미지 미리보기 생성: ${file.name}`);
-    const reader = new FileReader();
-    reader.onload = function(e) {
-      imagePreview.innerHTML += `
-        <div class="image-wrapper">
-          <div class="event-image">
-            <img src="${e.target.result}" alt="Preview">
-          </div>
-        </div>`;
-    };
-    reader.readAsDataURL(file);
+  if (imagePreview) {
+    imagePreview.innerHTML = '';
+    for (const file of files) {
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        imagePreview.innerHTML += `
+          <div class="image-wrapper">
+            <div class="event-image">
+              <img src="${e.target.result}" alt="Preview">
+            </div>
+          </div>`;
+      };
+      reader.readAsDataURL(file);
+    }
   }
 }
 
