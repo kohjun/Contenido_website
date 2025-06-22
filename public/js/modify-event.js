@@ -57,36 +57,34 @@ async function loadEventContent(eventId) {
     if (detailsElem && kakaoShareButton) {
       const rulesStatus = document.createElement('p');
       rulesStatus.className = 'rules-status';
-      rulesStatus.innerHTML = currentEvent.hasParticipantRules ? 
+      rulesStatus.innerHTML = currentEvent.hasParticipantRules ?
         '✔  <strong>참가자 규칙이 적용되는 이벤트입니다.</strong><br>활동부원은 일주일 이내 취소 시 경고 1회가 부과됩니다.' :
         '참가자 규칙이 적용되지 않는 일반 이벤트입니다.';
       detailsElem.insertBefore(rulesStatus, kakaoShareButton);
     }
 
-    // 이미지 표시
+    // 이미지 표시 (메인 이미지와 썸네일 모두)
     if (mainEventImage && imageContainer) {
+      let mainImageUrl = '/images/Basic_Event_Image.png';
       if (currentEvent.images && currentEvent.images.length > 0) {
-        // 이미지가 정상적으로 로드되는지 확인 후 렌더링
-        const img = new window.Image();
-        img.onload = function() {
-          mainEventImage.src = currentEvent.images[0];
-        };
-        img.onerror = function() {
-          mainEventImage.src = '/images/default-event.png';
-        };
-        img.src = currentEvent.images[0];
-
+        mainImageUrl = currentEvent.images[0];
+        // 썸네일 렌더링
         imageContainer.innerHTML = currentEvent.images.map((image, index) => `
           <div class="image-wrapper" data-image-path="${image}">
             <div class="event-image">
-              <img src="${image}" alt="Event image ${index + 1}" onerror="this.src='/images/default-event.png'">
+              <img src="${image}" alt="Event image ${index + 1}" onerror="this.src='/images/Basic_Event_Image.png'">
               <button type="button" class="image-delete-btn" onclick="handleImageDelete(this)" style="display: none;">×</button>
             </div>
           </div>
         `).join('');
       } else {
-        mainEventImage.src = '/images/default-event.png';
+        imageContainer.innerHTML = '';
       }
+      // 메인 이미지 로드 실패 시 기본 이미지로 대체
+      mainEventImage.onerror = function() {
+        mainEventImage.src = '/images/Basic_Event_Image.png';
+      };
+      mainEventImage.src = mainImageUrl;
     }
 
     // 생성자인 경우 수정 버튼 표시
@@ -110,7 +108,6 @@ async function loadEventContent(eventId) {
       if (currentEvent.isSelective) {
         // 선별적 이벤트
         if (hasApplied) {
-          console.log('이미 지원한 선별적 이벤트');
           applicationSection.innerHTML = `
             <p class="status-text">지원이 완료되었습니다</p>
             <div class="application-form" style="pointer-events: none; opacity: 0.7;">
@@ -127,19 +124,16 @@ async function loadEventContent(eventId) {
             </div>
           `;
         } else if (!isActive) {
-          console.log('활동부원이 아닌 사용자');
           applicationSection.innerHTML = `
             <p class="status-text">로그인 후 다시 시도해주세요. 활동부원이 아니므로 지원이 불가능합니다</p>
             <button class="submit-button" disabled>지원불가</button>
           `;
         } else if (isFull) {
-          console.log('모집 마감된 이벤트');
           applicationSection.innerHTML = `
             <p class="status-text">모집이 마감되었습니다</p>
             <button class="submit-button" disabled>마감</button>
           `;
         } else {
-          console.log('지원 가능한 선별적 이벤트');
           applicationSection.innerHTML = `
             <div class="application-form">
               <h3>지원서 작성</h3>
@@ -158,25 +152,21 @@ async function loadEventContent(eventId) {
       } else {
         // 일반 이벤트
         if (hasApplied) {
-          console.log('이미 신청한 일반 이벤트');
           applicationSection.innerHTML = `
             <p class="status-text">신청이 완료되었습니다</p>
             <button class="submit-button" disabled>신청완료</button>
           `;
         } else if (!isActive) {
-          console.log('활동부원이 아닌 사용자');
           applicationSection.innerHTML = `
             <p class="status-text">로그인 후 다시 시도해주세요. 활동부원이 아니므로 지원이 불가능합니다</p>
             <button class="submit-button" disabled>신청불가</button>
           `;
         } else if (isFull) {
-          console.log('모집 마감된 이벤트');
           applicationSection.innerHTML = `
             <p class="status-text">모집이 마감되었습니다</p>
             <button class="submit-button" disabled>마감</button>
           `;
         } else {
-          console.log('신청 가능한 일반 이벤트');
           applicationSection.innerHTML = `
             <button onclick="applyForEvent('${currentEvent._id}')" class="submit-button">신청하기</button>
           `;
@@ -207,7 +197,7 @@ async function initializeKakao() {
   }
 }
 
-// 카카오톡 공유 함수 수정
+// 카카오톡 공유 함수
 async function initializeKakaoShare() {
   if (!currentEvent) {
     console.error('이벤트 데이터가 없습니다.');
@@ -225,7 +215,7 @@ async function initializeKakaoShare() {
   // 이벤트 이미지 URL 설정 (절대 경로)
   const eventImageUrl = currentEvent.images && currentEvent.images.length > 0
     ? `${window.location.origin}${currentEvent.images[0]}`
-    : `${window.location.origin}/images/default-event.png`;
+    : `${window.location.origin}/images/Basic_Event_Image.png`;
 
   // D-Day 계산 추가
   const today = new Date();
