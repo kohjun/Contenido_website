@@ -59,12 +59,7 @@ async function loadEventContent(eventId) {
       rulesStatus.innerHTML = currentEvent.hasParticipantRules ?
         '✔  <strong>참가자 규칙이 적용되는 이벤트입니다.</strong><br>활동부원은 일주일 이내 취소 시 경고 1회가 부과됩니다.' :
         '참가자 규칙이 적용되지 않는 일반 이벤트입니다.';
-      // kakaoShareButton이 detailsElem의 자식일 때만 insertBefore, 아니면 appendChild
-      if (kakaoShareButton.parentNode === detailsElem) {
-        detailsElem.insertBefore(rulesStatus, kakaoShareButton);
-      } else {
-        detailsElem.appendChild(rulesStatus);
-      }
+      detailsElem.insertBefore(rulesStatus, kakaoShareButton);
     }
 
     // 이미지 표시 (메인 이미지만)
@@ -185,10 +180,6 @@ async function loadEventContent(eventId) {
 // 카카오 초기화 함수
 async function initializeKakao() {
   try {
-    if (window.Kakao && Kakao.isInitialized && Kakao.isInitialized()) {
-      // 이미 초기화된 경우 재초기화하지 않음
-      return;
-    }
     console.log('카카오 API 키 요청');
     const response = await fetch('/events/kakao-key');
     const data = await response.json();
@@ -605,23 +596,6 @@ function copyLink() {
   } else {
     fallbackCopyLink(currentUrl);
   }
-}
-
-// 링크 복사 대체 함수
-function fallbackCopyLink(text) {
-  const textArea = document.createElement('textarea');
-  textArea.value = text;
-  document.body.appendChild(textArea);
-  textArea.select();
-  try {
-    document.execCommand('copy');
-    alert('링크가 클립보드에 복사되었습니다.');
-  } catch (err) {
-    console.error('링크 복사 실패:', err);
-    alert('링크 복사에 실패했습니다. 직접 URL을 복사해주세요.');
-  }
-  document.body.removeChild(textArea);
-  closeShareModal();
 }
 
 
