@@ -38,7 +38,6 @@ async function loadEventContent(eventId) {
     const contentsElem = document.getElementById('event-contents');
     const detailsElem = document.getElementById('event-details');
     const mainEventImage = document.getElementById('main-event-image');
-    const imageContainer = document.getElementById('event-image-container');
     const modifyButton = document.getElementById('modify-button');
     const applicationSection = document.getElementById('application-section');
     const kakaoShareButton = document.getElementById('kakao-share-button');
@@ -63,24 +62,21 @@ async function loadEventContent(eventId) {
       detailsElem.insertBefore(rulesStatus, kakaoShareButton);
     }
 
-    // 이미지 표시 (메인 이미지와 썸네일 모두)
-    if (mainEventImage && imageContainer) {
+    // 이미지 표시 (메인 이미지만)
+    if (mainEventImage) {
       let mainImageUrl = '/images/Basic_Event_Image.png';
       if (currentEvent.images && currentEvent.images.length > 0) {
-        mainImageUrl = currentEvent.images[0];
-        imageContainer.innerHTML = currentEvent.images.map((image, index) => `
-          <div class="image-wrapper" data-image-path="${image}">
-            <div class="event-image">
-              <img src="${image}" alt="Event image ${index + 1}" onerror="this.src='/images/Basic_Event_Image.png'">
-              <button type="button" class="image-delete-btn" onclick="handleImageDelete(this)" style="display: none;">×</button>
-            </div>
-          </div>
-        `).join('');
+        // 절대경로/상대경로 모두 지원, 항상 window.location.origin 붙이기
+        if (/^https?:\/\//.test(currentEvent.images[0])) {
+          mainImageUrl = currentEvent.images[0];
+        } else {
+          mainImageUrl = window.location.origin + (currentEvent.images[0].startsWith('/') ? currentEvent.images[0] : '/' + currentEvent.images[0]);
+        }
       } else {
-        imageContainer.innerHTML = '';
+        mainImageUrl = window.location.origin + '/images/Basic_Event_Image.png';
       }
       mainEventImage.onerror = function() {
-        mainEventImage.src = '/images/Basic_Event_Image.png';
+        mainEventImage.src = window.location.origin + '/images/Basic_Event_Image.png';
       };
       mainEventImage.src = mainImageUrl;
     }
@@ -210,10 +206,10 @@ async function initializeKakaoShare() {
     return;
   }
 
-  // 이벤트 이미지 URL 설정 (절대 경로)
+  // 이벤트 이미지 URL 설정 (항상 절대 경로)
   const eventImageUrl = currentEvent.images && currentEvent.images.length > 0
-    ? `${window.location.origin}${currentEvent.images[0]}`
-    : `${window.location.origin}/images/Basic_Event_Image.png`;
+    ? window.location.origin + (currentEvent.images[0].startsWith('/') ? currentEvent.images[0] : '/' + currentEvent.images[0])
+    : window.location.origin + '/images/Basic_Event_Image.png';
 
   // D-Day 계산 추가
   const today = new Date();
@@ -470,19 +466,9 @@ function handleImageDelete(button) {
   updateImageUploadStatus();
 }
 
-// 이미지 미리보기 처리 (수정)
+// 이미지 미리보기 처리 (메인 이미지만)
 async function handleImagePreview(e) {
   const files = e.target.files;
-  const currentImagesCount = document.querySelectorAll('.image-wrapper').length;
-  const remainingSlots = 3 - currentImagesCount;
-
-  if (files.length > remainingSlots) {
-    alert(`최대 ${remainingSlots}장의 이미지만 추가할 수 있습니다.`);
-    e.target.value = '';
-    return;
-  }
-
-  // 메인 이미지 미리보기
   const mainEventImage = document.getElementById('main-event-image');
   if (mainEventImage && files.length > 0) {
     const reader = new FileReader();
@@ -490,24 +476,6 @@ async function handleImagePreview(e) {
       mainEventImage.src = e.target.result;
     };
     reader.readAsDataURL(files[0]);
-  }
-
-  // 썸네일 미리보기 (image-preview가 있을 때만)
-  const imagePreview = document.getElementById('image-preview');
-  if (imagePreview) {
-    imagePreview.innerHTML = '';
-    for (const file of files) {
-      const reader = new FileReader();
-      reader.onload = function(e) {
-        imagePreview.innerHTML += `
-          <div class="image-wrapper">
-            <div class="event-image">
-              <img src="${e.target.result}" alt="Preview">
-            </div>
-          </div>`;
-      };
-      reader.readAsDataURL(file);
-    }
   }
 }
 
