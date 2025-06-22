@@ -1,3 +1,37 @@
+// const mongoose = require('mongoose');
+
+// const authenticateToken = async (req, res, next) => {
+//   // 실제 사용자 정보를 사용한 더미 데이터
+//   const dummyUser = {
+//     _id: '673aed9a051a576b3e2285e1',
+//     id: '673aed9a051a576b3e2285e1',
+//     email: 'kohjunn@naver.com',
+//     displayName: '고 준',
+//     profileImage: 'https://img1.kakaocdn.net/thumb/R640x640.q70/?fname=http://t1.kakaocdn.net/account_images/default_profile.jpeg',
+//     role: 'admin',
+//     team: 'operationTeam',
+//     department: 'operation',
+//     isDepartmentHead: true,
+//     isActive: true,
+//     isAdditionalInfoComplete: true,
+//     name: '고준',
+//     phonenumber: '01022458697',
+//     gender: 'male',
+//     birthDate: new Date('2000-01-30'),
+//     preferredActivity: '노원구'
+//   };
+
+//   req.user = dummyUser;
+  
+//   if (req.session) {
+//     req.session.userId = dummyUser.id;
+//   }
+
+//   next();
+// };
+
+// module.exports = authenticateToken;
+
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const TokenService = require('../utils/TokenService');

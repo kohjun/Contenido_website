@@ -97,3 +97,85 @@ const setupPassport = (passport) => {
 };
 
 module.exports = { setupPassport };
+
+// require('dotenv').config();
+// const KakaoStrategy = require('passport-kakao').Strategy;
+// const User = require('../models/User');
+
+// const setupPassport = (passport) => {
+//   passport.use(
+//     new KakaoStrategy(
+//       {
+//         clientID: process.env.KAKAO_CLIENT_ID,
+//         callbackURL: process.env.KAKAO_CALLBACK_URL,
+//         scope: ['profile_nickname', 'profile_image', 'account_email', 'openid'],
+//         passReqToCallback: true,
+//       },
+//       async (req, accessToken, refreshToken, profile, done) => {
+//         try {
+//           // 실제 사용자 정보를 사용한 더미 데이터
+//           const dummyUser = {
+//             _id: '673aed9a051a576b3e2285e1',
+//             id: '673aed9a051a576b3e2285e1',
+//             email: 'kohjunn@naver.com',
+//             displayName: '고 준',
+//             profileImage: 'https://img1.kakaocdn.net/thumb/R640x640.q70/?fname=http://t1.kakaocdn.net/account_images/default_profile.jpeg',
+//             role: 'admin',
+//             team: 'operationTeam',
+//             department: 'operation',
+//             isDepartmentHead: true,
+//             isActive: true,
+//             isAdditionalInfoComplete: true,
+//             name: '고준',
+//             phonenumber: '01022458697',
+//             gender: 'male',
+//             birthDate: new Date('2000-01-30'),
+//             preferredActivity: '노원구',
+//             kakaoAccessToken: accessToken,
+//             kakaoRefreshToken: refreshToken,
+//             tokenExpiresAt: new Date(Date.now() + 43199 * 1000),
+//             refreshTokenExpiresAt: new Date(Date.now() + 5184000 * 1000),
+//             lastLogin: new Date()
+//           };
+
+//           if (req.session) {
+//             req.session.userId = dummyUser.id;
+//           }
+
+//           return done(null, dummyUser);
+//         } catch (err) {
+//           console.error('카카오 인증 에러:', err);
+//           return done(err, null);
+//         }
+//       }
+//     )
+//   );
+
+//   passport.serializeUser((user, done) => {
+//     done(null, user.id);
+//   });
+  
+//   passport.deserializeUser((id, done) => {
+//     const dummyUser = {
+//       _id: '673aed9a051a576b3e2285e1',
+//       id: '673aed9a051a576b3e2285e1',
+//       email: 'kohjunn@naver.com',
+//       displayName: '고 준',
+//       profileImage: 'https://img1.kakaocdn.net/thumb/R640x640.q70/?fname=http://t1.kakaocdn.net/account_images/default_profile.jpeg',
+//       role: 'admin',
+//       team: 'operationTeam',
+//       department: 'operation',
+//       isDepartmentHead: true,
+//       isActive: true,
+//       isAdditionalInfoComplete: true,
+//       name: '고준',
+//       phonenumber: '01022458697',
+//       gender: 'male',
+//       birthDate: new Date('2000-01-30'),
+//       preferredActivity: '노원구'
+//     };
+//     done(null, dummyUser);
+//   });
+// };
+
+// module.exports = { setupPassport };

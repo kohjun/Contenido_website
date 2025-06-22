@@ -1,3 +1,81 @@
+// // 인증 모듈 먼저 정의
+// const AuthModule = {
+//     /**
+//      * 인증 토큰 유효성 검사
+//      * @returns {Promise<boolean>} 토큰 유효 여부
+//      */
+//     verifyToken: async function() {
+//         // 개발용 - 항상 true 반환
+//         return true;
+//     },
+  
+//     /**
+//      * 로그인 필요 시 로그인 페이지로 리다이렉트
+//      * @param {boolean} showAlert 알림 표시 여부 (선택사항, 기본값: true)
+//      */
+//     redirectToLogin: function(showAlert = true) {
+//         // 개발용 - 로그인 페이지로 리다이렉트하지 않고 항상 인증된 상태 유지
+//         return true;
+//     },
+  
+//     /**
+//      * 인증 상태 확인 및 미인증 시 로그인 페이지로 리다이렉트
+//      * @returns {Promise<boolean>} 인증 여부
+//      */
+//     checkAuthentication: async function() {
+//         // 개발용 - 항상 true 반환
+//         return true;
+//     },
+  
+//     /**
+//      * 현재 로그인한 사용자 정보 로드
+//      * @returns {Promise<Object|null>} 사용자 정보 객체 또는 실패 시 null
+//      */
+//     loadUserInfo: async function() {
+//         // 개발용 더미 유저 정보 반환
+//         return {
+//             _id: '673aed9a051a576b3e2285e1',
+//             id: '673aed9a051a576b3e2285e1',
+//             email: 'kohjunn@naver.com',
+//             nickname: '고 준',
+//             displayName: '고 준',
+//             profileImage: 'https://img1.kakaocdn.net/thumb/R640x640.q70/?fname=http://t1.kakaocdn.net/account_images/default_profile.jpeg',
+//             role: 'admin',
+//             team: 'operationTeam',
+//             department: 'operation',
+//             isDepartmentHead: true,
+//             isActive: true,
+//             isAdditionalInfoComplete: true,
+//             name: '고준',
+//             phonenumber: '01022458697',
+//             gender: 'male',
+//             birthDate: new Date('2000-01-30'),
+//             preferredActivity: '노원구'
+//         };
+//     },
+  
+//     /**
+//      * 사용자 로그아웃 처리
+//      * @param {boolean} redirect 로그아웃 후 메인 페이지로 리다이렉트 여부 (선택사항, 기본값: true)
+//      * @returns {Promise<boolean>} 로그아웃 성공 여부
+//      */
+//     logout: async function(redirect = true) {
+//       if (redirect) {
+//         window.location.href = '/';
+//       }
+//       return true;
+//     },
+  
+//     /**
+//      * 카카오 로그인 실행
+//      */
+//     loginWithKakao: async function() {
+//         // 개발용 - 즉시 홈페이지로 리다이렉트
+//         window.location.href = '/';
+//     }
+//   };
+
+  
 // public/js/utils/nav-injector.js
 
 // 인증 모듈 먼저 정의
@@ -165,7 +243,12 @@ const AuthModule = {
         }
       }
   };
-  
+
+
+
+
+
+
   // 다른 페이지에서 import할 수 있도록 전역 객체에 등록
   window.AuthModule = AuthModule;
   

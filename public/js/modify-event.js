@@ -30,7 +30,13 @@ async function loadEventContent(eventId) {
     // 기본 정보 표시
     document.getElementById('event-title').textContent = currentEvent.title;
     document.getElementById('event-place').textContent = currentEvent.place;
-    document.getElementById('event-date').textContent = new Date(currentEvent.date).toISOString().split('T')[0];
+    // 날짜 포맷 변경
+    document.getElementById('event-date').textContent = new Date(currentEvent.date)
+      .toLocaleDateString('ko-KR', { 
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric' 
+      });
     document.getElementById('event-participants').textContent = currentEvent.participants + '명';
     document.getElementById('event-start-time').textContent = currentEvent.startTime;
     document.getElementById('event-end-time').textContent = currentEvent.endTime;
@@ -47,7 +53,10 @@ async function loadEventContent(eventId) {
 
     // 이미지 표시
     const imageContainer = document.getElementById('event-image-container');
+    const mainEventImage = document.getElementById('main-event-image');
     if (currentEvent.images && currentEvent.images.length > 0) {
+      mainEventImage.src = currentEvent.images[0]; // 첫 번째 이미지를 메인 이미지로 설정
+      
       imageContainer.innerHTML = currentEvent.images.map((image, index) => `
         <div class="image-wrapper" data-image-path="${image}">
           <div class="event-image">
@@ -56,6 +65,8 @@ async function loadEventContent(eventId) {
           </div>
         </div>
       `).join('');
+    } else {
+      mainEventImage.src = '/images/default-event.png'; // 기본 이미지 설정
     }
 
     // 생성자인 경우 수정 버튼 표시
@@ -447,6 +458,28 @@ function handleImageDelete(button) {
   updateImageUploadStatus();
 }
 
+// 이미지 미리보기 처리 (수정)
+async function handleImagePreview(e) {
+  const files = e.target.files;
+  const currentImagesCount = document.querySelectorAll('.image-wrapper').length;
+  const remainingSlots = 3 - currentImagesCount;
+
+  if (files.length > remainingSlots) {
+    alert(`최대 ${remainingSlots}장의 이미지만 추가할 수 있습니다.`);
+    e.target.value = '';
+    return;
+  }
+
+  const mainEventImage = document.getElementById('main-event-image');
+  if (files.length > 0) {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      mainEventImage.src = e.target.result;
+    };
+    reader.readAsDataURL(files[0]);
+  }
+}
+
 // 이미지 미리보기 처리
 async function handleImagePreview(e) {
   const files = e.target.files;
@@ -567,6 +600,103 @@ function cancelEdit() {
   console.log('이벤트 수정 취소');
   isImageDeleted = false;
   location.reload();
+}
+
+// 공유 모달 제어 함수
+function openShareModal() {
+  document.getElementById('shareModal').style.display = 'block';
+  document.getElementById('modalBackdrop').style.display = 'block';
+}
+
+function closeShareModal() {
+  document.getElementById('shareModal').style.display = 'none';
+  document.getElementById('modalBackdrop').style.display = 'none';
+}
+
+
+
+// 카카오톡 공유 함수 업데이트
+async function shareKakao() {
+  if (!currentEvent) {
+    console.error('이벤트 데이터가 없습니다.');
+    return;
+  }
+
+  try {
+    // 카카오 SDK 초기화 확인
+    if (!Kakao.isInitialized()) {
+      await initializeKakao();
+    }
+
+    const eventImageUrl = currentEvent.images && currentEvent.images.length > 0
+      ? `${window.location.origin}${currentEvent.images[0]}`
+      : `${window.location.origin}/images/default-event.png`;
+
+    Kakao.Share.sendDefault({
+      objectType: 'feed',
+      content: {
+        title: `[${currentEvent.team}] ${currentEvent.title}`,
+        description: `일시: ${new Date(currentEvent.date).toLocaleDateString()}\n장소: ${currentEvent.place}`,
+        imageUrl: eventImageUrl,
+        link: {
+          mobileWebUrl: window.location.href,
+          webUrl: window.location.href,
+        },
+      },
+      buttons: [
+        {
+          title: '자세히 보기',
+          link: {
+            mobileWebUrl: window.location.href,
+            webUrl: window.location.href,
+          },
+        },
+      ],
+    });
+  } catch (error) {
+    console.error('카카오 공유 에러:', error);
+    alert('공유하기 기능에 문제가 발생했습니다.');
+  }
+  
+  closeShareModal();
+}
+
+// 링크 복사 함수 업데이트
+function copyLink() {
+  const currentUrl = window.location.href;
+  
+  if (navigator.clipboard && window.isSecureContext) {
+    navigator.clipboard.writeText(currentUrl)
+      .then(() => {
+        alert('링크가 클립보드에 복사되었습니다.');
+        closeShareModal();
+      })
+      .catch(err => {
+        console.error('링크 복사 실패:', err);
+        fallbackCopyLink(currentUrl);
+      });
+  } else {
+    fallbackCopyLink(currentUrl);
+  }
+}
+
+// 링크 복사 대체 함수
+function fallbackCopyLink(text) {
+  const textArea = document.createElement('textarea');
+  textArea.value = text;
+  document.body.appendChild(textArea);
+  textArea.select();
+  
+  try {
+    document.execCommand('copy');
+    alert('링크가 클립보드에 복사되었습니다.');
+  } catch (err) {
+    console.error('링크 복사 실패:', err);
+    alert('링크 복사에 실패했습니다. 직접 URL을 복사해주세요.');
+  }
+  
+  document.body.removeChild(textArea);
+  closeShareModal();
 }
 
 document.addEventListener('DOMContentLoaded', () => {
