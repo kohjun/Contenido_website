@@ -99,15 +99,12 @@
     <!-- 공유 모달 -->
     <div id="shareModal" class="share-modal">
       <h3>공유하기</h3>
-      <div class="share-options">
-        <div class="share-option" id="kakao-share-button" onclick="initializeKakaoShare()">initializeKakaoShare()">
-          <img src="https://developers.kakao.com/assets/img/about/logos/kakaolink/kakaolink_btn_small.png" alt="카카오톡">
-          <span>카카오톡으로 공유</span>
-        </div>
-        <div class="share-option" onclick="copyLink()">
-          
-          <span>링크 복사</span>
-        </div>
+      <div class="share-option" id="kakao-share-button" onclick="initializeKakaoShare()">
+        <img src="https://developers.kakao.com/assets/img/about/logos/kakaolink/kakaolink_btn_small.png" alt="카카오톡">
+        <span>카카오톡으로 공유</span>
+      </div>
+      <div class="share-option" onclick="copyLink()">
+        <span>링크 복사</span>
       </div>
       <button onclick="closeShareModal()" style="margin-top: 15px;">닫기</button>
     </div>
