@@ -59,7 +59,12 @@ async function loadEventContent(eventId) {
       rulesStatus.innerHTML = currentEvent.hasParticipantRules ?
         '✔  <strong>참가자 규칙이 적용되는 이벤트입니다.</strong><br>활동부원은 일주일 이내 취소 시 경고 1회가 부과됩니다.' :
         '참가자 규칙이 적용되지 않는 일반 이벤트입니다.';
-      detailsElem.insertBefore(rulesStatus, kakaoShareButton);
+      // kakaoShareButton이 detailsElem의 자식인지 확인
+      if (kakaoShareButton.parentNode === detailsElem) {
+        detailsElem.insertBefore(rulesStatus, kakaoShareButton);
+      } else {
+        detailsElem.appendChild(rulesStatus);
+      }
     }
 
     // 이미지 표시 (메인 이미지만)
