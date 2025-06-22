@@ -180,6 +180,10 @@ async function loadEventContent(eventId) {
 // 카카오 초기화 함수
 async function initializeKakao() {
   try {
+    if (window.Kakao && Kakao.isInitialized && Kakao.isInitialized()) {
+      // 이미 초기화된 경우 재초기화하지 않음
+      return;
+    }
     console.log('카카오 API 키 요청');
     const response = await fetch('/events/kakao-key');
     const data = await response.json();
