@@ -362,10 +362,12 @@ async function applyForEvent(eventId) {
 // 신청 상태 업데이트 함수
 function updateApplicationStatus() {
   const applicationSection = document.getElementById('application-section');
-  applicationSection.innerHTML = `
-    <p>신청이 완료되었습니다.</p>
-    <button class="submit-button" disabled>신청완료</button>
-  `;
+  if (applicationSection) {
+    applicationSection.innerHTML = `
+      <p>신청이 완료되었습니다.</p>
+      <button class="submit-button" disabled>신청완료</button>
+    `;
+  }
 }
 
 function enableEdit() {
