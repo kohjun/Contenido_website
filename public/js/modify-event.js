@@ -580,6 +580,41 @@ function closeShareModal() {
   document.getElementById('modalBackdrop').style.display = 'none';
 }
 
+// 링크 복사 함수
+function copyLink() {
+  const currentUrl = window.location.href;
+  if (navigator.clipboard && window.isSecureContext) {
+    navigator.clipboard.writeText(currentUrl)
+      .then(() => {
+        alert('링크가 클립보드에 복사되었습니다.');
+        closeShareModal();
+      })
+      .catch(err => {
+        console.error('링크 복사 실패:', err);
+        fallbackCopyLink(currentUrl);
+      });
+  } else {
+    fallbackCopyLink(currentUrl);
+  }
+}
+
+// 링크 복사 대체 함수
+function fallbackCopyLink(text) {
+  const textArea = document.createElement('textarea');
+  textArea.value = text;
+  document.body.appendChild(textArea);
+  textArea.select();
+  try {
+    document.execCommand('copy');
+    alert('링크가 클립보드에 복사되었습니다.');
+  } catch (err) {
+    console.error('링크 복사 실패:', err);
+    alert('링크 복사에 실패했습니다. 직접 URL을 복사해주세요.');
+  }
+  document.body.removeChild(textArea);
+  closeShareModal();
+}
+
 
 
 document.addEventListener('DOMContentLoaded', () => {
