@@ -1463,7 +1463,7 @@ input:focus, select:focus, textarea:focus {
 
 
 #event-details {
-  background-color: #f8f9fa;
+  background-color: #ffffff;
   padding: 15px;
   border-radius: 8px;
   margin-bottom: 20px;
@@ -1473,108 +1473,31 @@ tr:hover {
   background-color: #f5f5f5;
 }
 
-  /* 이미지 업로드 스타일 */
-
-.event-image-container {
-  position: relative;
+  /* 이미지 업로드 스타일 수정 */
+.image-section {
   margin: 20px 0;
-  padding: 10px;
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
+  padding: 20px;
   background-color: #f8fafc;
-}
-
-
-.image-wrapper {
-  position: relative;
-  display: inline-block;
-  margin: 10px 0;
-}
-
-.event-image {
-  position: relative;
-  border: 2px solid #e2e8f0;
-  border-radius: 8px;
-  padding: 10px;
-  background: #f8fafc;
-}
-
-.event-image img {
-  max-width: 300px;
-  height: auto;
-  border-radius: 4px;
-  display: block;
-}
-
-.image-delete-btn {
-  position: absolute;
-  top: -12px; 
-  right: -12px;  
-  width: 28px; 
-  height: 28px;  
-  background-color: #ef4444;
-  color: white;
-  border: none;
-  border-radius: 50%;
-  cursor: pointer;
-  font-size: 26px;  
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-  transition: all 0.2s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  line-height: 1;
-  padding: 0;
-  font-weight: bold;  
-}
-
-.image-delete-btn:hover {
-  background-color: #dc2626;
-  transform: scale(1.1);
-}
-
-#edit-image {
-  display: block;
-  margin: 10px 0;
-  padding: 8px;
+  border-radius: 12px;
   border: 1px solid #e2e8f0;
-  border-radius: 4px;
-  width: 100%;
-  max-width: 300px;
 }
 
-#image-preview {
+.image-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
   margin-top: 10px;
 }
 
-#image-preview img {
-  max-width: 300px;
-  height: auto;
-  border-radius: 4px;
-  margin-top: 5px;
-}
-
-.current-image p,
-.new-image p {
-  margin: 5px 0;
-  color: #4b5563;
-  font-size: 0.9em;
-}
-.image-wrapper:hover .image-delete-btn {
-  opacity: 1;
-}
-
 .image-upload-button {
-  aspect-ratio: 2 / 1; /* 가로가 세로의 두 배 */
-  flex-shrink: 0; /* 줄어들지 않도록 설정 */
-  height: 150px; /* 초기 높이 설정 */
-  width: 300px; /* 초기 너비 설정 */
-  border: 2px dashed #d1d5db;
-  border-radius: 10px;
+  width: 200px;
+  height: 100px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  border: 2px dashed #d1d5db;
+  border-radius: 8px;
   cursor: pointer;
   transition: all 0.2s ease;
   background-color: #f9fafb;
@@ -1690,12 +1613,6 @@ tr:hover {
   margin-bottom: 1rem;
 }
 
-.event-title {
-  font-size: 1.3rem;
-  font-weight: bold;
-  color: #333;
-  margin-bottom: 0.5rem;
-}
 
 .event-team {
   font-size: 0.9rem;
@@ -2770,4 +2687,216 @@ tr:hover {
 
 .rules-status strong {
   color: #533f03;
+}
+
+/* 공유 버튼과 모달 스타일 */
+.title-share-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding: 10px 0;
+}
+
+.share-button {
+  cursor: pointer;
+  border: none;
+  background: none;
+  padding: 5px;
+  transition: transform 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+}
+
+.share-button img {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+}
+
+.share-button:hover {
+  transform: scale(1.1);
+}
+
+/* 공유 모달 스타일 개선 */
+.share-modal {
+  display: none;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: white;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  z-index: 1000;
+  width: 280px;
+}
+
+.share-options {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 15px;
+}
+
+.share-option {
+  display: flex;
+  align-items: center;
+  padding: 12px;
+  cursor: pointer;
+  border: 1px solid #eee;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.share-option:hover {
+  background-color: #f8f9fa;
+  transform: translateX(5px);
+}
+
+.share-option img {
+  width: 24px;
+  height: 24px;
+  margin-right: 12px;
+}
+
+.share-option span {
+  color: #333;
+  font-size: 0.95rem;
+}
+
+.modal-backdrop {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width:   100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
+.share-modal button {
+  width: 100%;
+  padding: 8px;
+  margin-top: 15px;
+  border: none;
+  border-radius: 6px;
+  background-color: #f1f3f5;
+  color: #333;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.share-modal button:hover {
+  background-color: #e9ecef;
+}
+
+/* 이벤트 상세 페이지 스타일 */
+.container {
+  background-color: #ffffff;
+}
+
+.main-event-image {
+  width: 100%;
+  height: auto;
+  max-height: 300px;
+  margin: 0 auto 20px;
+  border-radius: 8px;
+  overflow: hidden;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.main-event-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.event-title {
+  font-size: 24px;
+  color: #333;
+  font-family: 'GmarketSansMedium', sans-serif;
+  margin-bottom: 20px;
+}
+
+.title-share-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding: 10px 0;
+}
+
+.icon-info {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin-bottom: 30px;
+}
+
+.info-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: black;
+  font-size: 16px;
+}
+
+.info-icon {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+}
+
+.event-contents-section {
+  margin-top: 30px;
+  border-top: 1px solid #eee;
+  padding-top: 20px;
+}
+
+.event-contents-section p {
+  font-size: 16px;
+  line-height: 1.6;
+  color: #333;
+}
+
+@media (max-width: 768px) {
+  .main-event-image {
+    max-height: none;
+    height: auto;
+    margin: 10px auto;
+  }
+
+  .main-event-image img {
+    width: 100%;
+    max-width: 100%;
+    height: auto;
+  }
+
+  .title-share-container {
+    flex-direction: column;
+    gap: 10px;
+    align-items: flex-start;
+  }
+
+  .event-title {
+    font-size: 20px;
+    margin-bottom: 10px;
+    width: 100%;
+  }
+
+  .icon-info {
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+
+  .info-row {
+    font-size: 14px;
+  }
 }

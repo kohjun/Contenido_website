@@ -14,60 +14,107 @@
   <div class="container">
     <!-- 이벤트 정보 -->
     <div id="event-info" class="event-info">
-      <div id="event-details">
-        <p>제목: <span id="event-title"></span></p>
-        <p>장소: <span id="event-place"></span></p>
-        <p>날짜: <span id="event-date"></span></p>
-        <p>참가 인원: <span id="event-participants"></span></p>
-        <p>시작 시간: <span id="event-start-time"></span></p>
-        <p>종료 시간: <span id="event-end-time"></span></p>
-        <p>참가비: <span id="event-fee"></span></p>
-        <p>내용: <span id="event-contents"></span></p>
-        <a id="kakao-share-button" href="javascript:;">
-          <img src="https://developers.kakao.com/assets/img/about/logos/kakaolink/kakaolink_btn_medium.png"
-            alt="카카오톡 공유하기" />
-        </a>
-      </div>
-      
 
-      <!-- 이미지 컨테이너 -->
-      <div id="event-image-container" class="event-image-container"></div>
-      
-      <!-- 이미지 수정 시 미리보기 -->
-      <div id="image-preview"></div>
-    </div>
-    
-    <!-- 수정 모드 컨트롤 -->
-    <div id="edit-controls" style="display: none;">
-      <div class="image-section">
-        <h3>이벤트 이미지(최대 3장)</h3>
-        <div class="image-container">
-          <label for="edit-image" class="image-upload-button" id="image-upload-label">
-            <span class="plus-icon">+</span>
-            <span class="upload-text">이미지 추가</span>
-            <input type="file" id="edit-image" accept="image/*" multiple class="image-upload-input">
-          </label>
+
+      <!-- 메인 이미지 섹션 -->
+      <div class="main-event-image">
+        <img src="" alt="이벤트 메인 이미지" id="main-event-image">
+      </div>
+
+
+      <!-- 이벤트 상세 정보 섹션 -->
+      <div class="event-details-container">
+        <div id="event-details" class="event-details-section">
+          <div class="title-share-container">
+            <h1 id="event-title" class="event-title"></h1>
+            <!-- 공유 버튼 -->
+            <div class="share-btn-container">
+              <button class="share-button" onclick="openShareModal()">
+                <img src="/images/share_icon.png" alt="공유하기">
+              </button>
+            </div>
+          </div>
+          <div class="icon-info">
+            <div class="info-row">
+              <img src="/images/additional-eventLocation.png" alt="위치" class="info-icon">
+              <span id="event-place"></span>
+            </div>
+            <div class="info-row">
+              <img src="/images/additional-eventParticipants.png" alt="인원" class="info-icon">
+              <span id="event-participants"></span>
+            </div>
+            <div class="info-row">
+              <img src="/images/additional-eventDate.png" alt="날짜" class="info-icon">
+              <span id="event-date"></span>
+            </div>
+            <div class="info-row">
+              <img src="/images/additional-eventTime.png" alt="시간" class="info-icon">
+              <span><span id="event-start-time"></span> ~ <span id="event-end-time"></span></span>
+            </div>
+            <div class="info-row">
+              <strong style="color: black;">&nbsp;$</strong>
+              <span id="event-fee"></span>
+            </div>
+          </div>
+
+          <!-- 이벤트 내용 섹션 -->
+          <div class="event-contents-section">
+            <p id="event-contents"></p>
+          </div>
+        </div>
+        
+        
+      </div>
+
+      <!-- 수정 모드 컨트롤 -->
+      <div id="edit-controls" style="display: none;">
+        <div class="image-section">
+          <h3>이벤트 이미지(최대 3장)</h3>
+          <div class="image-container">
+            <label for="edit-image" class="image-upload-button" id="image-upload-label">
+              <span class="plus-icon">+</span>
+              <span class="upload-text">이미지 추가</span>
+              <input type="file" id="edit-image" accept="image/*" multiple class="image-upload-input" onchange="handleImagePreview(event)">
+            </label>
+          </div>
+        </div>
+        
+        <!-- 확인/취소 버튼 -->
+        <div id="confirmation-buttons">
+          <button id="confirm-button" onclick="submitEdit()">확인</button>
+          <button id="cancel-button" onclick="cancelEdit()">취소</button>
         </div>
       </div>
-      
-      <!-- 확인/취소 버튼 -->
-      <div id="confirmation-buttons">
-        <button id="confirm-button" onclick="submitEdit()">확인</button>
-        <button id="cancel-button" onclick="cancelEdit()">취소</button>
+
+      <!-- 지원서 섹션 -->
+      <div id="application-section"></div>
+
+      <!-- 수정 버튼 -->
+      <div class="button-group">
+        <button id="modify-button" onclick="enableEdit()" style="display: none">수정하기</button>
+        <button onclick="window.location.href='events.html'">목록으로</button>
       </div>
     </div>
 
-    <!-- 지원서 섹션 -->
-    <div id="application-section"></div>
-
-    <!-- 수정 버튼 -->
-    <div class="button-group">
-      <button id="modify-button" onclick="enableEdit()" style="display: none">수정하기</button>
-      <button onclick="window.location.href='events.html'">목록으로</button>
+    <!-- 공유 모달 -->
+    <div id="shareModal" class="share-modal">
+      <h3>공유하기</h3>
+      <div class="share-options">
+        <div class="share-option" onclick="shareKakao()">
+          <img src="https://developers.kakao.com/assets/img/about/logos/kakaolink/kakaolink_btn_small.png" alt="카카오톡">
+          <span>카카오톡으로 공유</span>
+        </div>
+        <div class="share-option" onclick="copyLink()">
+          
+          <span>링크 복사</span>
+        </div>
+      </div>
+      <button onclick="closeShareModal()" style="margin-top: 15px;">닫기</button>
     </div>
-  </div>
+    <div id="modalBackdrop" class="modal-backdrop" onclick="closeShareModal()"></div>
 
-  <!-- 이벤트 관련 스크립트 -->
-  <script src="/js/modify-event.js"></script>
+    <!-- 이벤트 관련 스크립트 -->
+    <script src="/js/modify-event.js"></script>
+  </div>
 </body>
 </html>
