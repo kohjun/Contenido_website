@@ -28,53 +28,65 @@ async function loadEventContent(eventId) {
     console.log(`이벤트 정보 로드 성공: ${event.title}`);
 
     // 기본 정보 표시
-    document.getElementById('event-title').textContent = currentEvent.title;
-    document.getElementById('event-place').textContent = currentEvent.place;
-    // 날짜 포맷 변경
-    document.getElementById('event-date').textContent = new Date(currentEvent.date)
-      .toLocaleDateString('ko-KR', { 
-        year: 'numeric', 
-        month: 'long', 
-        day: 'numeric' 
-      });
-    document.getElementById('event-participants').textContent = currentEvent.participants + '명';
-    document.getElementById('event-start-time').textContent = currentEvent.startTime;
-    document.getElementById('event-end-time').textContent = currentEvent.endTime;
-    document.getElementById('event-fee').textContent = currentEvent.participation_fee.toLocaleString() + '원';
-    document.getElementById('event-contents').innerHTML = currentEvent.contents.replace(/\n/g, "<br>");
-    
+    const titleElem = document.getElementById('event-title');
+    const placeElem = document.getElementById('event-place');
+    const dateElem = document.getElementById('event-date');
+    const participantsElem = document.getElementById('event-participants');
+    const startTimeElem = document.getElementById('event-start-time');
+    const endTimeElem = document.getElementById('event-end-time');
+    const feeElem = document.getElementById('event-fee');
+    const contentsElem = document.getElementById('event-contents');
+    const detailsElem = document.getElementById('event-details');
+    const mainEventImage = document.getElementById('main-event-image');
+    const imageContainer = document.getElementById('event-image-container');
+    const modifyButton = document.getElementById('modify-button');
+    const applicationSection = document.getElementById('application-section');
+    const kakaoShareButton = document.getElementById('kakao-share-button');
+
+    if (titleElem) titleElem.textContent = currentEvent.title;
+    if (placeElem) placeElem.textContent = currentEvent.place;
+    if (dateElem) dateElem.textContent = new Date(currentEvent.date)
+      .toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' });
+    if (participantsElem) participantsElem.textContent = currentEvent.participants + '명';
+    if (startTimeElem) startTimeElem.textContent = currentEvent.startTime;
+    if (endTimeElem) endTimeElem.textContent = currentEvent.endTime;
+    if (feeElem) feeElem.textContent = currentEvent.participation_fee.toLocaleString() + '원';
+    if (contentsElem) contentsElem.innerHTML = currentEvent.contents.replace(/\n/g, "<br>");
+
     // 참가자 규칙 상태 표시
-    const rulesStatus = document.createElement('p');
-    rulesStatus.className = 'rules-status';
-    rulesStatus.innerHTML = currentEvent.hasParticipantRules ? 
-      '✔  <strong>참가자 규칙이 적용되는 이벤트입니다.</strong><br>활동부원은 일주일 이내 취소 시 경고 1회가 부과됩니다.' :
-      '참가자 규칙이 적용되지 않는 일반 이벤트입니다.';
-    document.getElementById('event-details').insertBefore(rulesStatus, document.getElementById('kakao-share-button'));
+    if (detailsElem && kakaoShareButton) {
+      const rulesStatus = document.createElement('p');
+      rulesStatus.className = 'rules-status';
+      rulesStatus.innerHTML = currentEvent.hasParticipantRules ? 
+        '✔  <strong>참가자 규칙이 적용되는 이벤트입니다.</strong><br>활동부원은 일주일 이내 취소 시 경고 1회가 부과됩니다.' :
+        '참가자 규칙이 적용되지 않는 일반 이벤트입니다.';
+      detailsElem.insertBefore(rulesStatus, kakaoShareButton);
+    }
 
     // 이미지 표시
-    const imageContainer = document.getElementById('event-image-container');
-    const mainEventImage = document.getElementById('main-event-image');
-    if (currentEvent.images && currentEvent.images.length > 0) {
-      mainEventImage.src = currentEvent.images[0]; // 첫 번째 이미지를 메인 이미지로 설정
-      
-      imageContainer.innerHTML = currentEvent.images.map((image, index) => `
-        <div class="image-wrapper" data-image-path="${image}">
-          <div class="event-image">
-            <img src="${image}" alt="Event image ${index + 1}">
-            <button type="button" class="image-delete-btn" onclick="handleImageDelete(this)" style="display: none;">×</button>
+    if (mainEventImage && imageContainer) {
+      if (currentEvent.images && currentEvent.images.length > 0) {
+        mainEventImage.src = currentEvent.images[0];
+        imageContainer.innerHTML = currentEvent.images.map((image, index) => `
+          <div class="image-wrapper" data-image-path="${image}">
+            <div class="event-image">
+              <img src="${image}" alt="Event image ${index + 1}">
+              <button type="button" class="image-delete-btn" onclick="handleImageDelete(this)" style="display: none;">×</button>
+            </div>
           </div>
-        </div>
-      `).join('');
-    } else {
-      mainEventImage.src = '/images/default-event.png'; // 기본 이미지 설정
+        `).join('');
+      } else {
+        mainEventImage.src = '/images/default-event.png';
+      }
     }
 
     // 생성자인 경우 수정 버튼 표시
-    if (currentEvent.creator === user.id && (user.role === 'officer' || user.role === 'admin')) {
-      console.log('이벤트 수정 권한 있음, 수정 버튼 표시');
-      document.getElementById('modify-button').style.display = 'block';
-    } else {
-      console.log(`이벤트 수정 권한 없음 (사용자 ID: ${user.id}, 생성자 ID: ${currentEvent.creator})`);
+    if (modifyButton) {
+      if (currentEvent.creator === user.id && (user.role === 'officer' || user.role === 'admin')) {
+        modifyButton.style.display = 'block';
+      } else {
+        modifyButton.style.display = 'none';
+      }
     }
 
     // 신청 상태 확인 및 버튼 업데이트
@@ -85,80 +97,81 @@ async function loadEventContent(eventId) {
 
     console.log(`신청 상태: 신청여부=${hasApplied}, 활성상태=${isActive}, 승인인원=${approvedCount}/${currentEvent.participants}, 마감여부=${isFull}`);
 
-    const applicationSection = document.getElementById('application-section');
-    if (currentEvent.isSelective) {
-      // 선별적 이벤트
-      if (hasApplied) {
-        console.log('이미 지원한 선별적 이벤트');
-        applicationSection.innerHTML = `
-          <p class="status-text">지원이 완료되었습니다</p>
-          <div class="application-form" style="pointer-events: none; opacity: 0.7;">
-            <h3>지원서 양식</h3>
-            <form id="application-form">
-              ${currentEvent.additionalQuestions.map((question, index) => `
-                <div class="question-section">
-                  <p class="question-text">Q${index + 1}. ${question.questionText}</p>
-                  <textarea class="answer-textarea" disabled></textarea>
-                </div>
-              `).join('')}
-              <button type="submit" class="submit-button" disabled>지원완료</button>
-            </form>
-          </div>
-        `;
-      } else if (!isActive) {
-        console.log('활동부원이 아닌 사용자');
-        applicationSection.innerHTML = `
-          <p class="status-text">로그인 후 다시 시도해주세요. 활동부원이 아니므로 지원이 불가능합니다</p>
-          <button class="submit-button" disabled>지원불가</button>
-        `;
-      } else if (isFull) {
-        console.log('모집 마감된 이벤트');
-        applicationSection.innerHTML = `
-          <p class="status-text">모집이 마감되었습니다</p>
-          <button class="submit-button" disabled>마감</button>
-        `;
+    if (applicationSection) {
+      if (currentEvent.isSelective) {
+        // 선별적 이벤트
+        if (hasApplied) {
+          console.log('이미 지원한 선별적 이벤트');
+          applicationSection.innerHTML = `
+            <p class="status-text">지원이 완료되었습니다</p>
+            <div class="application-form" style="pointer-events: none; opacity: 0.7;">
+              <h3>지원서 양식</h3>
+              <form id="application-form">
+                ${currentEvent.additionalQuestions.map((question, index) => `
+                  <div class="question-section">
+                    <p class="question-text">Q${index + 1}. ${question.questionText}</p>
+                    <textarea class="answer-textarea" disabled></textarea>
+                  </div>
+                `).join('')}
+                <button type="submit" class="submit-button" disabled>지원완료</button>
+              </form>
+            </div>
+          `;
+        } else if (!isActive) {
+          console.log('활동부원이 아닌 사용자');
+          applicationSection.innerHTML = `
+            <p class="status-text">로그인 후 다시 시도해주세요. 활동부원이 아니므로 지원이 불가능합니다</p>
+            <button class="submit-button" disabled>지원불가</button>
+          `;
+        } else if (isFull) {
+          console.log('모집 마감된 이벤트');
+          applicationSection.innerHTML = `
+            <p class="status-text">모집이 마감되었습니다</p>
+            <button class="submit-button" disabled>마감</button>
+          `;
+        } else {
+          console.log('지원 가능한 선별적 이벤트');
+          applicationSection.innerHTML = `
+            <div class="application-form">
+              <h3>지원서 작성</h3>
+              <form id="application-form" onsubmit="submitApplication(event)">
+                ${currentEvent.additionalQuestions.map((question, index) => `
+                  <div class="question-section">
+                    <p class="question-text">Q${index + 1}. ${question.questionText}</p>
+                    <textarea class="answer-textarea" name="answer_${index}" required></textarea>
+                  </div>
+                `).join('')}
+                <button type="submit" class="submit-button">지원하기</button>
+              </form>
+            </div>
+          `;
+        }
       } else {
-        console.log('지원 가능한 선별적 이벤트');
-        applicationSection.innerHTML = `
-          <div class="application-form">
-            <h3>지원서 작성</h3>
-            <form id="application-form" onsubmit="submitApplication(event)">
-              ${currentEvent.additionalQuestions.map((question, index) => `
-                <div class="question-section">
-                  <p class="question-text">Q${index + 1}. ${question.questionText}</p>
-                  <textarea class="answer-textarea" name="answer_${index}" required></textarea>
-                </div>
-              `).join('')}
-              <button type="submit" class="submit-button">지원하기</button>
-            </form>
-          </div>
-        `;
-      }
-    } else {
-      // 일반 이벤트
-      if (hasApplied) {
-        console.log('이미 신청한 일반 이벤트');
-        applicationSection.innerHTML = `
-          <p class="status-text">신청이 완료되었습니다</p>
-          <button class="submit-button" disabled>신청완료</button>
-        `;
-      } else if (!isActive) {
-        console.log('활동부원이 아닌 사용자');
-        applicationSection.innerHTML = `
-          <p class="status-text">로그인 후 다시 시도해주세요. 활동부원이 아니므로 지원이 불가능합니다</p>
-          <button class="submit-button" disabled>신청불가</button>
-        `;
-      } else if (isFull) {
-        console.log('모집 마감된 이벤트');
-        applicationSection.innerHTML = `
-          <p class="status-text">모집이 마감되었습니다</p>
-          <button class="submit-button" disabled>마감</button>
-        `;
-      } else {
-        console.log('신청 가능한 일반 이벤트');
-        applicationSection.innerHTML = `
-          <button onclick="applyForEvent('${currentEvent._id}')" class="submit-button">신청하기</button>
-        `;
+        // 일반 이벤트
+        if (hasApplied) {
+          console.log('이미 신청한 일반 이벤트');
+          applicationSection.innerHTML = `
+            <p class="status-text">신청이 완료되었습니다</p>
+            <button class="submit-button" disabled>신청완료</button>
+          `;
+        } else if (!isActive) {
+          console.log('활동부원이 아닌 사용자');
+          applicationSection.innerHTML = `
+            <p class="status-text">로그인 후 다시 시도해주세요. 활동부원이 아니므로 지원이 불가능합니다</p>
+            <button class="submit-button" disabled>신청불가</button>
+          `;
+        } else if (isFull) {
+          console.log('모집 마감된 이벤트');
+          applicationSection.innerHTML = `
+            <p class="status-text">모집이 마감되었습니다</p>
+            <button class="submit-button" disabled>마감</button>
+          `;
+        } else {
+          console.log('신청 가능한 일반 이벤트');
+          applicationSection.innerHTML = `
+            <button onclick="applyForEvent('${currentEvent._id}')" class="submit-button">신청하기</button>
+          `;
+        }
       }
     }
 
