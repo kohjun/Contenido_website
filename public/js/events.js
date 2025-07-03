@@ -77,15 +77,15 @@ function displayCurrentPage(currentUser) {
     let applyButton = '';
     if (hasApplied) {
       applyButton = `<button class="action-button cancel-button" onclick="cancelApplication('${event._id}')">신청취소</button>`;
-    } else if (isFull) {
-      applyButton = '<button class="action-button apply-button" disabled>승인마감</button>';
     } else if (!isActive) {
       applyButton = '<button class="action-button apply-button" disabled>신청불가</button>';
     } else {
       if (event.isSelective && event.additionalQuestions?.length > 0) {
         applyButton = '<button class="action-button apply-button" disabled>상세보기 신청</button>';
       } else {
-        applyButton = `<button class="action-button apply-button" onclick="applyForEvent('${event._id}')">신청하기</button>`;
+        // isFull 여부와 관계없이 신청 버튼 활성화, 텍스트만 변경
+        const buttonText = isFull ? '대기자 신청' : '신청하기';
+        applyButton = `<button class="action-button apply-button" onclick="applyForEvent('${event._id}')">${buttonText}</button>`;
       }
     }
 

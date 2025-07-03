@@ -390,6 +390,9 @@ function enableEdit() {
     
     if (field.type === 'number') {
       input.value = element.textContent.replace(/[^\d]/g, '');
+    } else if (field.type === 'textarea') {
+      // 줄바꿈 및 공백 복원: <br> → \n
+      input.value = element.innerHTML.replace(/<br\s*\/?>/gi, '\n');
     } else {
       input.value = element.textContent.trim();
     }
@@ -501,13 +504,10 @@ async function submitEdit() {
       console.log(`새 이미지 ${imageInput.files.length}개 업로드 시도`);
       const formData = new FormData();
       formData.append('eventId', eventId);
-      
-      // 이미지 파일들 추가
       Array.from(imageInput.files).forEach(file => {
         formData.append('images', file);
       });
 
-      // 이미지 업로드 요청
       const imageResponse = await fetch('/events/upload-images', {
         method: 'POST',
         body: formData
@@ -524,30 +524,52 @@ async function submitEdit() {
     }
 
     // 현재 표시된 이미지들 수집 (삭제되지 않은 기존 이미지들)
-    const currentImages = Array.from(document.querySelectorAll('.image-wrapper'))
+    let currentImages = Array.from(document.querySelectorAll('.image-wrapper'))
       .filter(wrapper => !deletedImages.has(wrapper.dataset.imagePath))
       .map(wrapper => wrapper.dataset.imagePath)
       .filter(path => path); // null/undefined 제거
 
-    console.log(`현재 이미지: ${currentImages.length}개, 삭제된 이미지: ${deletedImages.size}개, 새 이미지: ${newImageUrls.length}개`);
+    // 항상 배열 보장
+    if (!Array.isArray(currentImages)) currentImages = [];
+    if (!Array.isArray(newImageUrls)) newImageUrls = [];
+    const deletedImagesArr = Array.from(deletedImages || []);
+
+    // 숫자 필드 파싱 및 NaN 방지
+    const participantsValue = parseInt(document.getElementById('edit-event-participants').value, 10);
+    const participationFeeValue = parseInt(document.getElementById('edit-event-fee').value, 10);
+
+    // 필수값 체크
+    if (
+      !document.getElementById('edit-event-title').value ||
+      !document.getElementById('edit-event-place').value ||
+      !document.getElementById('edit-event-date').value ||
+      isNaN(participantsValue) ||
+      !document.getElementById('edit-event-start-time').value ||
+      !document.getElementById('edit-event-end-time').value ||
+      isNaN(participationFeeValue) ||
+      !document.getElementById('edit-event-contents').value
+    ) {
+      alert('모든 필수 항목을 입력해주세요.');
+      return;
+    }
 
     // 이벤트 데이터 업데이트
     const updatedData = {
       title: document.getElementById('edit-event-title').value,
       place: document.getElementById('edit-event-place').value,
       date: document.getElementById('edit-event-date').value,
-      participants: parseInt(document.getElementById('edit-event-participants').value, 10),
+      participants: participantsValue,
       startTime: document.getElementById('edit-event-start-time').value,
       endTime: document.getElementById('edit-event-end-time').value,
-      participation_fee: parseInt(document.getElementById('edit-event-fee').value, 10),
+      participation_fee: participationFeeValue,
       contents: document.getElementById('edit-event-contents').value,
       currentImages,
       newImages: newImageUrls,
-      deletedImages: Array.from(deletedImages),
+      deletedImages: deletedImagesArr,
       hasParticipantRules: document.getElementById('edit-hasParticipantRules').checked,
     };
 
-    console.log('이벤트 업데이트 요청');
+    console.log('이벤트 업데이트 요청', updatedData);
     const response = await fetch(`/events/update-content`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
