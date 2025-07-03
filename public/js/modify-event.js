@@ -127,12 +127,9 @@ async function loadEventContent(eventId) {
             <p class="status-text">로그인 후 다시 시도해주세요. 활동부원이 아니므로 지원이 불가능합니다</p>
             <button class="submit-button" disabled>지원불가</button>
           `;
-        } else if (isFull) {
-          applicationSection.innerHTML = `
-            <p class="status-text">모집이 마감되었습니다</p>
-            <button class="submit-button" disabled>마감</button>
-          `;
         } else {
+          // 마감 여부와 관계없이 대기자 지원하기 버튼 노출
+          const applyBtnText = isFull ? '대기자 지원하기' : '지원하기';
           applicationSection.innerHTML = `
             <div class="application-form">
               <h3>지원서 작성</h3>
@@ -143,7 +140,7 @@ async function loadEventContent(eventId) {
                     <textarea class="answer-textarea" name="answer_${index}" required></textarea>
                   </div>
                 `).join('')}
-                <button type="submit" class="submit-button">지원하기</button>
+                <button type="submit" class="submit-button">${applyBtnText}</button>
               </form>
             </div>
           `;
