@@ -382,11 +382,11 @@ router.post('/:id/apply',
         return res.status(400).json({ message: '이미 종료된 이벤트입니다.' });
       }
 
-      // 정원 초과 확인
-      const approvedCount = event.appliedParticipants.filter(p => p.status === 'approved').length;
-      if (approvedCount >= event.participants) {
-        return res.status(400).json({ message: '이미 정원이 다 찼습니다.' });
-      }
+      // 정원 초과 확인 (대기자 신청 허용을 위해 이 부분 주석 처리 또는 제거)
+      // const approvedCount = event.appliedParticipants.filter(p => p.status === 'approved').length;
+      // if (approvedCount >= event.participants) {
+      //   return res.status(400).json({ message: '이미 정원이 다 찼습니다.' });
+      // }
 
       // 이미 신청했는지 확인
       if (event.appliedParticipants.some(p => p.userId.toString() === req.user.id)) {
