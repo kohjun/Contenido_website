@@ -332,6 +332,19 @@ router.post('/:id/report',
       );
       await Promise.all(updates);
 
+      // 승인된 참가자 중 보고서 제출 명단에 없는 참가자에게 warningCount 1 증가
+      const approvedParticipants = event.appliedParticipants
+        .filter(p => p.status === 'approved')
+        .map(p => p.userId.toString());
+      const notReported = approvedParticipants.filter(userId => !participants.includes(userId));
+      if (notReported.length > 0) {
+        await Promise.all(
+          notReported.map(userId =>
+            User.findByIdAndUpdate(userId, { $inc: { warningCount: 1 } })
+          )
+        );
+      }
+
       res.status(200).json({ message: 'Report submitted and event marked as ended' });
     } catch (error) {
       console.error('Error submitting report:', error);

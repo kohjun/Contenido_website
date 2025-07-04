@@ -72,12 +72,48 @@ async function fetchUserInfo() {
       'starterTeam' :'스타터팀'
     };
 
+    // 뱃지 이미지 매핑
+    const badgeMap = {
+      'officer': '/images/officer_badge.png',
+      'starter': '/images/starter_badge.png',
+      'admin': '/images/admin_badge.png',
+      'participant': '/images/participant_badge.png',
+      'staff': '/images/staff_badge.png'
+    };
+
     
 
     // 기본 정보 업데이트
     updateElement('user-name', `이름 : ${data.name || '-'}`);
+    // 뱃지 표시
+    const badgeSpan = document.getElementById('user-badge');
+    const badgeRole = document.getElementById('user-badge-role');
+    let badgeImg = '';
+    let roleText = '';
+    if (data.team === 'staffTeam') {
+      badgeImg = `<img src="${badgeMap['staff']}" alt="Staff Badge">`;
+      roleText = roleDisplay['officer'] || '운영진';
+    } else if (data.role === 'officer') {
+      badgeImg = `<img src="${badgeMap['officer']}" alt="Officer Badge">`;
+      roleText = roleDisplay['officer'] || '운영진';
+    } else if (data.role === 'starter') {
+      badgeImg = `<img src="${badgeMap['starter']}" alt="Starter Badge">`;
+      roleText = roleDisplay['starter'] || '스타터';
+    } else if (data.role === 'admin') {
+      badgeImg = `<img src="${badgeMap['admin']}" alt="Admin Badge">`;
+      roleText = roleDisplay['admin'] || '관리자';
+    } else if (data.role === 'participant') {
+      badgeImg = `<img src="${badgeMap['participant']}" alt="Participant Badge">`;
+      roleText = roleDisplay['participant'] || '참가자';
+    } else {
+      badgeImg = '';
+      roleText = '';
+    }
+    if (badgeSpan) {
+      badgeSpan.innerHTML = badgeImg + `<div id="user-badge-role">${roleText}</div>`;
+    }
+    // updateElement('user-role', `역할 : ${roleDisplay[data.role] || data.role || '-'}`); // 역할 텍스트 제거
     updateElement('user-nickname', `프로필 이름 : ${data.displayName || '-'}`);
-    updateElement('user-role', `역할 : ${roleDisplay[data.role] || data.role || '-'}`);
     updateElement('user-department', `부서 : ${departmentDisplay[data.department] || data.department || '-'}`);
     updateElement('user-team', `팀 이름 : ${teamDisplay[data.team] || data.team || '-'}`);
     updateElement('user-createdAt', `가입일 : ${new Date(data.createdAt).toLocaleDateString()||'-'}`);

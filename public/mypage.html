@@ -19,10 +19,17 @@
     <div class="info-card">
       <h4>프로필 정보</h4>
       <div class="user-info" id="user-info" style="display: none;">
-        <img src="/images/basic_Image.png" style="text-align: center;" alt="User Profile" id="user-image" />
-        <p> <strong id="user-name"> </strong></p>
+        <div class="profile-badge-row">
+          <img src="/images/basic_Image.png" alt="User Profile" id="user-image" />
+          <div id="user-badge">
+            <!-- 뱃지 이미지와 역할명이 JS에서 동적으로 들어감 -->
+            <div id="user-badge-role"></div>
+          </div>
+        </div>
+        <p>
+          <strong id="user-name"></strong>
+        </p>
         <p id="user-nickname"></p>
-        <p id="user-role"></p>
         <p id="user-department"></p>
         <p id="user-team"></p>
         <p id="user-createdAt"></p>
