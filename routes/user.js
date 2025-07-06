@@ -100,7 +100,7 @@ router.get('/info_database', authenticateToken, async (req, res) => {
 router.get('/participants/users', async (req, res) => {
   try {
     const users = await User.find({ isVerified: true })
-      .select('displayName name participationCount profileImage status active role gender phonenumber warningCount team department preferredActivity birthDate isTeamLeader createdAt'); // createdAt 추가
+      .select('displayName name participationCount profileImage status active role gender phonenumber warningCount team department preferredActivity birthDate isTeamLeader createdAt staffSubteam'); // staffSubteam 추가
     
     const userData = users.map(user => ({
       id: user._id,
@@ -118,7 +118,8 @@ router.get('/participants/users', async (req, res) => {
       preferredActivity: user.preferredActivity || '-',
       birthDate: user.birthDate,
       isTeamLeader: user.isTeamLeader,
-      createdAt: user.createdAt  // createdAt 추가
+      createdAt: user.createdAt,  // createdAt 추가
+      staffSubteam: user.staffSubteam // staffSubteam 추가
     }));
 
     // console.log(`${userData.length}명의 사용자 정보 반환`);
@@ -296,40 +297,69 @@ router.post('/update-role/:userId', authenticateToken, async (req, res) => {
   }
 });
 
-// 팀 변경 라우트
+// 팀 변경 라우트 (팀/부서만 변경, staffTeam이면 staffSubteam도 포함)
 router.post('/update-team/:userId', authenticateToken, async (req, res) => {
   try {
       const { userId } = req.params;
-      const { team, department } = req.body;
-
-      // console.log(`사용자 ${userId} 팀 변경 요청: 부서=${department}, 팀=${team}`);
+      const { team, department, staffSubteam } = req.body;
 
       const user = await User.findById(userId);
       if (!user) {
-          console.log(`사용자 ${userId}를 찾을 수 없음`);
           return res.status(404).json({ message: '사용자를 찾을 수 없습니다.' });
       }
 
-      // officer 역할인지 확인
       if (user.role !== 'officer') {
-          console.log(`사용자 ${userId}는 운영진이 아님`);
           return res.status(400).json({ message: '운영진만 팀을 변경할 수 있습니다.' });
       }
 
-      // 팀과 부서 업데이트
       user.team = team;
       user.department = department;
+      if (team === 'staffTeam') {
+        user.staffSubteam = staffSubteam || null;
+      } else {
+        user.staffSubteam = undefined;
+      }
       await user.save();
 
-      // console.log(`사용자 ${userId} 팀 변경 완료: 부서=${user.department}, 팀=${user.team}`);
       res.status(200).json({
           message: '팀이 성공적으로 변경되었습니다.',
           team: user.team,
-          department: user.department
+          department: user.department,
+          staffSubteam: user.staffSubteam
       });
   } catch (error) {
       console.error(`팀 변경 중 오류:`, error);
       res.status(500).json({ message: '팀 변경 중 오류가 발생했습니다.' });
+  }
+});
+
+// 스태프 소그룹만 단독 변경 라우트
+router.post('/update-staffsubteam/:userId', authenticateToken, async (req, res) => {
+  try {
+      const { userId } = req.params;
+      const { staffSubteam } = req.body;
+
+      const user = await User.findById(userId);
+      if (!user) {
+          return res.status(404).json({ message: '사용자를 찾을 수 없습니다.' });
+      }
+      if (user.role !== 'officer' || user.team !== 'staffTeam') {
+          return res.status(400).json({ message: '스태프팀 소속 운영진만 소그룹을 변경할 수 있습니다.' });
+      }
+      if (!staffSubteam) {
+          return res.status(400).json({ message: '스태프 소그룹 값이 필요합니다.' });
+      }
+
+      user.staffSubteam = staffSubteam;
+      await user.save();
+
+      res.status(200).json({
+          message: '스태프 소그룹이 성공적으로 변경되었습니다.',
+          staffSubteam: user.staffSubteam
+      });
+  } catch (error) {
+      console.error(`스태프 소그룹 변경 중 오류:`, error);
+      res.status(500).json({ message: '스태프 소그룹 변경 중 오류가 발생했습니다.' });
   }
 });
 

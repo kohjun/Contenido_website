@@ -96,8 +96,14 @@ const userSchema = new mongoose.Schema({
   participatedEvents: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Event' }],
   reviews: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Review' }],
   application: applicationSchema,
-   // 카카오 인증 관련 필드 정리
-   kakaoAccessToken: {
+  // staffTeam 세부 구분 필드 추가
+  staffSubteam: {
+    type: String,
+    enum: ['A-1', 'B-1', 'C-1', 'C-2'],
+    required: function () { return this.team === 'staffTeam'; }
+  },
+  // 카카오 인증 관련 필드 정리
+  kakaoAccessToken: {
     type: String,
     select: false  // 기본 쿼리에서 제외
   },
