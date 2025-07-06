@@ -381,14 +381,25 @@ const Sidebar = (function() {
         await new Promise((resolve, reject) => {
           const hrScript = document.createElement('script');
           hrScript.src = '/js/office/hr.js';
-          hrScript.onload = resolve;
+          hrScript.onload = () => {
+            // hr.js가 로드된 후 window에 함수가 등록되어 있는지 확인
+            // 함수가 없으면 강제로 window에 바인딩
+            if (typeof window.showUsersByRole !== 'function' && typeof window.showUsersByRoleRaw === 'function') {
+              window.showUsersByRole = window.showUsersByRoleRaw;
+            }
+            if (typeof window.updateUserRole !== 'function' && typeof window.updateUserRoleRaw === 'function') {
+              window.updateUserRole = window.updateUserRoleRaw;
+            }
+            // 필요시 다른 함수도 window에 바인딩
+            resolve();
+          };
           hrScript.onerror = reject;
           document.body.appendChild(hrScript);
         });
 
-        // 사용자 데이터 로드 함수 호출
-        if (typeof loadUsers === 'function') {
-          loadUsers();
+        // 사용자 데이터 로드 함수 호출 (window에 바인딩된 함수 사용)
+        if (typeof window.loadUsers === 'function') {
+          window.loadUsers();
         }
       }
 

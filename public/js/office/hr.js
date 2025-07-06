@@ -45,7 +45,7 @@ function initializeDialogs() {
     teamDialog.innerHTML = `
         <div class="dialog-content">
             <h3>팀 변경</h3>
-            <select id="teamSelect">
+            <select id="teamSelect" onchange="onTeamSelectChange()">
                 <option value="operationTeam">운영팀</option>
                 <option value="HumanResourceTeam">인사팀</option>
                 <option value="financeTeam">재무팀</option>
@@ -58,6 +58,13 @@ function initializeDialogs() {
                 <option value="staffTeam">스태프팀</option>
                 <option value="starterTeam">스타터팀</option>
             </select>
+            <select id="staffSubteamSelect" style="display:none; margin-top:10px;">
+                <option value="">스태프 소그룹 선택</option>
+                <option value="A-1">A-1</option>
+                <option value="B-1">B-1</option>
+                <option value="C-1">C-1</option>
+                <option value="C-2">C-2</option>
+            </select>
             <div class="dialog-buttons">
                 <button onclick="updateUserTeam()">변경</button>
                 <button onclick="closeDialog('teamChangeDialog')">취소</button>
@@ -65,6 +72,29 @@ function initializeDialogs() {
         </div>
     `;
     document.body.appendChild(teamDialog);
+
+    // 스태프 소그룹 변경 다이얼로그 추가
+    const staffSubteamDialog = document.createElement('div');
+    staffSubteamDialog.className = 'role-change-dialog';
+    staffSubteamDialog.id = 'staffSubteamDialog';
+    staffSubteamDialog.style.display = 'none';
+    staffSubteamDialog.innerHTML = `
+        <div class="dialog-content">
+            <h3>스태프 소그룹 변경</h3>
+            <select id="staffSubteamModalSelect">
+                <option value="">스태프 소그룹 선택</option>
+                <option value="A-1">A-1</option>
+                <option value="B-1">B-1</option>
+                <option value="C-1">C-1</option>
+                <option value="C-2">C-2</option>
+            </select>
+            <div class="dialog-buttons">
+                <button onclick="confirmStaffSubteamOnly()">변경</button>
+                <button onclick="closeDialog('staffSubteamDialog')">취소</button>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(staffSubteamDialog);
 
     // 컨텍스트 메뉴 추가
     const contextMenu = document.createElement('div');
@@ -101,19 +131,26 @@ function handleContextMenu(e, userId, userName, userRole) {
     e.preventDefault();
     selectedUserId = userId;
     const contextMenu = document.getElementById('contextMenu');
+    const user = users.find(u => u.id === userId);
 
-    // admin 사용자는 변경 불가
     if (userRole === 'admin') {
         contextMenu.innerHTML = `
             <div class="context-menu-header">${userName}</div>
             <div class="menu-item disabled">Admin은 변경할 수 없습니다</div>
         `;
+    } else if (user && user.team === 'staffTeam') {
+        contextMenu.innerHTML = `
+            <div class="context-menu-header">${userName}</div>
+            <button onclick="showDialog('roleChangeDialog')">역할 변경</button>
+            <button onclick="showDialog('teamChangeDialog')">팀 변경</button>
+            <button onclick="showStaffSubteamDialog()">스태프팀 변경</button>
+        `;
     } else {
-      contextMenu.innerHTML = `
-          <div class="context-menu-header">${userName}</div>
-          <button onclick="showDialog('roleChangeDialog')">역할 변경</button>
-          ${userRole === 'officer' ? `<button onclick="showDialog('teamChangeDialog')">팀 변경</button>` : ''}
-      `;
+        contextMenu.innerHTML = `
+            <div class="context-menu-header">${userName}</div>
+            <button onclick="showDialog('roleChangeDialog')">역할 변경</button>
+            ${userRole === 'officer' ? `<button onclick="showDialog('teamChangeDialog')">팀 변경</button>` : ''}
+        `;
     }
 
     // 메뉴 위치 설정
@@ -127,6 +164,9 @@ function handleContextMenu(e, userId, userName, userRole) {
 function showDialog(dialogId) {
     document.getElementById('contextMenu').style.display = 'none';
     document.getElementById(dialogId).style.display = 'flex';
+    if (dialogId === 'teamChangeDialog') {
+        window.onTeamSelectChange();
+    }
 }
 
 function closeDialog(dialogId) {
@@ -211,24 +251,57 @@ const teamDepartmentMapping = {
     'starterTeam' : 'planning'
 };
 
+// 팀 변경 시 staffTeam을 선택하면 staffSubteam을 반드시 선택하도록 하고, 선택하지 않으면 경고창을 띄우고 변경을 막도록 수정
+window.onTeamSelectChange = function() {
+    const teamValue = document.getElementById('teamSelect').value;
+    const staffSubteamSelect = document.getElementById('staffSubteamSelect');
+    if (teamValue === 'staffTeam') {
+        staffSubteamSelect.style.display = '';
+        // 현재 선택된 유저의 staffSubteam 값이 있으면 선택
+        const user = users.find(u => u.id === selectedUserId);
+        if (user && user.staffSubteam) {
+            staffSubteamSelect.value = user.staffSubteam;
+        } else {
+            staffSubteamSelect.value = '';
+        }
+    } else {
+        staffSubteamSelect.style.display = 'none';
+        staffSubteamSelect.value = '';
+    }
+};
+
 // 팀 업데이트 함수 수정
 async function updateUserTeam() {
     if (!selectedUserId) return;
 
     const newTeam = document.getElementById('teamSelect').value;
     const newDepartment = teamDepartmentMapping[newTeam];
+    const staffSubteamSelect = document.getElementById('staffSubteamSelect');
+    const staffSubteam = (newTeam === 'staffTeam' && staffSubteamSelect) ? staffSubteamSelect.value : undefined;
+
+    // staffTeam 선택 시 staffSubteam 필수
+    if (newTeam === 'staffTeam' && (!staffSubteam || staffSubteam === '')) {
+        alert('스태프팀을 선택하면 반드시 소그룹(A-1, B-1, C-1, C-2)을 선택해야 합니다.');
+        staffSubteamSelect.focus();
+        return;
+    }
 
     try {
+        const body = { 
+            team: newTeam,
+            department: newDepartment
+        };
+        if (newTeam === 'staffTeam') {
+            body.staffSubteam = staffSubteam;
+        }
+
         const response = await fetch(`/user/update-team/${selectedUserId}`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'Accept': 'application/json'
             },
-            body: JSON.stringify({ 
-                team: newTeam,
-                department: newDepartment 
-            })
+            body: JSON.stringify(body)
         });
 
         if (!response.ok) {
@@ -241,7 +314,8 @@ async function updateUserTeam() {
             user.id === selectedUserId ? { 
                 ...user, 
                 team: newTeam, 
-                department: newDepartment 
+                department: newDepartment,
+                staffSubteam: newTeam === 'staffTeam' ? staffSubteam : undefined
             } : user
         );
         
@@ -255,6 +329,7 @@ async function updateUserTeam() {
         alert(error.message || '팀 변경 중 오류가 발생했습니다.');
     }
 }
+
 // 변경된 유저 행 하이라이트 함수
 function highlightModifiedUser(userId) {
   const userRow = document.querySelector(`tr[oncontextmenu*="${userId}"]`);
@@ -291,7 +366,7 @@ function generateUserRow(user) {
     
     const warningCount = user.warningCount || 0;
     const regularCount = user.participationCount?.regularCount || 0;
-    const teamName = getTeamNameInKorean(user.team);
+    const teamName = getTeamNameInKorean(user.team, user.staffSubteam);
     const joinDate = user.createdAt ? new Date(user.createdAt).toLocaleDateString() : '-';
     const secureProfileImage = ensureHttps(user.profileImage);
 
@@ -346,7 +421,7 @@ function generateUserRow(user) {
     `;
 }
 
-function getTeamNameInKorean(team) {
+function getTeamNameInKorean(team, staffSubteam) {
   const teamMapping = {
     "operationTeam": "운영팀",
     "HumanResourceTeam": "인사팀",
@@ -360,7 +435,10 @@ function getTeamNameInKorean(team) {
     "staffTeam": "스태프팀",
     "starterTeam" : "스타터팀"
   };
-  return teamMapping[team] || team; // 매핑되지 않은 경우 원래 값 반환
+  if (team === "staffTeam" && staffSubteam) {
+    return `${teamMapping[team]}(${staffSubteam})`;
+  }
+  return teamMapping[team] || team;
 }
 
 
@@ -604,3 +682,80 @@ function resetSearch() {
     currentPage = 1;
     showUsersByRole(currentRole, true);
 }
+
+function showStaffSubteamDialog() {
+    document.getElementById('contextMenu').style.display = 'none';
+    // staffSubteamModalSelect가 실제로 DOM에 있는지 확인
+    const select = document.getElementById('staffSubteamModalSelect');
+    const dialog = document.getElementById('staffSubteamDialog');
+    if (!select || !dialog) {
+        alert('스태프 소그룹 변경 다이얼로그가 준비되지 않았습니다.\n(office_HR.html에 staffSubteamDialog와 staffSubteamModalSelect가 있는지 확인하세요)');
+        return;
+    }
+    const user = users.find(u => u.id === selectedUserId);
+    if (user && user.staffSubteam) {
+        select.value = user.staffSubteam;
+    } else {
+        select.value = '';
+    }
+    dialog.style.display = 'flex';
+}
+window.showStaffSubteamDialog = showStaffSubteamDialog;
+
+async function confirmStaffSubteamOnly() {
+    const select = document.getElementById('staffSubteamModalSelect');
+    const dialog = document.getElementById('staffSubteamDialog');
+    if (!select || !dialog) {
+        alert('스태프 소그룹 변경 다이얼로그가 준비되지 않았습니다.');
+        return;
+    }
+    const staffSubteam = select.value;
+    if (!staffSubteam) {
+        alert('스태프 소그룹을 반드시 선택해야 합니다.');
+        return;
+    }
+    try {
+        const response = await fetch(`/user/update-staffsubteam/${selectedUserId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({
+                staffSubteam
+            })
+        });
+
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.message);
+        }
+
+        // 사용자 데이터 업데이트
+        users = users.map(user =>
+            user.id === selectedUserId ? { 
+                ...user, 
+                staffSubteam
+            } : user
+        );
+        dialog.style.display = 'none';
+        showUsersByRole(currentRole, false);
+        highlightModifiedUser(selectedUserId);
+        alert('스태프 소그룹이 성공적으로 변경되었습니다.');
+    } catch (error) {
+        console.error('Error updating staff subteam:', error);
+        alert(error.message || '스태프 소그룹 변경 중 오류가 발생했습니다.');
+    }
+}
+window.confirmStaffSubteamOnly = confirmStaffSubteamOnly;
+
+// 반드시 아래처럼 바인딩
+window.updateUserRole = updateUserRole;
+window.updateUserTeam = updateUserTeam;
+window.closeDialog = closeDialog;
+window.showUsersByRole = showUsersByRole;
+window.searchUsers = searchUsers;
+window.resetSearch = resetSearch;
+window.handleContextMenu = handleContextMenu;
+window.showStaffSubteamDialog = showStaffSubteamDialog;
+window.confirmStaffSubteamOnly = confirmStaffSubteamOnly;

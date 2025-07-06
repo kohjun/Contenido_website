@@ -277,3 +277,48 @@
 .member-count::after {
     content: "명)";
 }
+
+.member.draggable {
+    cursor: grab;
+    opacity: 0.95;
+    border: 2px dashed #007bff;
+    background: #eaf4ff;
+}
+
+.member.dragging {
+    opacity: 0.5;
+    border: 2px solid #007bff;
+}
+
+.member-list.droppable {
+    background: #f0f8ff;
+    min-height: 40px;
+    border: 2px dashed #007bff;
+    transition: background 0.2s;
+}
+
+/* 수정모드 버튼 스타일 */
+.edit-btn, .done-btn {
+    margin-left: 10px;
+    font-size: 1rem;
+    padding: 7px 18px;
+}
+
+.staff-subteam {
+    margin-bottom: 10px;
+    background: #f7f7fa;
+    border-radius: 6px;
+    padding: 8px 10px 8px 10px;
+    border: 1px solid #e0e0e0;
+}
+
+.staff-subteam-title {
+    font-weight: 600;
+    color: #007bff;
+    margin-bottom: 5px;
+    font-size: 1rem;
+}
+
+.staff-subteam-list {
+    min-height: 10px;
+}
