@@ -297,9 +297,9 @@ function generateUserRow(user) {
 
     // 전화번호 뒷자리 추출
     let phoneSuffix = '';
-    if (user.phone) {
+    if (user.phonenumber) {
         // 숫자만 추출 후 4자리 뒷자리
-        const digits = user.phone.replace(/\D/g, '');
+        const digits = user.phonenumber.replace(/\D/g, '');
         phoneSuffix = digits.slice(-4);
     }
 
