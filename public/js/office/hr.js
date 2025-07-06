@@ -149,6 +149,11 @@ async function updateUserRole() {
         requestBody.department = 'operation'; // 기본 부서
         requestBody.team = 'operationTeam'; // 기본 팀
       }
+
+      // guest로 변경하는 경우 active를 false로 설정
+      if (newRole === 'guest') {
+        requestBody.active = false;
+      }
   
       const response = await fetch(`/user/update-role/${selectedUserId}`, {
         method: 'POST',
@@ -170,7 +175,8 @@ async function updateUserRole() {
           ...user, 
           role: newRole,
           department: newRole === 'officer' ? result.department : undefined,
-          team: newRole === 'officer' ? result.team : undefined
+          team: newRole === 'officer' ? result.team : undefined,
+          active: newRole === 'guest' ? false : user.active
         } : user
       );
       
@@ -183,7 +189,7 @@ async function updateUserRole() {
       console.error('Error updating user role:', error);
       alert(error.message || '역할 변경 중 오류가 발생했습니다.');
     }
-  }
+}
 
 // 팀과 부서 매핑 추가
 const teamDepartmentMapping = {
@@ -287,11 +293,16 @@ function generateUserRow(user) {
     const regularCount = user.participationCount?.regularCount || 0;
     const teamName = getTeamNameInKorean(user.team);
     const joinDate = user.createdAt ? new Date(user.createdAt).toLocaleDateString() : '-';
-    const birthYearStr = user.birthDate ? 
-        new Date(user.birthDate).getFullYear().toString().substring(2, 4) : 
-        '--';
     const secureProfileImage = ensureHttps(user.profileImage);
-    
+
+    // 전화번호 뒷자리 추출
+    let phoneSuffix = '';
+    if (user.phone) {
+        // 숫자만 추출 후 4자리 뒷자리
+        const digits = user.phone.replace(/\D/g, '');
+        phoneSuffix = digits.slice(-4);
+    }
+
     const roleDisplay = {
         'officer': '운영진',
         'starter': '스타터',
@@ -305,7 +316,7 @@ function generateUserRow(user) {
           data-warning="${warningCount}">
           <td><img src="${secureProfileImage}" alt="Profile" class="profile-image" 
                    onerror="this.src='/images/basic_Image.png'"></td>
-          <td>${birthYearStr}${user.name || '--'}(${user.displayName || '--'})</td>
+          <td>${user.name || '--'}${phoneSuffix ? phoneSuffix : '-'}(${user.displayName || '--'})</td>
           <td>${roleDisplay[user.role] || user.role}</td>
           <td>${teamName || '-'}</td>
           <td>${getGenderDisplay(user.gender)}</td>
