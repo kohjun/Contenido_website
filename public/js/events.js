@@ -195,15 +195,6 @@ async function submitEvent() {
     const endTime = document.getElementById('event-end-time').value;
     const participation_fee = document.getElementById('event-participation-fee').value;
     const contents = document.getElementById('event-contents').value;
-    const refundPolicy = document.getElementById('event-refund-policy').value;
-    let noshowPolicy = document.getElementById('event-noshow-policy').value;
-    // 노쇼 규정이 비어있으면 기본값 자동 입력
-    if (!noshowPolicy.trim()) {
-      noshowPolicy =
-        '이벤트 당일 기준 일주일 전까지는 취소가 가능합니다.\n' +
-        '이벤트 당일 기준 일주일~당일 사이에 노쇼(무단불참) 시 경고 1회 및 대타자를 반드시 구해야 합니다.\n' +
-        '당일 노쇼 시 경고 1회 및 회비 12,000원 납부 의무가 있습니다.';
-    }
     const team = document.getElementById('event-team').value;
     const accessCode = document.getElementById('event-access-code').value;
     const isSelective = document.getElementById('is-selective').checked;
@@ -213,8 +204,7 @@ async function submitEvent() {
     
     // 입력값 검증
     if (!title || !place || !participants || !date || !startTime || 
-        !endTime || !participation_fee || !contents || !team || !accessCode ||
-        !refundPolicy || !noshowPolicy) {
+        !endTime || !participation_fee || !contents || !team || !accessCode) {
       alert('모든 필수 필드를 입력해주세요.');
       return;
     }
@@ -245,8 +235,6 @@ async function submitEvent() {
     formData.append('endTime', endTime);
     formData.append('participation_fee', participation_fee);
     formData.append('contents', contents);
-    formData.append('refundPolicy', refundPolicy);
-    formData.append('noshowPolicy', noshowPolicy);
     formData.append('team', team);
     formData.append('accessCode', accessCode);
     formData.append('isSelective', isSelective);
