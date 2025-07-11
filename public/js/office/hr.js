@@ -1,761 +1,733 @@
 let currentRole = 'all';
-let currentPage = 1;
-const usersPerPage = 20;
-let searchResults = [];
-let users = [];
-let selectedUserId = null;
+    let currentPage = 1;
+    const usersPerPage = 20;
+    let searchResults = [];
+    let users = [];
+    let selectedUserId = null;
 
-// 페이지 로드 시 초기화
-document.addEventListener('DOMContentLoaded', () => {
-    loadUsers();
-    initializeDialogs();
-});
-
-// 다이얼로그 초기화
-function initializeDialogs() {
-    // 역할 변경 다이얼로그 추가
-    const roleDialog = document.createElement('div');
-    roleDialog.className = 'role-change-dialog';
-    roleDialog.id = 'roleChangeDialog';
-    roleDialog.style.display = 'none';
-    roleDialog.innerHTML = `
-        <div class="dialog-content">
-            <h3>역할 변경</h3>
-            <select id="roleSelect">
-                <option value="participant">참가자</option>
-                <option value="starter">스타터</option>
-                <option value="officer">운영진</option>
-                <option value="guest">게스트</option>
-            </select>
-            <div class="dialog-buttons">
-                <button onclick="updateUserRole()">변경</button>
-                <button onclick="closeDialog('roleChangeDialog')">취소</button>
-                
-              
-            </div>
-        </div>
-    `;
-    document.body.appendChild(roleDialog);
-
-    // 팀 변경 다이얼로그 추가
-    const teamDialog = document.createElement('div');
-    teamDialog.className = 'role-change-dialog';
-    teamDialog.id = 'teamChangeDialog';
-    teamDialog.style.display = 'none';
-    teamDialog.innerHTML = `
-        <div class="dialog-content">
-            <h3>팀 변경</h3>
-            <select id="teamSelect" onchange="onTeamSelectChange()">
-                <option value="operationTeam">운영팀</option>
-                <option value="HumanResourceTeam">인사팀</option>
-                <option value="financeTeam">재무팀</option>
-                <option value="cooperationTeam">대외협력팀</option>
-                <option value="marketingTeam">홍보팀</option>
-                <option value="designTeam">디자인팀</option>
-                <option value="videoTeam">영상제작팀</option>
-                <option value="PlanningTeam">기획팀</option>
-                <option value="regularTeam">정기모임팀</option>
-                <option value="staffTeam">스태프팀</option>
-                <option value="starterTeam">스타터팀</option>
-            </select>
-            <select id="staffSubteamSelect" style="display:none; margin-top:10px;">
-                <option value="">스태프 소그룹 선택</option>
-                <option value="A-1">A-1</option>
-                <option value="B-1">B-1</option>
-                <option value="C-1">C-1</option>
-                <option value="C-2">C-2</option>
-            </select>
-            <div class="dialog-buttons">
-                <button onclick="updateUserTeam()">변경</button>
-                <button onclick="closeDialog('teamChangeDialog')">취소</button>
-            </div>
-        </div>
-    `;
-    document.body.appendChild(teamDialog);
-
-    // 스태프 소그룹 변경 다이얼로그 추가
-    const staffSubteamDialog = document.createElement('div');
-    staffSubteamDialog.className = 'role-change-dialog';
-    staffSubteamDialog.id = 'staffSubteamDialog';
-    staffSubteamDialog.style.display = 'none';
-    staffSubteamDialog.innerHTML = `
-        <div class="dialog-content">
-            <h3>스태프 소그룹 변경</h3>
-            <select id="staffSubteamModalSelect">
-                <option value="">스태프 소그룹 선택</option>
-                <option value="A-1">A-1</option>
-                <option value="B-1">B-1</option>
-                <option value="C-1">C-1</option>
-                <option value="C-2">C-2</option>
-            </select>
-            <div class="dialog-buttons">
-                <button onclick="confirmStaffSubteamOnly()">변경</button>
-                <button onclick="closeDialog('staffSubteamDialog')">취소</button>
-            </div>
-        </div>
-    `;
-    document.body.appendChild(staffSubteamDialog);
-
-    // 컨텍스트 메뉴 추가
-    const contextMenu = document.createElement('div');
-    contextMenu.className = 'context-menu';
-    contextMenu.id = 'contextMenu';
-    contextMenu.style.display = 'none';
-    document.body.appendChild(contextMenu);
-
-    // 컨텍스트 메뉴 닫기 이벤트
-    document.addEventListener('click', function(e) {
-        if (!e.target.closest('.context-menu')) {
-            document.getElementById('contextMenu').style.display = 'none';
-        }
+    // 페이지 로드 시 초기화
+    document.addEventListener('DOMContentLoaded', () => {
+        loadUsers();
+        initializeDialogs();
     });
-}
 
-// 사용자 데이터 로드
-async function loadUsers() {
-    try {
-        const response = await fetch('/user/participants/users');
-        if (!response.ok) {
-            throw new Error('Failed to fetch users');
+    // 다이얼로그 초기화
+    function initializeDialogs() {
+        // 역할 변경 다이얼로그 추가
+        const roleDialog = document.createElement('div');
+        roleDialog.className = 'role-change-dialog';
+        roleDialog.id = 'roleChangeDialog';
+        roleDialog.style.display = 'none';
+        roleDialog.innerHTML = `
+            <div class="dialog-content">
+                <h3>역할 변경</h3>
+                <select id="roleSelect">
+                    <option value="participant">참가자</option>
+                    <option value="starter">스타터</option>
+                    <option value="officer">운영진</option>
+                    <option value="guest">게스트</option>
+                </select>
+                <div class="dialog-buttons">
+                    <button onclick="updateUserRole()">변경</button>
+                    <button onclick="closeDialog('roleChangeDialog')">취소</button>
+                    
+                
+                </div>
+            </div>
+        `;
+        document.body.appendChild(roleDialog);
+
+        // 팀 변경 다이얼로그 추가
+        const teamDialog = document.createElement('div');
+        teamDialog.className = 'role-change-dialog';
+        teamDialog.id = 'teamChangeDialog';
+        teamDialog.style.display = 'none';
+        teamDialog.innerHTML = `
+            <div class="dialog-content">
+                <h3>팀 변경</h3>
+                <select id="teamSelect" onchange="onTeamSelectChange()">
+                    <option value="operationTeam">운영팀</option>
+                    <option value="HumanResourceTeam">인사팀</option>
+                    <option value="financeTeam">재무팀</option>
+                    <option value="cooperationTeam">대외협력팀</option>
+                    <option value="marketingTeam">홍보팀</option>
+                    <option value="designTeam">디자인팀</option>
+                    <option value="videoTeam">영상제작팀</option>
+                    <option value="PlanningTeam">기획팀</option>
+                    <option value="regularTeam">정기모임팀</option>
+                    <option value="staffTeam">스태프팀</option>
+                    <option value="starterTeam">스타터팀</option>
+                </select>
+                <div class="dialog-buttons">
+                    <button onclick="updateUserTeam()">변경</button>
+                    <button onclick="closeDialog('teamChangeDialog')">취소</button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(teamDialog);
+
+        // 스태프 소그룹 변경 다이얼로그 추가
+        const staffSubteamDialog = document.createElement('div');
+        staffSubteamDialog.className = 'role-change-dialog';
+        staffSubteamDialog.id = 'staffSubteamDialog';
+        staffSubteamDialog.style.display = 'none';
+        staffSubteamDialog.innerHTML = `
+            <div class="dialog-content">
+                <h3>스태프 소그룹 변경</h3>
+                <select id="staffSubteamModalSelect">
+                    <option value="">스태프 소그룹 선택</option>
+                    <option value="A-1">A-1</option>
+                    <option value="B-1">B-1</option>
+                    <option value="C-1">C-1</option>
+                    <option value="C-2">C-2</option>
+                </select>
+                <div class="dialog-buttons">
+                    <button onclick="confirmStaffSubteamOnly()">변경</button>
+                    <button onclick="closeDialog('staffSubteamDialog')">취소</button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(staffSubteamDialog);
+
+        // 컨텍스트 메뉴 추가
+        const contextMenu = document.createElement('div');
+        contextMenu.className = 'context-menu';
+        contextMenu.id = 'contextMenu';
+        contextMenu.style.display = 'none';
+        document.body.appendChild(contextMenu);
+
+        // 컨텍스트 메뉴 닫기 이벤트
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.context-menu')) {
+                document.getElementById('contextMenu').style.display = 'none';
+            }
+        });
+    }
+
+    // 사용자 데이터 로드
+    async function loadUsers() {
+        try {
+            const response = await fetch('/user/participants/users');
+            if (!response.ok) {
+                throw new Error('Failed to fetch users');
+            }
+            const data = await response.json();
+            users = data;
+            showUsersByRole(currentRole);
+        } catch (error) {
+            console.error('Error loading users:', error);
         }
-        const data = await response.json();
-        users = data;
-        showUsersByRole(currentRole);
-    } catch (error) {
-        console.error('Error loading users:', error);
-    }
-}
-
-// 컨텍스트 메뉴 표시
-function handleContextMenu(e, userId, userName, userRole) {
-    e.preventDefault();
-    selectedUserId = userId;
-    const contextMenu = document.getElementById('contextMenu');
-    const user = users.find(u => u.id === userId);
-
-    if (userRole === 'admin') {
-        contextMenu.innerHTML = `
-            <div class="context-menu-header">${userName}</div>
-            <div class="menu-item disabled">Admin은 변경할 수 없습니다</div>
-        `;
-    } else if (user && user.team === 'staffTeam') {
-        contextMenu.innerHTML = `
-            <div class="context-menu-header">${userName}</div>
-            <button onclick="showDialog('roleChangeDialog')">역할 변경</button>
-            <button onclick="showDialog('teamChangeDialog')">팀 변경</button>
-            <button onclick="showStaffSubteamDialog()">스태프팀 변경</button>
-        `;
-    } else {
-        contextMenu.innerHTML = `
-            <div class="context-menu-header">${userName}</div>
-            <button onclick="showDialog('roleChangeDialog')">역할 변경</button>
-            ${userRole === 'officer' ? `<button onclick="showDialog('teamChangeDialog')">팀 변경</button>` : ''}
-        `;
     }
 
-    // 메뉴 위치 설정
-    const rect = e.target.getBoundingClientRect();
-    contextMenu.style.display = 'block';
-    contextMenu.style.left = `${e.clientX}px`;
-    contextMenu.style.top = `${e.clientY}px`;
-}
+    // 컨텍스트 메뉴 표시
+    function handleContextMenu(e, userId, userName, userRole) {
+        e.preventDefault();
+        selectedUserId = userId;
+        const contextMenu = document.getElementById('contextMenu');
+        const user = users.find(u => u.id === userId);
 
-// 다이얼로그 표시/숨김
-function showDialog(dialogId) {
-    document.getElementById('contextMenu').style.display = 'none';
-    document.getElementById(dialogId).style.display = 'flex';
-    if (dialogId === 'teamChangeDialog') {
-        window.onTeamSelectChange();
-    }
-}
-
-function closeDialog(dialogId) {
-    document.getElementById(dialogId).style.display = 'none';
-}
-
-// 역할 업데이트
-// hr.js
-async function updateUserRole() {
-    if (!selectedUserId) return;
-  
-    const newRole = document.getElementById('roleSelect').value;
-    try {
-      const requestBody = {
-        role: newRole
-      };
-  
-      // officer로 변경하는 경우 기본 부서와 팀 정보 추가
-      if (newRole === 'officer') {
-        requestBody.department = 'operation'; // 기본 부서
-        requestBody.team = 'operationTeam'; // 기본 팀
-      }
-
-      // guest로 변경하는 경우 active를 false로 설정
-      if (newRole === 'guest') {
-        requestBody.active = false;
-      }
-  
-      const response = await fetch(`/user/update-role/${selectedUserId}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
-        },
-        body: JSON.stringify(requestBody)
-      });
-  
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message);
-      }
-  
-      const result = await response.json();
-      users = users.map(user =>
-        user.id === selectedUserId ? { 
-          ...user, 
-          role: newRole,
-          department: newRole === 'officer' ? result.department : undefined,
-          team: newRole === 'officer' ? result.team : undefined,
-          active: newRole === 'guest' ? false : user.active
-        } : user
-      );
-      
-      closeDialog('roleChangeDialog');
-      showUsersByRole(currentRole, false);
-      highlightModifiedUser(selectedUserId);
-      
-      alert('역할이 성공적으로 변경되었습니다.');
-    } catch (error) {
-      console.error('Error updating user role:', error);
-      alert(error.message || '역할 변경 중 오류가 발생했습니다.');
-    }
-}
-
-// 팀과 부서 매핑 추가
-const teamDepartmentMapping = {
-    // 운영부
-    'operationTeam': 'operation',
-    'HumanResourceTeam': 'operation',
-    'financeTeam': 'operation',
-    'cooperationTeam': 'operation',
-    
-    // 홍보부
-    'marketingTeam': 'promotion',
-    'designTeam': 'promotion',
-    'videoTeam': 'promotion',
-    
-    // 기획부
-    'PlanningTeam': 'planning',
-    'regularTeam': 'planning',
-    'staffTeam': 'planning',
-    'starterTeam' : 'planning'
-};
-
-// 팀 변경 시 staffTeam을 선택하면 staffSubteam을 반드시 선택하도록 하고, 선택하지 않으면 경고창을 띄우고 변경을 막도록 수정
-window.onTeamSelectChange = function() {
-    const teamValue = document.getElementById('teamSelect').value;
-    const staffSubteamSelect = document.getElementById('staffSubteamSelect');
-    if (teamValue === 'staffTeam') {
-        staffSubteamSelect.style.display = '';
-        // 현재 선택된 유저의 staffSubteam 값이 있으면 선택
-        const user = users.find(u => u.id === selectedUserId);
-        if (user && user.staffSubteam) {
-            staffSubteamSelect.value = user.staffSubteam;
+        if (userRole === 'admin') {
+            contextMenu.innerHTML = `
+                <div class="context-menu-header">${userName}</div>
+                <div class="menu-item disabled">Admin은 변경할 수 없습니다</div>
+            `;
+        } else if (user && user.team === 'staffTeam') {
+            contextMenu.innerHTML = `
+                <div class="context-menu-header">${userName}</div>
+                <button onclick="showDialog('roleChangeDialog')">역할 변경</button>
+                <button onclick="showDialog('teamChangeDialog')">팀 변경</button>
+                <button onclick="showStaffSubteamDialog()">스태프팀 변경</button>
+            `;
         } else {
-            staffSubteamSelect.value = '';
+            contextMenu.innerHTML = `
+                <div class="context-menu-header">${userName}</div>
+                <button onclick="showDialog('roleChangeDialog')">역할 변경</button>
+                ${userRole === 'officer' ? `<button onclick="showDialog('teamChangeDialog')">팀 변경</button>` : ''}
+            `;
         }
-    } else {
-        staffSubteamSelect.style.display = 'none';
-        staffSubteamSelect.value = '';
-    }
-};
 
-// 팀 업데이트 함수 수정
-async function updateUserTeam() {
-    if (!selectedUserId) return;
-
-    const newTeam = document.getElementById('teamSelect').value;
-    const newDepartment = teamDepartmentMapping[newTeam];
-    const staffSubteamSelect = document.getElementById('staffSubteamSelect');
-    const staffSubteam = (newTeam === 'staffTeam' && staffSubteamSelect) ? staffSubteamSelect.value : undefined;
-
-    // staffTeam 선택 시 staffSubteam 필수
-    if (newTeam === 'staffTeam' && (!staffSubteam || staffSubteam === '')) {
-        alert('스태프팀을 선택하면 반드시 소그룹(A-1, B-1, C-1, C-2)을 선택해야 합니다.');
-        staffSubteamSelect.focus();
-        return;
+        // 메뉴 위치 설정
+        const rect = e.target.getBoundingClientRect();
+        contextMenu.style.display = 'block';
+        contextMenu.style.left = `${e.clientX}px`;
+        contextMenu.style.top = `${e.clientY}px`;
     }
 
-    try {
-        const body = { 
-            team: newTeam,
-            department: newDepartment
+    // 다이얼로그 표시/숨김
+    function showDialog(dialogId) {
+        document.getElementById('contextMenu').style.display = 'none';
+        document.getElementById(dialogId).style.display = 'flex';
+        if (dialogId === 'teamChangeDialog') {
+            window.onTeamSelectChange();
+        }
+    }
+
+    function closeDialog(dialogId) {
+        document.getElementById(dialogId).style.display = 'none';
+    }
+
+    // 역할 업데이트
+    // hr.js
+    async function updateUserRole() {
+        if (!selectedUserId) return;
+    
+        const newRole = document.getElementById('roleSelect').value;
+        try {
+        const requestBody = {
+            role: newRole
         };
-        if (newTeam === 'staffTeam') {
-            body.staffSubteam = staffSubteam;
+    
+        // officer로 변경하는 경우 기본 부서와 팀 정보 추가
+        if (newRole === 'officer') {
+            requestBody.department = 'operation'; // 기본 부서
+            requestBody.team = 'operationTeam'; // 기본 팀
         }
 
-        const response = await fetch(`/user/update-team/${selectedUserId}`, {
+        // guest로 변경하는 경우 active를 false로 설정
+        if (newRole === 'guest') {
+            requestBody.active = false;
+        }
+    
+        const response = await fetch(`/user/update-role/${selectedUserId}`, {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json'
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
             },
-            body: JSON.stringify(body)
+            body: JSON.stringify(requestBody)
         });
-
+    
         if (!response.ok) {
             const error = await response.json();
             throw new Error(error.message);
         }
-
-        // 사용자 데이터 업데이트
+    
+        const result = await response.json();
         users = users.map(user =>
             user.id === selectedUserId ? { 
-                ...user, 
-                team: newTeam, 
-                department: newDepartment,
-                staffSubteam: newTeam === 'staffTeam' ? staffSubteam : undefined
+            ...user, 
+            role: newRole,
+            department: newRole === 'officer' ? result.department : undefined,
+            team: newRole === 'officer' ? result.team : undefined,
+            active: newRole === 'guest' ? false : user.active
             } : user
         );
         
-        closeDialog('teamChangeDialog');
+        closeDialog('roleChangeDialog');
         showUsersByRole(currentRole, false);
         highlightModifiedUser(selectedUserId);
         
-        alert('팀이 성공적으로 변경되었습니다.');
-    } catch (error) {
-        console.error('Error updating user team:', error);
-        alert(error.message || '팀 변경 중 오류가 발생했습니다.');
-    }
-}
-
-// 변경된 유저 행 하이라이트 함수
-function highlightModifiedUser(userId) {
-  const userRow = document.querySelector(`tr[oncontextmenu*="${userId}"]`);
-  if (userRow) {
-      userRow.classList.add('recently-modified');
-      
-      // 1분 후에 하이라이트 제거
-      setTimeout(() => {
-          userRow.classList.remove('recently-modified');
-      }, 60000); // 60000ms = 1분
-  }
-}
-// 성별 표시 변환
-function getGenderDisplay(gender) {
-    switch(gender?.toLowerCase()) {
-        case 'male':
-            return '남';
-        case 'female':
-            return '여';
-        default:
-            return '-';
-    }
-}
-
-// HTTP URL을 HTTPS로 변환하는 헬퍼 함수 추가
-function ensureHttps(url) {
-  if (!url) return '/images/basic_Image.png';
-  return url.replace(/^http:/, 'https:');
-}
-
-// 중복된 generateUserRow 함수를 하나로 통합하고 수정
-function generateUserRow(user) {
-    if (!user) return '';
-    
-    const warningCount = user.warningCount || 0;
-    const regularCount = user.participationCount?.regularCount || 0;
-    const teamName = getTeamNameInKorean(user.team, user.staffSubteam);
-    const joinDate = user.createdAt ? new Date(user.createdAt).toLocaleDateString() : '-';
-    const secureProfileImage = ensureHttps(user.profileImage);
-
-    // 전화번호 뒷자리 추출
-    let phoneSuffix = '';
-    if (user.phonenumber) {
-        // 숫자만 추출 후 4자리 뒷자리
-        const digits = user.phonenumber.replace(/\D/g, '');
-        phoneSuffix = digits.slice(-4);
+        alert('역할이 성공적으로 변경되었습니다.');
+        } catch (error) {
+        console.error('Error updating user role:', error);
+        alert(error.message || '역할 변경 중 오류가 발생했습니다.');
+        }
     }
 
-    const roleDisplay = {
-        'officer': '운영진',
-        'starter': '스타터',
-        'admin': '관리자',
-        'participant': '참가자',
-        'guest': '게스트'
+    // 팀과 부서 매핑 추가
+    const teamDepartmentMapping = {
+        // 운영부
+        'operationTeam': 'operation',
+        'HumanResourceTeam': 'operation',
+        'financeTeam': 'operation',
+        'cooperationTeam': 'operation',
+        
+        // 홍보부
+        'marketingTeam': 'promotion',
+        'designTeam': 'promotion',
+        'videoTeam': 'promotion',
+        
+        // 기획부
+        'PlanningTeam': 'planning',
+        'regularTeam': 'planning',
+        'staffTeam': 'planning',
+        'starterTeam' : 'planning'
     };
 
-    return `
-      <tr oncontextmenu="handleContextMenu(event, '${user.id}', '${user.name || ''}', '${user.role}')" 
-          data-warning="${warningCount}">
-          <td><img src="${secureProfileImage}" alt="Profile" class="profile-image" 
-                   onerror="this.src='/images/basic_Image.png'"></td>
-          <td>${user.name || '--'}${phoneSuffix ? phoneSuffix : '-'}(${user.displayName || '--'})</td>
-          <td>${roleDisplay[user.role] || user.role}</td>
-          <td>${teamName || '-'}</td>
-          <td>${getGenderDisplay(user.gender)}</td>
-          <td class="warning-count-cell">
-              <button onclick="updateWarningCount('${user.id}', ${Math.max(0, warningCount - 1)})" 
-                      class="warning-btn" ${warningCount <= 0 ? 'disabled' : ''}>-</button>
-              <span>${warningCount}</span>
-              <button onclick="updateWarningCount('${user.id}', ${warningCount + 1})" 
-                      class="warning-btn">+</button>
-          </td>
-          <td class="participation-count-cell">
-              <button onclick="updateParticipationCount('${user.id}', ${Math.max(0, regularCount - 1)})" 
-                      class="warning-btn" ${regularCount <= 0 ? 'disabled' : ''}>-</button>
-              <span>${regularCount}</span>
-              <button onclick="updateParticipationCount('${user.id}', ${regularCount + 1})" 
-                      class="warning-btn">+</button>
-          </td>
-          <td>
-              <label class="toggle-switch">
-                  <input type="checkbox" ${user.active ? 'checked' : ''} 
-                         onclick="toggleUserActive('${user.id}', this.checked)">
-                  <span class="slider"></span>
-              </label>
-          </td>
-          <td>${joinDate}</td>
-      </tr>
-    `;
-}
+    // 팀 변경 시 staffTeam을 선택해도 staffSubteam을 입력받지 않고, staffSubteam 관련 코드를 제거
+    window.onTeamSelectChange = function() {
+        const teamValue = document.getElementById('teamSelect').value;
+        const staffSubteamSelect = document.getElementById('staffSubteamSelect');
+        // staffTeam 선택 시에도 staffSubteamSelect를 숨김 처리
+        staffSubteamSelect.style.display = 'none';
+        staffSubteamSelect.value = '';
+    };
 
-function getTeamNameInKorean(team, staffSubteam) {
-  const teamMapping = {
-    "operationTeam": "운영팀",
-    "HumanResourceTeam": "인사팀",
-    "financeTeam": "재무팀",
-    "cooperationTeam": "대외협력팀",
-    "marketingTeam": "홍보팀",
-    "designTeam": "디자인팀",
-    "videoTeam": "영상제작팀",
-    "PlanningTeam": "기획팀",
-    "regularTeam": "정기모임팀",
-    "staffTeam": "스태프팀",
-    "starterTeam" : "스타터팀"
-  };
-  if (team === "staffTeam" && staffSubteam) {
-    return `${teamMapping[team]}(${staffSubteam})`;
-  }
-  return teamMapping[team] || team;
-}
+    // 팀 업데이트 함수 수정
+    async function updateUserTeam() {
+        if (!selectedUserId) return;
 
+        const newTeam = document.getElementById('teamSelect').value;
+        const newDepartment = teamDepartmentMapping[newTeam];
 
-// 참가 횟수 업데이트 함수 수정
-async function updateParticipationCount(userId, newCount) {
-    try {
-        const response = await fetch(`/user/update-participation/${userId}`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ regularCount: newCount })
-        });
+        try {
+            const body = { 
+                team: newTeam,
+                department: newDepartment
+            };
 
-        if (!response.ok) {
-            throw new Error('Failed to update participation count');
+            const response = await fetch(`/user/update-team/${selectedUserId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify(body)
+            });
+
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.message);
+            }
+
+            // 사용자 데이터 업데이트
+            users = users.map(user =>
+                user.id === selectedUserId ? { 
+                    ...user, 
+                    team: newTeam, 
+                    department: newDepartment
+                } : user
+            );
+            
+            closeDialog('teamChangeDialog');
+            showUsersByRole(currentRole, false);
+            highlightModifiedUser(selectedUserId);
+            
+            alert('팀이 성공적으로 변경되었습니다.');
+        } catch (error) {
+            console.error('Error updating user team:', error);
+            alert(error.message || '팀 변경 중 오류가 발생했습니다.');
         }
+    }
 
-        users = users.map(user =>
-            user.id === userId ? {
-                ...user,
-                participationCount: {
-                    ...user.participationCount,
-                    regularCount: newCount
-                }
-            } : user
-        );
+    // 변경된 유저 행 하이라이트 함수
+    function highlightModifiedUser(userId) {
+    const userRow = document.querySelector(`tr[oncontextmenu*="${userId}"]`);
+    if (userRow) {
+        userRow.classList.add('recently-modified');
         
-        showUsersByRole(currentRole, false);
-        alert('참가 횟수가 업데이트되었습니다.');
-    } catch (error) {
-        console.error('Error updating participation count:', error);
-        alert('참가 횟수 업데이트에 실패했습니다.');
+        // 1분 후에 하이라이트 제거
+        setTimeout(() => {
+            userRow.classList.remove('recently-modified');
+        }, 60000); // 60000ms = 1분
     }
-}
-
-// 경고 횟수 업데이트
-async function updateWarningCount(userId, newCount) {
-    try {
-        const response = await fetch(`/user/update-warning/${userId}`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ warningCount: newCount })
-        });
-
-        if (!response.ok) {
-            throw new Error('Failed to update warning count');
-        }
-
-        users = users.map(user =>
-            user.id === userId ? { ...user, warningCount: newCount } : user
-        );
-        
-        showUsersByRole(currentRole, false);
-        alert('경고 횟수가 업데이트되었습니다.');
-    } catch (error) {
-        console.error('Error updating warning count:', error);
-        alert('경고 횟수 업데이트에 실패했습니다.');
-    }
-}
-
-// 활성 상태 토글
-async function toggleUserActive(userId, active) {
-    try {
-        const response = await fetch(`/user/toggle-active/${userId}`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ active })
-        });
-
-        if (!response.ok) {
-            throw new Error('Failed to update user status');
-        }
-
-        users = users.map(user =>
-            user.id === userId ? { ...user, active } : user
-        );
-        
-        showUsersByRole(currentRole, false);
-        alert('활성상태가 변경되었습니다.');
-    } catch (error) {
-        console.error('Error toggling user status:', error);
-        alert('사용자 상태 업데이트에 실패했습니다.');
-    }
-}
-
-// 역할별 사용자 표시
-function showUsersByRole(role, resetPage = true) {
-  currentRole = role;
-  if (resetPage) {
-      currentPage = 1;
-      searchResults = [];
-      document.getElementById('search-input').value = '';
-  }
-
-  // 역할 버튼 활성화 상태 업데이트
-  const buttons = document.querySelectorAll('.role-button');
-  buttons.forEach(button => {
-      button.classList.remove('active');
-      if (button.getAttribute('data-role') === role) {
-          button.classList.add('active');
-      }
-  });
-
-  let filteredUsers;
-  switch(role) {
-      case 'all':
-          filteredUsers = users;
-          break;
-      case 'staffTeam':
-          // team이 staffTeam인 officer만 필터링
-          filteredUsers = users.filter(user => 
-              user.team === 'staffTeam'
-          );
-          break;
-      case 'participant':
-      case 'officer':
-      case 'starter':
-      case 'guest':
-          // 일반 역할별 필터링
-          filteredUsers = users.filter(user => user.role === role);
-          break;
-      default:
-          filteredUsers = users;
-  }
-
-  const startIndex = (currentPage - 1) * usersPerPage;
-  const endIndex = startIndex + usersPerPage;
-  const usersToShow = filteredUsers.slice(startIndex, endIndex);
-
-  const tableBody = document.getElementById('user-table-body');
-  if (tableBody) {
-      tableBody.innerHTML = usersToShow.map(generateUserRow).join('');
-      createPagination(filteredUsers.length);
-  }
-}
-
-// 페이지네이션 생성
-function createPagination(totalUsers) {
-    const totalPages = Math.ceil(totalUsers / usersPerPage);
-    const paginationContainer = document.getElementById('pagination');
-    if (!paginationContainer) return;
-
-    let paginationHtml = '<div class="pagination">';
-    
-    if (currentPage > 1) {
-        paginationHtml += `<button onclick="changePage(${currentPage - 1})">이전</button>`;
-    }
-
-    for (let i = 1; i <= totalPages; i++) {
-        paginationHtml += `<button class="${i === currentPage ? 'active' : ''}" 
-                                   onclick="changePage(${i})">${i}</button>`;
-    }
-
-    if (currentPage < totalPages) {
-        paginationHtml += `<button onclick="changePage(${currentPage + 1})">다음</button>`;
-    }
-
-    paginationHtml += '</div>';
-    paginationContainer.innerHTML = paginationHtml;
-}
-
-// 페이지 변경
-function changePage(page) {
-    currentPage = page;
-    showUsersByRole(currentRole, false);
-}
-
-// 검색 기능
-function searchUsers() {
-    const searchOption = document.getElementById('search-option')?.value || 'name';
-    const searchInputElement = document.getElementById('search-input');
-    if (!searchInputElement) {
-        console.error('Search input element not found');
-        return;
-    }
-    
-    const searchInput = searchInputElement.value?.toLowerCase() || '';
-
-    const currentRoleUsers = currentRole === 'all' 
-        ? users 
-        : users.filter(user => user.role === currentRole);
-
-    searchResults = currentRoleUsers.filter(user => {
-        if (!user) return false;
-
-        switch(searchOption) {
-            case 'name':
-                return user.name?.toLowerCase()?.includes(searchInput) || false;
-            case 'warningCount':
-                return (user.warningCount || 0).toString() === searchInput;
-            case 'active':
-                const searchActive = searchInput === '활성' || searchInput === 'active' || searchInput === '1';
-                const searchInactive = searchInput === '비활성' || searchInput === 'inactive' || searchInput === '0';
-                return searchActive ? user.active : searchInactive ? !user.active : false;
-            case 'role':
-                const roleMap = {
-                    '참가자': 'participant',
-                    '운영진': 'officer',
-                    '스타터': 'starter',
-                    '게스트': 'guest'
-                };
-                const searchRole = roleMap[searchInput] || searchInput;
-                return (user.role || '').toLowerCase() === searchRole.toLowerCase();
-            case 'gender':
-                if (!user.gender) return false;
-                if (searchInput === '남' || searchInput === 'male') {
-                    return user.gender.toLowerCase() === 'male';
-                }
-                if (searchInput === '여' || searchInput === 'female') {
-                    return user.gender.toLowerCase() === 'female';
-                }
-                return false;
+    // 성별 표시 변환
+    function getGenderDisplay(gender) {
+        switch(gender?.toLowerCase()) {
+            case 'male':
+                return '남';
+            case 'female':
+                return '여';
             default:
-                return true;
+                return '-';
+        }
+    }
+
+    // HTTP URL을 HTTPS로 변환하는 헬퍼 함수 추가
+    function ensureHttps(url) {
+    if (!url) return '/images/basic_Image.png';
+    return url.replace(/^http:/, 'https:');
+    }
+
+    // 중복된 generateUserRow 함수를 하나로 통합하고 수정
+    function generateUserRow(user) {
+        if (!user) return '';
+        
+        const warningCount = user.warningCount || 0;
+        const regularCount = user.participationCount?.regularCount || 0;
+        const teamName = getTeamNameInKorean(user.team, user.staffSubteam);
+        const joinDate = user.createdAt ? new Date(user.createdAt).toLocaleDateString() : '-';
+        const secureProfileImage = ensureHttps(user.profileImage);
+
+        // 전화번호 뒷자리 추출
+        let phoneSuffix = '';
+        if (user.phonenumber) {
+            // 숫자만 추출 후 4자리 뒷자리
+            const digits = user.phonenumber.replace(/\D/g, '');
+            phoneSuffix = digits.slice(-4);
+        }
+
+        const roleDisplay = {
+            'officer': '운영진',
+            'starter': '스타터',
+            'admin': '관리자',
+            'participant': '참가자',
+            'guest': '게스트'
+        };
+
+        return `
+        <tr oncontextmenu="handleContextMenu(event, '${user.id}', '${user.name || ''}', '${user.role}')" 
+            data-warning="${warningCount}">
+            <td><img src="${secureProfileImage}" alt="Profile" class="profile-image" 
+                    onerror="this.src='/images/basic_Image.png'"></td>
+            <td>${user.name || '--'}${phoneSuffix ? phoneSuffix : '-'}(${user.displayName || '--'})</td>
+            <td>${roleDisplay[user.role] || user.role}</td>
+            <td>${teamName || '-'}</td>
+            <td>${getGenderDisplay(user.gender)}</td>
+            <td class="warning-count-cell">
+                <button onclick="updateWarningCount('${user.id}', ${Math.max(0, warningCount - 1)})" 
+                        class="warning-btn" ${warningCount <= 0 ? 'disabled' : ''}>-</button>
+                <span>${warningCount}</span>
+                <button onclick="updateWarningCount('${user.id}', ${warningCount + 1})" 
+                        class="warning-btn">+</button>
+            </td>
+            <td class="participation-count-cell">
+                <button onclick="updateParticipationCount('${user.id}', ${Math.max(0, regularCount - 1)})" 
+                        class="warning-btn" ${regularCount <= 0 ? 'disabled' : ''}>-</button>
+                <span>${regularCount}</span>
+                <button onclick="updateParticipationCount('${user.id}', ${regularCount + 1})" 
+                        class="warning-btn">+</button>
+            </td>
+            <td>
+                <label class="toggle-switch">
+                    <input type="checkbox" ${user.active ? 'checked' : ''} 
+                            onclick="toggleUserActive('${user.id}', this.checked)">
+                    <span class="slider"></span>
+                </label>
+            </td>
+            <td>${joinDate}</td>
+        </tr>
+        `;
+    }
+
+    function getTeamNameInKorean(team, staffSubteam) {
+    const teamMapping = {
+        "operationTeam": "운영팀",
+        "HumanResourceTeam": "인사팀",
+        "financeTeam": "재무팀",
+        "cooperationTeam": "대외협력팀",
+        "marketingTeam": "홍보팀",
+        "designTeam": "디자인팀",
+        "videoTeam": "영상제작팀",
+        "PlanningTeam": "기획팀",
+        "regularTeam": "정기모임팀",
+        "staffTeam": "스태프팀",
+        "starterTeam" : "스타터팀"
+    };
+    if (team === "staffTeam" && staffSubteam) {
+        return `${teamMapping[team]}(${staffSubteam})`;
+    }
+    return teamMapping[team] || team;
+    }
+
+
+    // 참가 횟수 업데이트 함수 수정
+    async function updateParticipationCount(userId, newCount) {
+        try {
+            const response = await fetch(`/user/update-participation/${userId}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ regularCount: newCount })
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to update participation count');
+            }
+
+            users = users.map(user =>
+                user.id === userId ? {
+                    ...user,
+                    participationCount: {
+                        ...user.participationCount,
+                        regularCount: newCount
+                    }
+                } : user
+            );
+            
+            showUsersByRole(currentRole, false);
+            alert('참가 횟수가 업데이트되었습니다.');
+        } catch (error) {
+            console.error('Error updating participation count:', error);
+            alert('참가 횟수 업데이트에 실패했습니다.');
+        }
+    }
+
+    // 경고 횟수 업데이트
+    async function updateWarningCount(userId, newCount) {
+        try {
+            const response = await fetch(`/user/update-warning/${userId}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ warningCount: newCount })
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to update warning count');
+            }
+
+            users = users.map(user =>
+                user.id === userId ? { ...user, warningCount: newCount } : user
+            );
+            
+            showUsersByRole(currentRole, false);
+            alert('경고 횟수가 업데이트되었습니다.');
+        } catch (error) {
+            console.error('Error updating warning count:', error);
+            alert('경고 횟수 업데이트에 실패했습니다.');
+        }
+    }
+
+    // 활성 상태 토글
+    async function toggleUserActive(userId, active) {
+        // active를 boolean으로 강제 변환
+        const activeBool = !!active;
+        try {
+            const response = await fetch(`/user/toggle-active/${userId}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ active: activeBool })
+            });
+
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.message);
+            }
+
+            users = users.map(user =>
+                user.id === userId ? { ...user, active: activeBool } : user
+            );
+            
+            showUsersByRole(currentRole, false);
+            alert('활성상태가 변경되었습니다.');
+        } catch (error) {
+            console.error('Error toggling user status:', error);
+            alert('사용자 상태 업데이트에 실패했습니다.');
+        }
+    }
+
+    // 역할별 사용자 표시
+    function showUsersByRole(role, resetPage = true) {
+    currentRole = role;
+    if (resetPage) {
+        currentPage = 1;
+        searchResults = [];
+        document.getElementById('search-input').value = '';
+    }
+
+    // 역할 버튼 활성화 상태 업데이트
+    const buttons = document.querySelectorAll('.role-button');
+    buttons.forEach(button => {
+        button.classList.remove('active');
+        if (button.getAttribute('data-role') === role) {
+            button.classList.add('active');
         }
     });
 
-    currentPage = 1;
-    displaySearchResults();
-}
+    let filteredUsers;
+    switch(role) {
+        case 'all':
+            filteredUsers = users;
+            break;
+        case 'staffTeam':
+            // team이 staffTeam인 officer만 필터링
+            filteredUsers = users.filter(user => 
+                user.team === 'staffTeam'
+            );
+            break;
+        case 'participant':
+        case 'officer':
+        case 'starter':
+        case 'guest':
+            // 일반 역할별 필터링
+            filteredUsers = users.filter(user => user.role === role);
+            break;
+        default:
+            filteredUsers = users;
+    }
 
-// 검색 결과 표시
-function displaySearchResults() {
     const startIndex = (currentPage - 1) * usersPerPage;
     const endIndex = startIndex + usersPerPage;
-    const usersToShow = searchResults.slice(startIndex, endIndex);
+    const usersToShow = filteredUsers.slice(startIndex, endIndex);
 
     const tableBody = document.getElementById('user-table-body');
-    if (!tableBody) {
-        console.error('Table body element not found');
-        return;
+    if (tableBody) {
+        tableBody.innerHTML = usersToShow.map(generateUserRow).join('');
+        createPagination(filteredUsers.length);
+    }
     }
 
-    tableBody.innerHTML = usersToShow.map(user => generateUserRow(user)).join('');
-    createPagination(searchResults.length);
-}
+    // 페이지네이션 생성
+    function createPagination(totalUsers) {
+        const totalPages = Math.ceil(totalUsers / usersPerPage);
+        const paginationContainer = document.getElementById('pagination');
+        if (!paginationContainer) return;
 
-// 검색 초기화
-function resetSearch() {
-    document.getElementById('search-input').value = '';
-    searchResults = [];
-    currentPage = 1;
-    showUsersByRole(currentRole, true);
-}
-
-function showStaffSubteamDialog() {
-    document.getElementById('contextMenu').style.display = 'none';
-    // staffSubteamModalSelect가 실제로 DOM에 있는지 확인
-    const select = document.getElementById('staffSubteamModalSelect');
-    const dialog = document.getElementById('staffSubteamDialog');
-    if (!select || !dialog) {
-        alert('스태프 소그룹 변경 다이얼로그가 준비되지 않았습니다.\n(office_HR.html에 staffSubteamDialog와 staffSubteamModalSelect가 있는지 확인하세요)');
-        return;
-    }
-    const user = users.find(u => u.id === selectedUserId);
-    if (user && user.staffSubteam) {
-        select.value = user.staffSubteam;
-    } else {
-        select.value = '';
-    }
-    dialog.style.display = 'flex';
-}
-window.showStaffSubteamDialog = showStaffSubteamDialog;
-
-async function confirmStaffSubteamOnly() {
-    const select = document.getElementById('staffSubteamModalSelect');
-    const dialog = document.getElementById('staffSubteamDialog');
-    if (!select || !dialog) {
-        alert('스태프 소그룹 변경 다이얼로그가 준비되지 않았습니다.');
-        return;
-    }
-    const staffSubteam = select.value;
-    if (!staffSubteam) {
-        alert('스태프 소그룹을 반드시 선택해야 합니다.');
-        return;
-    }
-    try {
-        const response = await fetch(`/user/update-staffsubteam/${selectedUserId}`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json'
-            },
-            body: JSON.stringify({
-                staffSubteam
-            })
-        });
-
-        if (!response.ok) {
-            const error = await response.json();
-            throw new Error(error.message);
+        let paginationHtml = '<div class="pagination">';
+        
+        if (currentPage > 1) {
+            paginationHtml += `<button onclick="changePage(${currentPage - 1})">이전</button>`;
         }
 
-        // 사용자 데이터 업데이트
-        users = users.map(user =>
-            user.id === selectedUserId ? { 
-                ...user, 
-                staffSubteam
-            } : user
-        );
-        dialog.style.display = 'none';
-        showUsersByRole(currentRole, false);
-        highlightModifiedUser(selectedUserId);
-        alert('스태프 소그룹이 성공적으로 변경되었습니다.');
-    } catch (error) {
-        console.error('Error updating staff subteam:', error);
-        alert(error.message || '스태프 소그룹 변경 중 오류가 발생했습니다.');
-    }
-}
-window.confirmStaffSubteamOnly = confirmStaffSubteamOnly;
+        for (let i = 1; i <= totalPages; i++) {
+            paginationHtml += `<button class="${i === currentPage ? 'active' : ''}" 
+                                    onclick="changePage(${i})">${i}</button>`;
+        }
 
-// 반드시 아래처럼 바인딩
-window.updateUserRole = updateUserRole;
-window.updateUserTeam = updateUserTeam;
-window.closeDialog = closeDialog;
-window.showUsersByRole = showUsersByRole;
-window.searchUsers = searchUsers;
-window.resetSearch = resetSearch;
-window.handleContextMenu = handleContextMenu;
-window.showStaffSubteamDialog = showStaffSubteamDialog;
-window.confirmStaffSubteamOnly = confirmStaffSubteamOnly;
+        if (currentPage < totalPages) {
+            paginationHtml += `<button onclick="changePage(${currentPage + 1})">다음</button>`;
+        }
+
+        paginationHtml += '</div>';
+        paginationContainer.innerHTML = paginationHtml;
+    }
+
+    // 페이지 변경
+    function changePage(page) {
+        currentPage = page;
+        showUsersByRole(currentRole, false);
+    }
+
+    // 검색 기능
+    function searchUsers() {
+        const searchOption = document.getElementById('search-option')?.value || 'name';
+        const searchInputElement = document.getElementById('search-input');
+        if (!searchInputElement) {
+            console.error('Search input element not found');
+            return;
+        }
+        
+        const searchInput = searchInputElement.value?.toLowerCase() || '';
+
+        const currentRoleUsers = currentRole === 'all' 
+            ? users 
+            : users.filter(user => user.role === currentRole);
+
+        searchResults = currentRoleUsers.filter(user => {
+            if (!user) return false;
+
+            switch(searchOption) {
+                case 'name':
+                    return user.name?.toLowerCase()?.includes(searchInput) || false;
+                case 'warningCount':
+                    return (user.warningCount || 0).toString() === searchInput;
+                case 'active':
+                    const searchActive = searchInput === '활성' || searchInput === 'active' || searchInput === '1';
+                    const searchInactive = searchInput === '비활성' || searchInput === 'inactive' || searchInput === '0';
+                    return searchActive ? user.active : searchInactive ? !user.active : false;
+                case 'role':
+                    const roleMap = {
+                        '참가자': 'participant',
+                        '운영진': 'officer',
+                        '스타터': 'starter',
+                        '게스트': 'guest'
+                    };
+                    const searchRole = roleMap[searchInput] || searchInput;
+                    return (user.role || '').toLowerCase() === searchRole.toLowerCase();
+                case 'gender':
+                    if (!user.gender) return false;
+                    if (searchInput === '남' || searchInput === 'male') {
+                        return user.gender.toLowerCase() === 'male';
+                    }
+                    if (searchInput === '여' || searchInput === 'female') {
+                        return user.gender.toLowerCase() === 'female';
+                    }
+                    return false;
+                default:
+                    return true;
+            }
+        });
+
+        currentPage = 1;
+        displaySearchResults();
+    }
+
+    // 검색 결과 표시
+    function displaySearchResults() {
+        const startIndex = (currentPage - 1) * usersPerPage;
+        const endIndex = startIndex + usersPerPage;
+        const usersToShow = searchResults.slice(startIndex, endIndex);
+
+        const tableBody = document.getElementById('user-table-body');
+        if (!tableBody) {
+            console.error('Table body element not found');
+            return;
+        }
+
+        tableBody.innerHTML = usersToShow.map(user => generateUserRow(user)).join('');
+        createPagination(searchResults.length);
+    }
+
+    // 검색 초기화
+    function resetSearch() {
+        document.getElementById('search-input').value = '';
+        searchResults = [];
+        currentPage = 1;
+        showUsersByRole(currentRole, true);
+    }
+
+    function showStaffSubteamDialog() {
+        document.getElementById('contextMenu').style.display = 'none';
+        // staffSubteamModalSelect가 실제로 DOM에 있는지 확인
+        const select = document.getElementById('staffSubteamModalSelect');
+        const dialog = document.getElementById('staffSubteamDialog');
+        if (!select || !dialog) {
+            alert('스태프 소그룹 변경 다이얼로그가 준비되지 않았습니다.\n(office_HR.html에 staffSubteamDialog와 staffSubteamModalSelect가 있는지 확인하세요)');
+            return;
+        }
+        const user = users.find(u => u.id === selectedUserId);
+        if (user && user.staffSubteam) {
+            select.value = user.staffSubteam;
+        } else {
+            select.value = '';
+        }
+        dialog.style.display = 'flex';
+    }
+    window.showStaffSubteamDialog = showStaffSubteamDialog;
+
+    async function confirmStaffSubteamOnly() {
+        const select = document.getElementById('staffSubteamModalSelect');
+        const dialog = document.getElementById('staffSubteamDialog');
+        if (!select || !dialog) {
+            alert('스태프 소그룹 변경 다이얼로그가 준비되지 않았습니다.');
+            return;
+        }
+        const staffSubteam = select.value;
+        if (!staffSubteam) {
+            alert('스태프 소그룹을 반드시 선택해야 합니다.');
+            return;
+        }
+        try {
+            const response = await fetch(`/user/update-staffsubteam/${selectedUserId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({
+                    staffSubteam
+                })
+            });
+
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.message);
+            }
+
+            // 사용자 데이터 업데이트
+            users = users.map(user =>
+                user.id === selectedUserId ? { 
+                    ...user, 
+                    staffSubteam
+                } : user
+            );
+            dialog.style.display = 'none';
+            showUsersByRole(currentRole, false);
+            highlightModifiedUser(selectedUserId);
+            alert('스태프 소그룹이 성공적으로 변경되었습니다.');
+        } catch (error) {
+            console.error('Error updating staff subteam:', error);
+            alert(error.message || '스태프 소그룹 변경 중 오류가 발생했습니다.');
+        }
+    }
+    window.confirmStaffSubteamOnly = confirmStaffSubteamOnly;
+
+    // 반드시 아래처럼 바인딩
+    window.updateUserRole = updateUserRole;
+    window.updateUserTeam = updateUserTeam;
+    window.closeDialog = closeDialog;
+    window.showUsersByRole = showUsersByRole;
+    window.searchUsers = searchUsers;
+    window.resetSearch = resetSearch;
+    window.handleContextMenu = handleContextMenu;
+    window.showStaffSubteamDialog = showStaffSubteamDialog;
+    window.confirmStaffSubteamOnly = confirmStaffSubteamOnly;

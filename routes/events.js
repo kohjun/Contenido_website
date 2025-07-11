@@ -254,7 +254,8 @@ router.post('/',
 
       const { 
         title, date, place, participants, startTime, endTime, 
-        participation_fee, contents, team, accessCode, hasParticipantRules 
+        participation_fee, contents, team, accessCode, hasParticipantRules,
+        refundPolicy, noshowPolicy
       } = req.body;
 
       const eventData = {
@@ -273,12 +274,15 @@ router.post('/',
         isSelective: req.body.isSelective === 'true',
         additionalQuestions: req.body.isSelective === 'true' && req.body.additionalQuestions ? 
           JSON.parse(req.body.additionalQuestions) : [],
-        hasParticipantRules: hasParticipantRules === 'true'
+        hasParticipantRules: hasParticipantRules === 'true',
+        refundPolicy,
+        noshowPolicy
       };
 
       // 입력값 검증
       if (!title || !date || !place || !participants || !startTime || 
-          !endTime || !participation_fee || !contents || !team || !accessCode) {
+          !endTime || !participation_fee || !contents || !team || !accessCode ||
+          !refundPolicy || !noshowPolicy) {
         return res.status(400).json({ message: '모든 필수 필드를 입력해주세요.' });
       }
 

@@ -75,6 +75,14 @@ const eventSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  refundPolicy: {
+    type: String,
+    required: true
+  },
+  noshowPolicy: {
+    type: String,
+    required: true
+  },
   creator: {
     type: mongoose.Schema.Types.ObjectId,
     required: true,
