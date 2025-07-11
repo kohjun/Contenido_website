@@ -148,14 +148,18 @@ router.post('/toggle-active/:userId', authenticateToken, async (req, res) => {
     const { userId } = req.params;
     const { active } = req.body;
 
+    // console.log(`사용자 ${userId} 활성화 상태 변경 요청: ${active}`);
+
     const user = await User.findById(userId);
     if (!user) {
+      console.log(`사용자 ${userId}를 찾을 수 없음`);
       return res.status(404).json({ message: 'User not found' });
     }
 
     user.active = active;
     await user.save();
 
+    // console.log(`사용자 ${userId} 활성화 상태 변경 완료: ${active}`);
     res.status(200).json({ message: 'User active status updated successfully' });
   } catch (error) {
     console.error(`활성화 상태 변경 중 오류:`, error);
