@@ -148,15 +148,8 @@ router.post('/toggle-active/:userId', authenticateToken, async (req, res) => {
     const { userId } = req.params;
     const { active } = req.body;
 
-    // active 값이 boolean인지 체크
-    if (typeof active !== 'boolean') {
-      console.error(`잘못된 active 값: ${active} (type: ${typeof active})`);
-      return res.status(400).json({ message: 'active 값은 true 또는 false여야 합니다.' });
-    }
-
     const user = await User.findById(userId);
     if (!user) {
-      console.error(`사용자 ${userId}를 찾을 수 없음`);
       return res.status(404).json({ message: 'User not found' });
     }
 
@@ -166,7 +159,7 @@ router.post('/toggle-active/:userId', authenticateToken, async (req, res) => {
     res.status(200).json({ message: 'User active status updated successfully' });
   } catch (error) {
     console.error(`활성화 상태 변경 중 오류:`, error);
-    res.status(500).json({ message: 'Error updating user active status', error: error.message });
+    res.status(500).json({ message: 'Error updating user active status' });
   }
 });
 

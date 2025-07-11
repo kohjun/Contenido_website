@@ -466,268 +466,264 @@ let currentRole = 'all';
             alert('경고 횟수 업데이트에 실패했습니다.');
         }
     }
+// 활성 상태 토글
+async function toggleUserActive(userId, active) {
+    try {
+        const response = await fetch(`/user/toggle-active/${userId}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ active })
+        });
 
-    // 활성 상태 토글
-    async function toggleUserActive(userId, active) {
-        // active를 boolean으로 강제 변환
-        const activeBool = !!active;
-        try {
-            const response = await fetch(`/user/toggle-active/${userId}`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ active: activeBool })
-            });
-
-            if (!response.ok) {
-                const error = await response.json();
-                throw new Error(error.message);
-            }
-
-            users = users.map(user =>
-                user.id === userId ? { ...user, active: activeBool } : user
-            );
-            
-            showUsersByRole(currentRole, false);
-            alert('활성상태가 변경되었습니다.');
-        } catch (error) {
-            console.error('Error toggling user status:', error);
-            alert('사용자 상태 업데이트에 실패했습니다.');
+        if (!response.ok) {
+            throw new Error('Failed to update user status');
         }
+
+        users = users.map(user =>
+            user.id === userId ? { ...user, active } : user
+        );
+        
+        showUsersByRole(currentRole, false);
+        alert('활성상태가 변경되었습니다.');
+    } catch (error) {
+        console.error('Error toggling user status:', error);
+        alert('사용자 상태 업데이트에 실패했습니다.');
+    }
+}
+
+// 역할별 사용자 표시
+function showUsersByRole(role, resetPage = true) {
+  currentRole = role;
+  if (resetPage) {
+      currentPage = 1;
+      searchResults = [];
+      document.getElementById('search-input').value = '';
+  }
+
+  // 역할 버튼 활성화 상태 업데이트
+  const buttons = document.querySelectorAll('.role-button');
+  buttons.forEach(button => {
+      button.classList.remove('active');
+      if (button.getAttribute('data-role') === role) {
+          button.classList.add('active');
+      }
+  });
+
+  let filteredUsers;
+  switch(role) {
+      case 'all':
+          filteredUsers = users;
+          break;
+      case 'staffTeam':
+          // team이 staffTeam인 officer만 필터링
+          filteredUsers = users.filter(user => 
+              user.team === 'staffTeam'
+          );
+          break;
+      case 'participant':
+      case 'officer':
+      case 'starter':
+      case 'guest':
+          // 일반 역할별 필터링
+          filteredUsers = users.filter(user => user.role === role);
+          break;
+      default:
+          filteredUsers = users;
+  }
+
+  const startIndex = (currentPage - 1) * usersPerPage;
+  const endIndex = startIndex + usersPerPage;
+  const usersToShow = filteredUsers.slice(startIndex, endIndex);
+
+  const tableBody = document.getElementById('user-table-body');
+  if (tableBody) {
+      tableBody.innerHTML = usersToShow.map(generateUserRow).join('');
+      createPagination(filteredUsers.length);
+  }
+}
+
+// 페이지네이션 생성
+function createPagination(totalUsers) {
+    const totalPages = Math.ceil(totalUsers / usersPerPage);
+    const paginationContainer = document.getElementById('pagination');
+    if (!paginationContainer) return;
+
+    let paginationHtml = '<div class="pagination">';
+    
+    if (currentPage > 1) {
+        paginationHtml += `<button onclick="changePage(${currentPage - 1})">이전</button>`;
     }
 
-    // 역할별 사용자 표시
-    function showUsersByRole(role, resetPage = true) {
-    currentRole = role;
-    if (resetPage) {
-        currentPage = 1;
-        searchResults = [];
-        document.getElementById('search-input').value = '';
+    for (let i = 1; i <= totalPages; i++) {
+        paginationHtml += `<button class="${i === currentPage ? 'active' : ''}" 
+                                   onclick="changePage(${i})">${i}</button>`;
     }
 
-    // 역할 버튼 활성화 상태 업데이트
-    const buttons = document.querySelectorAll('.role-button');
-    buttons.forEach(button => {
-        button.classList.remove('active');
-        if (button.getAttribute('data-role') === role) {
-            button.classList.add('active');
+    if (currentPage < totalPages) {
+        paginationHtml += `<button onclick="changePage(${currentPage + 1})">다음</button>`;
+    }
+
+    paginationHtml += '</div>';
+    paginationContainer.innerHTML = paginationHtml;
+}
+
+// 페이지 변경
+function changePage(page) {
+    currentPage = page;
+    showUsersByRole(currentRole, false);
+}
+
+// 검색 기능
+function searchUsers() {
+    const searchOption = document.getElementById('search-option')?.value || 'name';
+    const searchInputElement = document.getElementById('search-input');
+    if (!searchInputElement) {
+        console.error('Search input element not found');
+        return;
+    }
+    
+    const searchInput = searchInputElement.value?.toLowerCase() || '';
+
+    const currentRoleUsers = currentRole === 'all' 
+        ? users 
+        : users.filter(user => user.role === currentRole);
+
+    searchResults = currentRoleUsers.filter(user => {
+        if (!user) return false;
+
+        switch(searchOption) {
+            case 'name':
+                return user.name?.toLowerCase()?.includes(searchInput) || false;
+            case 'warningCount':
+                return (user.warningCount || 0).toString() === searchInput;
+            case 'active':
+                const searchActive = searchInput === '활성' || searchInput === 'active' || searchInput === '1';
+                const searchInactive = searchInput === '비활성' || searchInput === 'inactive' || searchInput === '0';
+                return searchActive ? user.active : searchInactive ? !user.active : false;
+            case 'role':
+                const roleMap = {
+                    '참가자': 'participant',
+                    '운영진': 'officer',
+                    '스타터': 'starter',
+                    '게스트': 'guest'
+                };
+                const searchRole = roleMap[searchInput] || searchInput;
+                return (user.role || '').toLowerCase() === searchRole.toLowerCase();
+            case 'gender':
+                if (!user.gender) return false;
+                if (searchInput === '남' || searchInput === 'male') {
+                    return user.gender.toLowerCase() === 'male';
+                }
+                if (searchInput === '여' || searchInput === 'female') {
+                    return user.gender.toLowerCase() === 'female';
+                }
+                return false;
+            default:
+                return true;
         }
     });
 
-    let filteredUsers;
-    switch(role) {
-        case 'all':
-            filteredUsers = users;
-            break;
-        case 'staffTeam':
-            // team이 staffTeam인 officer만 필터링
-            filteredUsers = users.filter(user => 
-                user.team === 'staffTeam'
-            );
-            break;
-        case 'participant':
-        case 'officer':
-        case 'starter':
-        case 'guest':
-            // 일반 역할별 필터링
-            filteredUsers = users.filter(user => user.role === role);
-            break;
-        default:
-            filteredUsers = users;
-    }
+    currentPage = 1;
+    displaySearchResults();
+}
 
+// 검색 결과 표시
+function displaySearchResults() {
     const startIndex = (currentPage - 1) * usersPerPage;
     const endIndex = startIndex + usersPerPage;
-    const usersToShow = filteredUsers.slice(startIndex, endIndex);
+    const usersToShow = searchResults.slice(startIndex, endIndex);
 
     const tableBody = document.getElementById('user-table-body');
-    if (tableBody) {
-        tableBody.innerHTML = usersToShow.map(generateUserRow).join('');
-        createPagination(filteredUsers.length);
-    }
-    }
-
-    // 페이지네이션 생성
-    function createPagination(totalUsers) {
-        const totalPages = Math.ceil(totalUsers / usersPerPage);
-        const paginationContainer = document.getElementById('pagination');
-        if (!paginationContainer) return;
-
-        let paginationHtml = '<div class="pagination">';
-        
-        if (currentPage > 1) {
-            paginationHtml += `<button onclick="changePage(${currentPage - 1})">이전</button>`;
-        }
-
-        for (let i = 1; i <= totalPages; i++) {
-            paginationHtml += `<button class="${i === currentPage ? 'active' : ''}" 
-                                    onclick="changePage(${i})">${i}</button>`;
-        }
-
-        if (currentPage < totalPages) {
-            paginationHtml += `<button onclick="changePage(${currentPage + 1})">다음</button>`;
-        }
-
-        paginationHtml += '</div>';
-        paginationContainer.innerHTML = paginationHtml;
+    if (!tableBody) {
+        console.error('Table body element not found');
+        return;
     }
 
-    // 페이지 변경
-    function changePage(page) {
-        currentPage = page;
-        showUsersByRole(currentRole, false);
+    tableBody.innerHTML = usersToShow.map(user => generateUserRow(user)).join('');
+    createPagination(searchResults.length);
+}
+
+// 검색 초기화
+function resetSearch() {
+    document.getElementById('search-input').value = '';
+    searchResults = [];
+    currentPage = 1;
+    showUsersByRole(currentRole, true);
+}
+
+function showStaffSubteamDialog() {
+    document.getElementById('contextMenu').style.display = 'none';
+    // staffSubteamModalSelect가 실제로 DOM에 있는지 확인
+    const select = document.getElementById('staffSubteamModalSelect');
+    const dialog = document.getElementById('staffSubteamDialog');
+    if (!select || !dialog) {
+        alert('스태프 소그룹 변경 다이얼로그가 준비되지 않았습니다.\n(office_HR.html에 staffSubteamDialog와 staffSubteamModalSelect가 있는지 확인하세요)');
+        return;
     }
+    const user = users.find(u => u.id === selectedUserId);
+    if (user && user.staffSubteam) {
+        select.value = user.staffSubteam;
+    } else {
+        select.value = '';
+    }
+    dialog.style.display = 'flex';
+}
+window.showStaffSubteamDialog = showStaffSubteamDialog;
 
-    // 검색 기능
-    function searchUsers() {
-        const searchOption = document.getElementById('search-option')?.value || 'name';
-        const searchInputElement = document.getElementById('search-input');
-        if (!searchInputElement) {
-            console.error('Search input element not found');
-            return;
-        }
-        
-        const searchInput = searchInputElement.value?.toLowerCase() || '';
-
-        const currentRoleUsers = currentRole === 'all' 
-            ? users 
-            : users.filter(user => user.role === currentRole);
-
-        searchResults = currentRoleUsers.filter(user => {
-            if (!user) return false;
-
-            switch(searchOption) {
-                case 'name':
-                    return user.name?.toLowerCase()?.includes(searchInput) || false;
-                case 'warningCount':
-                    return (user.warningCount || 0).toString() === searchInput;
-                case 'active':
-                    const searchActive = searchInput === '활성' || searchInput === 'active' || searchInput === '1';
-                    const searchInactive = searchInput === '비활성' || searchInput === 'inactive' || searchInput === '0';
-                    return searchActive ? user.active : searchInactive ? !user.active : false;
-                case 'role':
-                    const roleMap = {
-                        '참가자': 'participant',
-                        '운영진': 'officer',
-                        '스타터': 'starter',
-                        '게스트': 'guest'
-                    };
-                    const searchRole = roleMap[searchInput] || searchInput;
-                    return (user.role || '').toLowerCase() === searchRole.toLowerCase();
-                case 'gender':
-                    if (!user.gender) return false;
-                    if (searchInput === '남' || searchInput === 'male') {
-                        return user.gender.toLowerCase() === 'male';
-                    }
-                    if (searchInput === '여' || searchInput === 'female') {
-                        return user.gender.toLowerCase() === 'female';
-                    }
-                    return false;
-                default:
-                    return true;
-            }
+async function confirmStaffSubteamOnly() {
+    const select = document.getElementById('staffSubteamModalSelect');
+    const dialog = document.getElementById('staffSubteamDialog');
+    if (!select || !dialog) {
+        alert('스태프 소그룹 변경 다이얼로그가 준비되지 않았습니다.');
+        return;
+    }
+    const staffSubteam = select.value;
+    if (!staffSubteam) {
+        alert('스태프 소그룹을 반드시 선택해야 합니다.');
+        return;
+    }
+    try {
+        const response = await fetch(`/user/update-staffsubteam/${selectedUserId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({
+                staffSubteam
+            })
         });
 
-        currentPage = 1;
-        displaySearchResults();
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.message);
+        }
+
+        // 사용자 데이터 업데이트
+        users = users.map(user =>
+            user.id === selectedUserId ? { 
+                ...user, 
+                staffSubteam
+            } : user
+        );
+        dialog.style.display = 'none';
+        showUsersByRole(currentRole, false);
+        highlightModifiedUser(selectedUserId);
+        alert('스태프 소그룹이 성공적으로 변경되었습니다.');
+    } catch (error) {
+        console.error('Error updating staff subteam:', error);
+        alert(error.message || '스태프 소그룹 변경 중 오류가 발생했습니다.');
     }
+}
+window.confirmStaffSubteamOnly = confirmStaffSubteamOnly;
 
-    // 검색 결과 표시
-    function displaySearchResults() {
-        const startIndex = (currentPage - 1) * usersPerPage;
-        const endIndex = startIndex + usersPerPage;
-        const usersToShow = searchResults.slice(startIndex, endIndex);
-
-        const tableBody = document.getElementById('user-table-body');
-        if (!tableBody) {
-            console.error('Table body element not found');
-            return;
-        }
-
-        tableBody.innerHTML = usersToShow.map(user => generateUserRow(user)).join('');
-        createPagination(searchResults.length);
-    }
-
-    // 검색 초기화
-    function resetSearch() {
-        document.getElementById('search-input').value = '';
-        searchResults = [];
-        currentPage = 1;
-        showUsersByRole(currentRole, true);
-    }
-
-    function showStaffSubteamDialog() {
-        document.getElementById('contextMenu').style.display = 'none';
-        // staffSubteamModalSelect가 실제로 DOM에 있는지 확인
-        const select = document.getElementById('staffSubteamModalSelect');
-        const dialog = document.getElementById('staffSubteamDialog');
-        if (!select || !dialog) {
-            alert('스태프 소그룹 변경 다이얼로그가 준비되지 않았습니다.\n(office_HR.html에 staffSubteamDialog와 staffSubteamModalSelect가 있는지 확인하세요)');
-            return;
-        }
-        const user = users.find(u => u.id === selectedUserId);
-        if (user && user.staffSubteam) {
-            select.value = user.staffSubteam;
-        } else {
-            select.value = '';
-        }
-        dialog.style.display = 'flex';
-    }
-    window.showStaffSubteamDialog = showStaffSubteamDialog;
-
-    async function confirmStaffSubteamOnly() {
-        const select = document.getElementById('staffSubteamModalSelect');
-        const dialog = document.getElementById('staffSubteamDialog');
-        if (!select || !dialog) {
-            alert('스태프 소그룹 변경 다이얼로그가 준비되지 않았습니다.');
-            return;
-        }
-        const staffSubteam = select.value;
-        if (!staffSubteam) {
-            alert('스태프 소그룹을 반드시 선택해야 합니다.');
-            return;
-        }
-        try {
-            const response = await fetch(`/user/update-staffsubteam/${selectedUserId}`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json'
-                },
-                body: JSON.stringify({
-                    staffSubteam
-                })
-            });
-
-            if (!response.ok) {
-                const error = await response.json();
-                throw new Error(error.message);
-            }
-
-            // 사용자 데이터 업데이트
-            users = users.map(user =>
-                user.id === selectedUserId ? { 
-                    ...user, 
-                    staffSubteam
-                } : user
-            );
-            dialog.style.display = 'none';
-            showUsersByRole(currentRole, false);
-            highlightModifiedUser(selectedUserId);
-            alert('스태프 소그룹이 성공적으로 변경되었습니다.');
-        } catch (error) {
-            console.error('Error updating staff subteam:', error);
-            alert(error.message || '스태프 소그룹 변경 중 오류가 발생했습니다.');
-        }
-    }
-    window.confirmStaffSubteamOnly = confirmStaffSubteamOnly;
-
-    // 반드시 아래처럼 바인딩
-    window.updateUserRole = updateUserRole;
-    window.updateUserTeam = updateUserTeam;
-    window.closeDialog = closeDialog;
-    window.showUsersByRole = showUsersByRole;
-    window.searchUsers = searchUsers;
-    window.resetSearch = resetSearch;
-    window.handleContextMenu = handleContextMenu;
-    window.showStaffSubteamDialog = showStaffSubteamDialog;
-    window.confirmStaffSubteamOnly = confirmStaffSubteamOnly;
+// 반드시 아래처럼 바인딩
+window.updateUserRole = updateUserRole;
+window.updateUserTeam = updateUserTeam;
+window.closeDialog = closeDialog;
+window.showUsersByRole = showUsersByRole;
+window.searchUsers = searchUsers;
+window.resetSearch = resetSearch;
+window.handleContextMenu = handleContextMenu;
+window.showStaffSubteamDialog = showStaffSubteamDialog;
+window.confirmStaffSubteamOnly = confirmStaffSubteamOnly;
