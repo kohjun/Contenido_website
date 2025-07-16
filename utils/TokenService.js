@@ -9,7 +9,7 @@ class TokenService {
         id: user._id,
         role: user.role,
         email: user.email,
-        sessionId: user.sessionId, // 세션 ID 추가
+        sessionId: user.sessionId,
         iat: Math.floor(Date.now() / 1000)
       },
       process.env.JWT_SECRET,
@@ -31,45 +31,78 @@ class TokenService {
       return false;
     }
   }
-  // 
-  static async updateUserProfile(user) {
+
+  // 카카오에서 최신 프로필 정보 가져오기
+  static async fetchLatestProfile(accessToken) {
     try {
       const response = await fetch('https://kapi.kakao.com/v2/user/me', {
         headers: {
-          'Authorization': `Bearer ${user.kakaoAccessToken}`,
+          'Authorization': `Bearer ${accessToken}`,
           'Content-Type': 'application/x-www-form-urlencoded;charset=utf-8'
         }
       });
-      
+
       if (response.ok) {
         const profileData = await response.json();
-        const kakaoAccount = profileData.kakao_account;
-        
-        // 프로필 정보 업데이트
-        if (kakaoAccount?.profile) {
-          user.displayName = kakaoAccount.profile.nickname;
-          user.profileImage = this.ensureHttps(kakaoAccount.profile.profile_image_url);
-        }
-        
-        await user.save();
-        return user;
+        return {
+          displayName: profileData.kakao_account?.profile?.nickname,
+          profileImage: profileData.kakao_account?.profile?.profile_image_url
+        };
       }
     } catch (error) {
-      console.error('프로필 업데이트 에러:', error);
+      console.error('프로필 정보 가져오기 에러:', error);
     }
-    return user;
+    return null;
   }
 
+  // URL을 HTTPS로 변경하는 헬퍼 함수
   static ensureHttps(url) {
     if (url && url.startsWith('http://')) {
       return url.replace('http://', 'https://');
     }
     return url;
   }
+
+  // 사용자 프로필 정보 업데이트
+  static async updateUserProfile(user) {
+    try {
+      const latestProfile = await this.fetchLatestProfile(user.kakaoAccessToken);
+      
+      if (latestProfile) {
+        let hasChanges = false;
+        
+        // 프로필 이름 업데이트
+        if (latestProfile.displayName && latestProfile.displayName !== user.displayName) {
+          user.displayName = latestProfile.displayName;
+          hasChanges = true;
+        }
+        
+        // 프로필 이미지 업데이트
+        if (latestProfile.profileImage) {
+          const httpsUrl = this.ensureHttps(latestProfile.profileImage);
+          if (httpsUrl !== user.profileImage) {
+            user.profileImage = httpsUrl;
+            hasChanges = true;
+          }
+        }
+        
+        // 변경사항이 있을 때만 저장
+        if (hasChanges) {
+          await user.save();
+          console.log(`사용자 ${user._id}의 프로필 정보 업데이트 완료`);
+        }
+      }
+      
+      return user;
+    } catch (error) {
+      console.error('프로필 업데이트 에러:', error);
+      return user; // 에러가 발생해도 기존 사용자 정보 반환
+    }
+  }
+
   // 카카오 액세스 토큰 갱신
   static async refreshAccessToken(user) {
     try {
-      // console.log(`사용자 ${user._id}의 카카오 토큰 갱신 시도`);
       const response = await fetch('https://kauth.kakao.com/oauth/token', {
         method: 'POST',
         headers: {
@@ -98,22 +131,25 @@ class TokenService {
       }
 
       await user.save();
-      // console.log(`사용자 ${user._id}의 카카오 토큰 갱신 성공`);
-      return user;
+      
+      // 토큰 갱신 후 프로필 정보도 업데이트
+      const updatedUser = await this.updateUserProfile(user);
+      
+      return updatedUser;
     } catch (error) {
       console.error('카카오 토큰 갱신 중 에러:', error);
       return null;
     }
   }
 
-  // JWT 토큰 검증 메서드 수정 - 사용자별 검증
+  // JWT 토큰 검증 메서드 수정 - 프로필 동기화 포함
   static async verifyToken(token, sessionId) {
     if (!token) return false;
     
     try {
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
       
-      // 세션 ID 검증 추가
+      // 세션 ID 검증
       if (decoded.sessionId !== sessionId) {
         console.log('세션 불일치');
         return false;
@@ -129,6 +165,15 @@ class TokenService {
       if (!isKakaoTokenValid) {
         const refreshedUser = await this.refreshAccessToken(user);
         return !!refreshedUser;
+      } else {
+        // 토큰이 유효하면 프로필 정보 업데이트 (주기적으로)
+        const lastUpdated = user.updatedAt || user.createdAt;
+        const hoursSinceUpdate = (Date.now() - lastUpdated.getTime()) / (1000 * 60 * 60);
+        
+        // 1시간 이상 지났으면 프로필 정보 업데이트
+        if (hoursSinceUpdate >= 1) {
+          await this.updateUserProfile(user);
+        }
       }
 
       return true;
@@ -141,25 +186,20 @@ class TokenService {
   // 사용자 토큰 갱신 메서드 수정
   static async refreshUserToken(req) {
     try {
-      // 쿠키에서 기존 토큰을 확인
       const token = req.cookies.jwt;
       if (!token) {
-      // console.log('토큰이 없어 갱신 불가');
         return null;
       }
       
-      // 토큰에서 사용자 ID 추출 (만료된 토큰이라도 payload는 확인 가능)
       let userId;
       try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET, { ignoreExpiration: true });
         userId = decoded.id;
-        // console.log(`만료된 토큰에서 추출한 사용자 ID: ${userId}`);
       } catch (error) {
         console.error('토큰 디코딩 에러:', error);
         return null;
       }
       
-      // 특정 사용자의 토큰만 갱신
       const user = await User.findOne({
         _id: userId,
         refreshTokenExpiresAt: { $gt: new Date() }
@@ -170,7 +210,6 @@ class TokenService {
         return null;
       }
       
-      // console.log(`사용자 ${userId}의 토큰 갱신 시도`);
       const refreshedUser = await this.refreshAccessToken(user);
       if (!refreshedUser) {
         console.log(`사용자 ${userId}의 토큰 갱신 실패`);
@@ -178,12 +217,11 @@ class TokenService {
       }
 
       const newToken = this.createJwtToken(refreshedUser);
-      // console.log(`사용자 ${userId}의 새 JWT 토큰 생성 완료`);
 
       req.res.cookie('jwt', newToken, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
-        maxAge: 43200000, // 12시간
+        maxAge: 43200000,
         sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax'
       });
 

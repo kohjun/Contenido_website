@@ -40,10 +40,8 @@ const authenticateToken = async (req, res, next) => {
   const token = req.cookies.jwt || req.headers['authorization']?.split(' ')[1];
 
   if (!token) {
-    // console.log('토큰이 없음, 토큰 갱신 시도');
     const refreshedUser = await TokenService.refreshUserToken(req);
     if (refreshedUser) {
-      // console.log(`사용자 ${refreshedUser._id} 토큰 갱신 성공`);
       req.user = refreshedUser;
       return next();
     }
@@ -52,7 +50,6 @@ const authenticateToken = async (req, res, next) => {
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    // console.log(`인증 토큰에서 추출한 사용자 ID: ${decoded.id}, 역할: ${decoded.role}`);
     
     const user = await User.findById(decoded.id)
       .select('+kakaoAccessToken +kakaoRefreshToken +tokenExpiresAt +refreshTokenExpiresAt');
@@ -62,27 +59,33 @@ const authenticateToken = async (req, res, next) => {
       return res.status(401).json({ message: '사용자를 찾을 수 없음' });
     }
 
-    // 카카오 토큰 유효성 검사 및 갱신
+    // 카카오 토큰 유효성 검사 및 프로필 정보 동기화
     const isTokenValid = await TokenService.verifyKakaoToken(user.kakaoAccessToken);
     if (!isTokenValid) {
       const refreshedUser = await TokenService.refreshAccessToken(user);
       if (!refreshedUser) {
         return res.status(401).json({ message: '토큰 갱신 실패' });
       }
-      // 프로필 정보도 함께 업데이트
-      req.user = await TokenService.updateUserProfile(refreshedUser);
+      req.user = refreshedUser; // 이미 프로필 정보가 업데이트된 사용자
     } else {
-      req.user = user;
+      // 토큰이 유효하면 프로필 정보 동기화 (주기적으로)
+      const lastUpdated = user.updatedAt || user.createdAt;
+      const hoursSinceUpdate = (Date.now() - lastUpdated.getTime()) / (1000 * 60 * 60);
+      
+      // 1시간 이상 지났으면 프로필 정보 업데이트
+      if (hoursSinceUpdate >= 1) {
+        req.user = await TokenService.updateUserProfile(user);
+      } else {
+        req.user = user;
+      }
     }
 
     next();
 
   } catch (error) {
     if (error.name === 'TokenExpiredError') {
-      // console.log('JWT 토큰 만료, 갱신 시도');
       const refreshedUser = await TokenService.refreshUserToken(req);
       if (refreshedUser) {
-        // console.log(`사용자 ${refreshedUser._id} 만료된 토큰 갱신 성공`);
         req.user = refreshedUser;
         return next();
       }
