@@ -3,6 +3,7 @@ const passport = require('passport');
 const authenticateToken = require('../middleware/authMiddleware');
 const TokenService = require('../utils/TokenService');
 const User = require('../models/User');
+const jwt = require('jsonwebtoken');
 const router = express.Router();
 
 const KAKAO_CLIENT_ID = process.env.KAKAO_CLIENT_ID;
@@ -36,10 +37,18 @@ router.get(
       const profile = req.user;
       const returnUrl = req.query.state || '/';
 
-      // 프로필 이미지 URL을 HTTPS로 변환
-      if (req.user && req.user.profileImage) {
-        req.user.profileImage = ensureHttps(req.user.profileImage);
-        await req.user.save();
+      // 프로필 이미지 URL을 HTTPS로 변환 (에러 처리 강화)
+      try {
+        if (req.user && req.user.profileImage) {
+          const httpsUrl = ensureHttps(req.user.profileImage);
+          if (httpsUrl !== req.user.profileImage) {
+            req.user.profileImage = httpsUrl;
+            await req.user.save();
+          }
+        }
+      } catch (error) {
+        console.error('프로필 이미지 업데이트 에러:', error);
+        // 에러가 발생해도 로그인 플로우는 계속 진행
       }
 
       // JWT 토큰 생성 및 저장 (사용자별)

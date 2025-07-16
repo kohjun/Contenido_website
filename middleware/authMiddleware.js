@@ -65,17 +65,14 @@ const authenticateToken = async (req, res, next) => {
     // 카카오 토큰 유효성 검사 및 갱신
     const isTokenValid = await TokenService.verifyKakaoToken(user.kakaoAccessToken);
     if (!isTokenValid) {
-      // console.log(`사용자 ${user._id}의 카카오 토큰 만료, 갱신 시도`);
       const refreshedUser = await TokenService.refreshAccessToken(user);
       if (!refreshedUser) {
-        // console.log(`사용자 ${user._id}의 토큰 갱신 실패`);
         return res.status(401).json({ message: '토큰 갱신 실패' });
       }
-      req.user = refreshedUser;
-      // console.log(`사용자 ${refreshedUser._id}의 토큰 갱신 성공`);
+      // 프로필 정보도 함께 업데이트
+      req.user = await TokenService.updateUserProfile(refreshedUser);
     } else {
       req.user = user;
-      // console.log(`사용자 ${user._id}의 토큰 유효 확인`);
     }
 
     next();

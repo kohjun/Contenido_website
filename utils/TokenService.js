@@ -31,7 +31,41 @@ class TokenService {
       return false;
     }
   }
+  // 
+  static async updateUserProfile(user) {
+    try {
+      const response = await fetch('https://kapi.kakao.com/v2/user/me', {
+        headers: {
+          'Authorization': `Bearer ${user.kakaoAccessToken}`,
+          'Content-Type': 'application/x-www-form-urlencoded;charset=utf-8'
+        }
+      });
+      
+      if (response.ok) {
+        const profileData = await response.json();
+        const kakaoAccount = profileData.kakao_account;
+        
+        // 프로필 정보 업데이트
+        if (kakaoAccount?.profile) {
+          user.displayName = kakaoAccount.profile.nickname;
+          user.profileImage = this.ensureHttps(kakaoAccount.profile.profile_image_url);
+        }
+        
+        await user.save();
+        return user;
+      }
+    } catch (error) {
+      console.error('프로필 업데이트 에러:', error);
+    }
+    return user;
+  }
 
+  static ensureHttps(url) {
+    if (url && url.startsWith('http://')) {
+      return url.replace('http://', 'https://');
+    }
+    return url;
+  }
   // 카카오 액세스 토큰 갱신
   static async refreshAccessToken(user) {
     try {
