@@ -100,7 +100,8 @@ const userSchema = new mongoose.Schema({
   staffSubteam: {
     type: String,
     enum: ['A-1', 'B-1', 'C-1', 'C-2'],
-    required: function () { return this.team === 'staffTeam'; }
+    required: function () { return this.team === 'staffTeam'; },
+    default: 'A-1'
   },
   // 카카오 인증 관련 필드 정리
   kakaoAccessToken: {
