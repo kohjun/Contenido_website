@@ -7,16 +7,19 @@ let selectedUserId = null;
 
 // 페이지 로드 시 초기화
 document.addEventListener('DOMContentLoaded', () => {
+    
     loadUsers();
-    initializeDialogs(); // 다이얼로그 초기화 (HTML에 이미 존재하므로 생성 코드는 제거)
+    initializeDialogs();
 });
 
 // 다이얼로그 초기화 (이벤트 리스너 등)
 function initializeDialogs() {
+   
     // 컨텍스트 메뉴 닫기 이벤트
-    document.addEventListener('click', function(e) {
+    document.addEventListener('click', function (e) {
         if (!e.target.closest('.context-menu')) {
-            document.getElementById('contextMenu').style.display = 'none';
+            const contextMenu = document.getElementById('contextMenu');
+            if (contextMenu) contextMenu.style.display = 'none';
         }
     });
 }
@@ -24,14 +27,17 @@ function initializeDialogs() {
 // 사용자 데이터 로드
 async function loadUsers() {
     try {
+        
         const response = await fetch('/user/participants/users');
         if (!response.ok) {
-            throw new Error('Failed to fetch users');
+            throw new Error(`Failed to fetch users: ${response.statusText}`);
         }
         users = await response.json();
+       
         showUsersByRole(currentRole);
     } catch (error) {
-        console.error('Error loading users:', error);
+       
+        alert('사용자 데이터를 로드하지 못했습니다.');
     }
 }
 
@@ -39,11 +45,15 @@ async function loadUsers() {
 function handleContextMenu(e, userId, userName, userRole) {
     e.preventDefault();
     selectedUserId = userId;
+   
     const contextMenu = document.getElementById('contextMenu');
+    if (!contextMenu) {
+        
+        return;
+    }
     const user = users.find(u => u.id === userId);
 
     let menuContent = `<div class="context-menu-header">${userName}</div>`;
-
     if (userRole === 'admin') {
         menuContent += `<div class="menu-item disabled">Admin은 변경할 수 없습니다</div>`;
     } else {
@@ -55,9 +65,8 @@ function handleContextMenu(e, userId, userName, userRole) {
             menuContent += `<button onclick="showStaffSubteamDialog()">스태프팀 변경</button>`;
         }
     }
-    
-    contextMenu.innerHTML = menuContent;
 
+    contextMenu.innerHTML = menuContent;
     contextMenu.style.display = 'block';
     contextMenu.style.left = `${e.clientX}px`;
     contextMenu.style.top = `${e.clientY}px`;
@@ -65,31 +74,52 @@ function handleContextMenu(e, userId, userName, userRole) {
 
 // 다이얼로그 표시/숨김
 function showDialog(dialogId) {
-    document.getElementById('contextMenu').style.display = 'none';
-    document.getElementById(dialogId).style.display = 'flex';
+    
+    const contextMenu = document.getElementById('contextMenu');
+    const dialog = document.getElementById(dialogId);
+    if (!dialog) {
+        
+        alert(`다이얼로그(${dialogId})를 찾을 수 없습니다.`);
+        return;
+    }
+    if (contextMenu) contextMenu.style.display = 'none';
+    dialog.style.display = 'flex';
 }
 
 function closeDialog(dialogId) {
-    document.getElementById(dialogId).style.display = 'none';
+   
+    const dialog = document.getElementById(dialogId);
+    if (dialog) dialog.style.display = 'none';
 }
 
 // 역할 업데이트
 async function updateUserRole() {
-    if (!selectedUserId) return;
+    if (!selectedUserId) {
+       
+        alert('선택된 사용자가 없습니다.');
+        return;
+    }
 
-    const newRole = document.getElementById('roleSelect').value;
+    const roleSelect = document.getElementById('roleSelect');
+    if (!roleSelect) {
+        
+        alert('역할 선택 요소를 찾을 수 없습니다.');
+        return;
+    }
+    const newRole = roleSelect.value;
+    
+
     try {
         const requestBody = { role: newRole };
-
         if (newRole === 'officer') {
             requestBody.department = 'operation';
             requestBody.team = 'operationTeam';
         }
-
         if (newRole === 'guest') {
             requestBody.active = false;
         }
 
+        
         const response = await fetch(`/user/update-role/${selectedUserId}`, {
             method: 'POST',
             headers: {
@@ -101,17 +131,18 @@ async function updateUserRole() {
 
         if (!response.ok) {
             const error = await response.json();
-            throw new Error(error.message);
+          
+            throw new Error(error.message || '역할 업데이트 실패');
         }
 
-        await loadUsers(); // 데이터를 최신 상태로 다시 로드
+       
+        await loadUsers();
         showUsersByRole(currentRole, false);
         highlightModifiedUser(selectedUserId);
-        
         closeDialog('roleChangeDialog');
         alert('역할이 성공적으로 변경되었습니다.');
     } catch (error) {
-        console.error('Error updating user role:', error);
+       
         alert(error.message || '역할 변경 중 오류가 발생했습니다.');
     }
 }
@@ -123,15 +154,27 @@ const teamDepartmentMapping = {
     'PlanningTeam': 'planning', 'regularTeam': 'planning', 'staffTeam': 'planning', 'starterTeam': 'planning'
 };
 
-// 팀 업데이트 함수
+// 팀 업데이트
 async function updateUserTeam() {
-    if (!selectedUserId) return;
+    if (!selectedUserId) {
+        
+        alert('선택된 사용자가 없습니다.');
+        return;
+    }
 
-    const newTeam = document.getElementById('teamSelect').value;
+    const teamSelect = document.getElementById('teamSelect');
+    if (!teamSelect) {
+       
+        alert('팀 선택 요소를 찾을 수 없습니다.');
+        return;
+    }
+    const newTeam = teamSelect.value;
     const newDepartment = teamDepartmentMapping[newTeam];
+   
 
     try {
         const body = { team: newTeam, department: newDepartment };
+       
         const response = await fetch(`/user/update-team/${selectedUserId}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
@@ -140,13 +183,14 @@ async function updateUserTeam() {
 
         if (!response.ok) {
             const error = await response.json();
-            throw new Error(error.message);
+            console.error('Team update failed:', error);
+            throw new Error(error.message || '팀 업데이트 실패');
         }
 
-        await loadUsers(); // 데이터 최신화
+        console.log('Team update successful, reloading users...');
+        await loadUsers();
         showUsersByRole(currentRole, false);
         highlightModifiedUser(selectedUserId);
-
         closeDialog('teamChangeDialog');
         alert('팀이 성공적으로 변경되었습니다.');
     } catch (error) {
@@ -155,18 +199,82 @@ async function updateUserTeam() {
     }
 }
 
-// 변경된 유저 행 하이라이트 함수
+// 스태프 소그룹 변경 다이얼로그 표시
+function showStaffSubteamDialog() {
+    
+    const contextMenu = document.getElementById('contextMenu');
+    const dialog = document.getElementById('staffSubteamDialog');
+    const select = document.getElementById('staffSubteamModalSelect');
+
+    if (!dialog || !select) {
+        console.error('Staff subteam dialog or select element not found');
+        alert('스태프 소그룹 다이얼로그를 찾을 수 없습니다.');
+        return;
+    }
+
+    const user = users.find(u => u.id === selectedUserId);
+    select.value = user?.staffSubteam || '';
+    if (contextMenu) contextMenu.style.display = 'none';
+    dialog.style.display = 'flex';
+}
+
+// 스태프 소그룹 변경 확인
+async function confirmStaffSubteamOnly() {
+    const select = document.getElementById('staffSubteamModalSelect');
+    if (!select) {
+        console.error('Staff subteam select element not found');
+        alert('스태프 소그룹 선택 요소를 찾을 수 없습니다.');
+        return;
+    }
+    const staffSubteam = select.value;
+    if (!staffSubteam) {
+        console.error('No staff subteam selected');
+        alert('스태프 소그룹을 반드시 선택해야 합니다.');
+        return;
+    }
+  
+
+    try {
+        
+        const response = await fetch(`/user/update-staffsubteam/${selectedUserId}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+            body: JSON.stringify({ staffSubteam })
+        });
+
+        if (!response.ok) {
+            const error = await response.json();
+            console.error('Staff subteam update failed:', error);
+            throw new Error(error.message || '스태프 소그룹 업데이트 실패');
+        }
+
+        
+        await loadUsers();
+        showUsersByRole(currentRole, false);
+        highlightModifiedUser(selectedUserId);
+        closeDialog('staffSubteamDialog');
+        alert('스태프 소그룹이 성공적으로 변경되었습니다.');
+    } catch (error) {
+        console.error('Error updating staff subteam:', error);
+        alert(error.message || '스태프 소그룹 변경 중 오류가 발생했습니다.');
+    }
+}
+
+// 변경된 유저 행 하이라이트
 function highlightModifiedUser(userId) {
-    const userRow = document.querySelector(`tr[data-userid='${userId}']`); // data-userid 속성으로 찾도록 변경
+   
+    const userRow = document.querySelector(`tr[data-userid='${userId}']`);
     if (userRow) {
         userRow.classList.add('recently-modified');
         setTimeout(() => {
             userRow.classList.remove('recently-modified');
         }, 60000); // 1분
+    } else {
+        console.warn(`User row for ID ${userId} not found`);
     }
 }
 
-// 유저 행 생성 (단일 함수로 통합 및 개선)
+// 유저 행 생성
 function generateUserRow(user) {
     if (!user) return '';
 
@@ -181,7 +289,6 @@ function generateUserRow(user) {
         'officer': '운영진', 'starter': '스타터', 'admin': '관리자',
         'participant': '참가자', 'guest': '게스트'
     };
-    
     const genderDisplay = user.gender === 'male' ? '남' : user.gender === 'female' ? '여' : '-';
 
     return `
@@ -236,6 +343,7 @@ async function updateWarningCount(userId, newCount) {
 
 // 공통 카운트 업데이트 로직
 async function updateCount(userId, type, body, alertName) {
+    
     try {
         const response = await fetch(`/user/update-${type}/${userId}`, {
             method: 'POST',
@@ -243,10 +351,15 @@ async function updateCount(userId, type, body, alertName) {
             body: JSON.stringify(body)
         });
 
-        if (!response.ok) throw new Error(`Failed to update ${type} count`);
+        if (!response.ok) {
+            const error = await response.json();
+            console.error(`${type} update failed:`, error);
+            throw new Error(`Failed to update ${type} count`);
+        }
 
-        await loadUsers(); // 변경 후 데이터 다시 로드
-        showUsersByRole(currentRole, false); // 현재 뷰 새로고침
+        
+        await loadUsers();
+        showUsersByRole(currentRole, false);
         alert(`${alertName}가 업데이트되었습니다.`);
     } catch (error) {
         console.error(`Error updating ${type} count:`, error);
@@ -256,14 +369,20 @@ async function updateCount(userId, type, body, alertName) {
 
 // 활성 상태 토글
 async function toggleUserActive(userId, active) {
+   
     try {
         const response = await fetch(`/user/toggle-active/${userId}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ active })
         });
-        if (!response.ok) throw new Error('Failed to update user status');
-        
+        if (!response.ok) {
+            const error = await response.json();
+            console.error('Active status update failed:', error);
+            throw new Error('Failed to update user status');
+        }
+
+       
         await loadUsers();
         showUsersByRole(currentRole, false);
         alert('활성상태가 변경되었습니다.');
@@ -275,11 +394,13 @@ async function toggleUserActive(userId, active) {
 
 // 역할별 사용자 표시
 function showUsersByRole(role, resetPage = true) {
+    
     currentRole = role;
     if (resetPage) {
         currentPage = 1;
         searchResults = [];
-        document.getElementById('search-input').value = '';
+        const searchInput = document.getElementById('search-input');
+        if (searchInput) searchInput.value = '';
     }
 
     document.querySelectorAll('.role-button').forEach(button => {
@@ -287,7 +408,6 @@ function showUsersByRole(role, resetPage = true) {
     });
 
     const filteredUsers = (searchResults.length > 0) ? searchResults : users;
-
     let usersToDisplay;
     if (role === 'all') {
         usersToDisplay = filteredUsers;
@@ -300,8 +420,9 @@ function showUsersByRole(role, resetPage = true) {
     displayUsers(usersToDisplay);
 }
 
-// 사용자 목록과 페이지네이션을 화면에 표시
+// 사용자 목록과 페이지네이션 표시
 function displayUsers(usersArray) {
+    
     const startIndex = (currentPage - 1) * usersPerPage;
     const endIndex = startIndex + usersPerPage;
     const usersToShow = usersArray.slice(startIndex, endIndex);
@@ -309,15 +430,21 @@ function displayUsers(usersArray) {
     const tableBody = document.getElementById('user-table-body');
     if (tableBody) {
         tableBody.innerHTML = usersToShow.map(generateUserRow).join('');
+    } else {
+        console.error('User table body not found');
     }
     createPagination(usersArray.length);
 }
 
 // 페이지네이션 생성
 function createPagination(totalUsers) {
+    
     const totalPages = Math.ceil(totalUsers / usersPerPage);
     const paginationContainer = document.getElementById('pagination');
-    if (!paginationContainer) return;
+    if (!paginationContainer) {
+        console.error('Pagination container not found');
+        return;
+    }
 
     let paginationHtml = '<div class="pagination">';
     if (currentPage > 1) {
@@ -335,18 +462,20 @@ function createPagination(totalUsers) {
 
 // 페이지 변경
 function changePage(page) {
+    
     currentPage = page;
-    showUsersByRole(currentRole, false); // 검색 상태를 유지하며 페이지 이동
+    showUsersByRole(currentRole, false);
 }
 
 // 검색 기능
 function searchUsers() {
-    const searchOption = document.getElementById('search-option').value;
-    const searchInput = document.getElementById('search-input').value.toLowerCase();
+    const searchOption = document.getElementById('search-option')?.value || 'name';
+    const searchInput = document.getElementById('search-input')?.value.toLowerCase() || '';
+   
 
     searchResults = users.filter(user => {
         if (!user) return false;
-        switch(searchOption) {
+        switch (searchOption) {
             case 'name':
                 return user.name?.toLowerCase().includes(searchInput) || false;
             case 'warningCount':
@@ -369,63 +498,22 @@ function searchUsers() {
     });
 
     currentPage = 1;
-    showUsersByRole(currentRole, false); // 검색 결과를 현재 역할 필터에 맞게 표시
+    showUsersByRole(currentRole, false);
 }
 
 // 검색 초기화
 function resetSearch() {
+   
     document.getElementById('search-input').value = '';
     searchResults = [];
     currentPage = 1;
     showUsersByRole(currentRole, true);
 }
 
-// 스태프 소그룹 변경 다이얼로그 표시
-function showStaffSubteamDialog() {
-    document.getElementById('contextMenu').style.display = 'none';
-    const select = document.getElementById('staffSubteamModalSelect');
-    const dialog = document.getElementById('staffSubteamDialog');
-    
-    const user = users.find(u => u.id === selectedUserId);
-    select.value = user?.staffSubteam || '';
-    
-    dialog.style.display = 'flex';
-}
-
-// 스태프 소그룹 변경 확인
-async function confirmStaffSubteamOnly() {
-    const staffSubteam = document.getElementById('staffSubteamModalSelect').value;
-    if (!staffSubteam) {
-        alert('스태프 소그룹을 반드시 선택해야 합니다.');
-        return;
-    }
-    try {
-        const response = await fetch(`/user/update-staffsubteam/${selectedUserId}`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-            body: JSON.stringify({ staffSubteam })
-        });
-        if (!response.ok) {
-            const error = await response.json();
-            throw new Error(error.message);
-        }
-
-        await loadUsers();
-        showUsersByRole(currentRole, false);
-        highlightModifiedUser(selectedUserId);
-        
-        closeDialog('staffSubteamDialog');
-        alert('스태프 소그룹이 성공적으로 변경되었습니다.');
-    } catch (error) {
-        console.error('Error updating staff subteam:', error);
-        alert(error.message || '스태프 소그룹 변경 중 오류가 발생했습니다.');
-    }
-}
-
 // 전역 스코프에 함수 할당
-window.confirmStaffSubteamOnly = confirmStaffSubteamOnly;
 window.updateUserRole = updateUserRole;
 window.updateUserTeam = updateUserTeam;
+window.confirmStaffSubteamOnly = confirmStaffSubteamOnly;
 window.closeDialog = closeDialog;
 window.showUsersByRole = showUsersByRole;
 window.searchUsers = searchUsers;
