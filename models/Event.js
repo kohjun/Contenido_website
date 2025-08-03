@@ -87,6 +87,17 @@ const eventSchema = new mongoose.Schema({
     type: String,
     default: []
   }],
+  refundPolicy: {
+    type: String,
+    enum: ['standard', 'custom', 'none'],
+    default: 'standard'
+  },
+  refundCustomDescription: {
+    type: String,
+    required: function() {
+      return this.refundPolicy === 'custom';
+    }
+  },
   rating: {
     type: Number,
     default: 0

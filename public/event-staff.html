@@ -89,6 +89,42 @@
           <textarea id="event-contents" rows="6" placeholder="이벤트에 대한 상세한 설명을 작성해주세요" required></textarea>
           <span class="form-hint">이벤트의 목적, 진행 방식, 준비물 등을 자세히 설명해주세요</span>
         </div>
+        <div class="form-group">
+          <label>환불 정책</label>
+          <div class="refund-policy-container">
+            <div class="radio-group">
+              <label class="radio-label">
+                <input type="radio" name="refund-policy" value="standard" checked>
+                <span>일반적인 환불 규정</span>
+                <small class="radio-hint">입금이 확인된 이후에는 환불이 불가능합니다</small>
+              </label>
+              
+              <label class="radio-label">
+                <input type="radio" name="refund-policy" value="custom">
+                <span>특수한 상황 직접 설명</span>
+                <small class="radio-hint">특별한 환불 조건이 있는 경우 선택</small>
+              </label>
+              
+              <label class="radio-label">
+                <input type="radio" name="refund-policy" value="none">
+                <span>환불에 대한 규정이 없음</span>
+                <small class="radio-hint">환불 정책을 별도로 명시하지 않음</small>
+              </label>
+            </div>
+            
+            <!-- 커스텀 설명 입력 필드 -->
+            <div id="custom-refund-section" class="custom-refund-section" style="display: none;">
+              <label for="custom-refund-description">환불 정책 상세 설명</label>
+              <textarea 
+                id="custom-refund-description" 
+                rows="4" 
+                placeholder="특수한 환불 조건이나 상황에 대해 자세히 설명해주세요&#10;예: 이벤트 3일 전까지는 50% 환불 가능, 당일 취소는 환불 불가"
+                maxlength="500">
+              </textarea>
+              <span class="form-hint">최대 500자까지 입력 가능합니다</span>
+            </div>
+          </div>
+        </div>
         <!-- 선별적 이벤트 옵션 -->
         <div class="form-group">
           <label class="checkbox-label">
