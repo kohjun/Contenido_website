@@ -1612,7 +1612,122 @@ tr:hover {
 .event-header {
   margin-bottom: 1rem;
 }
+.refund-policy-container {
+  margin-top: 10px;
+}
+.refund-policy-section {
+  margin: 15px 0;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
 
+.refund-policy-content {
+  flex: 1;
+  line-height: 1.5;
+}
+
+.refund-standard {
+  color: #28a745;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.refund-custom {
+  color: #fd7e14;
+  font-weight: 500;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  line-height: 1.4;
+}
+
+.refund-none {
+  color: #6c757d;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* 수정 모드에서의 환불 정책 스타일 */
+.refund-policy-edit-section {
+  margin: 20px 0;
+  padding: 15px;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  border: 1px solid #dee2e6;
+}
+
+.refund-policy-edit-section h4 {
+  margin: 0 0 15px 0;
+  color: #333;
+  font-size: 1.1em;
+}
+.radio-group {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.radio-label {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 15px;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.radio-label:hover {
+  border-color: #007bff;
+  background-color: #f8f9fa;
+}
+
+.radio-label input[type="radio"] {
+  margin-top: 2px;
+}
+
+.radio-label input[type="radio"]:checked + span {
+  font-weight: 600;
+  color: #007bff;
+}
+
+.radio-label input[type="radio"]:checked {
+  accent-color: #007bff;
+}
+
+.radio-label:has(input[type="radio"]:checked) {
+  border-color: #007bff;
+  background-color: #f0f8ff;
+}
+
+.radio-hint {
+  display: block;
+  color: #666;
+  font-size: 0.9em;
+  margin-top: 5px;
+  line-height: 1.4;
+}
+
+.custom-refund-section {
+  margin-top: 15px;
+  padding: 20px;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  border: 1px solid #dee2e6;
+}
+
+.custom-refund-section textarea {
+  width: 100%;
+  resize: vertical;
+  min-height: 100px;
+}
 
 .event-team {
   font-size: 0.9rem;

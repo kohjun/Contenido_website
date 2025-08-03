@@ -199,7 +199,8 @@ async function submitEvent() {
     const accessCode = document.getElementById('event-access-code').value;
     const isSelective = document.getElementById('is-selective').checked;
     const hasParticipantRules = document.getElementById('hasParticipantRules').checked;
-    
+    const refundPolicy = document.querySelector('input[name="refund-policy"]:checked').value;
+    const refundCustomDescription = document.getElementById('custom-refund-description').value;    
 
     
     // 입력값 검증
@@ -208,7 +209,10 @@ async function submitEvent() {
       alert('모든 필수 필드를 입력해주세요.');
       return;
     }
-
+    if (refundPolicy === 'custom' && !refundCustomDescription.trim()) {
+      alert('특수한 상황에 대한 환불 정책 설명을 입력해주세요.');
+      return;
+    }
     // 접근 코드 유효성 검사
     if (!/^\d{4}$/.test(accessCode)) {
       alert('접근 코드는 4자리 숫자여야 합니다.');
@@ -239,6 +243,10 @@ async function submitEvent() {
     formData.append('accessCode', accessCode);
     formData.append('isSelective', isSelective);
     formData.append('hasParticipantRules',hasParticipantRules);
+    formData.append('refundPolicy', refundPolicy);
+    if (refundPolicy === 'custom') {
+      formData.append('refundCustomDescription', refundCustomDescription);
+    }
     if (isSelective) {
       const questions = Array.from(document.querySelectorAll('.question-item')).map(item => ({
         questionText: item.querySelector('.question-text').value
@@ -795,6 +803,24 @@ function filterParticipants() {
 function formatPhoneNumber(phone) {
   return phone.replace(/(\d{3})(\d{4})(\d{4})/, '$1-$2-$3');
 }
+document.addEventListener('DOMContentLoaded', function() {
+  // 환불 정책 라디오 버튼 이벤트 리스너
+  const refundPolicyRadios = document.querySelectorAll('input[name="refund-policy"]');
+  const customRefundSection = document.getElementById('custom-refund-section');
+  
+  refundPolicyRadios.forEach(radio => {
+    radio.addEventListener('change', function() {
+      if (this.value === 'custom') {
+        customRefundSection.style.display = 'block';
+        document.getElementById('custom-refund-description').required = true;
+      } else {
+        customRefundSection.style.display = 'none';
+        document.getElementById('custom-refund-description').required = false;
+        document.getElementById('custom-refund-description').value = '';
+      }
+    });
+  });
+});
 
 // 체크박스 이벤트 리스너
 document.addEventListener('DOMContentLoaded', function() {

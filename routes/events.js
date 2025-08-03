@@ -254,7 +254,7 @@ router.post('/',
 
       const { 
         title, date, place, participants, startTime, endTime, 
-        participation_fee, contents, team, accessCode, hasParticipantRules 
+        participation_fee, contents, team, accessCode, hasParticipantRules, refundPolicy, refundCustomDescription
       } = req.body;
 
       const eventData = {
@@ -271,6 +271,8 @@ router.post('/',
         images: req.files ? req.files.map(file => `/uploads/events/${file.filename}`) : [],
         creator: req.user.id,
         isSelective: req.body.isSelective === 'true',
+        refundPolicy: refundPolicy || 'standard',
+        refundCustomDescription: refundPolicy === 'custom' ? refundCustomDescription : undefined,
         additionalQuestions: req.body.isSelective === 'true' && req.body.additionalQuestions ? 
           JSON.parse(req.body.additionalQuestions) : [],
         hasParticipantRules: hasParticipantRules === 'true'
@@ -280,6 +282,11 @@ router.post('/',
       if (!title || !date || !place || !participants || !startTime || 
           !endTime || !participation_fee || !contents || !team || !accessCode) {
         return res.status(400).json({ message: '모든 필수 필드를 입력해주세요.' });
+      }
+      if (refundPolicy === 'custom' && !refundCustomDescription?.trim()) {
+        return res.status(400).json({ 
+          message: '커스텀 환불 정책에 대한 설명을 입력해주세요.' 
+        });
       }
 
       // 접근 코드 유효성 검사
@@ -627,7 +634,7 @@ router.put('/update-content',
   async (req, res) => {
     const { 
       eventId, currentImages, newImages, deletedImages, 
-      hasParticipantRules, ...updatedData 
+      hasParticipantRules, refundPolicy, refundCustomDescription
     } = req.body;
 
     try {
@@ -641,6 +648,20 @@ router.put('/update-content',
         return res.status(403).json({ 
           message: '이벤트 생성자만 수정할 수 있습니다.' 
         });
+      }
+      // 환불 정책 검증
+      if (refundPolicy === 'custom' && !refundCustomDescription?.trim()) {
+        return res.status(400).json({ 
+          message: '커스텀 환불 정책에 대한 설명을 입력해주세요.' 
+        });
+      }
+
+      // 환불 정책 업데이트
+      event.refundPolicy = refundPolicy || event.refundPolicy;
+      if (refundPolicy === 'custom') {
+        event.refundCustomDescription = refundCustomDescription;
+      } else {
+        event.refundCustomDescription = undefined;
       }
 
       // 삭제된 이미지 처리

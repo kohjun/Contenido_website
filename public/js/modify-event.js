@@ -15,6 +15,7 @@ async function loadEventContent(eventId) {
       alert('사용자 정보를 불러오는데 실패했습니다.');
       return;
     }
+
     
     console.log(`이벤트 ID ${eventId} 정보 로드 시도`);
     const response = await fetch(`/events/${eventId}`);
@@ -26,6 +27,9 @@ async function loadEventContent(eventId) {
     currentEvent = event;  // 전역 변수에 저장
     originalData = { ...event };
     console.log(`이벤트 정보 로드 성공: ${event.title}`);
+
+    
+
 
     // 기본 정보 표시
     const titleElem = document.getElementById('event-title');
@@ -41,6 +45,28 @@ async function loadEventContent(eventId) {
     const modifyButton = document.getElementById('modify-button');
     const applicationSection = document.getElementById('application-section');
     const kakaoShareButton = document.getElementById('kakao-share-button');
+    const refundPolicyDisplay = document.getElementById('refund-policy-display');
+    if (refundPolicyDisplay) {
+      let refundPolicyHTML = '';
+      
+      switch(currentEvent.refundPolicy) {
+        case 'standard':
+          refundPolicyHTML = '<span class="refund-standard">💳 입금이 확인된 이후에는 환불이 불가능합니다</span>';
+          break;
+        case 'custom':
+          refundPolicyHTML = `<span class="refund-custom">⚠️ ${currentEvent.refundCustomDescription}</span>`;
+          break;
+        case 'none':
+          refundPolicyHTML = '<span class="refund-none">📝 별도의 환불 규정이 없습니다</span>';
+          break;
+        default:
+          refundPolicyHTML = '<span class="refund-standard">💳 입금이 확인된 이후에는 환불이 불가능합니다</span>';
+      }
+      
+      refundPolicyDisplay.innerHTML = refundPolicyHTML;
+    }
+
+
 
     if (titleElem) titleElem.textContent = currentEvent.title;
     if (placeElem) placeElem.textContent = currentEvent.place;
@@ -66,7 +92,8 @@ async function loadEventContent(eventId) {
         detailsElem.appendChild(rulesStatus);
       }
     }
-
+    
+    
     // 이미지 표시 (메인 이미지만)
     if (mainEventImage) {
       let mainImageUrl = '/images/Basic_Event_Image.png';
@@ -396,6 +423,40 @@ function enableEdit() {
     
     element.parentNode.replaceChild(input, element);
   });
+  const refundPolicyEditContainer = document.createElement('div');
+  refundPolicyEditContainer.className = 'refund-policy-edit-section';
+  refundPolicyEditContainer.innerHTML = `
+    <h4>환불 정책 수정</h4>
+    <div class="radio-group">
+      <label class="radio-label">
+        <input type="radio" name="edit-refund-policy" value="standard" ${currentEvent.refundPolicy === 'standard' ? 'checked' : ''}>
+        <span>일반적인 환불 규정</span>
+        <small class="radio-hint">입금이 확인된 이후에는 환불이 불가능합니다</small>
+      </label>
+      
+      <label class="radio-label">
+        <input type="radio" name="edit-refund-policy" value="custom" ${currentEvent.refundPolicy === 'custom' ? 'checked' : ''}>
+        <span>특수한 상황 직접 설명</span>
+        <small class="radio-hint">특별한 환불 조건이 있는 경우 선택</small>
+      </label>
+      
+      <label class="radio-label">
+        <input type="radio" name="edit-refund-policy" value="none" ${currentEvent.refundPolicy === 'none' ? 'checked' : ''}>
+        <span>환불에 대한 규정이 없음</span>
+        <small class="radio-hint">환불 정책을 별도로 명시하지 않음</small>
+      </label>
+    </div>
+    
+    <div id="edit-custom-refund-section" class="custom-refund-section" style="display: ${currentEvent.refundPolicy === 'custom' ? 'block' : 'none'};">
+      <label for="edit-custom-refund-description">환불 정책 상세 설명</label>
+      <textarea 
+        id="edit-custom-refund-description" 
+        rows="4" 
+        placeholder="특수한 환불 조건이나 상황에 대해 자세히 설명해주세요"
+        maxlength="500">${currentEvent.refundCustomDescription || ''}</textarea>
+      <span class="form-hint">최대 500자까지 입력 가능합니다</span>
+    </div>
+  `;
 
   // 참가자 규칙 체크박스 추가
   const rulesCheckboxContainer = document.createElement('div');
@@ -407,6 +468,25 @@ function enableEdit() {
     </label>
     <span class="form-hint">활동부원은 취소 시 경고, 스타터/기존 참가자 패널티 없음</span>
   `;
+  if (rulesCheckboxContainer.parentNode) {
+    rulesCheckboxContainer.parentNode.insertBefore(refundPolicyEditContainer, rulesCheckboxContainer.nextSibling);
+  }
+
+  // 환불 정책 라디오 버튼 이벤트 리스너 추가
+  const editRefundPolicyRadios = document.querySelectorAll('input[name="edit-refund-policy"]');
+  const editCustomRefundSection = document.getElementById('edit-custom-refund-section');
+
+  editRefundPolicyRadios.forEach(radio => {
+    radio.addEventListener('change', function() {
+      if (this.value === 'custom') {
+        editCustomRefundSection.style.display = 'block';
+        document.getElementById('edit-custom-refund-description').required = true;
+      } else {
+        editCustomRefundSection.style.display = 'none';
+        document.getElementById('edit-custom-refund-description').required = false;
+      }
+    });
+  });
 
   // 이벤트 디테일과 이미지 컨테이너 참조 가져오기
   const eventDetails = document.getElementById('event-details');
@@ -549,6 +629,14 @@ async function submitEdit() {
       alert('모든 필수 항목을 입력해주세요.');
       return;
     }
+    const selectedRefundPolicy = document.querySelector('input[name="edit-refund-policy"]:checked')?.value || 'standard';
+    const customRefundDescription = document.getElementById('edit-custom-refund-description')?.value || '';
+
+    // 커스텀 정책이 선택되었는데 설명이 없는 경우 검증
+    if (selectedRefundPolicy === 'custom' && !customRefundDescription.trim()) {
+      alert('특수한 상황에 대한 환불 정책 설명을 입력해주세요.');
+      return;
+    }
 
     // 이벤트 데이터 업데이트
     const updatedData = {
@@ -564,6 +652,8 @@ async function submitEdit() {
       newImages: newImageUrls,
       deletedImages: deletedImagesArr,
       hasParticipantRules: document.getElementById('edit-hasParticipantRules').checked,
+      refundPolicy: selectedRefundPolicy,  // 환불 정책 추가
+      refundCustomDescription: selectedRefundPolicy === 'custom' ? customRefundDescription : undefined
     };
 
     console.log('이벤트 업데이트 요청', updatedData);
