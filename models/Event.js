@@ -9,22 +9,52 @@ const questionSchema = new mongoose.Schema({
   }
 });
 
-const participantSchema = new mongoose.Schema({
-  userId: { 
-    type: mongoose.Schema.Types.ObjectId, 
-    ref: 'User', 
-    required: true 
+const appliedParticipantSchema = new mongoose.Schema({
+  userId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true
   },
-  appliedAt: { 
-    type: Date, 
-    default: Date.now 
+  appliedAt: {
+    type: Date,
+    default: Date.now
   },
   status: {
     type: String,
     enum: ['pending', 'approved', 'rejected'],
     default: 'pending'
   },
-  // 답변 추가
+  // 상태 변경 이력을 저장할 필드 추가
+  statusHistory: [{
+    previousStatus: {
+      type: String,
+      enum: ['pending', 'approved', 'rejected'],
+      required: true
+    },
+    newStatus: {
+      type: String,
+      enum: ['pending', 'approved', 'rejected'],
+      required: true
+    },
+    changedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      required: true
+    },
+    changerName: {
+      type: String,
+      required: true
+    },
+    changedAt: {
+      type: Date,
+      default: Date.now
+    },
+    isReset: {
+      type: Boolean,
+      default: false // 되돌리기 여부를 표시
+    }
+  }],
+  // 선별적 이벤트용 답변
   answers: [{
     answerText: {
       type: String,
@@ -54,7 +84,7 @@ const eventSchema = new mongoose.Schema({
     type: Number,
     required: true,
   },
-  appliedParticipants: [participantSchema],
+  appliedParticipants: [appliedParticipantSchema],
   finalParticipants: {
     type: [String],
     default: []
