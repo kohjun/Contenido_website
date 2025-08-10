@@ -623,19 +623,10 @@ const AuthModule = {
   const adBannersHTML = `
       <div class="ad-banner-wrapper">
           <div class="ad-banner left-banner">
-              <a href="https://picore.co.kr" target="_blank" rel="noopener noreferrer">
-              <img src="./images/picore1.jpg" alt="Left Advertisement">
-              </a>
-              <h3>PiCore</h3>
-              <p>좋은 피부의 개념을 다시 씁니다.</p>
-              
+              Contenid-o              
           </div>
           <div class="ad-banner right-banner">
-             <a href="https://picore.co.kr" target="_blank" rel="noopener noreferrer">
-              <img src="./images/picore2.jpg" alt="Left Advertisement">
-              </a>
-              <h3>PiCore</h3>
-              <p>좋은 피부의 개념을 다시 씁니다.</p>
+             Contenid-o
           </div>
       </div>
   `;
