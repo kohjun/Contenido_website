@@ -149,12 +149,6 @@ p {
       border-radius: 0.375rem;
     }
 
-    .button-group {
-      display: flex;
-      gap: 1rem;
-      margin-top: 2rem;
-    }
-
     .selective-badge {
       display: inline-block;
       padding: 0.25rem 0.75rem;
@@ -225,12 +219,6 @@ p {
       padding: 0.5rem;
       border: 1px solid #e2e8f0;
       border-radius: 0.375rem;
-    }
-
-    .button-group {
-      display: flex;
-      gap: 1rem;
-      margin-top: 2rem;
     }
 
     .selective-badge {
@@ -1033,7 +1021,10 @@ dot {
 .application-header {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
+  margin-bottom: 15px;
+  flex-wrap: wrap;
+  gap: 10px;
 }
 
 .application-actions {
@@ -1278,15 +1269,18 @@ input:focus, select:focus, textarea:focus {
 
 /* 신청자 목록 스타일 개선 */
 .application-item {
-  position: relative;
-  border-left: 3px solid #e2e8f0;
-  transition: border-color 0.3s ease;
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  transition: box-shadow 0.3s ease;
 }
 
 .application-item:hover {
-  border-left-color: #0A84FE;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
 }
-
 .birth-year {
   color: #6B7280;
   font-size: 0.85rem;
@@ -1459,7 +1453,28 @@ input:focus, select:focus, textarea:focus {
 .status-confirmed {
   color: #4CAF50;
   font-weight: bold;
+  font-size: 14px;
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 8px;
+  background-color: #e8f5e8;
+  border-radius: 4px;
 }
+.status-rejected {
+  color: #f44336;
+  font-weight: bold;
+  font-size: 14px;
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 8px;
+  background-color: #ffeaea;
+  border-radius: 4px;
+}
+td.action-buttons {
+  min-width: 200px;
+  white-space: nowrap;
+}
+
 
 
 #event-details {
@@ -2208,8 +2223,76 @@ tr:hover {
 
 .button-group {
   display: flex;
-  gap: 1rem;
-  margin-top: 2rem;
+  gap: 5px;
+  flex-wrap: wrap;
+}
+.status-history-indicator {
+  font-size: 11px;
+  color: #6c757d;
+  font-style: italic;
+  margin-top: 5px;
+  padding: 2px 6px;
+  background-color: #f8f9fa;
+  border-radius: 3px;
+  display: inline-block;
+}
+
+/* 되돌리기 확인 메시지 스타일 개선을 위한 클래스 */
+.reset-warning {
+  color: #e67e22;
+  font-weight: 500;
+}
+.reset-btn {
+  background-color: #f39c12;
+  color: white;
+  border: none;
+  padding: 5px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-left: 5px;
+  font-size: 12px;
+  transition: all 0.3s ease;
+}
+
+.reset-btn:hover {
+  background-color: #e67e22;
+  transform: translateY(-2px);
+}
+
+.history-btn {
+  background-color: #6c757d;
+  color: white;
+  border: none;
+  padding: 5px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-left: 5px;
+  font-size: 12px;
+  transition: all 0.3s ease;
+}
+
+.history-btn:hover {
+  background-color: #5a6268;
+  transform: translateY(-2px);
+}
+
+/* 버튼 호버 효과 개선 */
+.approve-btn:hover,
+.reject-btn:hover,
+.reset-btn:hover,
+.history-btn:hover {
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+}
+
+/* 비활성화된 버튼 스타일 */
+.approve-btn:disabled,
+.reject-btn:disabled,
+.reset-btn:disabled,
+.history-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none !important;
+  box-shadow: none !important;
 }
 
 .selective-badge {
@@ -2637,6 +2720,11 @@ tr:hover {
   display: flex;
   align-items: center;
   gap: 1rem;
+}
+.participant-info h3 {
+  margin: 0;
+  color: #2d3748;
+  font-size: 18px;
 }
 
 .custom-checkbox {

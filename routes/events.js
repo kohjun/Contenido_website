@@ -549,6 +549,21 @@ router.post('/:eventId/participants/:userId/status',
         }
       }
 
+      // 상태 변경 기록을 위한 로그 추가
+      if (!participant.statusHistory) {
+        participant.statusHistory = [];
+      }
+
+      // 이전 상태 기록
+      const previousStatus = participant.status || 'pending';
+      participant.statusHistory.push({
+        previousStatus,
+        newStatus: status,
+        changedBy: req.user.id,
+        changedAt: new Date(),
+        changerName: req.user.name // 사용자 이름도 함께 저장
+      });
+
       participant.status = status;
       await event.save();
 
@@ -556,6 +571,91 @@ router.post('/:eventId/participants/:userId/status',
     } catch (error) {
       console.error('Error updating participant status:', error);
       res.status(500).json({ message: '상태 업데이트 중 오류가 발생했습니다.' });
+    }
+  }
+);
+
+// 새로운 라우트: 참가자 상태를 pending으로 되돌리기
+router.post('/:eventId/participants/:userId/reset-status', 
+  authenticateToken,
+  authorizeRoles('officer', 'admin'),
+  async (req, res) => {
+    try {
+      const { eventId, userId } = req.params;
+
+      const event = await Event.findById(eventId);
+      if (!event) {
+        return res.status(404).json({ message: '이벤트를 찾을 수 없습니다.' });
+      }
+
+      const participant = event.appliedParticipants.find(
+        p => p.userId.toString() === userId
+      );
+
+      if (!participant) {
+        return res.status(404).json({ message: '참가자를 찾을 수 없습니다.' });
+      }
+
+      // pending 상태가 아닌 경우에만 되돌리기 허용
+      if (participant.status === 'pending') {
+        return res.status(400).json({ message: '이미 대기 상태입니다.' });
+      }
+
+      // 상태 변경 기록
+      if (!participant.statusHistory) {
+        participant.statusHistory = [];
+      }
+
+      const previousStatus = participant.status;
+      participant.statusHistory.push({
+        previousStatus,
+        newStatus: 'pending',
+        changedBy: req.user.id,
+        changedAt: new Date(),
+        changerName: req.user.name,
+        isReset: true // 되돌리기임을 표시
+      });
+
+      participant.status = 'pending';
+      await event.save();
+
+      res.json({ 
+        message: '참가자 상태가 대기 상태로 되돌려졌습니다.',
+        resetBy: req.user.name
+      });
+    } catch (error) {
+      console.error('Error resetting participant status:', error);
+      res.status(500).json({ message: '상태 되돌리기 중 오류가 발생했습니다.' });
+    }
+  }
+);
+router.get('/:eventId/participants/:userId/status-history', 
+  authenticateToken,
+  authorizeRoles('officer', 'admin'),
+  async (req, res) => {
+    try {
+      const { eventId, userId } = req.params;
+
+      const event = await Event.findById(eventId);
+      if (!event) {
+        return res.status(404).json({ message: '이벤트를 찾을 수 없습니다.' });
+      }
+
+      const participant = event.appliedParticipants.find(
+        p => p.userId.toString() === userId
+      );
+
+      if (!participant) {
+        return res.status(404).json({ message: '참가자를 찾을 수 없습니다.' });
+      }
+
+      res.json({ 
+        statusHistory: participant.statusHistory || [],
+        currentStatus: participant.status || 'pending'
+      });
+    } catch (error) {
+      console.error('Error fetching status history:', error);
+      res.status(500).json({ message: '상태 이력 조회 중 오류가 발생했습니다.' });
     }
   }
 );

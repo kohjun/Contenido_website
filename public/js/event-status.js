@@ -76,60 +76,97 @@ async function fetchEventStatus() {
       <p><strong>날짜:</strong> ${new Date(event.date).toLocaleDateString()}</p>
       <p><strong>승인된 참가자:</strong> ${approvedCount}/${event.participants}명</p>
       <p><strong>총 신청자:</strong> ${event.appliedParticipants.length}명</p>
-      ${event.isSelective ? '<p><strong>유형:</strong> <span class="selective-badge">선별적 이벤트</span></p>' : '<p><strong>유형:</strong> <span class="selective-badge">일반 이벤트</span></p>'}
+      ${event.isSelective ? 
+        '<p><strong>유형:</strong> <span class="selective-badge">선별적 이벤트</span></p>' : 
+        '<p><strong>유형:</strong> <span class="selective-badge">일반 이벤트</span></p>'
+      }
     `;
 
     if (event.isSelective) {
-      // 지원서가 필요한 선별적 이벤트인 경우
+      // 선별적 이벤트인 경우
       document.getElementById('participant-table').classList.add('hidden');
       document.getElementById('application-list').innerHTML = `
         <h2>지원서 목록</h2>
-        ${participantsData.participants.map(participant => `
-          <div class="application-item" id="application-${participant.userId}">
-        <div class="application-header">
-          <div class="participant-info">
-        <h3>${participant.name}(${formatBirthYear(participant.birthDate)})</h3>
-          </div>
-          <div class="application-actions">
-        ${participant.status === 'approved' ? 
-          '<span class="status-confirmed">✓ 참가확정</span>' :
-          participant.status === 'rejected' ?
-          '<span class="status-rejected">거절됨</span>' :
-          `<button onclick="updateParticipantStatus('${eventId}', '${participant.userId}', 'approved')" class="approve-btn">승인</button>
-           <button onclick="updateParticipantStatus('${eventId}', '${participant.userId}', 'rejected')" class="reject-btn">거절</button>`
-        }
-          </div>
-        </div>
-        <p><strong>역할:</strong> ${formatRole(participant.role)}</p>
-        <p><strong>팀(성별):</strong> ${formatTeam(participant.team)}(${formatGender(participant.gender)})</p>
-        <p><strong>전화번호:</strong> ${participant.phonenumber || '-'}</p>
-        <p><strong>신청일시:</strong> ${new Date(participant.appliedAt).toLocaleString('ko-KR', {
-          year: 'numeric',
-          month: '2-digit',
-          day: '2-digit',
-          hour: '2-digit',
-          minute: '2-digit'
-        })}</p>
-        ${participant.answers ? participant.answers.map((answer, index) => {
-          // 추가 질문이 존재하는지 확인
-          if (event.additionalQuestions && event.additionalQuestions[index]) {
-        return `
-          <div class="answer-section">
-        <p class="question-text">Q${index + 1}. ${event.additionalQuestions[index].questionText}</p>
-        <div class="answer-text">${answer.answerText}</div>
-          </div>
-        `;
+        ${participantsData.participants.map(participant => {
+          // 버튼 HTML 생성
+          let buttonsHtml = '';
+          if (participant.status === 'approved') {
+            buttonsHtml = `
+              <span class="status-confirmed">✓ 참가확정</span>
+              <button onclick="resetParticipantStatus('${eventId}', '${participant.userId}', '${participant.name}')" 
+                      class="reset-btn" title="대기상태로 되돌리기">
+                취소
+              </button>
+              <button onclick="showStatusHistory('${eventId}', '${participant.userId}', '${participant.name}')" 
+                      class="history-btn" title="상태 변경 이력 보기">
+                이력
+              </button>
+            `;
+          } else if (participant.status === 'rejected') {
+            buttonsHtml = `
+              <span class="status-rejected">거절됨</span>
+              <button onclick="resetParticipantStatus('${eventId}', '${participant.userId}', '${participant.name}')" 
+                      class="reset-btn" title="대기상태로 되돌리기">
+                취소
+              </button>
+              <button onclick="showStatusHistory('${eventId}', '${participant.userId}', '${participant.name}')" 
+                      class="history-btn" title="상태 변경 이력 보기">
+                이력
+              </button>
+            `;
           } else {
-        return `
-          <div class="answer-section">
-        <p class="question-text">Q${index + 1}. 질문이 없습니다</p>
-        <div class="answer-text">${answer.answerText}</div>
-          </div>
-        `;
+            buttonsHtml = `
+              <button onclick="updateParticipantStatus('${eventId}', '${participant.userId}', 'approved')" 
+                      class="approve-btn">
+                승인
+              </button>
+              <button onclick="updateParticipantStatus('${eventId}', '${participant.userId}', 'rejected')" 
+                      class="reject-btn">
+                거절
+              </button>
+            `;
           }
-        }).join('') : '<p>지원서가 없습니다.</p>'}
-          </div>
-        `).join('')}
+
+          return `
+            <div class="application-item" id="application-${participant.userId}">
+              <div class="application-header">
+                <div class="participant-info">
+                  <h3>${participant.name}(${formatBirthYear(participant.birthDate)})</h3>
+                </div>
+                <div class="application-actions">
+                  ${buttonsHtml}
+                </div>
+              </div>
+              <p><strong>역할:</strong> ${formatRole(participant.role)}</p>
+              <p><strong>팀(성별):</strong> ${formatTeam(participant.team)}(${formatGender(participant.gender)})</p>
+              <p><strong>전화번호:</strong> ${participant.phonenumber || '-'}</p>
+              <p><strong>신청일시:</strong> ${new Date(participant.appliedAt).toLocaleString('ko-KR', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit'
+              })}</p>
+              ${participant.answers ? participant.answers.map((answer, index) => {
+                if (event.additionalQuestions && event.additionalQuestions[index]) {
+                  return `
+                    <div class="answer-section">
+                      <p class="question-text">Q${index + 1}. ${event.additionalQuestions[index].questionText}</p>
+                      <div class="answer-text">${answer.answerText}</div>
+                    </div>
+                  `;
+                } else {
+                  return `
+                    <div class="answer-section">
+                      <p class="question-text">Q${index + 1}. 질문이 없습니다</p>
+                      <div class="answer-text">${answer.answerText}</div>
+                    </div>
+                  `;
+                }
+              }).join('') : '<p>지원서가 없습니다.</p>'}
+            </div>
+          `;
+        }).join('')}
       `;
     } else {
       // 일반 이벤트인 경우 기존 표 형식 유지
@@ -150,9 +187,29 @@ async function fetchEventStatus() {
 
           let buttonsHtml = '';
           if (participant.status === 'approved') {
-            buttonsHtml = '<span class="status-confirmed">✓ 참가확정</span>';
+            buttonsHtml = `
+              <span class="status-confirmed">✓ 참가확정</span>
+              <button onclick="resetParticipantStatus('${eventId}', '${participant.userId}', '${participant.name}')" 
+                      class="reset-btn" title="대기상태로 되돌리기">
+                취소
+              </button>
+              <button onclick="showStatusHistory('${eventId}', '${participant.userId}', '${participant.name}')" 
+                      class="history-btn" title="상태 변경 이력 보기">
+                이력
+              </button>
+            `;
           } else if (participant.status === 'rejected') {
-            buttonsHtml = '<span class="status-rejected">거절됨</span>';
+            buttonsHtml = `
+              <span class="status-rejected">거절됨</span>
+              <button onclick="resetParticipantStatus('${eventId}', '${participant.userId}', '${participant.name}')" 
+                      class="reset-btn" title="대기상태로 되돌리기">
+                취소
+              </button>
+              <button onclick="showStatusHistory('${eventId}', '${participant.userId}', '${participant.name}')" 
+                      class="history-btn" title="상태 변경 이력 보기">
+                이력
+              </button>
+            `;
           } else {
             buttonsHtml = `
               <button onclick="updateParticipantStatus('${eventId}', '${participant.userId}', 'approved')" 
@@ -167,16 +224,16 @@ async function fetchEventStatus() {
             `;
           }
 
-            return `
+          return `
             <tr data-user-id="${participant.userId}">
               <td>${participant.name}(${formatBirthYear(participant.birthDate)})</td>
               <td>${formatRole(participant.role)}[${formatTeam(participant.team)}](${formatGender(participant.gender)})</td>
               <td>${participant.phonenumber || '-'}</td>
               <td>${appliedDate}</td>
               <td>${statusText}</td>
-              <td>${buttonsHtml}</td>
+              <td class="action-buttons">${buttonsHtml}</td>
             </tr>
-            `;
+          `;
         })
         .join('');
     }
@@ -322,6 +379,84 @@ async function updateParticipantStatus(eventId, userId, status) {
   } catch (error) {
     console.error('Error:', error);
     alert(error.message || '상태 업데이트 중 오류가 발생했습니다.');
+  }
+}
+
+// 참가자 상태를 pending으로 되돌리는 함수
+async function resetParticipantStatus(eventId, userId, participantName) {
+  const confirmMessage = `${participantName}님의 참가 상태를 대기 상태로 되돌리시겠습니까?\n\n되돌린 후에는 해당 기록이 남게 됩니다.`;
+  
+  if (!confirm(confirmMessage)) {
+    return;
+  }
+
+  try {
+    const response = await fetch(`/events/${eventId}/participants/${userId}/reset-status`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      if (response.status === 403) {
+        const hasAccess = await verifyEventAccess(eventId);
+        if (hasAccess) {
+          return await resetParticipantStatus(eventId, userId, participantName);
+        }
+        window.location.href = "event-staff.html";
+        return;
+      }
+      throw new Error(error.message);
+    }
+
+    const result = await response.json();
+    alert(`${participantName}님의 상태가 대기 상태로 되돌려졌습니다.\n처리자: ${result.resetBy}`);
+
+    // 전체 데이터 다시 로드
+    await fetchEventStatus();
+
+  } catch (error) {
+    console.error('Error:', error);
+    alert(error.message || '상태 되돌리기 중 오류가 발생했습니다.');
+  }
+}
+
+// 상태 변경 이력을 보여주는 함수
+async function showStatusHistory(eventId, userId, participantName) {
+  try {
+    const response = await fetch(`/events/${eventId}/participants/${userId}/status-history`);
+    
+    if (!response.ok) {
+      throw new Error('상태 이력을 가져올 수 없습니다.');
+    }
+
+    const data = await response.json();
+    const history = data.statusHistory || [];
+
+    if (history.length === 0) {
+      alert(`${participantName}님의 상태 변경 이력이 없습니다.`);
+      return;
+    }
+
+    // 이력을 시간 순으로 정렬 (최신순)
+    history.sort((a, b) => new Date(b.changedAt) - new Date(a.changedAt));
+
+    let historyText = `${participantName}님의 상태 변경 이력:\n\n`;
+    history.forEach((record, index) => {
+      const date = new Date(record.changedAt).toLocaleString('ko-KR');
+      const action = record.isReset ? '되돌림' : '변경';
+      historyText += `${index + 1}. ${date}\n`;
+      historyText += `   ${record.previousStatus} → ${record.newStatus} (${action})\n`;
+      historyText += `   처리자: ${record.changerName}\n\n`;
+    });
+
+    alert(historyText);
+
+  } catch (error) {
+    console.error('Error fetching status history:', error);
+    alert('상태 이력을 가져오는 중 오류가 발생했습니다.');
   }
 }
 
