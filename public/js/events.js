@@ -625,7 +625,7 @@ async function cancelEvent(eventId) {
 }
 
 async function applyForEvent(eventId) {
-  const isConfirmed = confirm('이벤트 당일 일주일 전부터 신청취소 시 경고1회가 주어집니다. 신청하시겠습니까?');
+  const isConfirmed = confirm('이벤트 당일 일주일 전부터 신청취소 시 경고1회가 주어질 수 있습니다. 신청하시겠습니까?');
 
   if (!isConfirmed) {
     alert('신청이 취소되었습니다.');
@@ -649,7 +649,7 @@ async function applyForEvent(eventId) {
 }
 
 async function cancelApplication(eventId) {
-  const isConfirmed = confirm('정말로 신청을 취소하시겠습니까?\n이벤트 일주일 전 취소 시 경고 1회가 부여됩니다.');
+  const isConfirmed = confirm('정말로 신청을 취소하시겠습니까?\n이벤트 일주일 전 취소 시 경고 1회가 부여될 수 있습니다.');
 
   if (!isConfirmed) {
     return;
