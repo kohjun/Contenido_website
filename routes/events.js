@@ -18,6 +18,7 @@ const storage = multer.diskStorage({
   }
 });
 
+
 const upload = multer({
   storage: storage,
   limits: {
@@ -339,19 +340,6 @@ router.post('/:id/report',
       );
       await Promise.all(updates);
 
-      // 승인된 참가자 중 보고서 제출 명단에 없는 참가자에게 warningCount 1 증가
-      const approvedParticipants = event.appliedParticipants
-        .filter(p => p.status === 'approved')
-        .map(p => p.userId.toString());
-      const notReported = approvedParticipants.filter(userId => !participants.includes(userId));
-      if (notReported.length > 0) {
-        await Promise.all(
-          notReported.map(userId =>
-            User.findByIdAndUpdate(userId, { $inc: { warningCount: 1 } })
-          )
-        );
-      }
-
       res.status(200).json({ message: 'Report submitted and event marked as ended' });
     } catch (error) {
       console.error('Error submitting report:', error);
@@ -383,7 +371,6 @@ router.post('/:id/verify-access', authenticateToken, async (req, res) => {
     res.status(500).json({ message: '접근 코드 확인 중 오류가 발생했습니다.' });
   }
 });
-
 
 // 이벤트 신청 - active 상태인 participant,starter,officer 가능
 router.post('/:id/apply', 
@@ -473,36 +460,7 @@ router.post('/:id/cancel-application',
         return res.status(400).json({ message: 'You have not applied for this event' });
       }
 
-      // 참가 승인 상태 확인
-      if (participant.status === 'approved') {
-        // 이벤트 날짜와 현재 날짜 체크
-        const eventDate = new Date(event.date);
-        const oneWeekBefore = new Date(eventDate);
-        oneWeekBefore.setDate(oneWeekBefore.getDate() - 7);
-        oneWeekBefore.setHours(0, 0, 0, 0);
-        
-        const now = new Date();
-
-        // 이벤트 일주일 전부터 당일까지의 기간에 취소하는 경우
-        if (now >= oneWeekBefore && now <= eventDate) {
-          // 사용자의 경고 횟수 증가
-          await User.findByIdAndUpdate(req.user.id, {
-            $inc: { warningCount: 1 }
-          });
-          
-          // 참가자 제거
-          event.appliedParticipants = event.appliedParticipants.filter(
-            p => p.userId.toString() !== req.user.id
-          );
-          await event.save();
-
-          return res.status(200).json({ 
-            message: '신청이 취소되었습니다. 이벤트 일주일 전 취소로 인해 경고 1회가 부여되었습니다.' 
-          });
-        }
-      }
-
-      // 일반적인 취소 처리
+      // 참가자 제거 (경고 부여 없이)
       event.appliedParticipants = event.appliedParticipants.filter(
         p => p.userId.toString() !== req.user.id
       );
@@ -515,6 +473,7 @@ router.post('/:id/cancel-application',
       res.status(500).json({ message: '신청 취소 중 오류가 발생했습니다.', error });
     }
 });
+
 
 // 참가 신청 승인/거절
 router.post('/:eventId/participants/:userId/status', 
