@@ -7,14 +7,12 @@ let selectedUserId = null;
 
 // 페이지 로드 시 초기화
 document.addEventListener('DOMContentLoaded', () => {
-    
     loadUsers();
     initializeDialogs();
 });
 
 // 다이얼로그 초기화 (이벤트 리스너 등)
 function initializeDialogs() {
-   
     // 컨텍스트 메뉴 닫기 이벤트
     document.addEventListener('click', function (e) {
         if (!e.target.closest('.context-menu')) {
@@ -22,21 +20,25 @@ function initializeDialogs() {
             if (contextMenu) contextMenu.style.display = 'none';
         }
     });
+
+    // 모달 바깥 영역 클릭 시 닫기
+    document.addEventListener('click', function (e) {
+        if (e.target.classList.contains('warning-modal-overlay')) {
+            closeWarningModal();
+        }
+    });
 }
 
 // 사용자 데이터 로드
 async function loadUsers() {
     try {
-        
         const response = await fetch('/user/participants/users');
         if (!response.ok) {
             throw new Error(`Failed to fetch users: ${response.statusText}`);
         }
         users = await response.json();
-       
         showUsersByRole(currentRole);
     } catch (error) {
-       
         alert('사용자 데이터를 로드하지 못했습니다.');
     }
 }
@@ -45,10 +47,9 @@ async function loadUsers() {
 function handleContextMenu(e, userId, userName, userRole) {
     e.preventDefault();
     selectedUserId = userId;
-   
+    
     const contextMenu = document.getElementById('contextMenu');
     if (!contextMenu) {
-        
         return;
     }
     const user = users.find(u => u.id === userId);
@@ -74,11 +75,9 @@ function handleContextMenu(e, userId, userName, userRole) {
 
 // 다이얼로그 표시/숨김
 function showDialog(dialogId) {
-    
     const contextMenu = document.getElementById('contextMenu');
     const dialog = document.getElementById(dialogId);
     if (!dialog) {
-        
         alert(`다이얼로그(${dialogId})를 찾을 수 없습니다.`);
         return;
     }
@@ -87,27 +86,221 @@ function showDialog(dialogId) {
 }
 
 function closeDialog(dialogId) {
-   
     const dialog = document.getElementById(dialogId);
     if (dialog) dialog.style.display = 'none';
+}
+
+// 경고 부여 모달 표시
+function showWarningModal(userId, userName) {
+    const modal = document.createElement('div');
+    modal.className = 'warning-modal-overlay';
+    modal.innerHTML = `
+        <div class="warning-modal">
+            <div class="warning-modal-header">
+                <h3>${userName}님에게 경고 부여</h3>
+                <button onclick="closeWarningModal()" class="modal-close-btn">&times;</button>
+            </div>
+            <div class="warning-modal-body">
+                <div class="form-group">
+                    <label for="warning-category">경고 분류:</label>
+                    <select id="warning-category" required>
+                        <option value="정기모임">정기모임</option>
+                        <option value="스태프활동">스태프활동</option>
+                        <option value="운영진활동">운영진활동</option>
+                        <option value="번개활동">번개활동</option>
+                        <option value="조별활동">조별활동</option>
+                        <option value="기타">기타</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="warning-reason">경고 사유:</label>
+                    <textarea id="warning-reason" rows="4" placeholder="경고 사유를 상세히 입력해주세요..." required></textarea>
+                </div>
+            </div>
+            <div class="warning-modal-footer">
+                <button onclick="closeWarningModal()" class="btn-cancel">취소</button>
+                <button onclick="issueWarning('${userId}', '${userName}')" class="btn-confirm">경고 부여</button>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+    document.getElementById('warning-reason').focus();
+}
+
+// 경고 부여 실행
+async function issueWarning(userId, userName) {
+    const category = document.getElementById('warning-category').value;
+    const reason = document.getElementById('warning-reason').value.trim();
+    
+    if (!reason) {
+        alert('경고 사유를 입력해주세요.');
+        return;
+    }
+    
+    try {
+        const response = await fetch(`/user/issue-warning/${userId}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ reason, category })
+        });
+        
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.message);
+        }
+        
+        const result = await response.json();
+        closeWarningModal();
+        
+        // 성공 메시지와 함께 사용자 목록 새로고침
+        alert(`${userName}님에게 경고가 부여되었습니다.\n사유: ${reason}\n현재 경고 횟수: ${result.warningCount}회`);
+        await loadUsers();
+        showUsersByRole(currentRole, false);
+        highlightModifiedUser(userId);
+        
+    } catch (error) {
+        console.error('경고 부여 중 오류:', error);
+        alert(`경고 부여에 실패했습니다: ${error.message}`);
+    }
+}
+
+// 경고 내역 조회 모달
+function showWarningHistoryModal(userId, userName) {
+    const modal = document.createElement('div');
+    modal.className = 'warning-modal-overlay';
+    modal.innerHTML = `
+        <div class="warning-history-modal">
+            <div class="warning-modal-header">
+                <h3>${userName}님의 경고 내역</h3>
+                <button onclick="closeWarningModal()" class="modal-close-btn">&times;</button>
+            </div>
+            <div class="warning-modal-body">
+                <div class="loading-indicator">경고 내역을 불러오는 중...</div>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+    loadWarningHistory(userId);
+}
+
+// 경고 내역 로드
+async function loadWarningHistory(userId) {
+    try {
+        const response = await fetch(`/user/warning-history/${userId}?showAll=true`);
+        if (!response.ok) {
+            throw new Error('경고 내역을 불러올 수 없습니다.');
+        }
+        
+        const data = await response.json();
+        const modalBody = document.querySelector('.warning-modal-body');
+        
+        if (data.warningHistory.length === 0) {
+            modalBody.innerHTML = `
+                <div class="no-warnings">
+                    <p>경고 내역이 없습니다.</p>
+                    <p>마지막 초기화: ${data.lastResetDate ? new Date(data.lastResetDate).toLocaleDateString() : '없음'}</p>
+                </div>
+            `;
+            return;
+        }
+        
+        const historyHtml = data.warningHistory.map(warning => `
+            <div class="warning-item ${warning.isActive ? 'active-warning' : 'inactive-warning'}">
+                <div class="warning-header">
+                    <span class="warning-category">[${warning.category}]</span>
+                    <span class="warning-date">${new Date(warning.issuedAt).toLocaleString()}</span>
+                    ${warning.isActive ? 
+                        `<button onclick="removeWarning('${userId}', '${warning.id}')" class="btn-remove-warning">삭제</button>` 
+                        : '<span class="warning-status">삭제됨</span>'
+                    }
+                </div>
+                <div class="warning-content">
+                    <p><strong>사유:</strong> ${warning.reason}</p>
+                    <p><strong>부여자:</strong> ${warning.issuedByName}</p>
+                    ${!warning.isActive && warning.removedAt ? 
+                        `<p class="removal-info"><strong>삭제일:</strong> ${new Date(warning.removedAt).toLocaleString()} | <strong>삭제자:</strong> ${warning.removedByName || 'System'} | <strong>삭제 사유:</strong> ${warning.removalReason || '없음'}</p>`
+                        : ''
+                    }
+                </div>
+            </div>
+        `).join('');
+        
+        modalBody.innerHTML = `
+            <div class="warning-summary">
+                <p><strong>현재 경고 횟수:</strong> ${data.currentWarningCount}회</p>
+                <p><strong>마지막 초기화:</strong> ${data.lastResetDate ? new Date(data.lastResetDate).toLocaleDateString() : '없음'}</p>
+            </div>
+            <div class="warning-history-list">
+                ${historyHtml}
+            </div>
+        `;
+        
+    } catch (error) {
+        console.error('경고 내역 로드 중 오류:', error);
+        document.querySelector('.warning-modal-body').innerHTML = `
+            <div class="error-message">
+                <p>경고 내역을 불러오는데 실패했습니다.</p>
+                <p>${error.message}</p>
+            </div>
+        `;
+    }
+}
+
+// 경고 삭제
+async function removeWarning(userId, warningId) {
+    if (!confirm('이 경고를 삭제하시겠습니까?')) {
+        return;
+    }
+    
+    const reason = prompt('삭제 사유를 입력해주세요:', '관리자 판단');
+    if (!reason) return;
+    
+    try {
+        const response = await fetch(`/user/remove-warning/${userId}/${warningId}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ reason })
+        });
+        
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.message);
+        }
+        
+        alert('경고가 삭제되었습니다.');
+        loadWarningHistory(userId); // 내역 새로고침
+        await loadUsers();
+        showUsersByRole(currentRole, false);
+        
+    } catch (error) {
+        console.error('경고 삭제 중 오류:', error);
+        alert(`경고 삭제에 실패했습니다: ${error.message}`);
+    }
+}
+
+// 모달 닫기
+function closeWarningModal() {
+    const modal = document.querySelector('.warning-modal-overlay');
+    if (modal) {
+        modal.remove();
+    }
 }
 
 // 역할 업데이트
 async function updateUserRole() {
     if (!selectedUserId) {
-       
         alert('선택된 사용자가 없습니다.');
         return;
     }
 
     const roleSelect = document.getElementById('roleSelect');
     if (!roleSelect) {
-        
         alert('역할 선택 요소를 찾을 수 없습니다.');
         return;
     }
     const newRole = roleSelect.value;
-    
 
     try {
         const requestBody = { role: newRole };
@@ -119,7 +312,6 @@ async function updateUserRole() {
             requestBody.active = false;
         }
 
-        
         const response = await fetch(`/user/update-role/${selectedUserId}`, {
             method: 'POST',
             headers: {
@@ -131,18 +323,15 @@ async function updateUserRole() {
 
         if (!response.ok) {
             const error = await response.json();
-          
             throw new Error(error.message || '역할 업데이트 실패');
         }
 
-       
         await loadUsers();
         showUsersByRole(currentRole, false);
         highlightModifiedUser(selectedUserId);
         closeDialog('roleChangeDialog');
         alert('역할이 성공적으로 변경되었습니다.');
     } catch (error) {
-       
         alert(error.message || '역할 변경 중 오류가 발생했습니다.');
     }
 }
@@ -157,24 +346,20 @@ const teamDepartmentMapping = {
 // 팀 업데이트
 async function updateUserTeam() {
     if (!selectedUserId) {
-        
         alert('선택된 사용자가 없습니다.');
         return;
     }
 
     const teamSelect = document.getElementById('teamSelect');
     if (!teamSelect) {
-       
         alert('팀 선택 요소를 찾을 수 없습니다.');
         return;
     }
     const newTeam = teamSelect.value;
     const newDepartment = teamDepartmentMapping[newTeam];
-   
 
     try {
         const body = { team: newTeam, department: newDepartment };
-       
         const response = await fetch(`/user/update-team/${selectedUserId}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
@@ -201,7 +386,6 @@ async function updateUserTeam() {
 
 // 스태프 소그룹 변경 다이얼로그 표시
 function showStaffSubteamDialog() {
-    
     const contextMenu = document.getElementById('contextMenu');
     const dialog = document.getElementById('staffSubteamDialog');
     const select = document.getElementById('staffSubteamModalSelect');
@@ -232,10 +416,8 @@ async function confirmStaffSubteamOnly() {
         alert('스태프 소그룹을 반드시 선택해야 합니다.');
         return;
     }
-  
 
     try {
-        
         const response = await fetch(`/user/update-staffsubteam/${selectedUserId}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
@@ -248,7 +430,6 @@ async function confirmStaffSubteamOnly() {
             throw new Error(error.message || '스태프 소그룹 업데이트 실패');
         }
 
-        
         await loadUsers();
         showUsersByRole(currentRole, false);
         highlightModifiedUser(selectedUserId);
@@ -262,7 +443,6 @@ async function confirmStaffSubteamOnly() {
 
 // 변경된 유저 행 하이라이트
 function highlightModifiedUser(userId) {
-   
     const userRow = document.querySelector(`tr[data-userid='${userId}']`);
     if (userRow) {
         userRow.classList.add('recently-modified');
@@ -274,7 +454,7 @@ function highlightModifiedUser(userId) {
     }
 }
 
-// 유저 행 생성
+// 유저 행 생성 (경고 관리 부분 수정)
 function generateUserRow(user) {
     if (!user) return '';
 
@@ -292,16 +472,18 @@ function generateUserRow(user) {
     const genderDisplay = user.gender === 'male' ? '남' : user.gender === 'female' ? '여' : '-';
 
     return `
-        <tr oncontextmenu="handleContextMenu(event, '${user.id}', '${user.name || ''}', '${user.role}')" data-userid="${user.id}">
+        <tr oncontextmenu="handleContextMenu(event, '${user.id}', '${user.name || ''}', '${user.role}')" 
+            data-userid="${user.id}" data-warning="${warningCount}">
             <td><img src="${secureProfileImage}" alt="Profile" class="profile-image" onerror="this.src='/images/basic_Image.png'"></td>
             <td>${user.name || '--'}${phoneSuffix ? `(${phoneSuffix})` : ''}(${user.displayName || '--'})</td>
             <td>${roleDisplay[user.role] || user.role}</td>
             <td>${teamName || '-'}</td>
             <td>${genderDisplay}</td>
             <td class="warning-count-cell">
-                <button onclick="updateWarningCount('${user.id}', ${Math.max(0, warningCount - 1)})" class="warning-btn" ${warningCount <= 0 ? 'disabled' : ''}>-</button>
-                <span>${warningCount}</span>
-                <button onclick="updateWarningCount('${user.id}', ${warningCount + 1})" class="warning-btn">+</button>
+                <button onclick="updateWarningCount('${user.id}', ${Math.max(0, warningCount - 1)})" class="warning-btn" ${warningCount <= 0 ? 'disabled' : ''} title="경고 1회 차감">-</button>
+                <span class="warning-count" onclick="showWarningHistoryModal('${user.id}', '${user.name || user.displayName}')" 
+                      title="클릭하여 경고 내역 확인" style="cursor: pointer; text-decoration: underline; color: #007bff;">${warningCount}</span>
+                <button onclick="showWarningModal('${user.id}', '${user.name || user.displayName}')" class="warning-btn" title="경고 부여">+</button>
             </td>
             <td class="participation-count-cell">
                 <button onclick="updateParticipationCount('${user.id}', ${Math.max(0, regularCount - 1)})" class="warning-btn" ${regularCount <= 0 ? 'disabled' : ''}>-</button>
@@ -336,14 +518,18 @@ async function updateParticipationCount(userId, newCount) {
     await updateCount(userId, 'participation', { regularCount: newCount }, '참가 횟수');
 }
 
-// 경고 횟수 업데이트
+// 경고 횟수 업데이트 (기존 방식 - 긴급용)
 async function updateWarningCount(userId, newCount) {
-    await updateCount(userId, 'warning', { warningCount: newCount }, '경고 횟수');
+    if (newCount < 0) return;
+    
+    // 경고 감소 시 확인
+    if (confirm('경고를 직접 차감하시겠습니까?\n권장: 경고 번호를 클릭하여 개별 경고를 삭제해주세요.')) {
+        await updateCount(userId, 'warning', { warningCount: newCount }, '경고 횟수');
+    }
 }
 
 // 공통 카운트 업데이트 로직
 async function updateCount(userId, type, body, alertName) {
-    
     try {
         const response = await fetch(`/user/update-${type}/${userId}`, {
             method: 'POST',
@@ -357,7 +543,6 @@ async function updateCount(userId, type, body, alertName) {
             throw new Error(`Failed to update ${type} count`);
         }
 
-        
         await loadUsers();
         showUsersByRole(currentRole, false);
         alert(`${alertName}가 업데이트되었습니다.`);
@@ -369,7 +554,6 @@ async function updateCount(userId, type, body, alertName) {
 
 // 활성 상태 토글
 async function toggleUserActive(userId, active) {
-   
     try {
         const response = await fetch(`/user/toggle-active/${userId}`, {
             method: 'POST',
@@ -382,7 +566,6 @@ async function toggleUserActive(userId, active) {
             throw new Error('Failed to update user status');
         }
 
-       
         await loadUsers();
         showUsersByRole(currentRole, false);
         alert('활성상태가 변경되었습니다.');
@@ -394,7 +577,6 @@ async function toggleUserActive(userId, active) {
 
 // 역할별 사용자 표시
 function showUsersByRole(role, resetPage = true) {
-    
     currentRole = role;
     if (resetPage) {
         currentPage = 1;
@@ -422,7 +604,6 @@ function showUsersByRole(role, resetPage = true) {
 
 // 사용자 목록과 페이지네이션 표시
 function displayUsers(usersArray) {
-    
     const startIndex = (currentPage - 1) * usersPerPage;
     const endIndex = startIndex + usersPerPage;
     const usersToShow = usersArray.slice(startIndex, endIndex);
@@ -438,7 +619,6 @@ function displayUsers(usersArray) {
 
 // 페이지네이션 생성
 function createPagination(totalUsers) {
-    
     const totalPages = Math.ceil(totalUsers / usersPerPage);
     const paginationContainer = document.getElementById('pagination');
     if (!paginationContainer) {
@@ -462,7 +642,6 @@ function createPagination(totalUsers) {
 
 // 페이지 변경
 function changePage(page) {
-    
     currentPage = page;
     showUsersByRole(currentRole, false);
 }
@@ -471,7 +650,6 @@ function changePage(page) {
 function searchUsers() {
     const searchOption = document.getElementById('search-option')?.value || 'name';
     const searchInput = document.getElementById('search-input')?.value.toLowerCase() || '';
-   
 
     searchResults = users.filter(user => {
         if (!user) return false;
@@ -503,7 +681,6 @@ function searchUsers() {
 
 // 검색 초기화
 function resetSearch() {
-   
     document.getElementById('search-input').value = '';
     searchResults = [];
     currentPage = 1;
@@ -524,3 +701,11 @@ window.updateWarningCount = updateWarningCount;
 window.updateParticipationCount = updateParticipationCount;
 window.toggleUserActive = toggleUserActive;
 window.changePage = changePage;
+
+// 새로 추가된 경고 관리 함수들
+window.showWarningModal = showWarningModal;
+window.issueWarning = issueWarning;
+window.showWarningHistoryModal = showWarningHistoryModal;
+window.loadWarningHistory = loadWarningHistory;
+window.removeWarning = removeWarning;
+window.closeWarningModal = closeWarningModal;

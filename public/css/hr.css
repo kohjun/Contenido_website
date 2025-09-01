@@ -143,7 +143,294 @@ p {
   padding: 2px 8px;
   border-radius: 4px;
 }
+/* public/css/hr.css - 경고 관리 모달 스타일 추가 */
 
+/* 경고 모달 오버레이 */
+.warning-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+/* 경고 부여 모달 */
+.warning-modal {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  width: 90%;
+  max-width: 500px;
+  max-height: 80vh;
+  overflow: hidden;
+}
+
+/* 경고 내역 모달 */
+.warning-history-modal {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  width: 90%;
+  max-width: 700px;
+  max-height: 80vh;
+  overflow: hidden;
+}
+
+/* 모달 헤더 */
+.warning-modal-header {
+  background-color: #f8fafc;
+  padding: 20px;
+  border-bottom: 1px solid #e2e8f0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.warning-modal-header h3 {
+  margin: 0;
+  color: #2d3748;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.modal-close-btn {
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: #718096;
+  padding: 0;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.modal-close-btn:hover {
+  color: #2d3748;
+  background-color: #edf2f7;
+  border-radius: 4px;
+}
+
+/* 모달 바디 */
+.warning-modal-body {
+  padding: 20px;
+  max-height: 60vh;
+  overflow-y: auto;
+}
+
+/* 폼 그룹 */
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 600;
+  color: #2d3748;
+  font-size: 14px;
+}
+
+.form-group select,
+.form-group textarea {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  font-size: 14px;
+  font-family: inherit;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.form-group select:focus,
+.form-group textarea:focus {
+  outline: none;
+  border-color: #3182ce;
+  box-shadow: 0 0 0 3px rgba(49, 130, 206, 0.1);
+}
+
+.form-group textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+/* 모달 푸터 */
+.warning-modal-footer {
+  background-color: #f8fafc;
+  padding: 20px;
+  border-top: 1px solid #e2e8f0;
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.btn-cancel,
+.btn-confirm {
+  padding: 10px 20px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: none;
+}
+
+.btn-cancel {
+  background-color: #edf2f7;
+  color: #4a5568;
+}
+
+.btn-cancel:hover {
+  background-color: #e2e8f0;
+}
+
+.btn-confirm {
+  background-color: #e53e3e;
+  color: white;
+}
+
+.btn-confirm:hover {
+  background-color: #c53030;
+}
+
+/* 경고 내역 스타일 */
+.warning-summary {
+  background-color: #f7fafc;
+  padding: 15px;
+  border-radius: 6px;
+  margin-bottom: 20px;
+}
+
+.warning-summary p {
+  margin: 5px 0;
+  color: #2d3748;
+  font-size: 14px;
+}
+
+.warning-history-list {
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.warning-item {
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  margin-bottom: 12px;
+  overflow: hidden;
+  transition: box-shadow 0.2s ease;
+}
+
+.warning-item:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.active-warning {
+  border-left: 4px solid #e53e3e;
+}
+
+.inactive-warning {
+  border-left: 4px solid #cbd5e0;
+  opacity: 0.7;
+}
+
+.warning-header {
+  background-color: #f8fafc;
+  padding: 12px 15px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.warning-category {
+  background-color: #3182ce;
+  color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.warning-date {
+  color: #718096;
+  font-size: 12px;
+}
+
+.warning-status {
+  color: #718096;
+  font-size: 12px;
+  font-style: italic;
+}
+
+.btn-remove-warning {
+  background-color: #fed7d7;
+  color: #c53030;
+  border: 1px solid #feb2b2;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-remove-warning:hover {
+  background-color: #fbb6b6;
+  border-color: #f56565;
+}
+
+.warning-content {
+  padding: 15px;
+  background-color: white;
+}
+
+.warning-content p {
+  margin: 8px 0;
+  color: #2d3748;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+/* 상태 메시지 */
+.no-warnings,
+.error-message,
+.loading-indicator {
+  text-align: center;
+  padding: 30px 20px;
+  color: #718096;
+}
+
+.error-message {
+  color: #e53e3e;
+}
+
+.loading-indicator {
+  color: #3182ce;
+}
+
+/* 경고 횟수 클릭 가능 스타일 개선 */
+.warning-count {
+  display: inline-block;
+  margin: 0 8px;
+  padding: 4px 8px;
+  min-width: 20px;
+  text-align: center;
+  font-weight: bold;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.warning-count:hover {
+  background-color: #e6f3ff;
+  transform: scale(1.05);
+}
 /* 경고 횟수가 2 이상인 행 스타일 */
 .user-table tr[data-warning="2"],
 .user-table tr[data-warning="3"],

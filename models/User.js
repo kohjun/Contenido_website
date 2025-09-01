@@ -30,6 +30,51 @@ const applicationSchema = new mongoose.Schema({
   processedAt: Date
 });
 
+// 경고 내역 스키마 추가
+const warningHistorySchema = new mongoose.Schema({
+  reason: {
+    type: String,
+    required: true,
+    trim: true
+  },
+  issuedBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true
+  },
+  issuedByName: {
+    type: String,
+    required: true
+  },
+  issuedAt: {
+    type: Date,
+    default: Date.now
+  },
+  category: {
+    type: String,
+    enum: ['정기모임', '스태프활동', '운영진활동', '번개활동', '조별활동', '기타'],
+    default: '기타'
+  },
+  isActive: {
+    type: Boolean,
+    default: true // 경고 초기화 시 false로 변경
+  },
+  // 경고 삭제 관련 정보
+  removedAt: {
+    type: Date
+  },
+  removedBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User'
+  },
+  removedByName: {
+    type: String
+  },
+  removalReason: {
+    type: String
+  }
+});
+
 const userSchema = new mongoose.Schema({
   email: { type: String, required: true, unique: true },
   createdAt: { type: Date, default: Date.now }, // 회원가입 날짜 필드 추가
@@ -62,9 +107,16 @@ const userSchema = new mongoose.Schema({
     type: Boolean,
     default: false
   },
+  // 경고 관련 필드들 확장
   warningCount: {
     type: Number,
     default: 0,
+    min: 0
+  },
+  warningHistory: [warningHistorySchema], // 경고 내역 추가
+  lastWarningResetDate: {
+    type: Date,
+    default: null
   },
   participationCount: {
     totalCount: {
@@ -125,6 +177,7 @@ const userSchema = new mongoose.Schema({
     default: Date.now
   },
 });
+
 // 토큰 갱신 메서드 최적화
 userSchema.methods.updateTokens = async function(tokens) {
   const tokenExpiresIn = tokens.expires_in || 43199; // 12시간
@@ -151,6 +204,68 @@ userSchema.methods.isRefreshTokenValid = function() {
   return this.refreshTokenExpiresAt && this.refreshTokenExpiresAt > new Date();
 };
 
+// 경고 부여 메서드 추가
+userSchema.methods.issueWarning = function(warningData, issuedBy) {
+  const warning = {
+    reason: warningData.reason,
+    category: warningData.category || '기타',
+    issuedBy: issuedBy._id,
+    issuedByName: issuedBy.name || issuedBy.displayName,
+    issuedAt: new Date()
+  };
+  
+  this.warningHistory.push(warning);
+  this.warningCount += 1;
+  
+  return this.save();
+};
+
+// 경고 삭제(비활성화) 메서드 추가
+userSchema.methods.removeWarning = function(warningId, removedBy, removalReason = '관리자 판단') {
+  const warning = this.warningHistory.id(warningId);
+  
+  if (!warning) {
+    throw new Error('해당 경고를 찾을 수 없습니다.');
+  }
+  
+  if (!warning.isActive) {
+    throw new Error('이미 삭제된 경고입니다.');
+  }
+  
+  warning.isActive = false;
+  warning.removedAt = new Date();
+  warning.removedBy = removedBy._id;
+  warning.removedByName = removedBy.name || removedBy.displayName;
+  warning.removalReason = removalReason;
+  
+  this.warningCount = Math.max(0, this.warningCount - 1);
+  
+  return this.save();
+};
+
+// 활성 경고 개수 가져오기 메서드
+userSchema.methods.getActiveWarningCount = function() {
+  return this.warningHistory.filter(warning => warning.isActive).length;
+};
+
+// 경고 초기화 메서드 (스케줄러에서 사용)
+userSchema.methods.resetWarnings = function() {
+  // 활성 경고들을 비활성화
+  this.warningHistory.forEach(warning => {
+    if (warning.isActive) {
+      warning.isActive = false;
+      warning.removedAt = new Date();
+      warning.removedByName = 'System';
+      warning.removalReason = '정기 초기화';
+    }
+  });
+  
+  this.warningCount = 0;
+  this.lastWarningResetDate = new Date();
+  
+  return this.save();
+};
+
 // 커스텀 검증: officer 역할일 때 부서 및 조건 확인
 userSchema.pre('save', function (next) {
   if (this.role === 'officer') {
@@ -160,6 +275,15 @@ userSchema.pre('save', function (next) {
     if (!this.isDepartmentHead && !this.team) {
       return next(new Error('팀이 없습니다.'));
     }
+  }
+  next();
+});
+
+// 경고 횟수와 warningHistory의 일관성 확인 미들웨어
+userSchema.pre('save', function (next) {
+  if (this.isModified('warningHistory')) {
+    const activeWarningCount = this.warningHistory.filter(warning => warning.isActive).length;
+    this.warningCount = activeWarningCount;
   }
   next();
 });
@@ -196,6 +320,7 @@ userSchema.methods.updateApplicationStatus = async function(status) {
   return this.save();
 };
 
+<<<<<<< HEAD
 // 리프레시 토큰 검증 메서드
 userSchema.methods.verifyRefreshToken = function() {
   if (!this.refreshToken || !this.refreshTokenExpiry) {
@@ -227,3 +352,11 @@ userSchema.methods.invalidateTokens = async function() {
 };
 
 module.exports = mongoose.model('User', userSchema);
+=======
+// 인덱스 추가 - 성능 최적화
+userSchema.index({ 'warningHistory.issuedAt': -1 });
+userSchema.index({ 'warningHistory.isActive': 1 });
+userSchema.index({ warningCount: 1 });
+
+module.exports = mongoose.model('User', userSchema);
+>>>>>>> dfdf4ee10d672c3c7bef7bc83cf23c8eabc47811
