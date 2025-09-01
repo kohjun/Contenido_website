@@ -1,3 +1,5 @@
+// utils/SchedulerService.js - 업데이트된 버전
+
 const schedule = require('node-schedule');
 const User = require('../models/User');
 
@@ -6,20 +8,31 @@ const resetWarningCounts = schedule.scheduleJob('0 0 1 1,4,7,10 *', async () => 
   try {
     console.log(`[${new Date()}] 경고 횟수 리셋 및 역할 변경 시작.`);
     
-    // 경고가 2회 이상인 사용자의 role을 guest로 변경
-    const warningResult = await User.updateMany(
-      { warningCount: { $gte: 2 } },
-      { $set: { role: 'guest' } }
-    );
-
-    // 모든 사용자의 경고 횟수 초기화
-    const resetResult = await User.updateMany(
-      {},
-      { $set: { warningCount: 0 } }
-    );
-
-    console.log(`Role changes completed. Modified ${warningResult.modifiedCount} users.`);
-    console.log(`Warning count reset completed. Modified ${resetResult.modifiedCount} users.`);
+    // 경고가 2회 이상인 사용자들을 찾아서 처리
+    const usersWithHighWarnings = await User.find({ warningCount: { $gte: 2 } });
+    
+    let roleChangedCount = 0;
+    let warningsResetCount = 0;
+    
+    // 모든 사용자의 경고 초기화
+    const allUsers = await User.find({});
+    
+    for (const user of allUsers) {
+      // 경고가 2회 이상이면 role을 guest로 변경
+      if (user.warningCount >= 2) {
+        user.role = 'guest';
+        roleChangedCount++;
+      }
+      
+      // 경고 내역 초기화 (새로운 메서드 사용)
+      if (user.warningCount > 0) {
+        await user.resetWarnings();
+        warningsResetCount++;
+      }
+    }
+    
+    console.log(`Role changes completed. Modified ${roleChangedCount} users to guest.`);
+    console.log(`Warning count reset completed. Modified ${warningsResetCount} users.`);
   } catch (error) {
     console.error('Error resetting warning counts:', error);
   }
