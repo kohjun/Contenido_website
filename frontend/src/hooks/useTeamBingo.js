@@ -397,34 +397,28 @@ export const useTeamBingo = () => {
     }
   };
 
-  // 조 이름 변경 (조장만 가능)
-  const updateTeamName = async (teamId, newName) => {
-    if (!newName || newName.trim() === '') {
-      alert('조 이름을 입력해주세요.');
-      return false;
+  // 조 이름 수정 함수 수정
+const updateTeamName = async (teamId, newName) => {
+  try {
+    const response = await fetch(`/api/bingo/teams/${teamId}/name`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: newName })
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message);
     }
-    
-    try {
-      const response = await fetch(`/api/bingo/teams/${teamId}/name`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: newName.trim() })
-      });
-      
-      if (response.ok) {
-        await loadMyTeam(myTeam.activityId._id);
-        alert('조 이름이 변경되었습니다.');
-        return true;
-      } else {
-        const error = await response.json();
-        alert(error.message || '조 이름 변경에 실패했습니다.');
-        return false;
-      }
-    } catch (error) {
-      alert('오류: ' + error.message);
-      return false;
-    }
-  };
+
+    const updatedTeam = await response.json();
+    setMyTeam(updatedTeam);
+    alert('조 이름이 수정되었습니다.');
+  } catch (error) {
+    console.error('조 이름 수정 실패:', error);
+    alert(error.message || '조 이름 수정에 실패했습니다.');
+  }
+};
 
   const saveMissions = async () => {
     try {

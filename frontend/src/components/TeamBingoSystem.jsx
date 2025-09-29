@@ -47,7 +47,8 @@ const TeamBingoSystem = () => {
     loadUnassignedMembers,     
     addMemberToTeam,           
     removeMemberFromTeam,      
-    moveMemberToTeam           
+    moveMemberToTeam,
+    updateTeamName           
   } = useTeamBingo();
 
   return (
@@ -80,7 +81,6 @@ const TeamBingoSystem = () => {
           )}
           
           <div className="flex gap-3 justify-center">
-            {/* 관리자 모드는 admin이거나 officer이면서 starterTeam인 경우에만 표시 */}
             {userRole && ((userRole.role === 'admin') || (userRole.role === 'officer' && userRole.team === 'starterTeam')) && (
               <button
                 onClick={() => setMode('admin')}
@@ -563,60 +563,73 @@ const TeamBingoSystem = () => {
                           </div>
 
                           <div className="space-y-2">
-                            {team.members.map((member, index) => (
-                              <div key={member._id} className="flex items-center gap-2 p-2 bg-gray-50 rounded border group">
-                                <span className="w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-sm font-semibold">
-                                  {index + 1}
-                                </span>
-                                
-                                <div className="flex-1">
-                                  <span className="font-medium">{member.name}</span>
-                                  {team.leaderId?._id === member._id && (
-                                    <Crown size={14} className="inline ml-1 text-yellow-500" />
-                                  )}
+                            {team.members.map((member, index) => {
+                              // 나이 계산
+                              const age = member.birthDate 
+                                ? new Date().getFullYear() - new Date(member.birthDate).getFullYear() + 1
+                                : '?';
+                              
+                              // 성별 표시
+                              const genderText = member.gender === 'male' ? '남' : member.gender === 'female' ? '여' : '?';
+                              
+                              return (
+                                <div key={member._id} className="flex items-center gap-2 p-2 bg-gray-50 rounded border group">
+                                  <span className="w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-sm font-semibold">
+                                    {index + 1}
+                                  </span>
+                                  
+                                  <div className="flex-1">
+                                    <span className="font-medium">{member.name}</span>
+                                    <span className="text-xs text-gray-500 ml-2">
+                                      ({genderText}, {age}세)
+                                    </span>
+                                    {team.leaderId?._id === member._id && (
+                                      <Crown size={14} className="inline ml-1 text-yellow-500" />
+                                    )}
+                                  </div>
+
+                                  {/* 조원 관리 버튼 */}
+                                  <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    {/* 조장 지정/해제 */}
+                                    <button
+                                      onClick={() => setTeamLeader(team._id, team.leaderId?._id === member._id ? null : member._id)}
+                                      className="p-1 hover:bg-yellow-100 rounded"
+                                      title={team.leaderId?._id === member._id ? "조장 해제" : "조장 지정"}
+                                    >
+                                      <Crown size={16} className={team.leaderId?._id === member._id ? "text-yellow-600" : "text-gray-400"} />
+                                    </button>
+
+                                    {/* 다른 조로 이동 */}
+                                    <select
+                                      onChange={(e) => {
+                                        if (e.target.value && e.target.value !== team._id) {
+                                          moveMemberToTeam(team._id, e.target.value, member._id);
+                                          e.target.value = '';
+                                        }
+                                      }}
+                                      className="text-xs px-1 py-1 border rounded hover:border-blue-400"
+                                      title="다른 조로 이동"
+                                    >
+                                      <option value="">이동...</option>
+                                      {teams.filter(t => t._id !== team._id).map(t => (
+                                        <option key={t._id} value={t._id}>
+                                          {t.name}
+                                        </option>
+                                      ))}
+                                    </select>
+
+                                    {/* 조원 제거 */}
+                                    <button
+                                      onClick={() => removeMemberFromTeam(team._id, member._id)}
+                                      className="p-1 hover:bg-red-100 rounded text-red-600"
+                                      title="조원 제거"
+                                    >
+                                      <UserMinus size={16} />
+                                    </button>
+                                  </div>
                                 </div>
-
-                                {/* 조원 관리 버튼 */}
-                                <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                  {/* 조장 지정/해제 */}
-                                  <button
-                                    onClick={() => setTeamLeader(team._id, team.leaderId?._id === member._id ? null : member._id)}
-                                    className="p-1 hover:bg-yellow-100 rounded"
-                                    title={team.leaderId?._id === member._id ? "조장 해제" : "조장 지정"}
-                                  >
-                                    <Crown size={16} className={team.leaderId?._id === member._id ? "text-yellow-600" : "text-gray-400"} />
-                                  </button>
-
-                                  {/* 다른 조로 이동 */}
-                                  <select
-                                    onChange={(e) => {
-                                      if (e.target.value && e.target.value !== team._id) {
-                                        moveMemberToTeam(team._id, e.target.value, member._id);
-                                        e.target.value = '';
-                                      }
-                                    }}
-                                    className="text-xs px-1 py-1 border rounded hover:border-blue-400"
-                                    title="다른 조로 이동"
-                                  >
-                                    <option value="">이동...</option>
-                                    {teams.filter(t => t._id !== team._id).map(t => (
-                                      <option key={t._id} value={t._id}>
-                                        {t.name}
-                                      </option>
-                                    ))}
-                                  </select>
-
-                                  {/* 조원 제거 */}
-                                  <button
-                                    onClick={() => removeMemberFromTeam(team._id, member._id)}
-                                    className="p-1 hover:bg-red-100 rounded text-red-600"
-                                    title="조원 제거"
-                                  >
-                                    <UserMinus size={16} />
-                                  </button>
-                                </div>
-                              </div>
-                            ))}
+                              );
+                            })}
 
                             {/* 조원 추가 버튼 (미배정 인원이 있을 때만) */}
                             {unassignedMembers.length > 0 && (
@@ -1209,7 +1222,6 @@ const TeamBingoSystem = () => {
             ) : (
               /* 내 조 상세 보기 */
               <div className="space-y-4 md:space-y-6">
-                {/* 뒤로가기 버튼 */}
                 <button
                   onClick={() => setMyTeam(null)}
                   className="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-all flex items-center gap-2 shadow-sm active:scale-95"
@@ -1218,12 +1230,30 @@ const TeamBingoSystem = () => {
                   <span className="text-sm md:text-base">활동 목록으로</span>
                 </button>
 
-                {/* 조 정보 카드 */}
                 <div className="bg-white rounded-lg shadow-sm border p-3 sm:p-4 md:p-6">
                   <div className="mb-3 sm:mb-4 md:mb-6">
-                    <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 mb-1 sm:mb-2">{myTeam.name}</h2>
+                    <div className="flex items-center gap-2 mb-1 sm:mb-2">
+                      <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900">{myTeam.name}</h2>
+                      
+                      {myTeam.leaderId?._id === userRole?.id && (
+                        <button
+                          onClick={() => {
+                            const newName = prompt('새로운 조 이름을 입력하세요:', myTeam.name);
+                            if (newName && newName.trim() && newName !== myTeam.name) {
+                              updateTeamName(myTeam._id, newName.trim());
+                            }
+                          }}
+                          className="p-1.5 sm:p-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-all"
+                          title="조 이름 수정 (조장만 가능)"
+                        >
+                          <Edit2 size={16} className="sm:w-5 sm:h-5" />
+                        </button>
+                      )}
+                    </div>
                     <p className="text-xs sm:text-sm md:text-base text-gray-600 truncate">{myTeam.activityId.title}</p>
                   </div>
+
+                
 
                   {/* 통계 카드 - 반응형 그리드 */}
                   <div className="grid grid-cols-3 gap-1.5 sm:gap-2 md:gap-4 mb-3 sm:mb-4 md:mb-6">
@@ -1375,21 +1405,33 @@ const TeamBingoSystem = () => {
                   )}
                 </div>
 
-                {/* 조원 목록 */}
+                {/* 조원 목록 - 수정된 부분 */}
                 <div className="bg-white rounded-lg shadow-sm border p-4 md:p-6">
                   <h3 className="text-lg md:text-xl font-semibold mb-4">조원 ({myTeam.members.length}명)</h3>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 md:gap-3">
-                    {myTeam.members.map((member, index) => (
-                      <div key={member._id} className="flex items-center gap-2 md:gap-3 p-2 md:p-3 bg-gray-50 rounded-lg border">
-                        <span className="w-6 h-6 md:w-8 md:h-8 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-xs md:text-sm font-semibold flex-shrink-0">
-                          {index + 1}
-                        </span>
-                        <span className="font-medium text-sm md:text-base truncate">{member.name}</span>
-                        {myTeam.leaderId?._id === member._id && (
-                          <Crown size={14} className="md:w-4 md:h-4 text-yellow-500 flex-shrink-0 ml-auto" />
-                        )}
-                      </div>
-                    ))}
+                    {myTeam.members.map((member, index) => {
+                      const age = member.birthDate 
+                        ? new Date().getFullYear() - new Date(member.birthDate).getFullYear() + 1
+                        : '?';
+                      const genderText = member.gender === 'male' ? '남' : member.gender === 'female' ? '여' : '?';
+                      
+                      return (
+                        <div key={member._id} className="flex items-center gap-2 md:gap-3 p-2 md:p-3 bg-gray-50 rounded-lg border">
+                          <span className="w-6 h-6 md:w-8 md:h-8 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-xs md:text-sm font-semibold flex-shrink-0">
+                            {index + 1}
+                          </span>
+                          <div className="flex-1">
+                            <span className="font-medium text-sm md:text-base">{member.name}</span>
+                            <span className="text-xs text-gray-500 ml-1 md:ml-2">
+                              ({genderText}, {age}세)
+                            </span>
+                          </div>
+                          {myTeam.leaderId?._id === member._id && (
+                            <Crown size={14} className="md:w-4 md:h-4 text-yellow-500 flex-shrink-0 ml-auto" />
+                          )}
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
               </div>

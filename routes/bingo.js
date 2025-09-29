@@ -200,7 +200,7 @@ router.get('/activities/:id/teams',
   async (req, res) => {
     try {
       const teams = await Team.find({ activityId: req.params.id })
-        .populate('members', 'name role department team')
+        .populate('members', 'name gender birthDate role department team')
         .populate('leaderId', 'name')
         .sort({ name: 1 });
       
@@ -225,8 +225,6 @@ router.get('/activities/:id/teams',
 );
 
 // 조 생성 (관리자)
-// routes/bingo.js - 조 생성 API 수정
-
 router.post('/activities/:id/teams',
   authenticateToken,
   authorizeRoles('admin', 'officer'),
@@ -279,7 +277,7 @@ router.post('/activities/:id/teams',
       
       // 조 정보 다시 조회
       const populatedTeams = await Team.find({ activityId: req.params.id })
-        .populate('members', 'name role department team')
+        .populate('members', 'name gender birthDate role department team')
         .sort({ name: 1 });
       
       res.json(populatedTeams);
@@ -498,33 +496,43 @@ router.put('/teams/:id/leader',
   }
 );
 
-// 조 이름 변경 (조장)
-router.put('/teams/:id/name',
+// 조 이름 수정 (조장만 가능)
+router.patch('/teams/:teamId/name',
   authenticateToken,
   async (req, res) => {
     try {
+      const { teamId } = req.params;
       const { name } = req.body;
-      const team = await Team.findById(req.params.id);
-      
+      const userId = req.user.id;
+
+      // 조 찾기
+      const team = await Team.findById(teamId);
       if (!team) {
         return res.status(404).json({ message: '조를 찾을 수 없습니다.' });
       }
-      
+
       // 조장 권한 확인
-      if (team.leaderId?.toString() !== req.user.id) {
-        return res.status(403).json({ message: '조장만 조 이름을 변경할 수 있습니다.' });
+      if (!team.leaderId || team.leaderId.toString() !== userId) {
+        return res.status(403).json({ message: '조장만 조 이름을 수정할 수 있습니다.' });
       }
-      
+
+      // 조 이름 업데이트
       team.name = name;
       await team.save();
-      
-      res.json(team);
+
+      // 업데이트된 조 반환
+      const updatedTeam = await Team.findById(teamId)
+        .populate('members', 'name gender birthDate role')
+        .populate('leaderId', 'name')
+        .populate('activityId');
+
+      res.json(updatedTeam);
     } catch (error) {
-      console.error('조 이름 변경 에러:', error);
+      console.error('조 이름 수정 에러:', error);
       res.status(500).json({ message: '서버 오류가 발생했습니다.' });
     }
   }
-);  
+);
 // 조원 추가 (관리자)
 router.post('/teams/:id/members/add',
   authenticateToken,
