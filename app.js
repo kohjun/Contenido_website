@@ -8,6 +8,7 @@ const session = require('express-session');
 const cookieParser = require('cookie-parser');
 const path = require('path');
 const fs = require('fs');
+const authenticateToken = require('./middleware/authMiddleware');
 const favicon = require('serve-favicon');
 const MongoStore = require('connect-mongo');
 const app = express();
@@ -101,6 +102,7 @@ app.use('/saved-places', require('./routes/savedPlaces'));
 app.use('/application', require('./routes/application'));
 app.use('/application-result', require('./routes/applicationResult'));
 app.use('/announcement', require('./routes/announcement'));
+app.use('/api/bingo', require('./routes/bingo'));
 
 
 // 정적 파일 서빙 설정 전에 API 라우터 추가
@@ -155,6 +157,7 @@ app.use(favicon(path.join(__dirname, 'public', 'images', 'Contenido_Logo.ico')))
 
 // React 빌드 경로 설정 및 확인
 const reactBuildPath = path.join(__dirname, 'frontend/dist');
+
 // 빌드 폴더가 존재하는지 확인
 if (fs.existsSync(reactBuildPath)) {
     // Vite 빌드 파일 서빙 설정

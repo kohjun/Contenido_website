@@ -42,7 +42,6 @@ router.get('/info', authenticateToken, (req, res) => {
 // 데이터베이스에서 유저 정보 얻기
 router.get('/info_database', authenticateToken, async (req, res) => {
   try {
-    // console.log(`사용자 ${req.user.id} 전체 정보 요청`);
     
     // 세션 ID와 현재 사용자 ID 비교
     if (req.session.userId && req.session.userId !== req.user.id.toString()) {
@@ -178,6 +177,68 @@ router.get('/warning-history/:userId', authenticateToken, async (req, res) => {
     res.status(500).json({ message: '경고 내역 조회 중 오류가 발생했습니다.' });
   }
 });
+
+// ============== 빙고 시스템용 API 추가 ==============
+
+// 기존 /participants/users 엔드포인트를 빙고 시스템에 맞게 수정 또는 새로 추가
+router.get('/participants/bingo', 
+  authenticateToken, 
+  authorizeRoles('admin', 'officer'), 
+  async (req, res) => {
+    try {
+      // 활성 사용자 중 participant, starter, officer만 조회
+      const users = await User.find({
+        active: true,
+        role: { $in: ['participant', 'starter', 'officer'] }
+      }).select('name role birthDate gender department team');
+      
+      // 빙고 시스템에 맞는 형태로 데이터 가공
+      const userData = users.map(user => {
+        // 나이 계산 (한국식 나이)
+        const age = user.birthDate ? 
+          new Date().getFullYear() - new Date(user.birthDate).getFullYear() + 1 : null;
+        
+        // 역할 한글 변환
+        const roleMap = {
+          'participant': '일반회원',
+          'starter': '스타터',
+          'officer': '운영진'
+        };
+        
+        // 성별 한글 변환
+        const genderMap = {
+          'male': '남성',
+          'female': '여성',
+          'other': '기타'
+        };
+        
+        return {
+          id: user._id,
+          name: user.name || '이름 없음',
+          role: roleMap[user.role] || user.role,
+          age: age,
+          gender: genderMap[user.gender] || '미설정',
+          department: user.department || '',
+          team: user.team || ''
+        };
+      });
+      
+      res.json({
+        success: true,
+        count: userData.length,
+        data: userData
+      });
+      
+    } catch (error) {
+      console.error('빙고 시스템 사용자 정보 조회 에러:', error);
+      res.status(500).json({ 
+        success: false,
+        message: '서버 오류가 발생했습니다.',
+        error: error.message 
+      });
+    }
+  }
+);
 
 // POST 
 // 유저 활성 상태 토글
