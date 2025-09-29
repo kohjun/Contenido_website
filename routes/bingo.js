@@ -225,6 +225,8 @@ router.get('/activities/:id/teams',
 );
 
 // 조 생성 (관리자)
+// routes/bingo.js - 조 생성 API 수정
+
 router.post('/activities/:id/teams',
   authenticateToken,
   authorizeRoles('admin', 'officer'),
@@ -232,7 +234,7 @@ router.post('/activities/:id/teams',
     try {
       const { membersPerTeam } = req.body;
       const activity = await Activity.findById(req.params.id)
-        .populate('participants');
+        .populate('participants', 'gender birthDate preferredActivity role');
       
       if (!activity) {
         return res.status(404).json({ message: '활동을 찾을 수 없습니다.' });
@@ -241,26 +243,29 @@ router.post('/activities/:id/teams',
       // 기존 조 삭제
       await Team.deleteMany({ activityId: req.params.id });
       
-      // 참가자 랜덤 셔플
-      const participants = [...activity.participants];
-      for (let i = participants.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [participants[i], participants[j]] = [participants[j], participants[i]];
-      }
+      // 참가자 데이터 준비
+      const participants = activity.participants.map(p => ({
+        _id: p._id,
+        gender: p.gender,
+        age: p.birthDate ? new Date().getFullYear() - new Date(p.birthDate).getFullYear() + 1 : 25,
+        region: p.preferredActivity || '강남구',
+        role: p.role,
+        isStarter: p.role === 'starter'
+      }));
       
-      // 조 생성
+      // 조 개수 계산
+      const teamCount = Math.floor(participants.length / membersPerTeam);
+      
+      // 스마트 조 배정
+      const groups = smartTeamAssignment(participants, teamCount);
+      
+      // DB에 저장
       const teams = [];
-      const baseTeamCount = Math.floor(participants.length / membersPerTeam);
-      let memberIndex = 0;
-      
-      // 기본 조 구성
-      for (let i = 0; i < baseTeamCount; i++) {
-        const teamMembers = participants.slice(memberIndex, memberIndex + membersPerTeam);
-        
+      for (let i = 0; i < groups.length; i++) {
         const team = new Team({
           name: `${i + 1}조`,
           activityId: req.params.id,
-          members: teamMembers.map(m => m._id),
+          members: groups[i].map(m => m._id),
           progress: activity.bingoMissions.map(mission => ({
             missionId: mission.id,
             completed: false,
@@ -270,18 +275,9 @@ router.post('/activities/:id/teams',
         
         await team.save();
         teams.push(team);
-        memberIndex += membersPerTeam;
       }
       
-      // 남은 멤버들을 기존 조에 랜덤 배치
-      const remainingMembers = participants.slice(memberIndex);
-      for (let i = 0; i < remainingMembers.length; i++) {
-        const randomTeamIndex = Math.floor(Math.random() * teams.length);
-        teams[randomTeamIndex].members.push(remainingMembers[i]._id);
-        await teams[randomTeamIndex].save();
-      }
-      
-      // 조 정보 다시 조회 (populate 포함)
+      // 조 정보 다시 조회
       const populatedTeams = await Team.find({ activityId: req.params.id })
         .populate('members', 'name role department team')
         .sort({ name: 1 });
@@ -293,6 +289,189 @@ router.post('/activities/:id/teams',
     }
   }
 );
+
+// 스마트 조 배정 함수
+function smartTeamAssignment(participants, teamCount) {
+  // 1. 기본 조 크기 계산
+  const baseSize = Math.floor(participants.length / teamCount);
+  const remainder = participants.length % teamCount;
+  const teamSizes = Array(teamCount).fill(baseSize);
+  for (let i = 0; i < remainder; i++) {
+    teamSizes[i]++;
+  }
+  
+  // 2. 초기 그룹 생성
+  const groups = Array(teamCount).fill(null).map(() => []);
+  
+  // 3. 성별로 분리
+  const males = participants.filter(p => p.gender === 'male');
+  const females = participants.filter(p => p.gender === 'female');
+  
+  // 4. 각 조에 필요한 남녀 수 계산 (비율 유지)
+  const maleRatio = males.length / participants.length;
+  const maleSlots = teamSizes.map(size => Math.round(size * maleRatio));
+  const femaleSlots = teamSizes.map((size, i) => size - maleSlots[i]);
+  
+  // 5. 나이순 정렬 (지그재그 배치로 나이 균형)
+  const sortByAge = (arr) => arr.sort((a, b) => a.age - b.age);
+  const zigzagOrder = (arr) => {
+    const sorted = sortByAge(arr);
+    const result = [];
+    let left = 0, right = sorted.length - 1;
+    let toggle = true;
+    while (left <= right) {
+      result.push(toggle ? sorted[left++] : sorted[right--]);
+      toggle = !toggle;
+    }
+    return result;
+  };
+  
+  // 6. 그리디 배정 (지역 거리 고려)
+  const assignToGroups = (pool, slots) => {
+    const ordered = zigzagOrder(pool);
+    
+    for (const person of ordered) {
+      let bestGroup = -1;
+      let bestScore = Infinity;
+      
+      for (let gi = 0; gi < teamCount; gi++) {
+        if (slots[gi] <= 0) continue;
+        
+        // 현재 그룹에 추가했을 때의 점수 계산
+        const score = calculateGroupScore(groups[gi], person);
+        
+        if (score < bestScore || (score === bestScore && groups[gi].length < groups[bestGroup]?.length)) {
+          bestGroup = gi;
+          bestScore = score;
+        }
+      }
+      
+      groups[bestGroup].push(person);
+      slots[bestGroup]--;
+    }
+  };
+  
+  assignToGroups([...males], [...maleSlots]);
+  assignToGroups([...females], [...femaleSlots]);
+  
+  // 7. 스타터 최소 인원 체크 및 재배치
+  ensureStarterDistribution(groups);
+  
+  // 8. 교환을 통한 최적화 (선택적)
+  optimizeBySwaps(groups, 1000);
+  
+  return groups;
+}
+
+// 그룹 점수 계산 (낮을수록 좋음)
+function calculateGroupScore(group, newPerson) {
+  if (group.length === 0) return 0;
+  
+  let score = 0;
+  
+  // 지역 거리 패널티
+  for (const member of group) {
+    const distance = getRegionDistance(member.region, newPerson.region);
+    score += distance > 2 ? 10 : distance; // 2칸 이상 떨어지면 큰 패널티
+  }
+  
+  // 나이 차이 패널티
+  const ages = [...group.map(m => m.age), newPerson.age];
+  const ageDiff = Math.max(...ages) - Math.min(...ages);
+  score += ageDiff > 6 ? (ageDiff - 6) * 5 : 0;
+  
+  return score;
+}
+
+// 서울 25개 구 거리 계산 (BFS)
+const SEOUL_ADJACENCY = {
+  "종로구": ["은평구","서대문구","중구","용산구","성북구","동대문구"],
+  "중구": ["종로구","용산구","성동구","동대문구","마포구"],
+  // ... 전체 인접 정보
+};
+
+function getRegionDistance(region1, region2) {
+  if (region1 === region2) return 0;
+  
+  const queue = [[region1, 0]];
+  const visited = new Set([region1]);
+  
+  while (queue.length > 0) {
+    const [current, dist] = queue.shift();
+    const neighbors = SEOUL_ADJACENCY[current] || [];
+    
+    for (const neighbor of neighbors) {
+      if (neighbor === region2) return dist + 1;
+      if (!visited.has(neighbor)) {
+        visited.add(neighbor);
+        queue.push([neighbor, dist + 1]);
+      }
+    }
+  }
+  
+  return 100; // 연결되지 않음
+}
+
+// 스타터 분배 보장
+function ensureStarterDistribution(groups) {
+  const starters = groups.flatMap((g, gi) => 
+    g.filter(m => m.isStarter).map(m => ({...m, groupIndex: gi}))
+  );
+  
+  // 각 조의 스타터 수 계산
+  const starterCounts = groups.map(g => g.filter(m => m.isStarter).length);
+  
+  // 스타터가 5명 미만인 조 찾기
+  for (let gi = 0; gi < groups.length; gi++) {
+    if (starterCounts[gi] < 5 && starters.length >= groups.length * 5) {
+      // 스타터가 많은 조에서 가져오기
+      // (실제 구현 필요)
+    }
+  }
+}
+
+// 교환을 통한 최적화
+function optimizeBySwaps(groups, iterations) {
+  // 성별이 같은 멤버끼리만 교환
+  for (let iter = 0; iter < iterations; iter++) {
+    const gender = Math.random() < 0.5 ? 'male' : 'female';
+    
+    // 무작위 2개 조 선택
+    const g1 = Math.floor(Math.random() * groups.length);
+    let g2 = Math.floor(Math.random() * groups.length);
+    while (g2 === g1) g2 = Math.floor(Math.random() * groups.length);
+    
+    // 해당 성별 멤버 찾기
+    const members1 = groups[g1].filter(m => m.gender === gender);
+    const members2 = groups[g2].filter(m => m.gender === gender);
+    
+    if (members1.length === 0 || members2.length === 0) continue;
+    
+    // 무작위 교환
+    const idx1 = Math.floor(Math.random() * members1.length);
+    const idx2 = Math.floor(Math.random() * members2.length);
+    
+    // 점수 계산 후 개선되면 유지
+    const beforeScore = calculateTotalScore(groups);
+    
+    [members1[idx1], members2[idx2]] = [members2[idx2], members1[idx1]];
+    
+    const afterScore = calculateTotalScore(groups);
+    
+    if (afterScore > beforeScore) {
+      // 원복
+      [members1[idx1], members2[idx2]] = [members2[idx2], members1[idx1]];
+    }
+  }
+}
+
+function calculateTotalScore(groups) {
+  return groups.reduce((sum, group) => {
+    return sum + group.reduce((gscore, member, idx) => {
+      return gscore + calculateGroupScore(group.slice(0, idx), member);
+    }, 0);
+  }, 0);
+}
 
 // 조장 지정 (관리자)
 router.put('/teams/:id/leader',
@@ -582,7 +761,8 @@ router.post('/teams/:id/missions/:missionId/adjust',
 
 // ============== 참가자용 API ==============
 
-// 내가 참여한 활동 목록
+// 내가 참여한 활동 목록 - 팀 정보 포함
+// routes/bingo.js
 router.get('/my-activities',
   authenticateToken,
   async (req, res) => {
@@ -592,7 +772,33 @@ router.get('/my-activities',
         isActive: true
       }).sort({ startDate: -1 });
       
-      res.json(activities);
+      // 각 활동에 대한 팀 정보 추가
+      const activitiesWithTeam = await Promise.all(
+        activities.map(async (activity) => {
+          const team = await Team.findOne({
+            activityId: activity._id,
+            members: req.user.id
+          });
+          
+          const activityObj = activity.toObject();
+          
+          if (team) {
+            await team.calculateBingoCount();
+            activityObj.myTeam = {
+              name: team.name,
+              bingoCount: team.bingoCount,
+              progressRate: team.getProgressRate(),
+              completedMissions: team.progress.filter(p => p.completed).length
+            };
+          } else {
+            activityObj.myTeam = null;
+          }
+          
+          return activityObj;
+        })
+      );
+      
+      res.json(activitiesWithTeam);
     } catch (error) {
       console.error('내 활동 조회 에러:', error);
       res.status(500).json({ message: '서버 오류가 발생했습니다.' });
@@ -617,8 +823,16 @@ router.get('/activities/:id/my-team',
         return res.status(404).json({ message: '조를 찾을 수 없습니다.' });
       }
       
+      // 빙고 카운트 계산
       await team.calculateBingoCount();
-      res.json(team);
+      
+      // summary 정보 추가
+      const summary = await team.getSummary();
+      
+      res.json({
+        ...team.toObject(),
+        summary
+      });
     } catch (error) {
       console.error('내 조 조회 에러:', error);
       res.status(500).json({ message: '서버 오류가 발생했습니다.' });

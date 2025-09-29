@@ -28,13 +28,14 @@ const TeamBingoSystem = () => {
     setMyTeam,
     selectedTeam,
     setSelectedTeam,
-    unassignedMembers,           // 추가
+    unassignedMembers,          
     createActivity,
     selectActivity,
     toggleMember,
-    bulkToggleByRole,            // 추가
+    bulkToggleByRole,           
     createTeams,
     setTeamLeader,
+    isCreatingTeams,
     saveMissions,
     loadMyTeam,
     loadTeamDetail,
@@ -43,10 +44,10 @@ const TeamBingoSystem = () => {
     getFilteredMembers,
     getActivityStatus,
     isTabDisabled,
-    loadUnassignedMembers,       // 추가
-    addMemberToTeam,             // 추가
-    removeMemberFromTeam,        // 추가
-    moveMemberToTeam             // 추가
+    loadUnassignedMembers,     
+    addMemberToTeam,           
+    removeMemberFromTeam,      
+    moveMemberToTeam           
   } = useTeamBingo();
 
   return (
@@ -449,6 +450,7 @@ const TeamBingoSystem = () => {
                   조 구성 - {currentActivity.title}
                 </h2>
                 
+                {/* 조 생성 컨트롤 */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6 p-4 bg-gray-50 rounded-lg border">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">조별 인원 수</label>
@@ -458,81 +460,99 @@ const TeamBingoSystem = () => {
                       onChange={(e) => setTeamSettings({...teamSettings, membersPerTeam: parseInt(e.target.value) || 1})}
                       min="2"
                       max="10"
-                      className="w-full px-4 py-3 border border-gray-200 rounded-md focus:ring-2 focus:ring-gray-800 focus:border-transparent transition-all"
+                      disabled={teams.length > 0 || isCreatingTeams}
+                      className="w-full px-4 py-3 border border-gray-200 rounded-md focus:ring-2 focus:ring-gray-800 focus:border-transparent transition-all disabled:bg-gray-100 disabled:cursor-not-allowed"
                     />
                   </div>
                   <div className="flex items-center justify-center bg-white rounded-md border px-3">
                     <div className="text-center text-sm">
                       <div className="font-medium">총 {currentActivity.participants.length}명 참가</div>
+                      {teams.length > 0 && (
+                        <div className="text-green-600 text-xs mt-1">✓ {teams.length}개 조 생성됨</div>
+                      )}
                     </div>
                   </div>
                   <div className="flex items-end">
                     <button
                       onClick={createTeams}
-                      disabled={currentActivity.participants.length === 0}
-                      className="w-full px-6 py-3 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-all duration-200 shadow-sm hover:shadow-md flex items-center justify-center gap-2"
+                      disabled={teams.length > 0 || isCreatingTeams}
+                      className={`w-full px-6 py-3 rounded-md font-medium transition-all duration-200 shadow-sm flex items-center justify-center gap-2 ${
+                        teams.length > 0 
+                          ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                          : isCreatingTeams
+                          ? 'bg-blue-400 text-white cursor-wait'
+                          : 'bg-gray-800 text-white hover:bg-gray-700 hover:shadow-md'
+                      }`}
                     >
-                      <Shuffle size={18} />
-                      조 생성
+                      {isCreatingTeams ? (
+                        <>
+                          <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                          <span>조 생성 중...</span>
+                        </>
+                      ) : teams.length > 0 ? (
+                        <>
+                          <Check size={18} />
+                          <span>조 생성 완료</span>
+                        </>
+                      ) : (
+                        <>
+                          <Shuffle size={18} />
+                          <span>조 생성하기</span>
+                        </>
+                      )}
                     </button>
                   </div>
                 </div>
 
-                {/* 구성된 조 목록 */}
-                {teams.length > 0 && (
-                  <div className="space-y-6">
-                    <div className="flex items-center justify-between">
-                      <h3 className="text-lg font-semibold">조 목록</h3>
+                {/* 로딩 중 메시지 */}
+                {isCreatingTeams && (
+                  <div className="mb-6 p-6 bg-blue-50 border-2 border-blue-200 rounded-lg">
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin flex-shrink-0"></div>
+                      <div>
+                        <h3 className="text-lg font-semibold text-blue-900 mb-1">
+                          조를 생성하고 있습니다...
+                        </h3>
+                        <p className="text-sm text-blue-700">
+                          최적의 조 구성을 위해 알고리즘이 작동 중입니다. 잠시만 기다려주세요. ⏱️
+                        </p>
+                        <p className="text-xs text-blue-600 mt-2">
+                          💡 지역, 성비, 역할, 나이를 고려하여 균형잡힌 조를 만들고 있습니다.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* 조가 없을 때 안내 메시지 */}
+                {!isCreatingTeams && teams.length === 0 && (
+                  <div className="text-center py-16 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
+                    <Shuffle size={48} className="mx-auto mb-4 text-gray-300" />
+                    <p className="text-gray-600 mb-2">아직 조가 생성되지 않았습니다.</p>
+                    <p className="text-sm text-gray-500">
+                      위의 "조 생성하기" 버튼을 눌러 참가자들을 조로 나누세요.
+                    </p>
+                  </div>
+                )}
+
+                {/* 조 목록 */}
+                {!isCreatingTeams && teams.length > 0 && (
+                  <div className="space-y-4">
+                    <div className="flex justify-between items-center">
+                      <h3 className="text-lg font-semibold">생성된 조 목록 ({teams.length}개)</h3>
                       {unassignedMembers.length > 0 && (
-                        <span className="px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full text-sm font-medium">
-                          미배정 인원 {unassignedMembers.length}명
+                        <span className="text-sm text-orange-600 bg-orange-50 px-3 py-1 rounded-full">
+                          ⚠️ 미배정 인원 {unassignedMembers.length}명
                         </span>
                       )}
                     </div>
 
-                    {/* 미배정 인원 표시 */}
-                    {unassignedMembers.length > 0 && (
-                      <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                        <h4 className="font-semibold text-yellow-900 mb-3 flex items-center gap-2">
-                          <UserPlus size={18} />
-                          미배정 인원
-                        </h4>
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
-                          {unassignedMembers.map((member) => (
-                            <div 
-                              key={member._id} 
-                              className="flex items-center justify-between p-2 bg-white rounded border"
-                            >
-                              <span className="text-sm">{member.name}</span>
-                              <select
-                                onChange={(e) => {
-                                  if (e.target.value) {
-                                    addMemberToTeam(e.target.value, member._id);
-                                    e.target.value = '';
-                                  }
-                                }}
-                                className="text-xs px-2 py-1 border rounded hover:border-blue-400"
-                              >
-                                <option value="">조 선택...</option>
-                                {teams.map(team => (
-                                  <option key={team._id} value={team._id}>
-                                    {team.name}
-                                  </option>
-                                ))}
-                              </select>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    {/* 조 목록 */}
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                       {teams.map((team) => (
-                        <div key={team._id} className="border border-gray-200 rounded-lg p-5 hover:shadow-sm transition-all">
-                          <div className="flex items-center gap-3 mb-4">
-                            <div className="flex-1">
-                              <h4 className="text-xl font-bold text-blue-600">{team.name}</h4>
+                        <div key={team._id} className="border-2 border-gray-200 rounded-lg p-4 hover:border-blue-300 transition-all bg-white shadow-sm">
+                          <div className="flex justify-between items-start mb-3">
+                            <div>
+                              <h4 className="font-bold text-lg">{team.name}</h4>
                               <div className="text-sm text-gray-600">
                                 빙고: {team.bingoCount || 0}개 | 진행률: {team.summary?.progressRate || 0}%
                               </div>
@@ -623,6 +643,23 @@ const TeamBingoSystem = () => {
                         </div>
                       ))}
                     </div>
+
+                    {/* 미배정 인원 표시 */}
+                    {unassignedMembers.length > 0 && (
+                      <div className="mt-6 p-4 bg-orange-50 border border-orange-200 rounded-lg">
+                        <h4 className="font-semibold text-orange-900 mb-2">⚠️ 미배정 인원 ({unassignedMembers.length}명)</h4>
+                        <div className="flex flex-wrap gap-2">
+                          {unassignedMembers.map(member => (
+                            <span key={member._id} className="px-3 py-1 bg-white border border-orange-300 rounded-full text-sm">
+                              {member.name}
+                            </span>
+                          ))}
+                        </div>
+                        <p className="text-sm text-orange-700 mt-2">
+                          위 조 카드에서 "+ 조원 추가" 드롭다운을 통해 미배정 인원을 배치할 수 있습니다.
+                        </p>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
@@ -635,167 +672,150 @@ const TeamBingoSystem = () => {
                   미션 설정 - {currentActivity.title}
                 </h2>
                 
-                {currentActivity.bingoMissions.length === 0 ? (
-                  <div className="text-center py-16">
-                    <Grid3x3 size={48} className="mx-auto mb-4 text-gray-300" />
-                    <p className="text-gray-500 mb-4">아직 미션이 설정되지 않았습니다.</p>
+                {/* 항상 미션 편집 폼 표시 */}
+                <div className="mb-8">
+                  <div className="flex justify-between items-center mb-4">
+                    <h3 className="text-lg font-semibold">미션 편집 (3x3 빙고판)</h3>
+                    {bingoMissions && bingoMissions.length > 0 && (
+                      <button
+                        onClick={() => {
+                          if (confirm('모든 미션을 초기화하시겠습니까?')) {
+                            const defaultMissions = Array(9).fill(null).map((_, index) => ({
+                              id: index,
+                              title: '',
+                              description: '',
+                              type: 'simple',
+                              targetCount: 1,
+                              row: Math.floor(index / 3),
+                              col: index % 3
+                            }));
+                            setBingoMissions(defaultMissions);
+                          }
+                        }}
+                        className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition-all text-sm"
+                      >
+                        미션 초기화
+                      </button>
+                    )}
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    {bingoMissions.map((mission, index) => (
+                      <div key={index} className="p-4 border-2 border-gray-200 rounded-lg hover:border-blue-400 transition-colors bg-white">
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-sm font-semibold text-gray-600">
+                            미션 {index + 1}
+                          </span>
+                          <span className="text-xs text-gray-500">
+                            ({Math.floor(index / 3) + 1}행, {(index % 3) + 1}열)
+                          </span>
+                        </div>
+                        
+                        <input
+                          type="text"
+                          placeholder="미션 제목을 입력하세요"
+                          value={mission.title || ''}
+                          onChange={(e) => {
+                            const updated = [...bingoMissions];
+                            updated[index].title = e.target.value;
+                            setBingoMissions(updated);
+                          }}
+                          className="w-full px-3 py-2 mb-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        />
+                        
+                        <textarea
+                          placeholder="미션 설명 (선택사항)"
+                          value={mission.description || ''}
+                          onChange={(e) => {
+                            const updated = [...bingoMissions];
+                            updated[index].description = e.target.value;
+                            setBingoMissions(updated);
+                          }}
+                          rows="2"
+                          className="w-full px-3 py-2 mb-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                        />
+                        
+                        <select
+                          value={mission.type || 'simple'}
+                          onChange={(e) => {
+                            const updated = [...bingoMissions];
+                            updated[index].type = e.target.value;
+                            setBingoMissions(updated);
+                          }}
+                          className="w-full px-3 py-2 mb-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                        >
+                          <option value="simple">단순형 (완료/미완료)</option>
+                          <option value="count">카운트형 (횟수 누적)</option>
+                        </select>
+                        
+                        {mission.type === 'count' && (
+                          <input
+                            type="number"
+                            placeholder="목표 횟수"
+                            value={mission.targetCount || 1}
+                            onChange={(e) => {
+                              const updated = [...bingoMissions];
+                              updated[index].targetCount = parseInt(e.target.value) || 1;
+                              setBingoMissions(updated);
+                            }}
+                            min="1"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                          />
+                        )}
+                        
+                        <div className="mt-2 text-xs text-gray-600">
+                          {mission.title ? `✓ ${mission.title}` : '⚠️ 미션 제목을 입력하세요'}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  
+                  <div className="text-center mt-6">
                     <button
-                      onClick={() => {
-                        const defaultMissions = Array(9).fill(null).map((_, index) => ({
-                          id: index,
-                          title: '',
-                          description: '',
-                          type: 'simple',
-                          targetCount: 1,
-                          row: Math.floor(index / 3),
-                          col: index % 3
-                        }));
-                        setBingoMissions(defaultMissions);
-                      }}
-                      className="px-6 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-all"
+                      onClick={saveMissions}
+                      className="px-8 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-all duration-200 shadow-md hover:shadow-lg font-medium"
                     >
-                      미션 설정 시작하기
+                      미션 설정 저장
                     </button>
                   </div>
-                ) : (
-                  <>
-                    {/* 빙고 미리보기 */}
-                    <div className="mb-8 p-6 bg-gradient-to-br from-blue-50 to-purple-50 rounded-lg border-2 border-blue-200">
-                      <h3 className="text-lg font-semibold mb-4 text-center text-blue-900">
-                        빙고판 미리보기
-                      </h3>
-                      <div className="grid grid-cols-3 gap-3 max-w-2xl mx-auto">
-                        {bingoMissions.map((mission) => (
-                          <div
-                            key={mission.id}
-                            className="aspect-square p-3 bg-white border-2 border-blue-300 rounded-lg flex flex-col items-center justify-center text-center shadow-sm hover:shadow-md transition-all"
-                          >
-                            <div className="text-sm font-bold text-gray-800 mb-1">
-                              {mission.title || `미션 ${mission.id + 1}`}
-                            </div>
-                            {mission.type === 'count' && (
-                              <div className="text-xs text-purple-600 font-medium">
-                                목표: {mission.targetCount}회
-                              </div>
-                            )}
-                            {mission.description && (
-                              <div className="text-xs text-gray-500 mt-1 line-clamp-2">
-                                {mission.description}
-                              </div>
-                            )}
-                          </div>
-                        ))}
-                      </div>
-                    </div>
+                </div>
 
-                    {/* 미션 입력 폼 */}
-                    <div className="space-y-4">
-                      <h3 className="text-lg font-semibold mb-4">미션 상세 설정</h3>
-                      
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        {bingoMissions.map((mission, index) => (
-                          <div
-                            key={mission.id}
-                            className="p-4 border-2 border-gray-200 rounded-lg hover:border-blue-300 transition-all bg-gray-50"
-                          >
-                            <div className="flex items-center justify-between mb-3">
-                              <span className="text-sm font-bold text-blue-600">
-                                미션 {mission.id + 1}
-                              </span>
-                              <span className="text-xs text-gray-500">
-                                위치: ({mission.row + 1}, {mission.col + 1})
-                              </span>
-                            </div>
-                            
-                            <input
-                              type="text"
-                              placeholder="미션 제목"
-                              value={mission.title}
-                              onChange={(e) => {
-                                const updated = [...bingoMissions];
-                                updated[index].title = e.target.value;
-                                setBingoMissions(updated);
-                              }}
-                              className="w-full px-3 py-2 mb-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                            />
-                            
-                            <textarea
-                              placeholder="미션 설명 (선택사항)"
-                              value={mission.description}
-                              onChange={(e) => {
-                                const updated = [...bingoMissions];
-                                updated[index].description = e.target.value;
-                                setBingoMissions(updated);
-                              }}
-                              className="w-full px-3 py-2 mb-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-                              rows="2"
-                            />
-                            
-                            <select
-                              value={mission.type}
-                              onChange={(e) => {
-                                const updated = [...bingoMissions];
-                                updated[index].type = e.target.value;
-                                setBingoMissions(updated);
-                              }}
-                              className="w-full px-3 py-2 mb-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-                            >
-                              <option value="simple">단순형</option>
-                              <option value="count">카운트형</option>
-                            </select>
-                            
-                            {mission.type === 'count' && (
-                              <input
-                                type="number"
-                                placeholder="목표 횟수"
-                                value={mission.targetCount}
-                                onChange={(e) => {
-                                  const updated = [...bingoMissions];
-                                  updated[index].targetCount = parseInt(e.target.value) || 1;
-                                  setBingoMissions(updated);
-                                }}
-                                min="1"
-                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-                              />
-                            )}
-                            
-                            <div className="mt-2 text-xs text-gray-600">
-                              {mission.title ? `✓ ${mission.title}` : '미션 제목을 입력하세요'}
-                            </div>
+                {/* 빙고판 미리보기 */}
+                <div className="p-6 bg-gradient-to-br from-blue-50 to-purple-50 rounded-lg border-2 border-blue-200">
+                  <h3 className="text-lg font-semibold mb-4 text-center text-blue-900">
+                    빙고판 미리보기
+                  </h3>
+                  <div className="grid grid-cols-3 gap-3 max-w-2xl mx-auto">
+                    {bingoMissions.map((mission, idx) => (
+                      <div
+                        key={idx}
+                        className="aspect-square p-3 bg-white border-2 border-blue-300 rounded-lg flex flex-col items-center justify-center text-center shadow-sm"
+                      >
+                        <div className="text-sm font-semibold text-gray-800 line-clamp-2 mb-1">
+                          {mission.title || `미션 ${idx + 1}`}
+                        </div>
+                        {mission.description && (
+                          <div className="text-xs text-gray-500 line-clamp-2 mb-1">
+                            {mission.description}
                           </div>
-                        ))}
+                        )}
+                        <div className="mt-auto">
+                          <span className={`text-xs px-2 py-1 rounded-full ${
+                            mission.type === 'count' 
+                              ? 'bg-purple-100 text-purple-700' 
+                              : 'bg-green-100 text-green-700'
+                          }`}>
+                            {mission.type === 'count' ? `목표 ${mission.targetCount}회` : '단순형'}
+                          </span>
+                        </div>
                       </div>
-                      
-                      <div className="text-center mt-8 flex gap-3 justify-center">
-                        <button
-                          onClick={() => {
-                            if (confirm('모든 미션을 초기화하시겠습니까?')) {
-                              const defaultMissions = Array(9).fill(null).map((_, index) => ({
-                                id: index,
-                                title: '',
-                                description: '',
-                                type: 'simple',
-                                targetCount: 1,
-                                row: Math.floor(index / 3),
-                                col: index % 3
-                              }));
-                              setBingoMissions(defaultMissions);
-                            }
-                          }}
-                          className="px-6 py-3 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition-all duration-200 shadow-sm hover:shadow-md font-medium"
-                        >
-                          미션 초기화
-                        </button>
-                        <button
-                          onClick={saveMissions}
-                          className="px-8 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-all duration-200 shadow-sm hover:shadow-md font-medium"
-                        >
-                          미션 설정 저장
-                        </button>
-                      </div>
-                    </div>
-                  </>
-                )}
+                    ))}
+                  </div>
+                  
+                  <div className="text-center mt-4 text-sm text-gray-600">
+                    💡 팁: 각 칸을 채워서 3x3 빙고판을 완성하세요!
+                  </div>
+                </div>
               </div>
             )}
 
@@ -818,106 +838,118 @@ const TeamBingoSystem = () => {
                 </div>
                 
                 {teams.length === 0 ? (
-                  <div className="text-center py-16 text-gray-500">
-                    <BarChart3 size={48} className="mx-auto mb-4 text-gray-300" />
-                    <p>모니터링할 조가 없습니다.</p>
-                    <p className="text-sm">조 구성을 먼저 진행해주세요.</p>
+                  <div className="text-center py-16">
+                    <BarChart3 size={64} className="mx-auto mb-6 text-gray-300" />
+                    <h3 className="text-xl font-semibold text-gray-700 mb-3">
+                      아직 조가 생성되지 않았습니다
+                    </h3>
+                    <p className="text-gray-500 mb-6">
+                      모니터링을 시작하려면 먼저 조를 구성해주세요.
+                    </p>
+                    <button
+                      onClick={() => setActiveTab('teams')}
+                      className="px-6 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-all shadow-md hover:shadow-lg flex items-center gap-2 mx-auto"
+                    >
+                      <Shuffle size={18} />
+                      <span>조 구성하러 가기</span>
+                    </button>
                   </div>
                 ) : !selectedTeam ? (
-                  <div className="space-y-6">
-                    {/* 통계 요약 */}
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-                      <div className="bg-gray-50 p-4 rounded-lg text-center">
-                        <h3 className="text-2xl font-bold text-blue-600">{currentActivity.participants.length}</h3>
-                        <p className="text-sm text-gray-600">총 참가자</p>
+                  /* 조 목록 (요약) */
+                  <div>
+                    <div className="mb-6 grid grid-cols-1 md:grid-cols-4 gap-4">
+                      <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                        <div className="text-2xl font-bold text-blue-600">{teams.length}</div>
+                        <div className="text-sm text-gray-600">전체 조</div>
                       </div>
-                      <div className="bg-gray-50 p-4 rounded-lg text-center">
-                        <h3 className="text-2xl font-bold text-green-600">{teams.length}</h3>
-                        <p className="text-sm text-gray-600">총 조 수</p>
+                      <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+                        <div className="text-2xl font-bold text-green-600">
+                          {teams.filter(t => t.bingoCount >= currentActivity.targetBingos).length}
+                        </div>
+                        <div className="text-sm text-gray-600">목표 달성 조</div>
                       </div>
-                      <div className="bg-gray-50 p-4 rounded-lg text-center">
-                        <h3 className="text-2xl font-bold text-yellow-600">
-                          {teams.length > 0 ? 
-                            Math.round(teams.reduce((sum, team) => sum + (team.bingoCount || 0), 0) / teams.length * 10) / 10 : 0}
-                        </h3>
-                        <p className="text-sm text-gray-600">평균 빙고 수</p>
+                      <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
+                        <div className="text-2xl font-bold text-purple-600">
+                          {Math.round(teams.reduce((sum, t) => sum + (t.summary?.progressRate || 0), 0) / teams.length)}%
+                        </div>
+                        <div className="text-sm text-gray-600">평균 진행률</div>
                       </div>
-                      <div className="bg-gray-50 p-4 rounded-lg text-center">
-                        <h3 className="text-2xl font-bold text-red-600">
-                          {teams.filter(team => (team.bingoCount || 0) >= currentActivity.targetBingos).length}
-                        </h3>
-                        <p className="text-sm text-gray-600">목표 달성 조</p>
+                      <div className="bg-orange-50 p-4 rounded-lg border border-orange-200">
+                        <div className="text-2xl font-bold text-orange-600">
+                          {teams.reduce((sum, t) => sum + t.members.length, 0)}
+                        </div>
+                        <div className="text-sm text-gray-600">전체 참가자</div>
                       </div>
                     </div>
 
-                    {/* 조별 진행 현황 */}
-                    <div className="space-y-4">
-                      <h3 className="text-lg font-semibold">조별 진행 현황 (클릭하여 상세보기)</h3>
-                      <div className="overflow-x-auto">
-                        <table className="w-full border-collapse bg-white border rounded-lg overflow-hidden">
-                          <thead>
-                            <tr className="bg-gray-800 text-white">
-                              <th className="p-4 text-left">조명</th>
-                              <th className="p-4 text-center">인원</th>
-                              <th className="p-4 text-center">빙고 수</th>
-                              <th className="p-4 text-center">진행률</th>
-                              <th className="p-4 text-center">목표 달성</th>
-                              <th className="p-4 text-center">상세보기</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {teams.map((team, index) => (
-                              <tr 
-                                key={team._id} 
-                                className={`border-b cursor-pointer hover:bg-blue-50 transition-colors ${index % 2 === 0 ? 'bg-gray-50' : 'bg-white'}`}
-                                onClick={() => loadTeamDetail(team._id)}
-                              >
-                                <td className="p-4 font-semibold">{team.name}</td>
-                                <td className="p-4 text-center">{team.members.length}명</td>
-                                <td className="p-4 text-center">
-                                  <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-                                    (team.bingoCount || 0) >= currentActivity.targetBingos 
-                                      ? 'bg-green-100 text-green-800' 
-                                      : 'bg-blue-100 text-blue-800'
-                                  }`}>
-                                    {team.bingoCount || 0}개
-                                  </span>
-                                </td>
-                                <td className="p-4 text-center">
-                                  <div className="flex items-center justify-center gap-2">
-                                    <div className="w-24 bg-gray-200 rounded-full h-2">
-                                      <div 
-                                        className="bg-blue-500 h-2 rounded-full transition-all"
-                                        style={{ width: `${team.summary?.progressRate || 0}%` }}
-                                      ></div>
-                                    </div>
-                                    <span className="text-sm font-medium">{team.summary?.progressRate || 0}%</span>
-                                  </div>
-                                </td>
-                                <td className="p-4 text-center">
-                                  {(team.bingoCount || 0) >= currentActivity.targetBingos ? (
-                                    <span className="text-green-600 font-bold">✓ 달성</span>
-                                  ) : (
-                                    <span className="text-gray-500">미달성</span>
+                    <div className="overflow-x-auto">
+                      <table className="w-full">
+                        <thead className="bg-gray-50">
+                          <tr>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">조명</th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">인원</th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">빙고</th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">진행률</th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">목표달성</th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">액션</th>
+                          </tr>
+                        </thead>
+                        <tbody className="bg-white divide-y divide-gray-200">
+                          {teams.map((team) => (
+                            <tr key={team._id} className="hover:bg-gray-50">
+                              <td className="px-6 py-4 whitespace-nowrap">
+                                <div className="flex items-center">
+                                  <div className="font-medium text-gray-900">{team.name}</div>
+                                  {team.leaderId && (
+                                    <Crown size={14} className="ml-2 text-yellow-500" />
                                   )}
-                                </td>
-                                <td className="p-4 text-center">
-                                  <button
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      loadTeamDetail(team._id);
-                                    }}
-                                    className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-all text-sm flex items-center gap-2 mx-auto"
-                                  >
-                                    <Eye size={16} />
-                                    보기
-                                  </button>
-                                </td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </div>
+                                </div>
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                                {team.members.length}명
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap">
+                                <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+                                  team.bingoCount >= currentActivity.targetBingos 
+                                    ? 'bg-green-100 text-green-800' 
+                                    : 'bg-gray-100 text-gray-800'
+                                }`}>
+                                  {team.bingoCount || 0}개
+                                </span>
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap">
+                                <div className="flex items-center gap-2">
+                                  <div className="flex-1 bg-gray-200 rounded-full h-2 max-w-[100px]">
+                                    <div 
+                                      className="bg-blue-500 h-2 rounded-full transition-all"
+                                      style={{ width: `${team.summary?.progressRate || 0}%` }}
+                                    ></div>
+                                  </div>
+                                  <span className="text-sm text-gray-600 min-w-[40px]">
+                                    {team.summary?.progressRate || 0}%
+                                  </span>
+                                </div>
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap">
+                                {team.bingoCount >= currentActivity.targetBingos ? (
+                                  <span className="text-green-600 font-semibold">✓ 달성</span>
+                                ) : (
+                                  <span className="text-gray-500">진행중</span>
+                                )}
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap">
+                                <button
+                                  onClick={() => loadTeamDetail(team._id)}
+                                  className="px-3 py-1 bg-blue-100 text-blue-600 rounded-md hover:bg-blue-200 transition-all flex items-center gap-1 text-sm"
+                                >
+                                  <Eye size={14} />
+                                  상세보기
+                                </button>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
                     </div>
                   </div>
                 ) : (
@@ -978,61 +1010,53 @@ const TeamBingoSystem = () => {
                               return (
                                 <div
                                   key={mission.id}
-                                  className={`relative aspect-square p-4 border-2 rounded-lg transition-all ${
-                                    mission.type === 'simple' ? 'cursor-pointer' : ''
-                                  } ${
+                                  className={`relative aspect-square p-4 border-2 rounded-lg transition-all cursor-pointer ${
                                     progress.completed
-                                      ? 'bg-green-50 border-green-400 shadow-lg'
+                                      ? 'bg-green-50 border-green-400 shadow-md'
                                       : 'bg-white border-gray-300 hover:border-blue-400'
                                   }`}
-                                  onClick={() => {
-                                    if (mission.type === 'simple') {
-                                      toggleMissionComplete(selectedTeam._id, mission.id);
-                                    }
-                                  }}
+                                  onClick={() => mission.type === 'simple' && toggleMissionComplete(selectedTeam._id, mission.id)}
                                 >
                                   <div className="h-full flex flex-col justify-center items-center text-center">
-                                    {/* 미션 제목 */}
                                     <div className="text-sm font-semibold mb-2">
                                       {mission.title || `미션 ${mission.id + 1}`}
                                     </div>
                                     
-                                    {/* 미션 설명 */}
                                     {mission.description && (
-                                      <div className="text-xs text-gray-500 mb-2 line-clamp-2">
+                                      <div className="text-xs text-gray-500 mb-2">
                                         {mission.description}
                                       </div>
                                     )}
                                     
                                     {/* 카운트형 미션 */}
                                     {mission.type === 'count' && (
-                                      <div className="w-full space-y-2" onClick={(e) => e.stopPropagation()}>
-                                        <div className="flex items-center justify-center gap-3">
+                                      <div className="space-y-2 w-full">
+                                        <div className="flex justify-center gap-2">
                                           <button
                                             onClick={(e) => {
                                               e.stopPropagation();
                                               adjustMissionCount(selectedTeam._id, mission.id, -1);
                                             }}
-                                            className="w-10 h-10 bg-red-500 text-white rounded-lg hover:bg-red-600 active:scale-95 flex items-center justify-center font-bold shadow-lg transition-all text-xl"
+                                            className="px-2 py-1 bg-red-100 text-red-600 rounded hover:bg-red-200 text-sm"
                                           >
-                                            −
+                                            -
                                           </button>
-                                          <div className="text-xl font-bold min-w-[60px] text-center">
+                                          <span className="px-3 py-1 bg-gray-100 rounded text-sm font-semibold">
                                             {progress.currentCount || 0}/{mission.targetCount}
-                                          </div>
+                                          </span>
                                           <button
                                             onClick={(e) => {
                                               e.stopPropagation();
                                               adjustMissionCount(selectedTeam._id, mission.id, 1);
                                             }}
-                                            className="w-10 h-10 bg-blue-500 text-white rounded-lg hover:bg-blue-600 active:scale-95 flex items-center justify-center font-bold shadow-lg transition-all text-xl"
+                                            className="px-2 py-1 bg-green-100 text-green-600 rounded hover:bg-green-200 text-sm"
                                           >
                                             +
                                           </button>
                                         </div>
-                                        <div className="w-full bg-gray-200 rounded-full h-3">
+                                        <div className="w-full bg-gray-200 rounded-full h-2">
                                           <div 
-                                            className={`h-3 rounded-full transition-all ${
+                                            className={`h-2 rounded-full transition-all ${
                                               progress.completed ? 'bg-green-500' : 'bg-blue-500'
                                             }`}
                                             style={{ 
@@ -1108,10 +1132,12 @@ const TeamBingoSystem = () => {
                         className="p-4 md:p-5 border border-gray-200 rounded-lg cursor-pointer hover:border-blue-400 hover:shadow-md transition-all active:scale-[0.99]"
                         onClick={() => loadMyTeam(activity._id)}
                       >
-                        <div className="flex justify-between items-start gap-3">
+                        <div className="flex justify-between items-start gap-3 mb-3">
                           <div className="flex-1 min-w-0">
-                            <h3 className="text-base md:text-lg font-bold text-blue-600 truncate">{activity.title}</h3>
-                            <div className="text-xs md:text-sm text-gray-600 space-y-1 mt-2">
+                            <h3 className="text-base md:text-lg font-bold text-blue-600 truncate mb-2">
+                              {activity.title}
+                            </h3>
+                            <div className="text-xs md:text-sm text-gray-600 space-y-1">
                               <p className="flex items-center gap-1">
                                 <Calendar size={14} className="flex-shrink-0" />
                                 <span className="truncate">
@@ -1122,6 +1148,18 @@ const TeamBingoSystem = () => {
                                 <Target size={14} className="flex-shrink-0" />
                                 <span>목표 빙고: {activity.targetBingos}개</span>
                               </p>
+                              {activity.myTeam && (
+                                <>
+                                  <p className="flex items-center gap-1">
+                                    <Users size={14} className="flex-shrink-0" />
+                                    <span>내 조: {activity.myTeam.name}</span>
+                                  </p>
+                                  <p className="flex items-center gap-1">
+                                    <Award size={14} className="flex-shrink-0" />
+                                    <span>빙고 달성: {activity.myTeam.bingoCount}개</span>
+                                  </p>
+                                </>
+                              )}
                             </div>
                           </div>
                           <span className={`px-2 md:px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap ${
@@ -1133,6 +1171,36 @@ const TeamBingoSystem = () => {
                             {getActivityStatus(activity)}
                           </span>
                         </div>
+
+                        {/* 진행률 표시 */}
+                        {activity.myTeam ? (
+                          <div className="space-y-2 pt-3 border-t border-gray-100">
+                            <div className="flex justify-between items-center text-xs md:text-sm">
+                              <span className="text-gray-600">진행률</span>
+                              <span className="font-semibold text-blue-600">
+                                {activity.myTeam.progressRate}% ({activity.myTeam.completedMissions}/9 미션)
+                              </span>
+                            </div>
+                            <div className="w-full bg-gray-200 rounded-full h-2 md:h-3 overflow-hidden">
+                              <div 
+                                className="bg-gradient-to-r from-blue-500 to-blue-600 h-full rounded-full transition-all duration-500 ease-out"
+                                style={{ width: `${activity.myTeam.progressRate}%` }}
+                              ></div>
+                            </div>
+                            {activity.myTeam.bingoCount >= activity.targetBingos && (
+                              <div className="text-xs text-green-600 font-medium flex items-center gap-1 justify-end">
+                                <Award size={12} />
+                                목표 달성!
+                              </div>
+                            )}
+                          </div>
+                        ) : (
+                          <div className="pt-3 border-t border-gray-100">
+                            <div className="text-xs md:text-sm text-gray-500 text-center py-2 bg-gray-50 rounded">
+                              아직 조가 배정되지 않았습니다
+                            </div>
+                          </div>
+                        )}
                       </div>
                     ))}
                   </div>

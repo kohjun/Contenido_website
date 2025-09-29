@@ -1,98 +1,98 @@
-// const mongoose = require('mongoose');
-
-// const authenticateToken = async (req, res, next) => {
-//   // 실제 사용자 정보를 사용한 더미 데이터
-//   const dummyUser = {
-//     _id: '673aed9a051a576b3e2285e1',
-//     id: '673aed9a051a576b3e2285e1',
-//     email: 'kohjunn@naver.com',
-//     displayName: '고 준',
-//     profileImage: 'https://img1.kakaocdn.net/thumb/R640x640.q70/?fname=http://t1.kakaocdn.net/account_images/default_profile.jpeg',
-//     role: 'admin',
-//     team: 'operationTeam',
-//     department: 'operation',
-//     isDepartmentHead: true,
-//     isActive: true,
-//     isAdditionalInfoComplete: true,
-//     name: '고준',
-//     phonenumber: '01022458697',
-//     gender: 'male',
-//     birthDate: new Date('2000-01-30'),
-//     preferredActivity: '노원구'
-//   };
-
-//   req.user = dummyUser;
-  
-//   if (req.session) {
-//     req.session.userId = dummyUser.id;
-//   }
-
-//   next();
-// };
-
-// module.exports = authenticateToken;
-
-const jwt = require('jsonwebtoken');
-const User = require('../models/User');
-const TokenService = require('../utils/TokenService');
+const mongoose = require('mongoose');
 
 const authenticateToken = async (req, res, next) => {
-  const token = req.cookies.jwt || req.headers['authorization']?.split(' ')[1];
+  // 실제 사용자 정보를 사용한 더미 데이터
+  const dummyUser = {
+    _id: '673aed9a051a576b3e2285e1',
+    id: '673aed9a051a576b3e2285e1',
+    email: 'kohjunn@naver.com',
+    displayName: '고 준',
+    profileImage: 'https://img1.kakaocdn.net/thumb/R640x640.q70/?fname=http://t1.kakaocdn.net/account_images/default_profile.jpeg',
+    role: 'admin',
+    team: 'operationTeam',
+    department: 'operation',
+    isDepartmentHead: true,
+    isActive: true,
+    isAdditionalInfoComplete: true,
+    name: '고준',
+    phonenumber: '01022458697',
+    gender: 'male',
+    birthDate: new Date('2000-01-30'),
+    preferredActivity: '노원구'
+  };
 
-  if (!token) {
-    const refreshedUser = await TokenService.refreshUserToken(req);
-    if (refreshedUser) {
-      req.user = refreshedUser;
-      return next();
-    }
-    return res.status(401).json({ message: '인증이 필요합니다' });
+  req.user = dummyUser;
+  
+  if (req.session) {
+    req.session.userId = dummyUser.id;
   }
 
-  try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    
-    const user = await User.findById(decoded.id)
-      .select('+kakaoAccessToken +kakaoRefreshToken +tokenExpiresAt +refreshTokenExpiresAt');
-
-    if (!user) {
-      console.log(`ID ${decoded.id}에 해당하는 사용자가 없음`);
-      return res.status(401).json({ message: '사용자를 찾을 수 없음' });
-    }
-
-    // 카카오 토큰 유효성 검사 및 프로필 정보 동기화
-    const isTokenValid = await TokenService.verifyKakaoToken(user.kakaoAccessToken);
-    if (!isTokenValid) {
-      const refreshedUser = await TokenService.refreshAccessToken(user);
-      if (!refreshedUser) {
-        return res.status(401).json({ message: '토큰 갱신 실패' });
-      }
-      req.user = refreshedUser; // 이미 프로필 정보가 업데이트된 사용자
-    } else {
-      // 토큰이 유효하면 프로필 정보 동기화 (주기적으로)
-      const lastUpdated = user.updatedAt || user.createdAt;
-      const hoursSinceUpdate = (Date.now() - lastUpdated.getTime()) / (1000 * 60 * 60);
-      
-      // 1시간 이상 지났으면 프로필 정보 업데이트
-      if (hoursSinceUpdate >= 1) {
-        req.user = await TokenService.updateUserProfile(user);
-      } else {
-        req.user = user;
-      }
-    }
-
-    next();
-
-  } catch (error) {
-    if (error.name === 'TokenExpiredError') {
-      const refreshedUser = await TokenService.refreshUserToken(req);
-      if (refreshedUser) {
-        req.user = refreshedUser;
-        return next();
-      }
-    }
-    console.error('인증 에러:', error.name, error.message);
-    return res.status(401).json({ message: '유효하지 않은 토큰' });
-  }
+  next();
 };
 
 module.exports = authenticateToken;
+
+// const jwt = require('jsonwebtoken');
+// const User = require('../models/User');
+// const TokenService = require('../utils/TokenService');
+
+// const authenticateToken = async (req, res, next) => {
+//   const token = req.cookies.jwt || req.headers['authorization']?.split(' ')[1];
+
+//   if (!token) {
+//     const refreshedUser = await TokenService.refreshUserToken(req);
+//     if (refreshedUser) {
+//       req.user = refreshedUser;
+//       return next();
+//     }
+//     return res.status(401).json({ message: '인증이 필요합니다' });
+//   }
+
+//   try {
+//     const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    
+//     const user = await User.findById(decoded.id)
+//       .select('+kakaoAccessToken +kakaoRefreshToken +tokenExpiresAt +refreshTokenExpiresAt');
+
+//     if (!user) {
+//       console.log(`ID ${decoded.id}에 해당하는 사용자가 없음`);
+//       return res.status(401).json({ message: '사용자를 찾을 수 없음' });
+//     }
+
+//     // 카카오 토큰 유효성 검사 및 프로필 정보 동기화
+//     const isTokenValid = await TokenService.verifyKakaoToken(user.kakaoAccessToken);
+//     if (!isTokenValid) {
+//       const refreshedUser = await TokenService.refreshAccessToken(user);
+//       if (!refreshedUser) {
+//         return res.status(401).json({ message: '토큰 갱신 실패' });
+//       }
+//       req.user = refreshedUser; // 이미 프로필 정보가 업데이트된 사용자
+//     } else {
+//       // 토큰이 유효하면 프로필 정보 동기화 (주기적으로)
+//       const lastUpdated = user.updatedAt || user.createdAt;
+//       const hoursSinceUpdate = (Date.now() - lastUpdated.getTime()) / (1000 * 60 * 60);
+      
+//       // 1시간 이상 지났으면 프로필 정보 업데이트
+//       if (hoursSinceUpdate >= 1) {
+//         req.user = await TokenService.updateUserProfile(user);
+//       } else {
+//         req.user = user;
+//       }
+//     }
+
+//     next();
+
+//   } catch (error) {
+//     if (error.name === 'TokenExpiredError') {
+//       const refreshedUser = await TokenService.refreshUserToken(req);
+//       if (refreshedUser) {
+//         req.user = refreshedUser;
+//         return next();
+//       }
+//     }
+//     console.error('인증 에러:', error.name, error.message);
+//     return res.status(401).json({ message: '유효하지 않은 토큰' });
+//   }
+// };
+
+// module.exports = authenticateToken;

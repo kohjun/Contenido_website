@@ -2,8 +2,8 @@
 import { useState, useEffect } from 'react';
 
 export const useTeamBingo = () => {
-  // 기본 상태
-  const [mode, setMode] = useState('admin');
+  // 기본 상태 - 초기 모드를 participant로 변경 ✅
+  const [mode, setMode] = useState('participant');
   const [activeTab, setActiveTab] = useState('activities');
   const [currentActivity, setCurrentActivity] = useState(null);
   const [userRole, setUserRole] = useState(null);
@@ -30,6 +30,7 @@ export const useTeamBingo = () => {
 
   // 팀 및 미션 상태
   const [teams, setTeams] = useState([]);
+  const [isCreatingTeams, setIsCreatingTeams] = useState(false);
   const [bingoMissions, setBingoMissions] = useState(
     Array(9).fill(null).map((_, index) => ({
       id: index,
@@ -57,16 +58,11 @@ export const useTeamBingo = () => {
       const data = await response.json();
       setUserRole(data);
       
-      if (['participant', 'starter'].includes(data.role)) {
-        setMode('participant');
-      } else if ((data.role === 'admin') || (data.role === 'officer' && data.team === 'starterTeam')) {
-        // 기본값은 admin 모드
-      } else {
-        setMode('participant');
-      }
+      // 역할만 저장하고 모드는 기본값(participant) 유지 ✅
+      // 사용자가 직접 관리자 모드 버튼을 눌러야 전환됨
     } catch (error) {
       console.error('사용자 역할 확인 오류:', error);
-      setMode('participant');
+      // 오류 발생 시에도 participant 모드 유지
     }
   };
 
@@ -120,7 +116,7 @@ export const useTeamBingo = () => {
     }
   };
 
-  // 미배정 인원 로드
+  // 미배정 인원 로드 - 올바른 엔드포인트 사용 ✅
   const loadUnassignedMembers = async () => {
     if (!currentActivity) return;
     
@@ -274,9 +270,11 @@ export const useTeamBingo = () => {
       return;
     }
     
-    if (!confirm(`조별 ${teamSettings.membersPerTeam}명으로 조를 생성하시겠습니까?`)) {
+    if (!confirm(`조별 ${teamSettings.membersPerTeam}명으로 조를 생성하시겠습니까?\n\n⏱️ 조 생성에는 수 초가 소요될 수 있습니다.`)) {
       return;
     }
+    
+    setIsCreatingTeams(true);
     
     try {
       const response = await fetch(`/api/bingo/activities/${currentActivity._id}/teams`, {
@@ -290,10 +288,15 @@ export const useTeamBingo = () => {
         await loadUnassignedMembers();
         alert('조가 성공적으로 생성되었습니다.');
         return true;
+      } else {
+        const error = await response.json();
+        throw new Error(error.message || '조 생성에 실패했습니다.');
       }
     } catch (error) {
       alert('오류: ' + error.message);
       return false;
+    } finally {
+      setIsCreatingTeams(false);
     }
   };
 
@@ -386,6 +389,35 @@ export const useTeamBingo = () => {
       } else {
         const errorData = await response.json();
         alert('오류: ' + (errorData.message || '조원 이동에 실패했습니다.'));
+        return false;
+      }
+    } catch (error) {
+      alert('오류: ' + error.message);
+      return false;
+    }
+  };
+
+  // 조 이름 변경 (조장만 가능)
+  const updateTeamName = async (teamId, newName) => {
+    if (!newName || newName.trim() === '') {
+      alert('조 이름을 입력해주세요.');
+      return false;
+    }
+    
+    try {
+      const response = await fetch(`/api/bingo/teams/${teamId}/name`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: newName.trim() })
+      });
+      
+      if (response.ok) {
+        await loadMyTeam(myTeam.activityId._id);
+        alert('조 이름이 변경되었습니다.');
+        return true;
+      } else {
+        const error = await response.json();
+        alert(error.message || '조 이름 변경에 실패했습니다.');
         return false;
       }
     } catch (error) {
@@ -507,10 +539,15 @@ export const useTeamBingo = () => {
     return !currentActivity && ['members', 'teams', 'missions', 'monitoring'].includes(tab);
   };
 
-  // Effects
+  // Effects - 초기 로드 시 참가자 데이터를 먼저 로드 ✅
   useEffect(() => {
-    checkUserRole();
-    loadActivities();
+    const initializeApp = async () => {
+      await checkUserRole();        // 1. 역할 확인
+      await loadParticipantData();  // 2. 참가자 데이터 먼저 로드
+      await loadActivities();       // 3. 관리자용 데이터도 로드
+    };
+    
+    initializeApp();
   }, []);
 
   useEffect(() => {
@@ -532,6 +569,12 @@ export const useTeamBingo = () => {
     }
   }, [activeTab, currentActivity]);
 
+  useEffect(() => {
+    if (activeTab === 'monitoring' && currentActivity) {
+      loadTeams();
+    }
+  }, [activeTab, currentActivity]);
+
   return {
     // 상태
     mode,
@@ -539,6 +582,7 @@ export const useTeamBingo = () => {
     activeTab,
     setActiveTab,
     currentActivity,
+    setCurrentActivity,
     userRole,
     allUsersData,
     activities,
@@ -551,6 +595,7 @@ export const useTeamBingo = () => {
     teamSettings,
     setTeamSettings,
     teams,
+    isCreatingTeams,
     bingoMissions,
     setBingoMissions,
     myActivities,
@@ -578,6 +623,7 @@ export const useTeamBingo = () => {
     loadUnassignedMembers,
     addMemberToTeam,
     removeMemberFromTeam,
-    moveMemberToTeam
+    moveMemberToTeam,
+    updateTeamName
   };
 };
