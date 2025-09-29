@@ -325,29 +325,40 @@ function smartTeamAssignment(participants, teamCount) {
   };
   
   // 6. 그리디 배정 (지역 거리 고려)
-  const assignToGroups = (pool, slots) => {
-    const ordered = zigzagOrder(pool);
+const assignToGroups = (pool, slots) => {
+  const ordered = zigzagOrder(pool);
+  
+  for (const person of ordered) {
+    let bestGroup = -1;
+    let bestScore = Infinity;
     
-    for (const person of ordered) {
-      let bestGroup = -1;
-      let bestScore = Infinity;
+    for (let gi = 0; gi < teamCount; gi++) {
+      if (slots[gi] <= 0) continue;
       
-      for (let gi = 0; gi < teamCount; gi++) {
-        if (slots[gi] <= 0) continue;
-        
-        // 현재 그룹에 추가했을 때의 점수 계산
-        const score = calculateGroupScore(groups[gi], person);
-        
-        if (score < bestScore || (score === bestScore && groups[gi].length < groups[bestGroup]?.length)) {
-          bestGroup = gi;
-          bestScore = score;
-        }
+      // 현재 그룹에 추가했을 때의 점수 계산
+      const score = calculateGroupScore(groups[gi], person);
+      
+      if (score < bestScore || (score === bestScore && groups[gi].length < groups[bestGroup]?.length)) {
+        bestGroup = gi;
+        bestScore = score;
       }
-      
-      groups[bestGroup].push(person);
-      slots[bestGroup]--;
     }
-  };
+    
+    // 🔥 안전 장치 추가
+    if (bestGroup === -1) {
+      // 슬롯이 남은 첫 번째 그룹 찾기
+      bestGroup = slots.findIndex(s => s > 0);
+    }
+    
+    // 여전히 그룹을 찾지 못했다면 첫 번째 그룹에 배정
+    if (bestGroup === -1) {
+      bestGroup = 0;
+    }
+    
+    groups[bestGroup].push(person);
+    slots[bestGroup]--;
+  }
+};
   
   assignToGroups([...males], [...maleSlots]);
   assignToGroups([...females], [...femaleSlots]);
