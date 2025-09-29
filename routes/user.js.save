@@ -42,6 +42,7 @@ router.get('/info', authenticateToken, (req, res) => {
 // 데이터베이스에서 유저 정보 얻기
 router.get('/info_database', authenticateToken, async (req, res) => {
   try {
+    // console.log(`사용자 ${req.user.id} 전체 정보 요청`);
     
     // 세션 ID와 현재 사용자 ID 비교
     if (req.session.userId && req.session.userId !== req.user.id.toString()) {
@@ -53,8 +54,7 @@ router.get('/info_database', authenticateToken, async (req, res) => {
     
     // JWT 토큰에서 받은 userId를 사용하여 데이터베이스에서 전체 정보 조회
     const user = await User.findById(req.user.id)
-      .select('id name displayName email role active department team profileImage warningCount participationCount phonenumber gender birthDate preferredActivity isDepartmentHead createdAt');
-    
+.select('id name displayName email role active department team profileImage warningCount participationCount phonenumber gender birthDate preferredActivity isDepartmentHead createdAt');    
     if (!user) {
       console.log(`사용자 ${req.user.id}를 데이터베이스에서 찾을 수 없음`);
       return res.status(404).json({ message: 'User not found' });
@@ -98,8 +98,9 @@ router.get('/info_database', authenticateToken, async (req, res) => {
 //여러 참가자 데이터 조회
 router.get('/participants/users', async (req, res) => {
   try {
+    console.log('모든 사용자 목록 요청');
     const users = await User.find({ isVerified: true })
-      .select('displayName name participationCount profileImage status active role gender phonenumber warningCount team department preferredActivity birthDate isTeamLeader createdAt staffSubteam'); // staffSubteam 추가
+      .select('displayName name participationCount profileImage status active role gender phonenumber warningCount team department preferredActivity birthDate isTeamLeader createdAt'); // createdAt 추가
     
     const userData = users.map(user => ({
       id: user._id,
@@ -117,8 +118,7 @@ router.get('/participants/users', async (req, res) => {
       preferredActivity: user.preferredActivity || '-',
       birthDate: user.birthDate,
       isTeamLeader: user.isTeamLeader,
-      createdAt: user.createdAt,  // createdAt 추가
-      staffSubteam: user.staffSubteam // staffSubteam 추가
+      createdAt: user.createdAt  // createdAt 추가
     }));
 
     // console.log(`${userData.length}명의 사용자 정보 반환`);
@@ -139,106 +139,6 @@ router.get('/user-role', authenticateToken, (req, res) => {
     res.status(401).json({ message: 'Unauthorized' });
   }
 });
-
-// 경고 내역 조회
-router.get('/warning-history/:userId', authenticateToken, async (req, res) => {
-  try {
-    const { userId } = req.params;
-    
-    const user = await User.findById(userId)
-      .populate('warningHistory.issuedBy', 'name')
-      .select('name warningCount warningHistory lastWarningResetDate');
-
-    if (!user) {
-      return res.status(404).json({ message: '사용자를 찾을 수 없습니다.' });
-    }
-
-    // 활성 경고만 필터링하거나 전체 내역 조회 옵션
-    const showAll = req.query.showAll === 'true';
-    const warningHistory = showAll 
-      ? user.warningHistory 
-      : user.warningHistory.filter(warning => warning.isActive);
-
-    res.status(200).json({
-      userName: user.name,
-      currentWarningCount: user.warningCount,
-      lastResetDate: user.lastWarningResetDate,
-      warningHistory: warningHistory.map(warning => ({
-        id: warning._id,
-        reason: warning.reason,
-        issuedByName: warning.issuedByName,
-        issuedAt: warning.issuedAt,
-        category: warning.category,
-        isActive: warning.isActive
-      }))
-    });
-  } catch (error) {
-    console.error('경고 내역 조회 중 오류:', error);
-    res.status(500).json({ message: '경고 내역 조회 중 오류가 발생했습니다.' });
-  }
-});
-
-// ============== 빙고 시스템용 API 추가 ==============
-
-// 기존 /participants/users 엔드포인트를 빙고 시스템에 맞게 수정 또는 새로 추가
-router.get('/participants/bingo', 
-  authenticateToken, 
-  authorizeRoles('admin', 'officer'), 
-  async (req, res) => {
-    try {
-      // 활성 사용자 중 participant, starter, officer만 조회
-      const users = await User.find({
-        active: true,
-        role: { $in: ['participant', 'starter', 'officer'] }
-      }).select('name role birthDate gender department team');
-      
-      // 빙고 시스템에 맞는 형태로 데이터 가공
-      const userData = users.map(user => {
-        // 나이 계산 (한국식 나이)
-        const age = user.birthDate ? 
-          new Date().getFullYear() - new Date(user.birthDate).getFullYear() + 1 : null;
-        
-        // 역할 한글 변환
-        const roleMap = {
-          'participant': '일반회원',
-          'starter': '스타터',
-          'officer': '운영진'
-        };
-        
-        // 성별 한글 변환
-        const genderMap = {
-          'male': '남성',
-          'female': '여성',
-          'other': '기타'
-        };
-        
-        return {
-          id: user._id,
-          name: user.name || '이름 없음',
-          role: roleMap[user.role] || user.role,
-          age: age,
-          gender: genderMap[user.gender] || '미설정',
-          department: user.department || '',
-          team: user.team || ''
-        };
-      });
-      
-      res.json({
-        success: true,
-        count: userData.length,
-        data: userData
-      });
-      
-    } catch (error) {
-      console.error('빙고 시스템 사용자 정보 조회 에러:', error);
-      res.status(500).json({ 
-        success: false,
-        message: '서버 오류가 발생했습니다.',
-        error: error.message 
-      });
-    }
-  }
-);
 
 // POST 
 // 유저 활성 상태 토글
@@ -301,92 +201,38 @@ router.post('/update-participation/:userId', authenticateToken, async (req, res)
   }
 });
 
-// 경고 부여 - authorizeRoles 미들웨어 추가
-router.post('/issue-warning/:userId', authenticateToken, async (req, res) => {
+// 경고 횟수 업데이트 - authorizeRoles 미들웨어 추가
+router.post('/update-warning/:userId', authenticateToken, async (req, res) => {
   try {
     const { userId } = req.params;
-    const { reason, category = '기타' } = req.body;
-    const issuedBy = req.user.id;
-    const issuedByName = req.user.name;
+    const { warningCount } = req.body;
+
+    // console.log(`사용자 ${userId} 경고 횟수 업데이트 요청: ${warningCount}`);
 
     // 유효성 검사
-    if (!reason || reason.trim().length === 0) {
-      return res.status(400).json({ message: '경고 사유를 입력해주세요.' });
+    if (typeof warningCount !== 'number' || warningCount < 0) {
+      // console.log(`유효하지 않은 경고 횟수: ${warningCount}`);
+      return res.status(400).json({ message: '유효하지 않은 경고 횟수입니다.' });
     }
 
     const user = await User.findById(userId);
     if (!user) {
+      console.log(`사용자 ${userId}를 찾을 수 없음`);
       return res.status(404).json({ message: '사용자를 찾을 수 없습니다.' });
     }
 
-    // 새로운 경고 내역 생성
-    const newWarning = {
-      reason: reason.trim(),
-      issuedBy,
-      issuedByName,
-      category,
-      issuedAt: new Date()
-    };
-
-    // 경고 내역 추가 및 경고 횟수 증가
-    user.warningHistory.push(newWarning);
-    user.warningCount += 1;
+    // 경고 횟수 업데이트
+    user.warningCount = warningCount;
     await user.save();
 
-    console.log(`경고 부여 완료: ${user.name}(${userId}) - 사유: ${reason} - 부여자: ${issuedByName}`);
-
-    res.status(200).json({
-      message: '경고가 부여되었습니다.',
-      warningCount: user.warningCount,
-      newWarning: {
-        reason: newWarning.reason,
-        issuedByName: newWarning.issuedByName,
-        issuedAt: newWarning.issuedAt,
-        category: newWarning.category
-      }
+    // console.log(`사용자 ${userId} 경고 횟수 업데이트 완료: ${warningCount}`);
+    res.status(200).json({ 
+      message: '경고 횟수가 업데이트되었습니다.',
+      warningCount: user.warningCount 
     });
   } catch (error) {
-    console.error('경고 부여 중 오류:', error);
-    res.status(500).json({ message: '경고 부여 중 오류가 발생했습니다.' });
-  }
-});
-
-
-// 특정 경고 삭제/비활성화
-router.post('/remove-warning/:userId/:warningId', authenticateToken, async (req, res) => {
-  try {
-    const { userId, warningId } = req.params;
-    const { reason = '관리자 판단' } = req.body;
-    
-    const user = await User.findById(userId);
-    if (!user) {
-      return res.status(404).json({ message: '사용자를 찾을 수 없습니다.' });
-    }
-
-    const warning = user.warningHistory.id(warningId);
-    if (!warning) {
-      return res.status(404).json({ message: '해당 경고를 찾을 수 없습니다.' });
-    }
-
-    if (!warning.isActive) {
-      return res.status(400).json({ message: '이미 비활성화된 경고입니다.' });
-    }
-
-    // 경고 비활성화 및 경고 횟수 감소
-    warning.isActive = false;
-    user.warningCount = Math.max(0, user.warningCount - 1);
-    
-    await user.save();
-
-    console.log(`경고 삭제: ${user.name}(${userId}) - 삭제된 경고: ${warning.reason} - 삭제 사유: ${reason}`);
-
-    res.status(200).json({
-      message: '경고가 삭제되었습니다.',
-      warningCount: user.warningCount
-    });
-  } catch (error) {
-    console.error('경고 삭제 중 오류:', error);
-    res.status(500).json({ message: '경고 삭제 중 오류가 발생했습니다.' });
+    console.error(`경고 횟수 업데이트 중 오류:`, error);
+    res.status(500).json({ message: '경고 횟수 업데이트 중 오류가 발생했습니다.' });
   }
 });
 
@@ -484,36 +330,6 @@ router.post('/update-team/:userId', authenticateToken, async (req, res) => {
   } catch (error) {
       console.error(`팀 변경 중 오류:`, error);
       res.status(500).json({ message: '팀 변경 중 오류가 발생했습니다.' });
-  }
-});
-
-// 스태프 소그룹만 단독 변경 라우트
-router.post('/update-staffsubteam/:userId', authenticateToken, async (req, res) => {
-  try {
-      const { userId } = req.params;
-      const { staffSubteam } = req.body;
-
-      const user = await User.findById(userId);
-      if (!user) {
-          return res.status(404).json({ message: '사용자를 찾을 수 없습니다.' });
-      }
-      if (user.role !== 'officer' || user.team !== 'staffTeam') {
-          return res.status(400).json({ message: '스태프팀 소속 운영진만 소그룹을 변경할 수 있습니다.' });
-      }
-      if (!staffSubteam) {
-          return res.status(400).json({ message: '스태프 소그룹 값이 필요합니다.' });
-      }
-
-      user.staffSubteam = staffSubteam;
-      await user.save();
-
-      res.status(200).json({
-          message: '스태프 소그룹이 성공적으로 변경되었습니다.',
-          staffSubteam: user.staffSubteam
-      });
-  } catch (error) {
-      console.error(`스태프 소그룹 변경 중 오류:`, error);
-      res.status(500).json({ message: '스태프 소그룹 변경 중 오류가 발생했습니다.' });
   }
 });
 

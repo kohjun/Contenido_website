@@ -320,9 +320,43 @@ userSchema.methods.updateApplicationStatus = async function(status) {
   return this.save();
 };
 
+<<<<<<< HEAD
+// 리프레시 토큰 검증 메서드
+userSchema.methods.verifyRefreshToken = function() {
+  if (!this.refreshToken || !this.refreshTokenExpiry) {
+    return false;
+  }
+  return new Date() < this.refreshTokenExpiry;
+};
+
+// 리프레시 토큰 업데이트 메서드
+userSchema.methods.updateRefreshToken = async function(refreshToken) {
+  const expiry = new Date();
+  expiry.setDate(expiry.getDate() + 14); // 14일 후 만료
+
+  this.refreshToken = refreshToken;
+  this.refreshTokenExpiry = expiry;
+  this.lastRefreshTokenUse = new Date();
+  
+  return this.save();
+};
+
+// 토큰 무효화 메서드
+userSchema.methods.invalidateTokens = async function() {
+  this.refreshToken = null;
+  this.refreshTokenExpiry = null;
+  this.lastRefreshTokenUse = null;
+  this.kakaoRefreshToken = null;
+  
+  return this.save();
+};
+
+module.exports = mongoose.model('User', userSchema);
+=======
 // 인덱스 추가 - 성능 최적화
 userSchema.index({ 'warningHistory.issuedAt': -1 });
 userSchema.index({ 'warningHistory.isActive': 1 });
 userSchema.index({ warningCount: 1 });
 
 module.exports = mongoose.model('User', userSchema);
+>>>>>>> dfdf4ee10d672c3c7bef7bc83cf23c8eabc47811
