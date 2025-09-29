@@ -1,4 +1,4 @@
-// hooks/useTeamBingo.js
+// frontend/src/hooks/useTeamBingo.js
 import { useState, useEffect } from 'react';
 
 export const useTeamBingo = () => {
@@ -46,8 +46,9 @@ export const useTeamBingo = () => {
   const [myActivities, setMyActivities] = useState([]);
   const [myTeam, setMyTeam] = useState(null);
   
-  // 모니터링 상태
+  // 모니터링 및 조원 관리 상태
   const [selectedTeam, setSelectedTeam] = useState(null);
+  const [unassignedMembers, setUnassignedMembers] = useState([]);
 
   // API 함수들
   const checkUserRole = async () => {
@@ -56,15 +57,11 @@ export const useTeamBingo = () => {
       const data = await response.json();
       setUserRole(data);
       
-      // participant나 starter는 무조건 participant 모드
       if (['participant', 'starter'].includes(data.role)) {
         setMode('participant');
-      }
-      // admin이거나 officer이면서 starterTeam인 경우만 admin 모드 가능
-      else if ((data.role === 'admin') || (data.role === 'officer' && data.team === 'starterTeam')) {
-        // 기본값은 admin 모드로 설정
+      } else if ((data.role === 'admin') || (data.role === 'officer' && data.team === 'starterTeam')) {
+        // 기본값은 admin 모드
       } else {
-        // 그 외는 participant 모드
         setMode('participant');
       }
     } catch (error) {
@@ -93,20 +90,21 @@ export const useTeamBingo = () => {
       const transformedData = userData.map(user => ({
         id: user.id,
         name: user.name || '이름 없음',
-        role: user.role === 'participant' ? '일반회원' : 
+        role: user.role === 'participant' ? '참가자' : 
               user.role === 'starter' ? '스타터' : 
               user.role === 'officer' ? '운영진' : user.role || '역할 없음',
         age: user.birthDate ? new Date().getFullYear() - new Date(user.birthDate).getFullYear() + 1 : null,
         gender: user.gender === 'male' ? '남성' : 
                user.gender === 'female' ? '여성' : '기타',
         department: user.department || '',
-        team: user.team || ''
+        team: user.team || '',
+        isParticipant: currentActivity.participants.some(p => (p._id || p) === user.id)
       }));
       
       setAllUsersData(transformedData);
     } catch (error) {
       console.error('멤버 로드 오류:', error);
-      setAllUsersData([]); // 오류 시 빈 배열로 설정
+      setAllUsersData([]);
     }
   };
 
@@ -119,6 +117,19 @@ export const useTeamBingo = () => {
       setTeams(data);
     } catch (error) {
       console.error('팀 로드 오류:', error);
+    }
+  };
+
+  // 미배정 인원 로드
+  const loadUnassignedMembers = async () => {
+    if (!currentActivity) return;
+    
+    try {
+      const response = await fetch(`/api/bingo/activities/${currentActivity._id}/unassigned`);
+      const data = await response.json();
+      setUnassignedMembers(data);
+    } catch (error) {
+      console.error('미배정 인원 로드 오류:', error);
     }
   };
 
@@ -164,7 +175,7 @@ export const useTeamBingo = () => {
       if (response.ok) {
         const activity = await response.json();
         setCurrentActivity(activity);
-        setBingoMissions(activity.bingoMissions);
+        setBingoMissions(activity.bingoMissions.length > 0 ? activity.bingoMissions : bingoMissions);
         await loadMembers();
         await loadTeams();
       }
@@ -177,7 +188,7 @@ export const useTeamBingo = () => {
     if (!currentActivity) return;
     
     try {
-      const isCurrentlySelected = currentActivity.participants.some(p => p._id === userId);
+      const isCurrentlySelected = currentActivity.participants.some(p => (p._id || p) === userId);
       const action = isCurrentlySelected ? 'remove' : 'add';
       
       const response = await fetch(`/api/bingo/activities/${currentActivity._id}/participants`, {
@@ -196,6 +207,62 @@ export const useTeamBingo = () => {
       }
     } catch (error) {
       alert('오류: ' + error.message);
+    }
+  };
+
+  // 역할별 일괄 추가/제거
+  const bulkToggleByRole = async (role) => {
+    if (!currentActivity) return;
+    
+    try {
+      // allUsersData에서 직접 필터링 (추가 API 호출 불필요!)
+      const roleUsers = allUsersData.filter(user => {
+        if (role === 'participant') return user.role === '참가자';
+        if (role === 'starter') return user.role === '스타터';
+        if (role === 'officer') return user.role === '운영진';
+        return false;
+      });
+      
+      const roleUserIds = roleUsers.map(user => user.id);
+      
+      if (roleUserIds.length === 0) {
+        alert('해당 역할의 사용자가 없습니다.');
+        return;
+      }
+      
+      // 현재 활동에 포함된 사용자인지 확인
+      const allIncluded = roleUserIds.every(userId => 
+        currentActivity.participants.some(p => (p._id || p) === userId)
+      );
+      
+      const action = allIncluded ? 'remove' : 'add';
+      const roleName = role === 'participant' ? '참가자' : 
+                      role === 'starter' ? '스타터' : '운영진';
+      
+      if (!confirm(`모든 ${roleName}을(를) ${action === 'add' ? '추가' : '제거'}하시겠습니까? (${roleUserIds.length}명)`)) {
+        return;
+      }
+      
+      // 기존 participants API 사용
+      const response = await fetch(`/api/bingo/activities/${currentActivity._id}/participants`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          userIds: roleUserIds, 
+          action 
+        })
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        setCurrentActivity(data);
+        await loadMembers();
+        alert(`${roleUserIds.length}명의 ${roleName}이 ${action === 'add' ? '추가' : '제거'}되었습니다.`);
+        return true;
+      }
+    } catch (error) {
+      alert('오류: ' + error.message);
+      return false;
     }
   };
 
@@ -220,6 +287,7 @@ export const useTeamBingo = () => {
       
       if (response.ok) {
         await loadTeams();
+        await loadUnassignedMembers();
         alert('조가 성공적으로 생성되었습니다.');
         return true;
       }
@@ -241,6 +309,84 @@ export const useTeamBingo = () => {
         await loadTeams();
         alert('조장이 임명되었습니다.');
         return true;
+      }
+    } catch (error) {
+      alert('오류: ' + error.message);
+      return false;
+    }
+  };
+
+  // 조원 추가
+  const addMemberToTeam = async (teamId, userId) => {
+    try {
+      const response = await fetch(`/api/bingo/teams/${teamId}/members/add`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId })
+      });
+      
+      if (response.ok) {
+        await loadTeams();
+        await loadUnassignedMembers();
+        alert('조원이 추가되었습니다.');
+        return true;
+      } else {
+        const error = await response.json();
+        alert(error.message || '조원 추가에 실패했습니다.');
+        return false;
+      }
+    } catch (error) {
+      alert('오류: ' + error.message);
+      return false;
+    }
+  };
+
+  // 조원 제거
+  const removeMemberFromTeam = async (teamId, userId) => {
+    if (!confirm('정말로 이 조원을 제거하시겠습니까?')) {
+      return false;
+    }
+    
+    try {
+      const response = await fetch(`/api/bingo/teams/${teamId}/members/remove`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId })
+      });
+      
+      if (response.ok) {
+        await loadTeams();
+        await loadUnassignedMembers();
+        alert('조원이 제거되었습니다.');
+        return true;
+      }
+    } catch (error) {
+      alert('오류: ' + error.message);
+      return false;
+    }
+  };
+
+  // 조원 이동
+  const moveMemberToTeam = async (sourceTeamId, targetTeamId, userId) => {
+    if (!confirm('이 조원을 다른 조로 이동하시겠습니까?')) {
+      return false;
+    }
+    
+    try {
+      const response = await fetch(`/api/bingo/teams/${sourceTeamId}/members/move`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId, targetTeamId })
+      });
+      
+      if (response.ok) {
+        await loadTeams();
+        alert('조원이 이동되었습니다.');
+        return true;
+      } else {
+        const errorData = await response.json();
+        alert('오류: ' + (errorData.message || '조원 이동에 실패했습니다.'));
+        return false;
       }
     } catch (error) {
       alert('오류: ' + error.message);
@@ -288,7 +434,6 @@ export const useTeamBingo = () => {
     }
   };
 
-  // 특정 팀 상세 정보 로드
   const loadTeamDetail = async (teamId) => {
     try {
       const response = await fetch(`/api/bingo/teams/${teamId}`);
@@ -299,7 +444,6 @@ export const useTeamBingo = () => {
     }
   };
 
-  // 미션 완료 토글 (관리자)
   const toggleMissionComplete = async (teamId, missionId) => {
     try {
       const response = await fetch(`/api/bingo/teams/${teamId}/missions/${missionId}/toggle`, {
@@ -308,18 +452,15 @@ export const useTeamBingo = () => {
       });
       
       if (response.ok) {
-        const data = await response.json();
-        // 선택된 팀 정보 다시 로드
         await loadTeamDetail(teamId);
         await loadTeams();
-        return data;
+        return true;
       }
     } catch (error) {
       console.error('미션 토글 오류:', error);
     }
   };
 
-  // 카운트 미션 조정 (관리자)
   const adjustMissionCount = async (teamId, missionId, increment) => {
     try {
       const response = await fetch(`/api/bingo/teams/${teamId}/missions/${missionId}/adjust`, {
@@ -330,7 +471,6 @@ export const useTeamBingo = () => {
       
       if (response.ok) {
         const data = await response.json();
-        // 선택된 팀 정보 다시 로드
         await loadTeamDetail(teamId);
         await loadTeams();
         return data;
@@ -340,10 +480,8 @@ export const useTeamBingo = () => {
     }
   };
 
-  // 유틸리티 함수들
   const getFilteredMembers = () => {
     return allUsersData.filter(member => {
-      // member.name이 존재하고 문자열인지 확인
       const memberName = member.name || '';
       const searchTermLower = (searchTerm || '').toLowerCase();
       
@@ -384,8 +522,13 @@ export const useTeamBingo = () => {
   useEffect(() => {
     if (activeTab === 'members' && currentActivity) {
       loadMembers();
-    } else if (activeTab === 'teams' && currentActivity) {
+    }
+  }, [activeTab, currentActivity]);
+
+  useEffect(() => {
+    if (activeTab === 'teams' && currentActivity) {
       loadTeams();
+      loadUnassignedMembers();
     }
   }, [activeTab, currentActivity]);
 
@@ -415,11 +558,13 @@ export const useTeamBingo = () => {
     setMyTeam,
     selectedTeam,
     setSelectedTeam,
+    unassignedMembers,
     
     // 함수들
     createActivity,
     selectActivity,
     toggleMember,
+    bulkToggleByRole,
     createTeams,
     setTeamLeader,
     saveMissions,
@@ -429,6 +574,10 @@ export const useTeamBingo = () => {
     adjustMissionCount,
     getFilteredMembers,
     getActivityStatus,
-    isTabDisabled
+    isTabDisabled,
+    loadUnassignedMembers,
+    addMemberToTeam,
+    removeMemberFromTeam,
+    moveMemberToTeam
   };
 };
