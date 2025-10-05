@@ -1393,15 +1393,17 @@ const TeamBingoSystem = () => {
                             <span className="w-6 h-6 md:w-8 md:h-8 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-xs md:text-sm font-semibold flex-shrink-0">
                               {index + 1}
                             </span>
-                            <div className="flex-1">
-                              <span className="font-medium text-sm md:text-base text-gray-900">{member.name}</span>
-                              <span className="text-xs text-gray-500 ml-1 md:ml-2">
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-1">
+                                <span className="font-medium text-sm md:text-base text-gray-900">{member.name}</span>
+                                {myTeam.leaderId?._id === member._id && (
+                                  <Crown size={14} className="md:w-4 md:h-4 text-yellow-500 flex-shrink-0" />
+                                )}
+                              </div>
+                              <span className="text-xs sm:text-sm text-gray-500 block">
                                 ({genderText}, {age}세)
                               </span>
                             </div>
-                            {myTeam.leaderId?._id === member._id && (
-                              <Crown size={14} className="md:w-4 md:h-4 text-yellow-500 flex-shrink-0 ml-auto" />
-                            )}
                           </div>
                         );
                       })}

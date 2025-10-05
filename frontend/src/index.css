@@ -1,22 +1,39 @@
+/* GmarketSansMedium 폰트 추가 */
 @font-face {
   font-family: 'GmarketSansMedium';
   src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_2001@1.1/GmarketSansMedium.woff') format('woff');
   font-weight: normal;
   font-style: normal;
 }
+
 :root {
   font-family: 'GmarketSansMedium', sans-serif;
   line-height: 1.5;
   font-weight: 400;
 
-  color-scheme: light ;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
+  /* 항상 라이트 모드만 사용 */
+  color-scheme: light !important;
+  color: #213547 !important;
+  background-color: #ffffff !important;
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+/* 다크 모드 강제 비활성화 */
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: light !important;
+    color: #213547 !important;
+    background-color: #ffffff !important;
+  }
+
+  body {
+    color: #213547 !important;
+    background-color: #ffffff !important;
+  }
 }
 
 a {
@@ -32,15 +49,23 @@ a:hover {
 body {
   margin: 0;
   display: flex;
-  justify-content: center; /* 수평 중앙 */
-  align-items: center; /* 수직 중앙 */
+  justify-content: center;
+  align-items: center;
   min-width: 320px;
   min-height: 100vh;
+  font-family: 'GmarketSansMedium', sans-serif;
+  color: #213547 !important;
+  background-color: #ffffff !important;
 }
 
 h1 {
   font-size: 3.2em;
   line-height: 1.1;
+  color: #213547;
+}
+
+h2, h3, h4, h5, h6 {
+  color: #213547;
 }
 
 button {
@@ -49,8 +74,8 @@ button {
   padding: 0.6em 1.2em;
   font-size: 1em;
   font-weight: 500;
-  font-family: inherit;
-  background-color: #1a1a1a;
+  font-family: 'GmarketSansMedium', sans-serif;
+  background-color: #f9f9f9;
   cursor: pointer;
   transition: border-color 0.25s;
 }
@@ -68,23 +93,30 @@ button:focus-visible {
 @tailwind components;
 @tailwind utilities;
 
-@media (prefers-color-scheme: light) {
-  :root {
-    color: #213547;
-    background-color: #ffffff;
+/* Tailwind에서도 GmarketSansMedium 사용하도록 설정 */
+@layer base {
+  * {
+    font-family: 'GmarketSansMedium', sans-serif;
   }
-
-  a:hover {
-    color: #747bff;
-  }
-
-  button {
-    background-color: #f9f9f9;
+  
+  /* 모든 요소에 기본 텍스트 색상 강제 적용 */
+  html,
+  body,
+  div:not([class*="text-white"]),
+  span:not([class*="text-white"]),
+  p:not([class*="text-white"]),
+  h1:not([class*="text-white"]),
+  h2:not([class*="text-white"]),
+  h3:not([class*="text-white"]),
+  h4:not([class*="text-white"]),
+  h5:not([class*="text-white"]),
+  h6:not([class*="text-white"]) {
+    color: #1f2937;
   }
 }
 
 @media (max-width: 768px) {
   body {
-    padding: 0 8px; /* 모바일에서 좌우 여백 축소 */
+    padding: 0 8px;
   }
 }
