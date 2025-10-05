@@ -1126,90 +1126,63 @@ const TeamBingoSystem = () => {
 
         {/* 참가자 모드 */}
         {mode === 'participant' && (
-          <div className="space-y-6">
+          <div className="space-y-4 sm:space-y-6">
             {!myTeam ? (
               /* 활동 목록 */
               <div className="bg-white rounded-lg shadow-sm border p-4 md:p-6">
                 <h2 className="text-lg md:text-xl font-bold text-gray-900 mb-4 md:mb-6">내가 참여한 활동</h2>
                 
                 {myActivities.length === 0 ? (
-                  <div className="text-center py-12 md:py-16 text-gray-500">
-                    <Calendar size={48} className="mx-auto mb-4 text-gray-300" />
-                    <p className="text-sm md:text-base">참여 중인 활동이 없습니다.</p>
+                  <div className="text-center py-8 sm:py-12 md:py-16 text-gray-500">
+                    <Calendar size={40} className="sm:w-12 sm:h-12 mx-auto mb-3 sm:mb-4 text-gray-300" />
+                    <p className="text-xs sm:text-sm md:text-base">참여 중인 활동이 없습니다.</p>
                   </div>
                 ) : (
-                  <div className="space-y-3 md:space-y-4">
+                  <div className="grid grid-cols-1 gap-3 sm:gap-4">
                     {myActivities.map((activity) => (
-                      <div 
-                        key={activity._id} 
-                        className="p-4 md:p-5 border border-gray-200 rounded-lg cursor-pointer hover:border-blue-400 hover:shadow-md transition-all active:scale-[0.99]"
+                      <div
+                        key={activity._id}
                         onClick={() => loadMyTeam(activity._id)}
+                        className="p-3 sm:p-4 md:p-5 border rounded-lg cursor-pointer hover:border-blue-300 hover:shadow-md transition-all bg-white"
                       >
-                        <div className="flex justify-between items-start gap-3 mb-3">
-                          <div className="flex-1 min-w-0">
-                            <h3 className="text-base md:text-lg font-bold text-blue-600 truncate mb-2">
-                              {activity.title}
-                            </h3>
-                            <div className="text-xs md:text-sm text-gray-600 space-y-1">
-                              <p className="flex items-center gap-1">
-                                <Calendar size={14} className="flex-shrink-0" />
-                                <span className="truncate">
-                                  {new Date(activity.startDate).toLocaleDateString()} ~ {new Date(activity.endDate).toLocaleDateString()}
-                                </span>
-                              </p>
-                              <p className="flex items-center gap-1">
-                                <Target size={14} className="flex-shrink-0" />
-                                <span>목표 빙고: {activity.targetBingos}개</span>
-                              </p>
-                              {activity.myTeam && (
-                                <>
-                                  <p className="flex items-center gap-1">
-                                    <Users size={14} className="flex-shrink-0" />
-                                    <span>내 조: {activity.myTeam.name}</span>
-                                  </p>
-                                  <p className="flex items-center gap-1">
-                                    <Award size={14} className="flex-shrink-0" />
-                                    <span>빙고 달성: {activity.myTeam.bingoCount}개</span>
-                                  </p>
-                                </>
-                              )}
-                            </div>
-                          </div>
-                          <span className={`px-2 md:px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap ${
-                            getActivityStatus(activity) === '진행중' ? 'bg-green-100 text-green-800' :
-                            getActivityStatus(activity) === '예정' ? 'bg-blue-100 text-blue-800' :
-                            getActivityStatus(activity) === '완료' ? 'bg-gray-100 text-gray-800' :
-                            'bg-yellow-100 text-yellow-800'
+                        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 sm:gap-4 mb-2 sm:mb-3">
+                          <h3 className="text-sm sm:text-base md:text-lg font-bold text-gray-900">{activity.title}</h3>
+                          <span className={`px-2 sm:px-3 py-1 rounded-full text-[10px] sm:text-xs font-medium whitespace-nowrap self-start ${
+                            new Date() < new Date(activity.startDate) ? 'bg-yellow-100 text-yellow-800' :
+                            new Date() > new Date(activity.endDate) ? 'bg-gray-100 text-gray-800' :
+                            'bg-green-100 text-green-800'
                           }`}>
-                            {getActivityStatus(activity)}
+                            {new Date() < new Date(activity.startDate) ? '예정' :
+                            new Date() > new Date(activity.endDate) ? '종료' :
+                            '진행중'}
                           </span>
                         </div>
-
-                        {/* 진행률 표시 */}
+                        
+                        <div className="text-[10px] sm:text-xs md:text-sm text-gray-600 space-y-0.5 sm:space-y-1 mb-2 sm:mb-3">
+                          <p>📅 {new Date(activity.startDate).toLocaleDateString()} ~ {new Date(activity.endDate).toLocaleDateString()}</p>
+                          <p>🎯 목표: {activity.targetBingos}개 빙고</p>
+                        </div>
+                        
                         {activity.myTeam ? (
-                          <div className="space-y-2 pt-3 border-t border-gray-100">
-                            <div className="flex justify-between items-center text-xs md:text-sm">
-                              <span className="text-gray-600">진행률</span>
-                              <span className="font-semibold text-blue-600">
-                                {activity.myTeam.progressRate}% ({activity.myTeam.completedMissions}/9 미션)
-                              </span>
-                            </div>
-                            <div className="w-full bg-gray-200 rounded-full h-2 md:h-3 overflow-hidden">
-                              <div 
-                                className="bg-gradient-to-r from-blue-500 to-blue-600 h-full rounded-full transition-all duration-500 ease-out"
-                                style={{ width: `${activity.myTeam.progressRate}%` }}
-                              ></div>
-                            </div>
-                            {activity.myTeam.bingoCount >= activity.targetBingos && (
-                              <div className="text-xs text-green-600 font-medium flex items-center gap-1 justify-end">
-                                <Award size={12} />
-                                목표 달성!
+                          <div className="pt-2 sm:pt-3 border-t border-gray-100">
+                            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 sm:gap-2">
+                              <div className="text-xs sm:text-sm md:text-base">
+                                <span className="font-medium text-gray-900">우리 조: </span>
+                                <span className="text-blue-600 font-semibold">{activity.myTeam.name}</span>
                               </div>
-                            )}
+                              <div className="flex gap-1.5 sm:gap-2 text-[10px] sm:text-xs">
+                                <span className="px-1.5 sm:px-2 py-0.5 sm:py-1 bg-blue-50 text-blue-700 rounded">
+                                  빙고 {activity.myTeam.bingoCount}개
+                                </span>
+                                <span className="px-1.5 sm:px-2 py-0.5 sm:py-1 bg-green-50 text-green-700 rounded">
+                                  진행률 {activity.myTeam.progressRate}%
+                                </span>
+                              </div>
+                            </div>
                           </div>
                         ) : (
-                          <div className="pt-3 border-t border-gray-100">
-                            <div className="text-xs md:text-sm text-gray-500 text-center py-2 bg-gray-50 rounded">
+                          <div className="pt-2 sm:pt-3 border-t border-gray-100">
+                            <div className="text-[10px] sm:text-xs md:text-sm text-gray-500 text-center py-1 sm:py-2 bg-gray-50 rounded">
                               아직 조가 배정되지 않았습니다
                             </div>
                           </div>
