@@ -277,7 +277,7 @@ router.post('/activities/:id/teams',
       
       // 조 정보 다시 조회
       const populatedTeams = await Team.find({ activityId: req.params.id })
-        .populate('members', 'name gender birthDate role department team')
+        .populate('members', 'name gender birthDate role department team phonenumber')
         .sort({ name: 1 });
       
       res.json(populatedTeams);
