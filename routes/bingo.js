@@ -834,7 +834,7 @@ router.get('/activities/:id/my-team',
         activityId: req.params.id,
         members: req.user.id
       })
-      .populate('members', 'name role department team')
+      .populate('members', 'name role department team gender birthDate')  // ✅ gender와 birthDate 추가
       .populate('leaderId', 'name')
       .populate('activityId', 'title description targetBingos bingoMissions');
       
