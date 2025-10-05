@@ -1,11 +1,15 @@
-@import url('https://font.elice.io/css?family=Elice+DX+Neolli');
-
+@font-face {
+  font-family: 'GmarketSansMedium';
+  src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_2001@1.1/GmarketSansMedium.woff') format('woff');
+  font-weight: normal;
+  font-style: normal;
+}
 :root {
-  font-family: 'Elice DX Neolli', sans-serif;
+  font-family: 'GmarketSansMedium', sans-serif;
   line-height: 1.5;
   font-weight: 400;
 
-  color-scheme: light dark;
+  color-scheme: light ;
   color: rgba(255, 255, 255, 0.87);
   background-color: #242424;
 
