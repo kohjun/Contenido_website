@@ -56,19 +56,19 @@ const TeamBingoSystem = () => {
       <div className="max-w-7xl mx-auto">
         {/* 헤더 */}
         <div className="text-center mb-8 bg-white rounded-lg shadow-sm border p-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-3">빙고 기반 조별활동 시스템</h1>
-          <p className="text-gray-600 text-sm mb-6">효율적인 조별활동 관리 및 모니터링 시스템</p>
+          <h1 className="text-3xl font-bold text-gray-900 mb-3">CONTENID-O 조별활동</h1>
+          <p className="text-gray-600 text-sm mb-6">10명 내외의 조원이 한조가 되어 미션을 완수하는 분기별 조별활동</p>
           
           {/* 현재 활동 표시 */}
           {currentActivity && (
             <div className="mb-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
               <h3 className="text-lg font-semibold text-blue-900 mb-2">
-                📋 현재 관리 중인 활동: {currentActivity.title}
+                현재 관리 중인 활동: {currentActivity.title}
               </h3>
               <div className="text-sm text-blue-800">
-                <span className="mr-4">📅 {new Date(currentActivity.startDate).toLocaleDateString()} ~ {new Date(currentActivity.endDate).toLocaleDateString()}</span>
-                <span className="mr-4">👥 참가자: {currentActivity.participants.length}명</span>
-                <span className="mr-4">🎯 목표 빙고: {currentActivity.targetBingos}개</span>
+                <span className="mr-4"> {new Date(currentActivity.startDate).toLocaleDateString()} ~ {new Date(currentActivity.endDate).toLocaleDateString()}</span>
+                <span className="mr-4"> 참가자: {currentActivity.participants.length}명</span>
+                <span className="mr-4"> 목표 빙고: {currentActivity.targetBingos}개</span>
                 <span className={`px-3 py-1 rounded-full text-xs font-medium ${
                   getActivityStatus(currentActivity) === '진행중' ? 'bg-green-100 text-green-800' :
                   getActivityStatus(currentActivity) === '완료' ? 'bg-gray-100 text-gray-800' :
@@ -1282,7 +1282,7 @@ const TeamBingoSystem = () => {
                       : 'bg-yellow-50 border-yellow-300'
                   }`}>
                     <div className="text-center">
-                      <div className="text-sm md:text-base mb-2">
+                      <div className="text-sm md:text-base mb-2 text-gray-900">
                         목표: <span className="font-bold">{myTeam.activityId.targetBingos}개</span> 빙고 달성
                       </div>
                       <div className="relative w-full bg-gray-200 rounded-full h-3 md:h-4 mb-2">
@@ -1308,132 +1308,132 @@ const TeamBingoSystem = () => {
                       )}
                     </div>
                   </div>
-                </div>
+                  </div>
 
-                {/* 빙고판 */}
-                <div className="bg-white rounded-lg shadow-sm border p-3 sm:p-4 md:p-6">
-                  <h3 className="text-base sm:text-lg md:text-xl font-semibold mb-3 sm:mb-4">우리 조 빙고 현황</h3>
-                  
-                  {myTeam.activityId.bingoMissions && myTeam.activityId.bingoMissions.length > 0 ? (
-                    <>
-                      {/* 빙고판 - 세로 모드 최적화 */}
-                      <div className="grid grid-cols-3 gap-1.5 sm:gap-2 md:gap-3 w-full max-w-md sm:max-w-lg md:max-w-2xl mx-auto mb-3 sm:mb-4">
-                        {myTeam.activityId.bingoMissions
-                          .sort((a, b) => (a.row * 3 + a.col) - (b.row * 3 + b.col))
-                          .map((mission) => {
-                            const progress = myTeam.progress.find(p => p.missionId === mission.id) || {
-                              missionId: mission.id,
-                              completed: false,
-                              currentCount: 0
-                            };
-                            
-                            return (
-                              <div
-                                key={mission.id}
-                                className={`relative aspect-square p-1.5 sm:p-2 md:p-4 border-2 rounded-md sm:rounded-lg transition-all shadow-sm ${
-                                  progress.completed
-                                    ? 'bg-green-50 border-green-400 shadow-green-200'
-                                    : 'bg-white border-gray-300'
-                                }`}
-                              >
-                                <div className="h-full flex flex-col justify-center items-center text-center overflow-hidden">
-                                  {/* 미션 제목 */}
-                                  <div className="text-[10px] leading-tight sm:text-xs md:text-sm font-semibold mb-0.5 sm:mb-1 md:mb-2 line-clamp-2 px-0.5">
-                                    {mission.title || `미션 ${mission.id + 1}`}
+                  {/* 빙고판 */}
+                  <div className="bg-white rounded-lg shadow-sm border p-3 sm:p-4 md:p-6">
+                    <h3 className="text-base sm:text-lg md:text-xl font-semibold mb-3 sm:mb-4 text-gray-900">우리 조 빙고 현황</h3>
+                    
+                    {myTeam.activityId.bingoMissions && myTeam.activityId.bingoMissions.length > 0 ? (
+                      <>
+                        {/* 빙고판 - 세로 모드 최적화 */}
+                        <div className="grid grid-cols-3 gap-1.5 sm:gap-2 md:gap-3 w-full max-w-md sm:max-w-lg md:max-w-2xl mx-auto mb-3 sm:mb-4">
+                          {myTeam.activityId.bingoMissions
+                            .sort((a, b) => (a.row * 3 + a.col) - (b.row * 3 + b.col))
+                            .map((mission) => {
+                              const progress = myTeam.progress.find(p => p.missionId === mission.id) || {
+                                missionId: mission.id,
+                                completed: false,
+                                currentCount: 0
+                              };
+                              
+                              return (
+                                <div
+                                  key={mission.id}
+                                  className={`relative aspect-square p-1.5 sm:p-2 md:p-4 border-2 rounded-md sm:rounded-lg transition-all shadow-sm ${
+                                    progress.completed
+                                      ? 'bg-green-50 border-green-400 shadow-green-200'
+                                      : 'bg-white border-gray-300'
+                                  }`}
+                                >
+                                  <div className="h-full flex flex-col justify-center items-center text-center overflow-hidden">
+                                    {/* 미션 제목 */}
+                                    <div className="text-[10px] leading-tight sm:text-xs md:text-sm font-semibold mb-0.5 sm:mb-1 md:mb-2 line-clamp-2 px-0.5 text-gray-900">
+                                      {mission.title || `미션 ${mission.id + 1}`}
+                                    </div>
+                                    
+                                    {/* 미션 설명 - 태블릿 이상에서만 표시 */}
+                                    {mission.description && (
+                                      <div className="hidden lg:block text-xs text-gray-500 mb-2 line-clamp-1 px-1">
+                                        {mission.description}
+                                      </div>
+                                    )}
+                                    
+                                    {/* 카운트형 미션 */}
+                                    {mission.type === 'count' && (
+                                      <div className="space-y-0.5 sm:space-y-1 w-full px-0.5 sm:px-1">
+                                        <div className="text-xs sm:text-sm md:text-base lg:text-lg font-bold text-gray-900">
+                                          {progress.currentCount || 0}/{mission.targetCount}
+                                        </div>
+                                        <div className="w-full bg-gray-200 rounded-full h-1 sm:h-1.5 md:h-2">
+                                          <div 
+                                            className={`h-1 sm:h-1.5 md:h-2 rounded-full transition-all ${
+                                              progress.completed ? 'bg-green-500' : 'bg-blue-500'
+                                            }`}
+                                            style={{ 
+                                              width: `${Math.min(100, ((progress.currentCount || 0) / mission.targetCount) * 100)}%` 
+                                            }}
+                                          ></div>
+                                        </div>
+                                      </div>
+                                    )}
+                                    
+                                    {/* 단순형 미션 */}
+                                    {mission.type === 'simple' && (
+                                      <div className={`mt-0.5 sm:mt-1 md:mt-2 px-1.5 sm:px-2 md:px-3 py-0.5 md:py-1 rounded-full text-[10px] sm:text-xs font-medium ${
+                                        progress.completed
+                                          ? 'bg-green-500 text-white'
+                                          : 'bg-gray-200 text-gray-700'
+                                      }`}>
+                                        {progress.completed ? '✓' : '○'}
+                                      </div>
+                                    )}
                                   </div>
                                   
-                                  {/* 미션 설명 - 태블릿 이상에서만 표시 */}
-                                  {mission.description && (
-                                    <div className="hidden lg:block text-xs text-gray-500 mb-2 line-clamp-1 px-1">
-                                      {mission.description}
-                                    </div>
-                                  )}
-                                  
-                                  {/* 카운트형 미션 */}
-                                  {mission.type === 'count' && (
-                                    <div className="space-y-0.5 sm:space-y-1 w-full px-0.5 sm:px-1">
-                                      <div className="text-xs sm:text-sm md:text-base lg:text-lg font-bold">
-                                        {progress.currentCount || 0}/{mission.targetCount}
-                                      </div>
-                                      <div className="w-full bg-gray-200 rounded-full h-1 sm:h-1.5 md:h-2">
-                                        <div 
-                                          className={`h-1 sm:h-1.5 md:h-2 rounded-full transition-all ${
-                                            progress.completed ? 'bg-green-500' : 'bg-blue-500'
-                                          }`}
-                                          style={{ 
-                                            width: `${Math.min(100, ((progress.currentCount || 0) / mission.targetCount) * 100)}%` 
-                                          }}
-                                        ></div>
-                                      </div>
-                                    </div>
-                                  )}
-                                  
-                                  {/* 단순형 미션 */}
-                                  {mission.type === 'simple' && (
-                                    <div className={`mt-0.5 sm:mt-1 md:mt-2 px-1.5 sm:px-2 md:px-3 py-0.5 md:py-1 rounded-full text-[10px] sm:text-xs font-medium ${
-                                      progress.completed
-                                        ? 'bg-green-500 text-white'
-                                        : 'bg-gray-200 text-gray-700'
-                                    }`}>
-                                      {progress.completed ? '✓' : '○'}
+                                  {/* 완료 체크 표시 */}
+                                  {progress.completed && (
+                                    <div className="absolute top-0.5 right-0.5 sm:top-1 sm:right-1 md:top-2 md:right-2">
+                                      <Check className="w-3 h-3 sm:w-4 sm:h-4 md:w-5 md:h-5 text-green-600 bg-white rounded-full p-0.5 shadow-sm" />
                                     </div>
                                   )}
                                 </div>
-                                
-                                {/* 완료 체크 표시 */}
-                                {progress.completed && (
-                                  <div className="absolute top-0.5 right-0.5 sm:top-1 sm:right-1 md:top-2 md:right-2">
-                                    <Check className="w-3 h-3 sm:w-4 sm:h-4 md:w-5 md:h-5 text-green-600 bg-white rounded-full p-0.5 shadow-sm" />
-                                  </div>
-                                )}
-                              </div>
-                            );
-                          })}
-                      </div>
-                      
-                      {/* 안내 메시지 */}
-                      <div className="text-center text-[10px] sm:text-xs md:text-sm text-gray-600 bg-blue-50 p-2 sm:p-3 rounded-lg">
-                        💡 관리자가 미션 완료 상태를 업데이트합니다
-                      </div>
-                    </>
-                  ) : (
-                    <div className="text-center py-8 sm:py-12 md:py-16 text-gray-500">
-                      <Grid3x3 size={40} className="sm:w-12 sm:h-12 mx-auto mb-3 sm:mb-4 text-gray-300" />
-                      <p className="text-xs sm:text-sm md:text-base">미션이 아직 설정되지 않았습니다.</p>
-                      <p className="text-[10px] sm:text-xs md:text-sm mt-1">관리자에게 미션 설정을 요청해주세요.</p>
-                    </div>
-                  )}
-                </div>
-
-                {/* 조원 목록 - 수정된 부분 */}
-                <div className="bg-white rounded-lg shadow-sm border p-4 md:p-6">
-                  <h3 className="text-lg md:text-xl font-semibold mb-4">조원 ({myTeam.members.length}명)</h3>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 md:gap-3">
-                    {myTeam.members.map((member, index) => {
-                      const age = member.birthDate 
-                        ? new Date().getFullYear() - new Date(member.birthDate).getFullYear() + 1
-                        : '?';
-                      const genderText = member.gender === 'male' ? '남' : member.gender === 'female' ? '여' : '?';
-                      
-                      return (
-                        <div key={member._id} className="flex items-center gap-2 md:gap-3 p-2 md:p-3 bg-gray-50 rounded-lg border">
-                          <span className="w-6 h-6 md:w-8 md:h-8 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-xs md:text-sm font-semibold flex-shrink-0">
-                            {index + 1}
-                          </span>
-                          <div className="flex-1">
-                            <span className="font-medium text-sm md:text-base">{member.name}</span>
-                            <span className="text-xs text-gray-500 ml-1 md:ml-2">
-                              ({genderText}, {age}세)
-                            </span>
-                          </div>
-                          {myTeam.leaderId?._id === member._id && (
-                            <Crown size={14} className="md:w-4 md:h-4 text-yellow-500 flex-shrink-0 ml-auto" />
-                          )}
+                              );
+                            })}
                         </div>
-                      );
-                    })}
+                        
+                        {/* 안내 메시지 */}
+                        <div className="text-center text-[10px] sm:text-xs md:text-sm text-gray-600 bg-blue-50 p-2 sm:p-3 rounded-lg">
+                          💡 관리자가 미션 완료 상태를 업데이트합니다
+                        </div>
+                      </>
+                    ) : (
+                      <div className="text-center py-8 sm:py-12 md:py-16 text-gray-500">
+                        <Grid3x3 size={40} className="sm:w-12 sm:h-12 mx-auto mb-3 sm:mb-4 text-gray-300" />
+                        <p className="text-xs sm:text-sm md:text-base">미션이 아직 설정되지 않았습니다.</p>
+                        <p className="text-[10px] sm:text-xs md:text-sm mt-1">관리자에게 미션 설정을 요청해주세요.</p>
+                      </div>
+                    )}
                   </div>
-                </div>
+
+                  {/* 조원 목록 */}
+                  <div className="bg-white rounded-lg shadow-sm border p-4 md:p-6">
+                    <h3 className="text-lg md:text-xl font-semibold mb-4 text-gray-900">조원 ({myTeam.members.length}명)</h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 md:gap-3">
+                      {myTeam.members.map((member, index) => {
+                        const age = member.birthDate 
+                          ? new Date().getFullYear() - new Date(member.birthDate).getFullYear() + 1
+                          : '?';
+                        const genderText = member.gender === 'male' ? '남' : member.gender === 'female' ? '여' : '?';
+                        
+                        return (
+                          <div key={member._id} className="flex items-center gap-2 md:gap-3 p-2 md:p-3 bg-gray-50 rounded-lg border">
+                            <span className="w-6 h-6 md:w-8 md:h-8 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-xs md:text-sm font-semibold flex-shrink-0">
+                              {index + 1}
+                            </span>
+                            <div className="flex-1">
+                              <span className="font-medium text-sm md:text-base text-gray-900">{member.name}</span>
+                              <span className="text-xs text-gray-500 ml-1 md:ml-2">
+                                ({genderText}, {age}세)
+                              </span>
+                            </div>
+                            {myTeam.leaderId?._id === member._id && (
+                              <Crown size={14} className="md:w-4 md:h-4 text-yellow-500 flex-shrink-0 ml-auto" />
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
               </div>
             )}
           </div>
