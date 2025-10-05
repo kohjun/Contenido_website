@@ -572,6 +572,11 @@ const TeamBingoSystem = () => {
                               // 성별 표시
                               const genderText = member.gender === 'male' ? '남' : member.gender === 'female' ? '여' : '?';
                               
+                              // 전화번호 뒷자리 추출
+                              const phoneLastFour = member.phonenumber 
+                                ? member.phonenumber.replace(/\D/g, '').slice(-4) 
+                                : '????';
+                              
                               return (
                                 <div key={member._id} className="flex items-center gap-2 p-2 bg-gray-50 rounded border group">
                                   <span className="w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-sm font-semibold">
@@ -581,7 +586,7 @@ const TeamBingoSystem = () => {
                                   <div className="flex-1">
                                     <span className="font-medium">{member.name}</span>
                                     <span className="text-xs text-gray-500 ml-2">
-                                      ({genderText}, {age}세)
+                                      ({genderText}, {age}세, {phoneLastFour})
                                     </span>
                                     {team.leaderId?._id === member._id && (
                                       <Crown size={14} className="inline ml-1 text-yellow-500" />

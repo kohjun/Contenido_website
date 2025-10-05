@@ -200,7 +200,7 @@ router.get('/activities/:id/teams',
   async (req, res) => {
     try {
       const teams = await Team.find({ activityId: req.params.id })
-        .populate('members', 'name gender birthDate role department team')
+        .populate('members', 'name gender birthDate role department team phonenumber')
         .populate('leaderId', 'name')
         .sort({ name: 1 });
       
@@ -834,7 +834,7 @@ router.get('/activities/:id/my-team',
         activityId: req.params.id,
         members: req.user.id
       })
-      .populate('members', 'name role department team gender birthDate')  // ✅ gender와 birthDate 추가
+      .populate('members', 'name role department team gender birthDate')
       .populate('leaderId', 'name')
       .populate('activityId', 'title description targetBingos bingoMissions');
       
