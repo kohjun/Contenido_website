@@ -696,7 +696,7 @@ router.get('/activities/:id/unassigned',
   async (req, res) => {
     try {
       const activity = await Activity.findById(req.params.id)
-        .populate('participants', 'name role department team');
+        .populate('participants', 'name role department team phonenumber');
       
       if (!activity) {
         return res.status(404).json({ message: '활동을 찾을 수 없습니다.' });

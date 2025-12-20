@@ -82,6 +82,7 @@ const userSchema = new mongoose.Schema({
   profileImage: { type: String },
   kakaoId: { type: String },
   isVerified: { type: Boolean, default: true },
+  university:{type:String, required:false},
   role: { 
     type: String, 
     enum: ['participant', 'starter', 'officer', 'guest', 'admin', 'applicant'],

@@ -470,7 +470,7 @@ function generateUserRow(user) {
         'participant': '참가자', 'guest': '게스트'
     };
     const genderDisplay = user.gender === 'male' ? '남' : user.gender === 'female' ? '여' : '-';
-
+    const universityDisplay = user.university ? user.university : 'N/A';
     return `
         <tr oncontextmenu="handleContextMenu(event, '${user.id}', '${user.name || ''}', '${user.role}')" 
             data-userid="${user.id}" data-warning="${warningCount}">
@@ -479,6 +479,7 @@ function generateUserRow(user) {
             <td>${roleDisplay[user.role] || user.role}</td>
             <td>${teamName || '-'}</td>
             <td>${genderDisplay}</td>
+            <td>${universityDisplay}</td>
             <td class="warning-count-cell">
                 <button onclick="updateWarningCount('${user.id}', ${Math.max(0, warningCount - 1)})" class="warning-btn" ${warningCount <= 0 ? 'disabled' : ''} title="경고 1회 차감">-</button>
                 <span class="warning-count" onclick="showWarningHistoryModal('${user.id}', '${user.name || user.displayName}')" 
