@@ -100,7 +100,7 @@ router.get('/info_database', authenticateToken, async (req, res) => {
 router.get('/participants/users', async (req, res) => {
   try {
     const users = await User.find({ isVerified: true })
-      .select('displayName name participationCount profileImage status active role gender phonenumber warningCount team department preferredActivity birthDate isTeamLeader createdAt staffSubteam'); // staffSubteam 추가
+      .select('displayName name participationCount profileImage status active role gender phonenumber warningCount team department preferredActivity birthDate isTeamLeader university createdAt staffSubteam'); // staffSubteam 추가
     
     const userData = users.map(user => ({
       id: user._id,
@@ -113,6 +113,7 @@ router.get('/participants/users', async (req, res) => {
       role: user.role,
       team: user.team,
       department: user.department,
+      university: user.university,
       gender: user.gender || '-',
       warningCount: user.warningCount,
       preferredActivity: user.preferredActivity || '-',
