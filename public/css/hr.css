@@ -467,6 +467,37 @@ p {
   transform: translateY(1px);
 }
 
+/* 참가 횟수 버튼 스타일 */
+.participation-btn {
+  padding: 2px 8px;
+  border: 1px solid #ddd;
+  background-color: #f0f0f0;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.2s ease;
+  margin: 0 2px;
+}
+
+.participation-btn:hover {
+  background-color: #e0e0e0;
+  border-color: #dee2e6;
+}
+
+.participation-btn:active {
+  background-color: #dee2e6;
+  transform: translateY(1px);
+}
+
+.participation-count-cell span {
+  display: inline-block;
+  margin: 0 8px;
+  padding: 4px 8px;
+  min-width: 20px;
+  text-align: center;
+  font-weight: bold;
+}
+
 /* 토글 스위치 스타일 */
 .toggle-switch {
   position: relative;
@@ -624,7 +655,7 @@ input:checked + .slider:before {
 }
 
 .dialog-buttons button:first-child:hover {
-  background-color: #333;
+  background-color: #444;
 }
 
 .dialog-buttons button:last-child {
@@ -636,16 +667,17 @@ input:checked + .slider:before {
   background-color: #e0e0e0;
 }
 
-/* 페이지네이션 스타일 */
-.pagination {
+/* 페이지네이션 스타일 - 수정됨 */
+#pagination {
   display: flex;
   justify-content: center;
+  align-items: center;
   gap: 8px;
   margin: 20px 0;
   padding: 10px;
 }
 
-.pagination button {
+#pagination button {
   padding: 8px 12px;
   border: 1px solid #e2e8f0;
   background-color: white;
@@ -653,17 +685,26 @@ input:checked + .slider:before {
   cursor: pointer;
   border-radius: 6px;
   transition: all 0.2s;
+  font-size: 14px;
+  min-width: 36px;
 }
 
-.pagination button:hover {
-  background-color: #e0e0e0;
-  color: #333 
-}
-
-.pagination button.active {
-  background-color:#e0e0e0;
+#pagination button:hover:not(:disabled) {
+  background-color: #f0f0f0;
   color: #333;
-  
+  border-color: #cbd5e0;
+}
+
+#pagination button.active {
+  background-color: #333;
+  color: white;
+  border-color: #333;
+  font-weight: 600;
+}
+
+#pagination button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 h1, p {
@@ -689,4 +730,3 @@ h1, p {
   transform: translateY(-2px);
   box-shadow: 0 2px 8px rgba(0,0,0,0.2);
 }
-
