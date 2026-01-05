@@ -408,11 +408,34 @@ function enableEdit() {
 
   fields.forEach(field => {
     const element = document.getElementById(field.id);
+    if (!element) {
+      console.warn(`Element ${field.id} not found`);
+      return;
+    }
+    
     const input = document.createElement(field.type === 'textarea' ? 'textarea' : 'input');
     input.id = `edit-${field.id}`;
     input.type = field.type;
     
-    if (field.type === 'number') {
+    // ============ 날짜 형식 변환 추가 ============
+    if (field.type === 'date') {
+      // currentEvent에서 직접 가져오기 (이미 로드되어 있음)
+      if (currentEvent && currentEvent.date) {
+        input.value = currentEvent.date;
+      } else {
+        // 화면 텍스트에서 파싱 (백업)
+        const dateText = element.textContent.trim();
+        const dateMatch = dateText.match(/(\d{4})년\s*(\d{1,2})월\s*(\d{1,2})일/);
+        if (dateMatch) {
+          const year = dateMatch[1];
+          const month = dateMatch[2].padStart(2, '0');
+          const day = dateMatch[3].padStart(2, '0');
+          input.value = `${year}-${month}-${day}`;
+        }
+      }
+    }
+    // ============ 날짜 형식 변환 끝 ============
+    else if (field.type === 'number') {
       input.value = element.textContent.replace(/[^\d]/g, '');
     } else if (field.type === 'textarea') {
       // 줄바꿈 및 공백 복원: <br> → \n
@@ -423,6 +446,79 @@ function enableEdit() {
     
     element.parentNode.replaceChild(input, element);
   });
+
+  // ============ 이미지 편집 UI 생성 추가 ============
+  const imageSection = document.querySelector('.image-section .image-container');
+  if (imageSection && currentEvent && currentEvent.images && currentEvent.images.length > 0) {
+    // 기존 내용 유지하면서 편집 가능하게 만들기
+    const existingUploadLabel = document.getElementById('image-upload-label');
+    
+    // 기존 이미지들 먼저 추가
+    currentEvent.images.forEach((imagePath, index) => {
+      // 이미 wrapper가 있는지 확인
+      const existingWrapper = Array.from(imageSection.querySelectorAll('.image-wrapper'))
+        .find(w => w.dataset.imagePath === imagePath);
+      
+      if (!existingWrapper) {
+        const wrapper = document.createElement('div');
+        wrapper.className = 'image-wrapper';
+        wrapper.dataset.imagePath = imagePath;
+        
+        const img = document.createElement('img');
+        if (/^https?:\/\//.test(imagePath)) {
+          img.src = imagePath;
+        } else {
+          img.src = window.location.origin + (imagePath.startsWith('/') ? imagePath : '/' + imagePath);
+        }
+        img.alt = `이벤트 이미지 ${index + 1}`;
+        img.className = 'event-image-preview';
+        img.onerror = function() {
+          this.src = window.location.origin + '/images/Basic_Event_Image.png';
+        };
+        
+        const deleteBtn = document.createElement('button');
+        deleteBtn.className = 'image-delete-btn';
+        deleteBtn.textContent = '×';
+        deleteBtn.onclick = function() { handleImageDelete(this); };
+        deleteBtn.style.display = 'block';
+        
+        wrapper.appendChild(img);
+        wrapper.appendChild(deleteBtn);
+        
+        // 업로드 버튼 앞에 삽입
+        if (existingUploadLabel) {
+          imageSection.insertBefore(wrapper, existingUploadLabel);
+        } else {
+          imageSection.appendChild(wrapper);
+        }
+      }
+    });
+    
+    // 업로드 버튼이 없으면 생성
+    if (!existingUploadLabel) {
+      const uploadLabel = document.createElement('label');
+      uploadLabel.htmlFor = 'edit-image';
+      uploadLabel.className = 'image-upload-button';
+      uploadLabel.id = 'image-upload-label';
+      uploadLabel.innerHTML = `
+        <span class="plus-icon">+</span>
+        <span class="upload-text">이미지 추가</span>
+      `;
+      
+      const fileInput = document.createElement('input');
+      fileInput.type = 'file';
+      fileInput.id = 'edit-image';
+      fileInput.accept = 'image/*';
+      fileInput.multiple = true;
+      fileInput.className = 'image-upload-input';
+      fileInput.onchange = handleImagePreview;
+      
+      uploadLabel.appendChild(fileInput);
+      imageSection.appendChild(uploadLabel);
+    }
+  }
+  // ============ 이미지 편집 UI 생성 끝 ============
+
   const refundPolicyEditContainer = document.createElement('div');
   refundPolicyEditContainer.className = 'refund-policy-edit-section';
   refundPolicyEditContainer.innerHTML = `
@@ -436,31 +532,19 @@ function enableEdit() {
       
       <label class="radio-label">
         <input type="radio" name="edit-refund-policy" value="custom" ${currentEvent.refundPolicy === 'custom' ? 'checked' : ''}>
-        <span>특수한 상황 직접 설명</span>
-        <small class="radio-hint">특별한 환불 조건이 있는 경우 선택</small>
-      </label>
-      
-      <label class="radio-label">
-        <input type="radio" name="edit-refund-policy" value="none" ${currentEvent.refundPolicy === 'none' ? 'checked' : ''}>
-        <span>환불에 대한 규정이 없음</span>
-        <small class="radio-hint">환불 정책을 별도로 명시하지 않음</small>
+        <span>특수한 상황</span>
+        <small class="radio-hint">특별한 환불 규정이 적용되는 경우</small>
       </label>
     </div>
     
-    <div id="edit-custom-refund-section" class="custom-refund-section" style="display: ${currentEvent.refundPolicy === 'custom' ? 'block' : 'none'};">
-      <label for="edit-custom-refund-description">환불 정책 상세 설명</label>
-      <textarea 
-        id="edit-custom-refund-description" 
-        rows="4" 
-        placeholder="특수한 환불 조건이나 상황에 대해 자세히 설명해주세요"
-        maxlength="500">${currentEvent.refundCustomDescription || ''}</textarea>
-      <span class="form-hint">최대 500자까지 입력 가능합니다</span>
+    <div id="edit-custom-refund-section" style="display: ${currentEvent.refundPolicy === 'custom' ? 'block' : 'none'};">
+      <label for="edit-custom-refund-description">환불 정책 설명:</label>
+      <textarea id="edit-custom-refund-description" rows="4" placeholder="특수한 환불 정책에 대해 상세히 설명해주세요...">${currentEvent.refundPolicy === 'custom' ? (currentEvent.refundCustomDescription || '') : ''}</textarea>
     </div>
   `;
 
-  // 참가자 규칙 체크박스 추가
   const rulesCheckboxContainer = document.createElement('div');
-  rulesCheckboxContainer.className = 'form-group';
+  rulesCheckboxContainer.className = 'rules-checkbox-container';
   rulesCheckboxContainer.innerHTML = `
     <label class="checkbox-label">
       <input type="checkbox" id="edit-hasParticipantRules" ${currentEvent.hasParticipantRules ? 'checked' : ''}>
