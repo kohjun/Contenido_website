@@ -1,104 +1,97 @@
-let originalData = {};
+// 전역 변수
+let currentEvent = null;
 let deletedImages = new Set();
-let currentEvent = null; // 전역 변수로 현재 이벤트 데이터 저장
-let currentUser = null; // 현재 사용자 정보 저장
+let isImageDeleted = false;
 
-async function loadEventContent(eventId) {
+// 페이지 로드 시 이벤트 정보 로드
+window.addEventListener('load', async () => {
+  console.log('Additional-info.html 로드됨');
+  
+  // 인증 모듈 체크
+  if (typeof AuthModule === 'undefined') {
+    console.error('AuthModule이 로드되지 않았습니다');
+    return;
+  }
+
+  // 인증 상태 확인
+  const isAuthenticated = await AuthModule.checkAuthentication();
+  if (!isAuthenticated) {
+    console.log('인증되지 않은 사용자');
+    return;
+  }
+
+  const eventId = new URLSearchParams(window.location.search).get('id');
+  if (!eventId) {
+    console.error('이벤트 ID가 없습니다');
+    alert('올바르지 않은 접근입니다.');
+    window.location.href = 'events.html';
+    return;
+  }
+
+  console.log(`이벤트 ID ${eventId} 정보 로딩 시작`);
+  await loadEventInfo(eventId);
+  await initializeKakaoSDK();
+});
+
+async function loadEventInfo(eventId) {
   try {
-    // 인증 상태 확인 (이제 nav-injector에 포함된 AuthModule 사용)
-    const isAuthenticated = await AuthModule.checkAuthentication();
-    if (!isAuthenticated) return;
-    
-    // 사용자 정보 로드
-    const user = await AuthModule.loadUserInfo();
-    if (!user) {
-      alert('사용자 정보를 불러오는데 실패했습니다.');
-      return;
-    }
-
-    
-    console.log(`이벤트 ID ${eventId} 정보 로드 시도`);
+    console.log(`이벤트 ${eventId} 정보 로딩`);
     const response = await fetch(`/events/${eventId}`);
     if (!response.ok) {
-      throw new Error(`이벤트 정보를 가져오는데 실패했습니다. 상태: ${response.status}`);
+      throw new Error('이벤트 정보를 가져올 수 없습니다');
     }
+
+    currentEvent = await response.json();
+    console.log('이벤트 정보:', currentEvent);
     
-    const event = await response.json();
-    currentEvent = event;  // 전역 변수에 저장
-    originalData = { ...event };
-    console.log(`이벤트 정보 로드 성공: ${event.title}`);
+    const user = await AuthModule.fetchUserInfo();
+    if (!user) {
+      console.error('사용자 정보 없음');
+      return;
+    }
+    console.log('사용자 정보:', user);
 
-    
+    // 이벤트 정보 표시
+    document.getElementById('event-title').textContent = currentEvent.title;
+    document.getElementById('event-place').textContent = currentEvent.place;
+    document.getElementById('event-date').textContent = currentEvent.date;
+    document.getElementById('event-participants').textContent = `${currentEvent.participants}명`;
+    document.getElementById('event-start-time').textContent = currentEvent.startTime;
+    document.getElementById('event-end-time').textContent = currentEvent.endTime;
+    document.getElementById('event-fee').textContent = `${currentEvent.participation_fee.toLocaleString()}원`;
+    document.getElementById('event-contents').innerHTML = (currentEvent.contents || '').replace(/\n/g, '<br>');
 
-
-    // 기본 정보 표시
-    const titleElem = document.getElementById('event-title');
-    const placeElem = document.getElementById('event-place');
-    const dateElem = document.getElementById('event-date');
-    const participantsElem = document.getElementById('event-participants');
-    const startTimeElem = document.getElementById('event-start-time');
-    const endTimeElem = document.getElementById('event-end-time');
-    const feeElem = document.getElementById('event-fee');
-    const contentsElem = document.getElementById('event-contents');
-    const detailsElem = document.getElementById('event-details');
-    const mainEventImage = document.getElementById('main-event-image');
-    const modifyButton = document.getElementById('modify-button');
-    const applicationSection = document.getElementById('application-section');
-    const kakaoShareButton = document.getElementById('kakao-share-button');
+    // 환불 정책 표시
     const refundPolicyDisplay = document.getElementById('refund-policy-display');
     if (refundPolicyDisplay) {
-      let refundPolicyHTML = '';
-      
-      switch(currentEvent.refundPolicy) {
-        case 'standard':
-          refundPolicyHTML = '<span class="refund-standard">💳 입금이 확인된 이후에는 환불이 불가능합니다</span>';
-          break;
-        case 'custom':
-          refundPolicyHTML = `<span class="refund-custom">⚠️ ${currentEvent.refundCustomDescription}</span>`;
-          break;
-        case 'none':
-          refundPolicyHTML = '<span class="refund-none">📝 별도의 환불 규정이 없습니다</span>';
-          break;
-        default:
-          refundPolicyHTML = '<span class="refund-standard">💳 입금이 확인된 이후에는 환불이 불가능합니다</span>';
+      if (currentEvent.refundPolicy === 'custom' && currentEvent.refundCustomDescription) {
+        refundPolicyDisplay.innerHTML = `<p>${currentEvent.refundCustomDescription.replace(/\n/g, '<br>')}</p>`;
+      } else {
+        refundPolicyDisplay.innerHTML = '<p>입금이 확인된 이후에는 환불이 불가능합니다</p>';
       }
-      
-      refundPolicyDisplay.innerHTML = refundPolicyHTML;
     }
 
-
-
-    if (titleElem) titleElem.textContent = currentEvent.title;
-    if (placeElem) placeElem.textContent = currentEvent.place;
-    if (dateElem) dateElem.textContent = new Date(currentEvent.date)
-      .toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' });
-    if (participantsElem) participantsElem.textContent = currentEvent.participants + '명';
-    if (startTimeElem) startTimeElem.textContent = currentEvent.startTime;
-    if (endTimeElem) endTimeElem.textContent = currentEvent.endTime;
-    if (feeElem) feeElem.textContent = currentEvent.participation_fee.toLocaleString() + '원';
-    if (contentsElem) contentsElem.innerHTML = currentEvent.contents.replace(/\n/g, "<br>");
-
-    // 참가자 규칙 상태 표시
-    if (detailsElem && kakaoShareButton) {
-      const rulesStatus = document.createElement('p');
+    // 참가자 규칙 표시
+    const detailsElem = document.getElementById('event-details');
+    const kakaoShareButton = document.querySelector('.share-btn-container');
+    if (detailsElem && currentEvent.hasParticipantRules !== undefined) {
+      const rulesStatus = document.createElement('div');
       rulesStatus.className = 'rules-status';
       rulesStatus.innerHTML = currentEvent.hasParticipantRules ?
         '✔  <strong>참가자 규칙이 적용되는 이벤트입니다.</strong><br>활동부원은 일주일 이내 취소 시 경고 1회가 부과됩니다.' :
         '참가자 규칙이 적용되지 않는 일반 이벤트입니다.';
-      // kakaoShareButton이 detailsElem의 자식인지 확인
-      if (kakaoShareButton.parentNode === detailsElem) {
+      if (kakaoShareButton && kakaoShareButton.parentNode === detailsElem) {
         detailsElem.insertBefore(rulesStatus, kakaoShareButton);
       } else {
         detailsElem.appendChild(rulesStatus);
       }
     }
     
-    
     // 이미지 표시 (메인 이미지만)
+    const mainEventImage = document.getElementById('main-event-image');
     if (mainEventImage) {
       let mainImageUrl = '/images/Basic_Event_Image.png';
       if (currentEvent.images && currentEvent.images.length > 0) {
-        // 절대경로/상대경로 모두 지원, 항상 window.location.origin 붙이기
         if (/^https?:\/\//.test(currentEvent.images[0])) {
           mainImageUrl = currentEvent.images[0];
         } else {
@@ -114,6 +107,7 @@ async function loadEventContent(eventId) {
     }
 
     // 생성자인 경우 수정 버튼 표시
+    const modifyButton = document.getElementById('modify-button');
     if (modifyButton) {
       if (currentEvent.creator === user.id && (user.role === 'officer' || user.role === 'admin')) {
         modifyButton.style.display = 'block';
@@ -130,6 +124,7 @@ async function loadEventContent(eventId) {
 
     console.log(`신청 상태: 신청여부=${hasApplied}, 활성상태=${isActive}, 승인인원=${approvedCount}/${currentEvent.participants}, 마감여부=${isFull}`);
 
+    const applicationSection = document.getElementById('application-section');
     if (applicationSection) {
       if (currentEvent.isSelective) {
         // 선별적 이벤트
@@ -151,23 +146,24 @@ async function loadEventContent(eventId) {
           `;
         } else if (!isActive) {
           applicationSection.innerHTML = `
-            <p class="status-text">로그인 후 다시 시도해주세요. 활동부원이 아니므로 지원이 불가능합니다</p>
-            <button class="submit-button" disabled>지원불가</button>
+            <p class="status-text">로그인 후 다시 시도해주세요.</p>
+          `;
+        } else if (isFull) {
+          applicationSection.innerHTML = `
+            <p class="status-text">모집이 마감되었습니다</p>
           `;
         } else {
-          // 마감 여부와 관계없이 대기자 지원하기 버튼 노출
-          const applyBtnText = isFull ? '대기자 지원하기' : '지원하기';
           applicationSection.innerHTML = `
             <div class="application-form">
-              <h3>지원서 작성</h3>
-              <form id="application-form" onsubmit="submitApplication(event)">
+              <h3>지원서 양식</h3>
+              <form id="application-form" onsubmit="submitApplication(event, '${eventId}')">
                 ${currentEvent.additionalQuestions.map((question, index) => `
                   <div class="question-section">
                     <p class="question-text">Q${index + 1}. ${question.questionText}</p>
-                    <textarea class="answer-textarea" name="answer_${index}" required></textarea>
+                    <textarea class="answer-textarea" name="answer-${index}" required></textarea>
                   </div>
                 `).join('')}
-                <button type="submit" class="submit-button">${applyBtnText}</button>
+                <button type="submit" class="submit-button">지원하기</button>
               </form>
             </div>
           `;
@@ -181,155 +177,44 @@ async function loadEventContent(eventId) {
           `;
         } else if (!isActive) {
           applicationSection.innerHTML = `
-            <p class="status-text">로그인 후 다시 시도해주세요. 활동부원이 아니므로 지원이 불가능합니다</p>
-            <button class="submit-button" disabled>신청불가</button>
+            <p class="status-text">로그인 후 다시 시도해주세요.</p>
           `;
         } else if (isFull) {
           applicationSection.innerHTML = `
             <p class="status-text">모집이 마감되었습니다</p>
-            <button class="submit-button" disabled>마감</button>
           `;
         } else {
           applicationSection.innerHTML = `
-            <button onclick="applyForEvent('${currentEvent._id}')" class="submit-button">신청하기</button>
+            <button class="submit-button" onclick="applyForEvent('${eventId}')">신청하기</button>
           `;
         }
       }
     }
 
-    // 카카오 공유 버튼 초기화
-    await initializeKakaoShare();
-
   } catch (error) {
-    console.error('이벤트 정보 로드 중 에러:', error);
-    alert('이벤트 정보를 불러오는데 실패했습니다.');
+    console.error('이벤트 정보 로딩 에러:', error);
+    alert('이벤트 정보를 불러올 수 없습니다.');
   }
-}
-
-// 카카오 초기화 함수
-async function initializeKakao() {
-  try {
-    console.log('카카오 API 키 요청');
-    const response = await fetch('/events/kakao-key');
-    const data = await response.json();
-    console.log('카카오 API 초기화 시작');
-    Kakao.init(data.kakaoKey);
-    console.log('카카오 API 초기화 완료');
-  } catch (error) {
-    console.error('카카오 키 초기화 실패:', error);
-  }
-}
-
-// 카카오톡 공유 함수
-async function initializeKakaoShare() {
-  if (!currentEvent) {
-    console.error('이벤트 데이터가 없습니다.');
-    return;
-  }
-
-  await initializeKakao();
-
-  const kakaoButton = document.getElementById('kakao-share-button');
-  if (!kakaoButton) {
-    console.log('카카오 공유 버튼을 찾을 수 없음');
-    return;
-  }
-
-  // 이벤트 이미지 URL 설정 (항상 절대 경로)
-  const eventImageUrl = currentEvent.images && currentEvent.images.length > 0
-    ? window.location.origin + (currentEvent.images[0].startsWith('/') ? currentEvent.images[0] : '/' + currentEvent.images[0])
-    : window.location.origin + '/images/Basic_Event_Image.png';
-
-  // D-Day 계산 추가
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  
-  const eventDate = new Date(currentEvent.date);
-  eventDate.setHours(0, 0, 0, 0);
-  
-  const diffTime = eventDate.getTime() - today.getTime();
-  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-  
-  let dDayText;
-  if (diffDays > 0) {
-    dDayText = `D-${diffDays}`;
-  } else if (diffDays === 0) {
-    dDayText = 'D-Day';
-  } else {
-    dDayText = '종료';
-  }
-
-
-  console.log('카카오 공유 버튼 설정');
-  Kakao.Share.createDefaultButton({
-    container: '#kakao-share-button',
-    objectType: 'feed',
-    content: {
-      title: `[${currentEvent.team}] ${currentEvent.title}`,
-      description: currentEvent.contents,
-      imageUrl: eventImageUrl,
-      link: {
-        mobileWebUrl: window.location.href,
-        webUrl: window.location.href,
-      },
-    },
-    itemContent: {
-      profileImageUrl: eventImageUrl,
-      titleImageText: currentEvent.title,
-      titleImageCategory: currentEvent.team,
-      items: [
-        {
-          item: '일시',
-          itemOp: `${new Date(currentEvent.date).toLocaleDateString()}`,
-        },
-        {
-          item: '시간',
-          itemOp: `${currentEvent.startTime}~${currentEvent.endTime}`,
-        },
-        {
-          item: '장소',
-          itemOp: currentEvent.place,
-        },
-        {
-          item: '인원',
-          itemOp: `${currentEvent.participants}명`,
-        },
-        {
-          item: '참가비',
-          itemOp: `${currentEvent.participation_fee.toLocaleString()}원`,
-        },
-      ],
-      sum: '행사일',
-      sumOp: dDayText, // 계산된 D-Day 텍스트 적용
-    },
-    buttons: [
-      {
-        title: '이벤트 신청하기',
-        link: {
-          mobileWebUrl: window.location.href,
-          webUrl: window.location.href,
-        },
-      }
-    ],
-  });
-  console.log('카카오 공유 버튼 설정 완료');
 }
 
 // 지원서 제출 함수
-async function submitApplication(e) {
+async function submitApplication(e, eventId) {
   e.preventDefault();
-  const eventId = new URLSearchParams(window.location.search).get('id');
   
-  // 인증 상태 확인
   const isAuthenticated = await AuthModule.checkAuthentication();
   if (!isAuthenticated) return;
   
   console.log(`이벤트 ${eventId} 지원서 제출 시도`);
-  const answers = Array.from(document.querySelectorAll('.answer-textarea')).map(textarea => ({
-    answerText: textarea.value
-  }));
-
   try {
+    const formData = new FormData(e.target);
+    const answers = [];
+    for (let i = 0; i < currentEvent.additionalQuestions.length; i++) {
+      answers.push({
+        questionId: currentEvent.additionalQuestions[i]._id,
+        answerText: formData.get(`answer-${i}`)
+      });
+    }
+
     const response = await fetch(`/events/${eventId}/apply`, {
       method: 'POST',
       headers: {
@@ -340,7 +225,7 @@ async function submitApplication(e) {
 
     if (!response.ok) {
       const error = await response.json();
-      throw new Error(error.message || '신청 실패');
+      throw new Error(error.message || '지원 실패');
     }
 
     console.log('지원서 제출 성공');
@@ -354,7 +239,6 @@ async function submitApplication(e) {
 
 // 일반 이벤트 신청 함수
 async function applyForEvent(eventId) {
-  // 인증 상태 확인
   const isAuthenticated = await AuthModule.checkAuthentication();
   if (!isAuthenticated) return;
   
@@ -408,14 +292,34 @@ function enableEdit() {
 
   fields.forEach(field => {
     const element = document.getElementById(field.id);
+    if (!element) {
+      console.warn(`Element ${field.id} not found`);
+      return;
+    }
+    
     const input = document.createElement(field.type === 'textarea' ? 'textarea' : 'input');
     input.id = `edit-${field.id}`;
     input.type = field.type;
     
-    if (field.type === 'number') {
+    // ============ 수정: 날짜 형식 변환 추가 ============
+    if (field.type === 'date') {
+      // "YYYY년 MM월 DD일" → "YYYY-MM-DD" 형식으로 변환
+      const dateText = element.textContent.trim();
+      const dateMatch = dateText.match(/(\d{4})년\s*(\d{1,2})월\s*(\d{1,2})일/);
+      if (dateMatch) {
+        const year = dateMatch[1];
+        const month = dateMatch[2].padStart(2, '0');
+        const day = dateMatch[3].padStart(2, '0');
+        input.value = `${year}-${month}-${day}`;
+      } else {
+        // 다른 형식일 경우 currentEvent에서 가져오기
+        input.value = currentEvent.date || '';
+      }
+    }
+    // ============ 날짜 형식 변환 끝 ============
+    else if (field.type === 'number') {
       input.value = element.textContent.replace(/[^\d]/g, '');
     } else if (field.type === 'textarea') {
-      // 줄바꿈 및 공백 복원: <br> → \n
       input.value = element.innerHTML.replace(/<br\s*\/?>/gi, '\n');
     } else {
       input.value = element.textContent.trim();
@@ -423,6 +327,62 @@ function enableEdit() {
     
     element.parentNode.replaceChild(input, element);
   });
+
+  // ============ 수정: 이미지 편집 UI 생성 ============
+  const imageSection = document.querySelector('.image-section .image-container');
+  if (imageSection && currentEvent.images && currentEvent.images.length > 0) {
+    // 기존 이미지들을 편집 가능한 형태로 표시
+    imageSection.innerHTML = ''; // 기존 내용 지우기
+    
+    currentEvent.images.forEach((imagePath, index) => {
+      const wrapper = document.createElement('div');
+      wrapper.className = 'image-wrapper';
+      wrapper.dataset.imagePath = imagePath;
+      
+      const img = document.createElement('img');
+      if (/^https?:\/\//.test(imagePath)) {
+        img.src = imagePath;
+      } else {
+        img.src = window.location.origin + (imagePath.startsWith('/') ? imagePath : '/' + imagePath);
+      }
+      img.alt = `이벤트 이미지 ${index + 1}`;
+      img.className = 'event-image-preview';
+      
+      const deleteBtn = document.createElement('button');
+      deleteBtn.className = 'image-delete-btn';
+      deleteBtn.textContent = '×';
+      deleteBtn.onclick = function() { handleImageDelete(this); };
+      deleteBtn.style.display = 'block'; // 수정 모드에서는 보이도록
+      
+      wrapper.appendChild(img);
+      wrapper.appendChild(deleteBtn);
+      imageSection.appendChild(wrapper);
+    });
+    
+    // 이미지 추가 버튼
+    const uploadLabel = document.createElement('label');
+    uploadLabel.htmlFor = 'edit-image';
+    uploadLabel.className = 'image-upload-button';
+    uploadLabel.id = 'image-upload-label';
+    uploadLabel.innerHTML = `
+      <span class="plus-icon">+</span>
+      <span class="upload-text">이미지 추가</span>
+    `;
+    
+    const fileInput = document.createElement('input');
+    fileInput.type = 'file';
+    fileInput.id = 'edit-image';
+    fileInput.accept = 'image/*';
+    fileInput.multiple = true;
+    fileInput.className = 'image-upload-input';
+    fileInput.onchange = handleImagePreview;
+    
+    uploadLabel.appendChild(fileInput);
+    imageSection.appendChild(uploadLabel);
+  }
+  // ============ 이미지 편집 UI 생성 끝 ============
+
+  // 환불 정책 편집 UI
   const refundPolicyEditContainer = document.createElement('div');
   refundPolicyEditContainer.className = 'refund-policy-edit-section';
   refundPolicyEditContainer.innerHTML = `
@@ -436,31 +396,20 @@ function enableEdit() {
       
       <label class="radio-label">
         <input type="radio" name="edit-refund-policy" value="custom" ${currentEvent.refundPolicy === 'custom' ? 'checked' : ''}>
-        <span>특수한 상황 직접 설명</span>
-        <small class="radio-hint">특별한 환불 조건이 있는 경우 선택</small>
-      </label>
-      
-      <label class="radio-label">
-        <input type="radio" name="edit-refund-policy" value="none" ${currentEvent.refundPolicy === 'none' ? 'checked' : ''}>
-        <span>환불에 대한 규정이 없음</span>
-        <small class="radio-hint">환불 정책을 별도로 명시하지 않음</small>
+        <span>특수한 상황</span>
+        <small class="radio-hint">특별한 환불 규정이 적용되는 경우</small>
       </label>
     </div>
     
-    <div id="edit-custom-refund-section" class="custom-refund-section" style="display: ${currentEvent.refundPolicy === 'custom' ? 'block' : 'none'};">
-      <label for="edit-custom-refund-description">환불 정책 상세 설명</label>
-      <textarea 
-        id="edit-custom-refund-description" 
-        rows="4" 
-        placeholder="특수한 환불 조건이나 상황에 대해 자세히 설명해주세요"
-        maxlength="500">${currentEvent.refundCustomDescription || ''}</textarea>
-      <span class="form-hint">최대 500자까지 입력 가능합니다</span>
+    <div id="edit-custom-refund-section" style="display: ${currentEvent.refundPolicy === 'custom' ? 'block' : 'none'};">
+      <label for="edit-custom-refund-description">환불 정책 설명:</label>
+      <textarea id="edit-custom-refund-description" rows="4" placeholder="특수한 환불 정책에 대해 상세히 설명해주세요...">${currentEvent.refundPolicy === 'custom' ? (currentEvent.refundCustomDescription || '') : ''}</textarea>
     </div>
   `;
 
-  // 참가자 규칙 체크박스 추가
+  // 참가자 규칙 체크박스
   const rulesCheckboxContainer = document.createElement('div');
-  rulesCheckboxContainer.className = 'form-group';
+  rulesCheckboxContainer.className = 'rules-checkbox-container';
   rulesCheckboxContainer.innerHTML = `
     <label class="checkbox-label">
       <input type="checkbox" id="edit-hasParticipantRules" ${currentEvent.hasParticipantRules ? 'checked' : ''}>
@@ -468,11 +417,12 @@ function enableEdit() {
     </label>
     <span class="form-hint">활동부원은 취소 시 경고, 스타터/기존 참가자 패널티 없음</span>
   `;
+  
   if (rulesCheckboxContainer.parentNode) {
     rulesCheckboxContainer.parentNode.insertBefore(refundPolicyEditContainer, rulesCheckboxContainer.nextSibling);
   }
 
-  // 환불 정책 라디오 버튼 이벤트 리스너 추가
+  // 환불 정책 라디오 버튼 이벤트 리스너
   const editRefundPolicyRadios = document.querySelectorAll('input[name="edit-refund-policy"]');
   const editCustomRefundSection = document.getElementById('edit-custom-refund-section');
 
@@ -488,26 +438,15 @@ function enableEdit() {
     });
   });
 
-  // 이벤트 디테일과 이미지 컨테이너 참조 가져오기
+  // 이벤트 디테일과 이미지 컨테이너 참조
   const eventDetails = document.getElementById('event-details');
   const imageContainer = document.getElementById('event-image-container');
   
-  // 이미지 컨테이너가 있는지 확인하고 있다면 그 앞에 체크박스 컨테이너 삽입
   if (imageContainer && imageContainer.parentNode) {
     imageContainer.parentNode.insertBefore(rulesCheckboxContainer, imageContainer);
   } else {
-    // 이미지 컨테이너가 없다면 이벤트 디테일 끝에 추가
     eventDetails.appendChild(rulesCheckboxContainer);
   }
-
-  // 이미지 관련 UI 활성화
-  const currentImages = document.querySelectorAll('.image-wrapper');
-  currentImages.forEach(wrapper => {
-    const deleteBtn = wrapper.querySelector('.image-delete-btn');
-    if (deleteBtn) {
-      deleteBtn.style.display = 'block';
-    }
-  });
 
   // UI 상태 업데이트
   document.getElementById('modify-button').style.display = 'none';
@@ -526,14 +465,22 @@ function updateImageUploadStatus() {
 
   console.log(`현재 이미지 ${currentImagesCount}개`);
   if (currentImagesCount >= 3) {
-    uploadButton.classList.add('disabled');
-    imageInput.disabled = true;
-    uploadButton.style.display = 'none';  // 3개 이상이면 + 버튼 숨김
+    if (uploadButton) {
+      uploadButton.classList.add('disabled');
+      uploadButton.style.display = 'none';
+    }
+    if (imageInput) {
+      imageInput.disabled = true;
+    }
     console.log('이미지 최대 개수(3개) 도달, 업로드 버튼 비활성화');
   } else {
-    uploadButton.classList.remove('disabled');
-    imageInput.disabled = false;
-    uploadButton.style.display = 'flex';  // 3개 미만이면 + 버튼 표시
+    if (uploadButton) {
+      uploadButton.classList.remove('disabled');
+      uploadButton.style.display = 'flex';
+    }
+    if (imageInput) {
+      imageInput.disabled = false;
+    }
     console.log(`이미지 추가 가능 (${currentImagesCount}/3)`);
   }
 }
@@ -551,7 +498,7 @@ function handleImageDelete(button) {
   updateImageUploadStatus();
 }
 
-// 이미지 미리보기 처리 (메인 이미지만)
+// 이미지 미리보기 처리
 async function handleImagePreview(e) {
   const files = e.target.files;
   const mainEventImage = document.getElementById('main-event-image');
@@ -565,7 +512,6 @@ async function handleImagePreview(e) {
 }
 
 async function submitEdit() {
-  // 인증 상태 확인
   const isAuthenticated = await AuthModule.checkAuthentication();
   if (!isAuthenticated) return;
 
@@ -600,18 +546,17 @@ async function submitEdit() {
       console.log(`새 이미지 업로드 성공: ${newImageUrls.length}개`);
     }
 
-    // 현재 표시된 이미지들 수집 (삭제되지 않은 기존 이미지들)
+    // 현재 표시된 이미지들 수집
     let currentImages = Array.from(document.querySelectorAll('.image-wrapper'))
       .filter(wrapper => !deletedImages.has(wrapper.dataset.imagePath))
       .map(wrapper => wrapper.dataset.imagePath)
-      .filter(path => path); // null/undefined 제거
+      .filter(path => path);
 
-    // 항상 배열 보장
     if (!Array.isArray(currentImages)) currentImages = [];
     if (!Array.isArray(newImageUrls)) newImageUrls = [];
     const deletedImagesArr = Array.from(deletedImages || []);
 
-    // 숫자 필드 파싱 및 NaN 방지
+    // 숫자 필드 파싱
     const participantsValue = parseInt(document.getElementById('edit-event-participants').value, 10);
     const participationFeeValue = parseInt(document.getElementById('edit-event-fee').value, 10);
 
@@ -629,10 +574,10 @@ async function submitEdit() {
       alert('모든 필수 항목을 입력해주세요.');
       return;
     }
+    
     const selectedRefundPolicy = document.querySelector('input[name="edit-refund-policy"]:checked')?.value || 'standard';
     const customRefundDescription = document.getElementById('edit-custom-refund-description')?.value || '';
 
-    // 커스텀 정책이 선택되었는데 설명이 없는 경우 검증
     if (selectedRefundPolicy === 'custom' && !customRefundDescription.trim()) {
       alert('특수한 상황에 대한 환불 정책 설명을 입력해주세요.');
       return;
@@ -652,7 +597,7 @@ async function submitEdit() {
       newImages: newImageUrls,
       deletedImages: deletedImagesArr,
       hasParticipantRules: document.getElementById('edit-hasParticipantRules').checked,
-      refundPolicy: selectedRefundPolicy,  // 환불 정책 추가
+      refundPolicy: selectedRefundPolicy,
       refundCustomDescription: selectedRefundPolicy === 'custom' ? customRefundDescription : undefined
     };
 
@@ -712,16 +657,85 @@ function copyLink() {
   }
 }
 
-
-
-document.addEventListener('DOMContentLoaded', () => {
-  console.log('이벤트 상세 페이지 로드');
-  const eventId = new URLSearchParams(window.location.search).get('id');
-  if (eventId) {
-    console.log(`이벤트 ID: ${eventId}`);
-    loadEventContent(eventId);
-  } else {
-    console.error('이벤트 ID가 없음');
-    alert('이벤트 ID가 없습니다.');
+function fallbackCopyLink(text) {
+  const textArea = document.createElement('textarea');
+  textArea.value = text;
+  textArea.style.position = 'fixed';
+  textArea.style.left = '-999999px';
+  document.body.appendChild(textArea);
+  textArea.select();
+  try {
+    document.execCommand('copy');
+    alert('링크가 클립보드에 복사되었습니다.');
+    closeShareModal();
+  } catch (err) {
+    console.error('링크 복사 실패:', err);
+    alert('링크 복사에 실패했습니다. 수동으로 복사해주세요: ' + text);
   }
-});
+  document.body.removeChild(textArea);
+}
+
+// 카카오 SDK 초기화
+async function initializeKakaoSDK() {
+  if (!window.Kakao) {
+    console.error('Kakao SDK가 로드되지 않았습니다');
+    return;
+  }
+
+  if (!window.Kakao.isInitialized()) {
+    try {
+      window.Kakao.init('f2d45aaa54eee45a44c78408b4d02a40');
+      console.log('Kakao SDK 초기화 완료');
+    } catch (error) {
+      console.error('Kakao SDK 초기화 실패:', error);
+    }
+  }
+}
+
+// 카카오톡 공유 초기화
+function initializeKakaoShare() {
+  if (!window.Kakao || !window.Kakao.isInitialized()) {
+    console.error('Kakao SDK가 초기화되지 않았습니다');
+    alert('카카오톡 공유 기능을 사용할 수 없습니다.');
+    return;
+  }
+
+  if (!currentEvent) {
+    console.error('이벤트 정보가 없습니다');
+    alert('이벤트 정보를 불러올 수 없습니다.');
+    return;
+  }
+
+  const imageUrl = currentEvent.images && currentEvent.images.length > 0
+    ? (currentEvent.images[0].startsWith('http') ? currentEvent.images[0] : window.location.origin + currentEvent.images[0])
+    : window.location.origin + '/images/Basic_Event_Image.png';
+
+  try {
+    window.Kakao.Share.sendDefault({
+      objectType: 'feed',
+      content: {
+        title: currentEvent.title,
+        description: `장소: ${currentEvent.place}\n날짜: ${currentEvent.date}\n시간: ${currentEvent.startTime} ~ ${currentEvent.endTime}`,
+        imageUrl: imageUrl,
+        link: {
+          mobileWebUrl: window.location.href,
+          webUrl: window.location.href
+        }
+      },
+      buttons: [
+        {
+          title: '자세히 보기',
+          link: {
+            mobileWebUrl: window.location.href,
+            webUrl: window.location.href
+          }
+        }
+      ]
+    });
+    console.log('카카오톡 공유 성공');
+    closeShareModal();
+  } catch (error) {
+    console.error('카카오톡 공유 실패:', error);
+    alert('카카오톡 공유에 실패했습니다.');
+  }
+}
