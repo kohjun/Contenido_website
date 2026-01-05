@@ -693,7 +693,9 @@ router.put('/update-content',
   async (req, res) => {
     const { 
       eventId, currentImages, newImages, deletedImages, 
-      hasParticipantRules, refundPolicy, refundCustomDescription
+      hasParticipantRules, refundPolicy, refundCustomDescription,
+      // ============ 추가: 이벤트 정보 필드들도 받기 ============
+      title, place, date, participants, startTime, endTime, participation_fee, contents
     } = req.body;
 
     try {
@@ -708,6 +710,7 @@ router.put('/update-content',
           message: '이벤트 생성자만 수정할 수 있습니다.' 
         });
       }
+      
       // 환불 정책 검증
       if (refundPolicy === 'custom' && !refundCustomDescription?.trim()) {
         return res.status(400).json({ 
@@ -752,14 +755,20 @@ router.put('/update-content',
         return res.status(400).json({ message: '이미지는 최대 3개까지만 허용됩니다.' });
       }
 
-      // 이벤트 업데이트
+      // ============ 수정: 이벤트 정보 직접 업데이트 ============
       event.images = finalImages;
       event.hasParticipantRules = hasParticipantRules;
       
-      // 나머지 필드 업데이트
-      Object.keys(updatedData).forEach(key => {
-        event[key] = updatedData[key];
-      });
+      // 이벤트 기본 정보 업데이트
+      if (title) event.title = title;
+      if (place) event.place = place;
+      if (date) event.date = date;
+      if (participants !== undefined) event.participants = participants;
+      if (startTime) event.startTime = startTime;
+      if (endTime) event.endTime = endTime;
+      if (participation_fee !== undefined) event.participation_fee = participation_fee;
+      if (contents) event.contents = contents;
+      // ============ 수정 끝 ============
 
       await event.save();
       res.status(200).json({ 
