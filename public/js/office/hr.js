@@ -5,6 +5,11 @@ let searchResults = [];
 let users = [];
 let selectedUserId = null;
 
+// ============ 검색 상태 저장 변수 추가 ============
+let currentSearchOption = 'name';
+let currentSearchInput = '';
+// ============ 검색 상태 저장 변수 추가 끝 ============
+
 // 페이지 로드 시 초기화
 document.addEventListener('DOMContentLoaded', () => {
     loadUsers();
@@ -156,7 +161,9 @@ async function issueWarning(userId, userName) {
         // 성공 메시지와 함께 사용자 목록 새로고침
         alert(`${userName}님에게 경고가 부여되었습니다.\n사유: ${reason}\n현재 경고 횟수: ${result.warningCount}회`);
         await loadUsers();
-        showUsersByRole(currentRole, false);
+        // ============ 수정: showUsersByRole 대신 refreshCurrentView 호출 ============
+        refreshCurrentView();
+        // ============ 수정 끝 ============
         highlightModifiedUser(userId);
         
     } catch (error) {
@@ -272,7 +279,9 @@ async function removeWarning(userId, warningId) {
         alert('경고가 삭제되었습니다.');
         loadWarningHistory(userId); // 내역 새로고침
         await loadUsers();
-        showUsersByRole(currentRole, false);
+        // ============ 수정: showUsersByRole 대신 refreshCurrentView 호출 ============
+        refreshCurrentView();
+        // ============ 수정 끝 ============
         
     } catch (error) {
         console.error('경고 삭제 중 오류:', error);
@@ -327,7 +336,9 @@ async function updateUserRole() {
         }
 
         await loadUsers();
-        showUsersByRole(currentRole, false);
+        // ============ 수정: showUsersByRole 대신 refreshCurrentView 호출 ============
+        refreshCurrentView();
+        // ============ 수정 끝 ============
         highlightModifiedUser(selectedUserId);
         closeDialog('roleChangeDialog');
         alert('역할이 성공적으로 변경되었습니다.');
@@ -374,7 +385,9 @@ async function updateUserTeam() {
 
         console.log('Team update successful, reloading users...');
         await loadUsers();
-        showUsersByRole(currentRole, false);
+        // ============ 수정: showUsersByRole 대신 refreshCurrentView 호출 ============
+        refreshCurrentView();
+        // ============ 수정 끝 ============
         highlightModifiedUser(selectedUserId);
         closeDialog('teamChangeDialog');
         alert('팀이 성공적으로 변경되었습니다.');
@@ -431,7 +444,9 @@ async function confirmStaffSubteamOnly() {
         }
 
         await loadUsers();
-        showUsersByRole(currentRole, false);
+        // ============ 수정: showUsersByRole 대신 refreshCurrentView 호출 ============
+        refreshCurrentView();
+        // ============ 수정 끝 ============
         highlightModifiedUser(selectedUserId);
         closeDialog('staffSubteamDialog');
         alert('스태프 소그룹이 성공적으로 변경되었습니다.');
@@ -545,7 +560,9 @@ async function updateCount(userId, type, body, alertName) {
         }
 
         await loadUsers();
-        showUsersByRole(currentRole, false);
+        // ============ 수정: showUsersByRole 대신 refreshCurrentView 호출 ============
+        refreshCurrentView();
+        // ============ 수정 끝 ============
         alert(`${alertName}가 업데이트되었습니다.`);
     } catch (error) {
         console.error(`Error updating ${type} count:`, error);
@@ -568,124 +585,173 @@ async function toggleUserActive(userId, active) {
         }
 
         await loadUsers();
-        showUsersByRole(currentRole, false);
+        // ============ 수정: showUsersByRole 대신 refreshCurrentView 호출 ============
+        refreshCurrentView();
+        // ============ 수정 끝 ============
         alert('활성상태가 변경되었습니다.');
     } catch (error) {
-        console.error('Error toggling user status:', error);
-        alert('사용자 상태 업데이트에 실패했습니다.');
+        console.error('Error toggling user active status:', error);
+        alert('활성상태 변경에 실패했습니다.');
     }
 }
+
+// ============ 검색 기능 개선 부분 시작 ============
 
 // 역할별 사용자 표시
 function showUsersByRole(role, resetPage = true) {
     currentRole = role;
+    
     if (resetPage) {
+        // 역할 버튼 클릭 시에만 검색 초기화
         currentPage = 1;
         searchResults = [];
+        currentSearchOption = 'name';
+        currentSearchInput = '';
         const searchInput = document.getElementById('search-input');
+        const searchOption = document.getElementById('search-option');
         if (searchInput) searchInput.value = '';
+        if (searchOption) searchOption.value = 'name';
     }
 
+    // 역할 버튼 활성화 상태 업데이트
     document.querySelectorAll('.role-button').forEach(button => {
         button.classList.toggle('active', button.getAttribute('data-role') === role);
     });
 
-    const filteredUsers = (searchResults.length > 0) ? searchResults : users;
+    // 현재 뷰 새로고침
+    refreshCurrentView();
+}
+
+// 현재 뷰 새로고침 (검색 상태 유지) - 새로 추가
+function refreshCurrentView() {
+    // 검색 결과가 있으면 검색 적용, 없으면 전체 users 사용
+    const filteredUsers = (searchResults.length > 0 || currentSearchInput !== '') ? searchResults : users;
+    
     let usersToDisplay;
-    if (role === 'all') {
+    if (currentRole === 'all') {
         usersToDisplay = filteredUsers;
-    } else if (role === 'staffTeam') {
+    } else if (currentRole === 'staffTeam') {
         usersToDisplay = filteredUsers.filter(user => user.team === 'staffTeam');
     } else {
-        usersToDisplay = filteredUsers.filter(user => user.role === role);
+        usersToDisplay = filteredUsers.filter(user => user.role === currentRole);
     }
 
     displayUsers(usersToDisplay);
 }
 
-// 사용자 목록과 페이지네이션 표시
-function displayUsers(usersArray) {
+// 사용자 목록 표시
+function displayUsers(usersToShow) {
+    const userTableBody = document.getElementById('user-table-body');
+    if (!userTableBody) return;
+
     const startIndex = (currentPage - 1) * usersPerPage;
     const endIndex = startIndex + usersPerPage;
-    const usersToShow = usersArray.slice(startIndex, endIndex);
+    const paginatedUsers = usersToShow.slice(startIndex, endIndex);
 
-    const tableBody = document.getElementById('user-table-body');
-    if (tableBody) {
-        tableBody.innerHTML = usersToShow.map(generateUserRow).join('');
-    } else {
-        console.error('User table body not found');
-    }
-    createPagination(usersArray.length);
+    userTableBody.innerHTML = paginatedUsers.map(user => generateUserRow(user)).join('');
+
+    renderPagination(usersToShow.length);
 }
 
-// 페이지네이션 생성
-function createPagination(totalUsers) {
+// 페이지네이션 렌더링
+function renderPagination(totalUsers) {
     const totalPages = Math.ceil(totalUsers / usersPerPage);
-    const paginationContainer = document.getElementById('pagination');
-    if (!paginationContainer) {
-        console.error('Pagination container not found');
-        return;
-    }
+    const paginationDiv = document.getElementById('pagination');
+    if (!paginationDiv) return;
 
-    let paginationHtml = '<div class="pagination">';
+    let paginationHTML = '';
+    
     if (currentPage > 1) {
-        paginationHtml += `<button onclick="changePage(${currentPage - 1})">이전</button>`;
+        paginationHTML += `<button onclick="changePage(${currentPage - 1})">이전</button>`;
     }
+    
     for (let i = 1; i <= totalPages; i++) {
-        paginationHtml += `<button class="${i === currentPage ? 'active' : ''}" onclick="changePage(${i})">${i}</button>`;
+        paginationHTML += `<button class="${i === currentPage ? 'active' : ''}" 
+                                   onclick="changePage(${i})">${i}</button>`;
     }
+    
     if (currentPage < totalPages) {
-        paginationHtml += `<button onclick="changePage(${currentPage + 1})">다음</button>`;
+        paginationHTML += `<button onclick="changePage(${currentPage + 1})">다음</button>`;
     }
-    paginationHtml += '</div>';
-    paginationContainer.innerHTML = paginationHtml;
+    
+    paginationDiv.innerHTML = paginationHTML;
 }
 
 // 페이지 변경
 function changePage(page) {
     currentPage = page;
-    showUsersByRole(currentRole, false);
+    refreshCurrentView();
 }
 
-// 검색 기능
+// 검색 기능 (대학교 검색 추가, 검색 상태 저장)
 function searchUsers() {
-    const searchOption = document.getElementById('search-option')?.value || 'name';
-    const searchInput = document.getElementById('search-input')?.value.toLowerCase() || '';
+    // 현재 검색 상태 저장
+    currentSearchOption = document.getElementById('search-option')?.value || 'name';
+    currentSearchInput = document.getElementById('search-input')?.value.toLowerCase() || '';
+
+    // 검색어가 비어있으면 검색 결과 초기화
+    if (currentSearchInput === '') {
+        searchResults = [];
+        currentPage = 1;
+        refreshCurrentView();
+        return;
+    }
 
     searchResults = users.filter(user => {
         if (!user) return false;
-        switch (searchOption) {
+        
+        switch (currentSearchOption) {
             case 'name':
-                return user.name?.toLowerCase().includes(searchInput) || false;
+                return user.name?.toLowerCase().includes(currentSearchInput) || false;
+            
+            case 'university':
+                // 대학교 검색 - 포함 검색 (새로 추가됨)
+                return user.university?.toLowerCase().includes(currentSearchInput) || false;
+            
             case 'warningCount':
-                return (user.warningCount || 0).toString() === searchInput;
+                return (user.warningCount || 0).toString() === currentSearchInput;
+            
             case 'active':
-                if (searchInput === '활성' || searchInput === 'active') return user.active;
-                if (searchInput === '비활성' || searchInput === 'inactive') return !user.active;
+                if (currentSearchInput === '활성' || currentSearchInput === 'active') return user.active;
+                if (currentSearchInput === '비활성' || currentSearchInput === 'inactive') return !user.active;
                 return false;
+            
             case 'role':
-                const roleMap = { '참가자': 'participant', '운영진': 'officer', '스타터': 'starter', '게스트': 'guest' };
-                const searchRole = roleMap[searchInput] || searchInput;
+                const roleMap = { 
+                    '참가자': 'participant', 
+                    '운영진': 'officer', 
+                    '스타터': 'starter', 
+                    '게스트': 'guest' 
+                };
+                const searchRole = roleMap[currentSearchInput] || currentSearchInput;
                 return (user.role || '').toLowerCase() === searchRole;
+            
             case 'gender':
-                if (searchInput === '남' || searchInput === 'male') return user.gender === 'male';
-                if (searchInput === '여' || searchInput === 'female') return user.gender === 'female';
+                if (currentSearchInput === '남' || currentSearchInput === 'male') return user.gender === 'male';
+                if (currentSearchInput === '여' || currentSearchInput === 'female') return user.gender === 'female';
                 return false;
+            
             default:
                 return true;
         }
     });
 
     currentPage = 1;
-    showUsersByRole(currentRole, false);
+    refreshCurrentView();
 }
 
 // 검색 초기화
 function resetSearch() {
     document.getElementById('search-input').value = '';
+    const searchOption = document.getElementById('search-option');
+    if (searchOption) searchOption.value = 'name';
+    
     searchResults = [];
+    currentSearchOption = 'name';
+    currentSearchInput = '';
     currentPage = 1;
-    showUsersByRole(currentRole, true);
+    
+    refreshCurrentView();
 }
 
 // 전역 스코프에 함수 할당
