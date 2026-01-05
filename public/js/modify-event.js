@@ -649,7 +649,6 @@ async function handleImagePreview(e) {
 }
 
 async function submitEdit() {
-  // 인증 상태 확인
   const isAuthenticated = await AuthModule.checkAuthentication();
   if (!isAuthenticated) return;
 
@@ -688,42 +687,52 @@ async function submitEdit() {
     let currentImages = Array.from(document.querySelectorAll('.image-wrapper'))
       .filter(wrapper => !deletedImages.has(wrapper.dataset.imagePath))
       .map(wrapper => wrapper.dataset.imagePath)
-      .filter(path => path); // null/undefined 제거
+      .filter(path => path);
 
-    // 항상 배열 보장
     if (!Array.isArray(currentImages)) currentImages = [];
     if (!Array.isArray(newImageUrls)) newImageUrls = [];
     const deletedImagesArr = Array.from(deletedImages || []);
 
-    // 숫자 필드 파싱 및 NaN 방지
+    // 숫자 필드 파싱
     const participantsValue = parseInt(document.getElementById('edit-event-participants').value, 10);
     const participationFeeValue = parseInt(document.getElementById('edit-event-fee').value, 10);
 
     // 필수값 체크
     if (
-      !document.getElementById('edit-event-title').value ||
-      !document.getElementById('edit-event-place').value ||
-      !document.getElementById('edit-event-date').value ||
+      !document.getElementById('edit-event-title')?.value ||
+      !document.getElementById('edit-event-place')?.value ||
+      !document.getElementById('edit-event-date')?.value ||
       isNaN(participantsValue) ||
-      !document.getElementById('edit-event-start-time').value ||
-      !document.getElementById('edit-event-end-time').value ||
+      !document.getElementById('edit-event-start-time')?.value ||
+      !document.getElementById('edit-event-end-time')?.value ||
       isNaN(participationFeeValue) ||
-      !document.getElementById('edit-event-contents').value
+      !document.getElementById('edit-event-contents')?.value
     ) {
       alert('모든 필수 항목을 입력해주세요.');
       return;
     }
+    
     const selectedRefundPolicy = document.querySelector('input[name="edit-refund-policy"]:checked')?.value || 'standard';
     const customRefundDescription = document.getElementById('edit-custom-refund-description')?.value || '';
 
-    // 커스텀 정책이 선택되었는데 설명이 없는 경우 검증
     if (selectedRefundPolicy === 'custom' && !customRefundDescription.trim()) {
       alert('특수한 상황에 대한 환불 정책 설명을 입력해주세요.');
       return;
     }
 
-    // 이벤트 데이터 업데이트
-    const updatedData = {
+    // ============ 수정: 데이터 구조 변경 ============
+    // 서버가 기대하는 형식으로 데이터 구성
+    const requestData = {
+      eventId,
+      // 이미지 관련 필드 (최상위)
+      currentImages,
+      newImages: newImageUrls,
+      deletedImages: deletedImagesArr,
+      // 참가자 규칙 및 환불 정책 (최상위)
+      hasParticipantRules: document.getElementById('edit-hasParticipantRules')?.checked || false,
+      refundPolicy: selectedRefundPolicy,
+      refundCustomDescription: selectedRefundPolicy === 'custom' ? customRefundDescription : undefined,
+      // 이벤트 기본 정보 (최상위 - updatedData로 묶지 않음)
       title: document.getElementById('edit-event-title').value,
       place: document.getElementById('edit-event-place').value,
       date: document.getElementById('edit-event-date').value,
@@ -731,28 +740,26 @@ async function submitEdit() {
       startTime: document.getElementById('edit-event-start-time').value,
       endTime: document.getElementById('edit-event-end-time').value,
       participation_fee: participationFeeValue,
-      contents: document.getElementById('edit-event-contents').value,
-      currentImages,
-      newImages: newImageUrls,
-      deletedImages: deletedImagesArr,
-      hasParticipantRules: document.getElementById('edit-hasParticipantRules').checked,
-      refundPolicy: selectedRefundPolicy,  // 환불 정책 추가
-      refundCustomDescription: selectedRefundPolicy === 'custom' ? customRefundDescription : undefined
+      contents: document.getElementById('edit-event-contents').value
     };
+    // ============ 데이터 구조 변경 끝 ============
 
-    console.log('이벤트 업데이트 요청', updatedData);
+    console.log('이벤트 업데이트 요청', requestData);
+    
     const response = await fetch(`/events/update-content`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ eventId, ...updatedData })
+      body: JSON.stringify(requestData)
     });
 
     if (!response.ok) {
       const errorData = await response.json();
-      throw new Error(errorData.message);
+      console.error('서버 에러 응답:', errorData);
+      throw new Error(errorData.message || '수정 중 오류가 발생했습니다.');
     }
 
-    console.log('이벤트 수정 성공');
+    const result = await response.json();
+    console.log('이벤트 수정 성공:', result);
     alert('이벤트가 성공적으로 수정되었습니다.');
     location.reload();
   } catch (error) {
