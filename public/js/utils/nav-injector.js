@@ -619,17 +619,6 @@ const AuthModule = {
       </button>
   </nav>
   `;
-  // 광고 배너 HTML 수정
-  const adBannersHTML = `
-      <div class="ad-banner-wrapper">
-          <div class="ad-banner left-banner">
-              Contenid-o              
-          </div>
-          <div class="ad-banner right-banner">
-             Contenid-o
-          </div>
-      </div>
-  `;
   
   // 인증 영역 업데이트 함수
   async function updateAuthArea() {
