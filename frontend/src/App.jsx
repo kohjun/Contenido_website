@@ -4,6 +4,7 @@ import RankingPage from './RankingPage';
 import EventDetail from './components/EventDetail';
 import ApplicationForm from './components/ApplicationForm';
 import TeamBingoSystem from './components/TeamBingoSystem';
+import PartnershipPage from './PartnershipPage'; // 추가
 
 const App = () => {
   return (
@@ -13,6 +14,7 @@ const App = () => {
         <Route path="/ranking/:id" element={<EventDetail />} />
         <Route path="/apply" element={<ApplicationForm />} />
         <Route path="/TeamBingo" element={<TeamBingoSystem />} />
+        <Route path="/partnerships" element={<PartnershipPage />} /> 
       </Routes>
     </BrowserRouter>
   );

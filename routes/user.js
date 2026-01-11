@@ -100,7 +100,7 @@ router.get('/info_database', authenticateToken, async (req, res) => {
 router.get('/participants/users', async (req, res) => {
   try {
     const users = await User.find({ isVerified: true })
-      .select('displayName name participationCount profileImage status active role gender phonenumber warningCount team department preferredActivity birthDate isTeamLeader university createdAt staffSubteam'); // staffSubteam 추가
+      .select('displayName name participationCount profileImage status active role gender phonenumber warningCount team department preferredActivity birthDate isTeamLeader university createdAt staffSubteam workMemo');
     
     const userData = users.map(user => ({
       id: user._id,
@@ -120,7 +120,8 @@ router.get('/participants/users', async (req, res) => {
       birthDate: user.birthDate,
       isTeamLeader: user.isTeamLeader,
       createdAt: user.createdAt,  // createdAt 추가
-      staffSubteam: user.staffSubteam // staffSubteam 추가
+      staffSubteam: user.staffSubteam, // staffSubteam 추가
+      workMemo: user.workMemo || ''
     }));
 
     // console.log(`${userData.length}명의 사용자 정보 반환`);
@@ -611,5 +612,60 @@ router.post('/update-team-leader/:userId', authenticateToken, authorizeRoles('ad
         res.status(500).json({ message: '팀장 상태 업데이트에 실패했습니다.' });
     }
 });
+
+// 운영진 업무 메모 수정
+router.patch('/officers/:userId/work-memo', async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const { workMemo } = req.body;
+    const currentUserId = req.session.user._id;
+    
+    // 권한 확인: 운영진 또는 관리자만 수정 가능
+    const currentUser = await User.findById(currentUserId);
+    if (!currentUser || !['officer', 'admin'].includes(currentUser.role)) {
+      return res.status(403).json({ 
+        success: false, 
+        message: '운영진만 업무 메모를 수정할 수 있습니다.' 
+      });
+    }
+    
+    // 대상 유저가 운영진인지 확인
+    const targetUser = await User.findById(userId);
+    if (!targetUser || targetUser.role !== 'officer') {
+      return res.status(404).json({ 
+        success: false, 
+        message: '운영진을 찾을 수 없습니다.' 
+      });
+    }
+    
+    // 메모 길이 검증
+    if (workMemo && workMemo.length > 500) {
+      return res.status(400).json({ 
+        success: false, 
+        message: '메모는 500자를 초과할 수 없습니다.' 
+      });
+    }
+    
+    // 업무 메모 업데이트
+    targetUser.workMemo = workMemo || '';
+    await targetUser.save();
+    
+    res.json({ 
+      success: true, 
+      message: '업무 메모가 저장되었습니다.',
+      data: {
+        workMemo: targetUser.workMemo
+      }
+    });
+    
+  } catch (error) {
+    console.error('업무 메모 수정 오류:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: '서버 오류가 발생했습니다.' 
+    });
+  }
+});
+
 
 module.exports = router;

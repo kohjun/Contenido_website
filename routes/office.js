@@ -39,7 +39,7 @@ router.get('/team-statistics',
     authorizeRoles('officer', 'admin'),
     async (req, res) => {
     try {
-        const teams = ['A-1', 'B-1', 'C-1', 'C-2'];
+        const teams = ['A', 'B', 'C', 'D'];
         const Review = require('../models/Review');
         const statistics = {};
 

@@ -77,6 +77,13 @@ const warningHistorySchema = new mongoose.Schema({
 
 const userSchema = new mongoose.Schema({
   email: { type: String, required: true, unique: true },
+  // 운영진 업무 메모 필드 추가 (officer 역할일 때 사용)
+  workMemo: {
+    type: String,
+    default: '',
+    maxlength: 500,
+    required: function() { return this.role === 'officer'; }
+  },
   createdAt: { type: Date, default: Date.now }, // 회원가입 날짜 필드 추가
   displayName: { type: String, required: true },
   profileImage: { type: String },
@@ -152,9 +159,9 @@ const userSchema = new mongoose.Schema({
   // staffTeam 세부 구분 필드 추가
   staffSubteam: {
     type: String,
-    enum: ['A-1', 'B-1', 'C-1', 'C-2'],
+    enum: ['A', 'B', 'C', 'D'],
     required: function () { return this.team === 'staffTeam'; },
-    default: 'A-1'
+    default: 'A'
   },
   // 카카오 인증 관련 필드 정리
   kakaoAccessToken: {

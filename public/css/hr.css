@@ -730,3 +730,388 @@ h1, p {
   transform: translateY(-2px);
   box-shadow: 0 2px 8px rgba(0,0,0,0.2);
 }
+/* ============ 모바일 반응형 스타일 ============ */
+@media (max-width: 768px) {
+  .container {
+    padding: 10px;
+  }
+
+  h1 {
+    font-size: 1.5rem;
+    margin-bottom: 15px;
+  }
+
+  .application-button {
+    width: 100%;
+    margin-bottom: 15px;
+    padding: 12px;
+  }
+
+  /* 안내 문구 반응형 */
+  p {
+    font-size: 11px;
+    margin: 5px 0;
+    line-height: 1.4;
+  }
+
+  /* 역할 버튼 반응형 */
+  .role-buttons {
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .role-button {
+    padding: 8px 12px;
+    font-size: 13px;
+    flex: 1;
+    min-width: calc(33.33% - 4px);
+  }
+
+  /* 검색창 반응형 */
+  .search-container {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .search-container select,
+  .search-container input {
+    width: 100%;
+  }
+
+  .search-container button {
+    width: 100%;
+  }
+
+  /* 테이블을 모바일에서 숨김 */
+  .user-table {
+    display: none !important;
+  }
+
+  /* 사용자 카드 스타일 */
+  .user-card {
+    background: white;
+    border-radius: 12px;
+    padding: 15px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+
+  .user-card-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #edf2f7;
+  }
+
+  .user-card-profile {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #e2e8f0;
+    flex-shrink: 0;
+  }
+
+  .user-card-main-info {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .user-card-name {
+    font-size: 16px;
+    font-weight: 600;
+    color: #2d3748;
+    margin-bottom: 4px;
+  }
+
+  .user-card-role {
+    display: inline-block;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 500;
+  }
+
+  .user-card-body {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .user-card-info-item {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .user-card-info-label {
+    font-size: 11px;
+    color: #718096;
+    font-weight: 500;
+  }
+
+  .user-card-info-value {
+    font-size: 13px;
+    color: #2d3748;
+    font-weight: 500;
+    word-break: break-word;
+  }
+
+  .user-card-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 12px;
+    border-top: 1px solid #edf2f7;
+    gap: 10px;
+  }
+
+  .user-card-warning {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 10px;
+    background-color: #fff5f5;
+    border: 1px solid #feb2b2;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #c53030;
+    cursor: pointer;
+  }
+
+  .user-card-warning.warning-0 {
+    background-color: #f0fff4;
+    border-color: #9ae6b4;
+    color: #22543d;
+  }
+
+  .user-card-actions {
+    display: flex;
+    gap: 6px;
+  }
+
+  .user-card-action-btn {
+    padding: 6px 12px;
+    font-size: 12px;
+    border: 1px solid #e2e8f0;
+    background: white;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+
+  .user-card-action-btn:active {
+    background-color: #edf2f7;
+  }
+
+  /* 역할 배지 색상 */
+  .role-participant {
+    background-color: #bee3f8;
+    color: #2c5282;
+  }
+
+  .role-starter {
+    background-color: #c6f6d5;
+    color: #22543d;
+  }
+
+  .role-officer {
+    background-color: #fbd38d;
+    color: #7c2d12;
+  }
+
+  .role-guest {
+    background-color: #e2e8f0;
+    color: #4a5568;
+  }
+
+  .role-admin {
+    background-color: #feb2b2;
+    color: #742a2a;
+  }
+
+  /* 참가/경고 카운터 */
+  .user-card-counters {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+  }
+
+  .counter-group {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    background: #f7fafc;
+    padding: 4px 8px;
+    border-radius: 6px;
+  }
+
+  .counter-btn {
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 4px;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 14px;
+    color: #4a5568;
+  }
+
+  .counter-btn:active {
+    background-color: #edf2f7;
+  }
+
+  .counter-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+
+  .counter-value {
+    min-width: 20px;
+    text-align: center;
+    font-weight: 600;
+    font-size: 13px;
+  }
+
+  /* 토글 스위치 */
+  .user-card-toggle {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: #718096;
+  }
+
+  /* 페이지네이션 반응형 */
+  #pagination {
+    margin-top: 20px;
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  #pagination button {
+    padding: 8px 12px;
+    font-size: 13px;
+  }
+}
+
+/* 모바일 액션 시트 */
+.mobile-action-sheet {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 2000;
+  display: flex;
+  align-items: flex-end;
+}
+
+.action-sheet-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+}
+
+.action-sheet-content {
+  position: relative;
+  background: white;
+  width: 100%;
+  border-radius: 20px 20px 0 0;
+  padding: 20px;
+  animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+.action-sheet-header {
+  font-size: 16px;
+  font-weight: 600;
+  padding: 12px;
+  text-align: center;
+  border-bottom: 1px solid #edf2f7;
+  margin-bottom: 10px;
+  color: #2d3748;
+}
+
+.action-sheet-item {
+  width: 100%;
+  padding: 16px;
+  text-align: center;
+  background: white;
+  border: none;
+  border-bottom: 1px solid #edf2f7;
+  font-size: 15px;
+  color: #2d3748;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.action-sheet-item:active {
+  background-color: #f7fafc;
+}
+
+.action-sheet-item.cancel {
+  color: #e53e3e;
+  font-weight: 600;
+  border-top: 8px solid #f7fafc;
+  border-bottom: none;
+}
+
+.action-sheet-item:last-child {
+  border-bottom: none;
+}
+
+/* 더 작은 화면 대응 */
+@media (max-width: 375px) {
+  .user-card {
+    padding: 12px;
+  }
+
+  .user-card-header {
+    gap: 10px;
+  }
+
+  .user-card-profile {
+    width: 45px;
+    height: 45px;
+  }
+
+  .user-card-name {
+    font-size: 15px;
+  }
+
+  .user-card-role {
+    font-size: 11px;
+    padding: 2px 6px;
+  }
+
+  .user-card-body {
+    gap: 8px;
+  }
+
+  .user-card-info-value {
+    font-size: 12px;
+  }
+}

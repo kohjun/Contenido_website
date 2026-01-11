@@ -103,6 +103,7 @@ app.use('/application', require('./routes/application'));
 app.use('/application-result', require('./routes/applicationResult'));
 app.use('/announcement', require('./routes/announcement'));
 app.use('/api/bingo', require('./routes/bingo'));
+app.use('/savedPlaces', require('./routes/savedPlaces'));
 
 
 // 정적 파일 서빙 설정 전에 API 라우터 추가

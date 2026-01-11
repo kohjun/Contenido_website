@@ -95,7 +95,7 @@
 }
 
 .team {
-    background: #f8f9fa;
+    background: #ffffff;
     border-radius: 8px;
     padding: 15px;
     transition: all 0.2s ease;
@@ -321,4 +321,131 @@
 
 .staff-subteam-list {
     min-height: 10px;
+}
+/* 업무 메모 섹션 */
+.work-memo-section {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid #e5e7eb;
+}
+
+.work-memo-display {
+  min-height: 40px;
+  padding: 8px;
+  background-color: #f9fafb;
+  border-radius: 6px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: #374151;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.memo-text {
+  color: #111827;
+}
+
+.memo-empty {
+  color: #9ca3af;
+  font-style: italic;
+  font-size: 12px;
+}
+
+.work-memo-edit {
+  width: 100%;
+  min-height: 80px;
+  padding: 8px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 13px;
+  font-family: inherit;
+  resize: vertical;
+  transition: border-color 0.2s;
+}
+
+.work-memo-edit:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.work-memo-actions {
+  margin-top: 6px;
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.btn-edit-memo {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  background-color: white;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  font-size: 12px;
+  color: #374151;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-edit-memo:hover {
+  background-color: #f9fafb;
+  border-color: #9ca3af;
+}
+
+.btn-edit-memo svg {
+  width: 12px;
+  height: 12px;
+}
+
+.memo-edit-buttons {
+  display: flex;
+  gap: 6px;
+}
+
+.btn-save-memo,
+.btn-cancel-memo {
+  padding: 4px 12px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-save-memo {
+  background-color: #3b82f6;
+  color: white;
+  border: none;
+}
+
+.btn-save-memo:hover {
+  background-color: #2563eb;
+}
+
+.btn-cancel-memo {
+  background-color: white;
+  color: #6b7280;
+  border: 1px solid #d1d5db;
+}
+
+.btn-cancel-memo:hover {
+  background-color: #f9fafb;
+}
+
+.hidden {
+  display: none !important;
+}
+
+/* 모바일 대응 */
+@media (max-width: 640px) {
+  .work-memo-edit {
+    font-size: 16px;
+  }
+  
+  .work-memo-actions {
+    flex-wrap: wrap;
+  }
 }

@@ -15,35 +15,8 @@
       <div class="title-container">
         <p class="subtitle"><strong><dot>리얼</dot> 버라이어티<br>연합 동아리</strong></p>
         <br><br>
-        <img src="./images/Conteindo_Image.png" width="270" height="270" alt="Content Image" style="margin-left:20px" />
+        <img src="./images/Conteindo_Image.png" width="300" height="300" class="floating-image" alt="Logo" style="margin-left:20px" />
       </div>
-      
-      <div>
-        <h2>공지사항</h2>
-        <div id="home-announcements" class="home-announcements">
-          <!-- 공지사항이 여기에 동적으로 로드됩니다 -->
-        </div>
-      </div>
-
-      <!-- 공지사항 모달 추가 -->
-      <div id="announcement-modal" class="modal">
-        <div class="modal-content">
-          <span class="close-button" onclick="closeAnnouncementModal()">&times;</span>
-          <h2 id="modal-title"></h2>
-          <div id="modal-content"></div>
-        </div>
-      </div>
-
-      <hr>
-
-      <div class="home-buttons">       
-        <!-- 새로운 합격 확인 버튼 -->
-        <button onclick="window.location.href='application-result.html'" class="result-check-button">
-          <span class="result-icon">🔍</span>
-          <span class="result-text">합격 결과 확인하기</span>
-          <span class="result-arrow">→</span>
-        </button>
-      </div>      
        
       <div>
         <button onclick="window.location.href='/TeamBingo'">🧑‍🤝‍🧑 조별 활동 🧑‍🤝‍🧑</button> 
@@ -62,50 +35,6 @@
       
     </div>
 
-    <!-- 첫 번째 팝업 내용 -->
-    <div id="popup1" class="popup">
-      <div class="popup-content">
-        <span class="close-button" onclick="closePopup('popup1')">&times;</span>
-        <div class="popup-body">
-          <!-- 팝업 내용 -->
-          <div class="popup-images">
-            <img src="./images/보드게임1.png" alt="Popup Image 1">
-            <img src="./images/보드게임2.png" alt="Popup Image 2">
-            <img src="./images/보드게임3.png" alt="Popup Image 3">
-          </div>
-        </div>
-        <div class="popup-footer">
-          <label class="dont-show-today">
-            <input type="checkbox" id="dont-show-today-1"> 오늘 하루 보지 않기
-          </label>
-          <button onclick="closePopup('popup1')">닫기</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- 두 번째 팝업 내용 -->
-    <div id="popup2" class="popup">
-      <div class="popup-content">
-        <span class="close-button" onclick="closePopup('popup2')">&times;</span>
-    
-        <div class="popup-body">
-          <!-- 팝업 내용 -->
-          <div class="popup-images">
-            <img src="./images/술집1.png" alt="Popup Image 1">
-            <img src="./images/술집2.png" alt="Popup Image 2">
-            <img src="./images/술집3.png" alt="Popup Image 3">
-          </div>
-        </div>
-        <div class="popup-footer">
-          <label class="dont-show-today">
-            <input type="checkbox" id="dont-show-today-2">
-            <span>오늘 하루 보지 않기</span>
-          </label>
-          <button onclick="closePopup('popup2')">닫기</button>
-        </div>
-      </div>
-    </div>
-    <br>
     <!-- Footer section -->
     <footer>
       <div class="footer-container">
@@ -140,58 +69,6 @@
     </footer>
       
     <script>
-      document.addEventListener('DOMContentLoaded', function() {
-      // 쿠키 체크
-      if (!getCookie('dontShowToday1')) {
-        showPopup('popup1');
-      }
-      if (!getCookie('dontShowToday2')) {
-        showPopup('popup2');
-      }
-      startImageSlider();
-      loadAnnouncements();
-    });
-
-    function showPopup(popupId) {
-      document.getElementById(popupId).style.display = 'block';
-    }
-
-    function closePopup(popupId) {
-      const popup = document.getElementById(popupId);
-      const dontShowToday = document.getElementById(`dont-show-today-${popupId === 'popup1' ? '1' : popupId === 'popup2' ? '2' : ''}`).checked;
-      
-      if (dontShowToday) {
-        // 쿠키 설정 (24시간)
-        const date = new Date();
-        date.setTime(date.getTime() + (24 * 60 * 60 * 1000));
-        document.cookie = `dontShowToday${popupId === 'popup1' ? '1' : popupId === 'popup2' ? '2' : ''}=true; expires=${date.toUTCString()}; path=/`;
-      }
-      
-      popup.style.display = 'none';
-    }
-
-    // 쿠키 가져오기 함수
-    function getCookie(name) {
-      const value = `; ${document.cookie}`;
-      const parts = value.split(`; ${name}=`);
-      if (parts.length === 2) return parts.pop().split(';').shift();
-    }
-
-    // 팝업 닫기 버튼 이벤트
-    document.querySelectorAll('.close-button').forEach(button => {
-      button.addEventListener('click', function() {
-        closePopup(button.parentElement.parentElement.id);
-      });
-    });
-
-    // 팝업 외부 클릭 시 닫기
-    document.querySelectorAll('.popup').forEach(popup => {
-      popup.addEventListener('click', function(e) {
-        if (e.target === this) {
-          closePopup(this.id);
-        }
-      });
-    });
       
     function OnEvents() {
       window.location.href = '/events.html';
@@ -201,57 +78,7 @@
       window.location.href = '/officer.html';
     }
     
-    function startImageSlider() {
-      document.querySelectorAll('.popup-images').forEach(popupImages => {
-        const images = popupImages.querySelectorAll('img');
-        let currentIndex = 0;
-
-        images[currentIndex].style.display = 'block';
-
-        setInterval(() => {
-          images[currentIndex].style.display = 'none';
-          currentIndex = (currentIndex + 1) % images.length;
-          images[currentIndex].style.display = 'block';
-        }, 3000);
-      });
-    }
-
-    function showAnnouncementModal(title, content) {
-      document.getElementById('modal-title').textContent = title;
-      document.getElementById('modal-content').textContent = content;
-      document.getElementById('announcement-modal').style.display = 'block';
-    }
-  
-    function closeAnnouncementModal() {
-      document.getElementById('announcement-modal').style.display = 'none';
-    }
-  
-    // 모달 외부 클릭 시 닫기
-    window.onclick = function(event) {
-      const modal = document.getElementById('announcement-modal');
-      if (event.target == modal) {
-        modal.style.display = 'none';
-      }
-    }
-
-    // 공지사항 로드 함수 추가
-    async function loadAnnouncements() {
-      try {
-        const response = await fetch('/announcement');
-        if (!response.ok) throw new Error('서버 오류');
-        const announcements = await response.json();
-        const container = document.getElementById('home-announcements');
-        
-        container.innerHTML = announcements.map(announcement => `
-          <p class="home-announcement ${announcement.priority}" 
-             onclick="showAnnouncementModal('${announcement.title}', '${announcement.content}')">
-            ${announcement.title}
-          </p>
-        `).join('');
-      } catch (error) {
-        console.error('공지사항 로드 실패:', error);
-      }
-    }
+    
     </script>
   </body>
   </html>

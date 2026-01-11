@@ -644,11 +644,19 @@ function displayUsers(usersToShow) {
     const userTableBody = document.getElementById('user-table-body');
     if (!userTableBody) return;
 
-    const startIndex = (currentPage - 1) * usersPerPage;
-    const endIndex = startIndex + usersPerPage;
-    const paginatedUsers = usersToShow.slice(startIndex, endIndex);
+    const isMobile = window.innerWidth <= 768;
 
-    userTableBody.innerHTML = paginatedUsers.map(user => generateUserRow(user)).join('');
+    if (isMobile) {
+        // 모바일: 카드형 레이아웃
+        renderMobileCards(usersToShow);
+    } else {
+        // 데스크톱: 테이블 레이아웃
+        const startIndex = (currentPage - 1) * usersPerPage;
+        const endIndex = startIndex + usersPerPage;
+        const paginatedUsers = usersToShow.slice(startIndex, endIndex);
+        
+        userTableBody.innerHTML = paginatedUsers.map(user => generateUserRow(user)).join('');
+    }
 
     renderPagination(usersToShow.length);
 }
@@ -753,6 +761,220 @@ function resetSearch() {
     
     refreshCurrentView();
 }
+// 모바일 카드 렌더링 함수 (새로 추가)
+function renderMobileCards(usersToShow) {
+    const userList = document.getElementById('user-list');
+    const userTableBody = document.getElementById('user-table-body');
+    
+    // 테이블 내용 비우기
+    userTableBody.innerHTML = '';
+    
+    // 기존 카드 컨테이너 제거
+    let cardsContainer = userList.querySelector('.mobile-cards-container');
+    if (cardsContainer) {
+        cardsContainer.remove();
+    }
+    
+    // 새 카드 컨테이너 생성
+    cardsContainer = document.createElement('div');
+    cardsContainer.className = 'mobile-cards-container';
+    
+    // 페이지네이션 적용
+    const startIndex = (currentPage - 1) * usersPerPage;
+    const endIndex = startIndex + usersPerPage;
+    const paginatedUsers = usersToShow.slice(startIndex, endIndex);
+    
+    // 카드 생성
+    paginatedUsers.forEach(user => {
+        const card = createUserCard(user);
+        cardsContainer.appendChild(card);
+    });
+    
+    // 테이블 앞에 카드 컨테이너 삽입
+    const table = userList.querySelector('.user-table');
+    userList.insertBefore(cardsContainer, table);
+}
+
+// 사용자 카드 생성 함수 (새로 추가)
+function createUserCard(user) {
+    if (!user) return null;
+    
+    const card = document.createElement('div');
+    card.className = 'user-card';
+    card.dataset.userId = user.id;
+    
+    // 역할/팀/성별 매핑
+    const roleMap = {
+        participant: '참가자',
+        starter: '스타터',
+        officer: '운영진',
+        guest: '게스트',
+        admin: '관리자'
+    };
+    
+    const genderMap = {
+        male: '남',
+        female: '여',
+        other: '기타'
+    };
+    
+    const roleClass = `role-${user.role}`;
+    const warningCount = user.warningCount || 0;
+    const warningClass = warningCount === 0 ? 'warning-0' : '';
+    const regularCount = user.participationCount?.regularCount || 0;
+    const teamName = getTeamNameInKorean(user.team, user.staffSubteam);
+    const secureProfileImage = user.profileImage ? user.profileImage.replace(/^http:/, 'https:') : '/images/basic_Image.png';
+    const phoneSuffix = user.phonenumber ? user.phonenumber.replace(/\D/g, '').slice(-4) : '';
+    const joinDate = user.createdAt ? new Date(user.createdAt).toLocaleDateString('ko-KR') : '-';
+    
+    card.innerHTML = `
+        <div class="user-card-header">
+            <img 
+                src="${secureProfileImage}" 
+                alt="${user.name}"
+                class="user-card-profile"
+                onerror="this.src='/images/basic_Image.png'"
+            >
+            <div class="user-card-main-info">
+                <div class="user-card-name">
+                    ${user.name || '--'}${phoneSuffix ? `(${phoneSuffix})` : ''}
+                </div>
+                <span class="user-card-role ${roleClass}">
+                    ${roleMap[user.role] || user.role}
+                </span>
+            </div>
+        </div>
+        
+        <div class="user-card-body">
+            <div class="user-card-info-item">
+                <div class="user-card-info-label">팀</div>
+                <div class="user-card-info-value">${teamName || '-'}</div>
+            </div>
+            <div class="user-card-info-item">
+                <div class="user-card-info-label">성별</div>
+                <div class="user-card-info-value">${genderMap[user.gender] || '-'}</div>
+            </div>
+            <div class="user-card-info-item">
+                <div class="user-card-info-label">대학</div>
+                <div class="user-card-info-value">${user.university || '-'}</div>
+            </div>
+            <div class="user-card-info-item">
+                <div class="user-card-info-label">가입일</div>
+                <div class="user-card-info-value">${joinDate}</div>
+            </div>
+        </div>
+        
+        <div class="user-card-footer">
+            <div class="user-card-warning ${warningClass}" onclick="showWarningHistoryModal('${user.id}', '${user.name || user.displayName}')">
+                ⚠️ 경고 ${warningCount}회
+            </div>
+            <div class="user-card-counters">
+                <div class="counter-group">
+                    <button class="counter-btn" onclick="event.stopPropagation(); updateParticipationCount('${user.id}', ${Math.max(0, regularCount - 1)})" ${regularCount <= 0 ? 'disabled' : ''}>-</button>
+                    <span class="counter-value">${regularCount}</span>
+                    <button class="counter-btn" onclick="event.stopPropagation(); updateParticipationCount('${user.id}', ${regularCount + 1})">+</button>
+                </div>
+            </div>
+            <button class="user-card-action-btn" onclick="event.stopPropagation(); showMobileActionSheet('${user.id}')">
+                관리
+            </button>
+        </div>
+        
+        <div class="user-card-toggle">
+            <label class="toggle-switch">
+                <input type="checkbox" ${user.active ? 'checked' : ''} onclick="event.stopPropagation(); toggleUserActive('${user.id}', this.checked)">
+                <span class="slider"></span>
+            </label>
+            <span>${user.active ? '활성' : '비활성'}</span>
+        </div>
+    `;
+    
+    return card;
+}
+
+// 모바일 액션 시트 표시 (새로 추가)
+function showMobileActionSheet(userId) {
+    selectedUserId = userId;
+    const user = users.find(u => u.id === userId);
+    
+    if (!user) return;
+    
+    // 기존 액션 시트 제거
+    const existingSheet = document.querySelector('.mobile-action-sheet');
+    if (existingSheet) {
+        existingSheet.remove();
+    }
+    
+    // 액션 목록 구성
+    const actions = [];
+    
+    if (user.role !== 'admin') {
+        actions.push({ label: '역할 변경', action: () => showDialog('roleChangeDialog') });
+        
+        if (user.role === 'officer') {
+            actions.push({ label: '팀 변경', action: () => showDialog('teamChangeDialog') });
+        }
+        
+        if (user.team === 'staffTeam') {
+            actions.push({ label: '스태프팀 변경', action: () => showStaffSubteamDialog() });
+        }
+    }
+    
+    actions.push(
+        { label: '경고 부여', action: () => showWarningModal(userId, user.name || user.displayName) },
+        { label: '경고 내역 보기', action: () => showWarningHistoryModal(userId, user.name || user.displayName) },
+        { label: '취소', action: () => {}, className: 'cancel' }
+    );
+    
+    // 액션 시트 생성
+    const sheet = document.createElement('div');
+    sheet.className = 'mobile-action-sheet';
+    
+    const actionsHtml = actions.map(action => {
+        const actionStr = action.action.toString();
+        const functionCall = actionStr.match(/\(\) => (.+)/)?.[1] || '';
+        
+        return `
+            <button class="action-sheet-item ${action.className || ''}" 
+                    onclick="${functionCall}; closeMobileActionSheet();">
+                ${action.label}
+            </button>
+        `;
+    }).join('');
+    
+    sheet.innerHTML = `
+        <div class="action-sheet-overlay" onclick="closeMobileActionSheet()"></div>
+        <div class="action-sheet-content">
+            <div class="action-sheet-header">
+                <strong>${user.name || user.displayName}</strong> 관리
+            </div>
+            ${actionsHtml}
+        </div>
+    `;
+    
+    document.body.appendChild(sheet);
+}
+
+// 모바일 액션 시트 닫기 (새로 추가)
+function closeMobileActionSheet() {
+    const sheet = document.querySelector('.mobile-action-sheet');
+    if (sheet) {
+        sheet.remove();
+    }
+}
+
+// 화면 크기 변경 감지 (새로 추가)
+window.addEventListener('resize', () => {
+    // 디바운싱을 위한 타이머
+    clearTimeout(window.resizeTimer);
+    window.resizeTimer = setTimeout(() => {
+        refreshCurrentView();
+    }, 250);
+});
+
+// 전역 스코프에 새 함수 할당
+window.showMobileActionSheet = showMobileActionSheet;
+window.closeMobileActionSheet = closeMobileActionSheet;
 
 // 전역 스코프에 함수 할당
 window.updateUserRole = updateUserRole;

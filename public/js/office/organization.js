@@ -141,7 +141,7 @@ class OrganizationChart {
         if (!userId) return;
 
         // 스태프팀 내 staffSubteam 이동 처리
-        const staffSubteamIds = ['staff-A1', 'staff-B1', 'staff-C1', 'staff-C2', 'staff-unknown'];
+        const staffSubteamIds = ['staff-A', 'staff-B', 'staff-C', 'staff-D', 'staff-unknown'];
         if (staffSubteamIds.includes(fromListId) && staffSubteamIds.includes(toListId)) {
             // 같은 영역 내 순서 변경만
             if (fromListId === toListId) return;
@@ -154,10 +154,10 @@ class OrganizationChart {
 
             // staffSubteam 값 추출
             let newStaffSubteam = null;
-            if (toListId === 'staff-A1') newStaffSubteam = 'A-1';
-            else if (toListId === 'staff-B1') newStaffSubteam = 'B-1';
-            else if (toListId === 'staff-C1') newStaffSubteam = 'C-1';
-            else if (toListId === 'staff-C2') newStaffSubteam = 'C-2';
+            if (toListId === 'staff-A') newStaffSubteam = 'A';
+            else if (toListId === 'staff-B') newStaffSubteam = 'B';
+            else if (toListId === 'staff-C') newStaffSubteam = 'C';
+            else if (toListId === 'staff-D') newStaffSubteam = 'D';
             else newStaffSubteam = null;
 
             const user = OrganizationChart.allUsers?.find(u => u.id === userId);
@@ -327,9 +327,53 @@ class OrganizationChart {
                     memberDiv.className = `member${user.isTeamLeader ? ' team-leader' : ''}`;
                     memberDiv.dataset.userId = user.id;
                     memberDiv.innerHTML = `
-                        <span class="name">${user.name}</span>
-                        <span class="contact">${user.phonenumber ? user.phonenumber.replace(/(\d{3})(\d{4})(\d{4})/, '$1-$2-$3') : '-'}</span>
+                        <div class="member-header">
+                            <span class="name">${user.name}</span>
+                            <span class="contact">${user.phonenumber ? user.phonenumber.replace(/(\d{3})(\d{4})(\d{4})/, '$1-$2-$3') : '-'}</span>
+                        </div>
+                        
+                        <!-- 업무 메모 섹션 -->
+                        <div class="work-memo-section">
+                            <div class="work-memo-display" id="memo-display-${user.id}">
+                                ${user.workMemo ? `<span class="memo-text">${user.workMemo}</span>` : '<span class="memo-empty">업무 메모를 작성해보세요</span>'}
+                            </div>
+                            <textarea 
+                                class="work-memo-edit hidden" 
+                                id="memo-edit-${user.id}"
+                                maxlength="500"
+                                placeholder="담당 업무, 주요 역할 등을 입력하세요..."
+                            >${user.workMemo || ''}</textarea>
+                            
+                            <div class="work-memo-actions">
+                                <button 
+                                    class="btn-edit-memo" 
+                                    onclick="OrganizationChart.editMemo('${user.id}')"
+                                >
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                                    </svg>
+                                    수정
+                                </button>
+                                <div class="memo-edit-buttons hidden" id="memo-buttons-${user.id}">
+                                    <button 
+                                        class="btn-save-memo" 
+                                        onclick="OrganizationChart.saveMemo('${user.id}')"
+                                    >
+                                        저장
+                                    </button>
+                                    <button 
+                                        class="btn-cancel-memo" 
+                                        onclick="OrganizationChart.cancelMemoEdit('${user.id}')"
+                                    >
+                                        취소
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
                     `;
+                    memberDiv.draggable = true;
+                    memberDiv.addEventListener('dragstart', this.onDragStart.bind(this));
                     teamContainer.appendChild(memberDiv);
                 });
             });
@@ -338,20 +382,20 @@ class OrganizationChart {
             const staffTeamContainer = document.getElementById('staffTeam');
             if (staffTeamContainer) {
                 staffTeamContainer.innerHTML = `
-                    <div class="staff-subteam" id="staff-A1">
-                        <div class="staff-subteam-title">A-1팀</div>
+                    <div class="staff-subteam" id="staff-A">
+                        <div class="staff-subteam-title">A팀</div>
                         <div class="staff-subteam-list"></div>
                     </div>
-                    <div class="staff-subteam" id="staff-B1">
-                        <div class="staff-subteam-title">B-1팀</div>
+                    <div class="staff-subteam" id="staff-B">
+                        <div class="staff-subteam-title">B팀</div>
                         <div class="staff-subteam-list"></div>
                     </div>
-                    <div class="staff-subteam" id="staff-C1">
-                        <div class="staff-subteam-title">C-1팀</div>
+                    <div class="staff-subteam" id="staff-C">
+                        <div class="staff-subteam-title">C팀</div>
                         <div class="staff-subteam-list"></div>
                     </div>
-                    <div class="staff-subteam" id="staff-C2">
-                        <div class="staff-subteam-title">C-2팀</div>
+                    <div class="staff-subteam" id="staff-D">
+                        <div class="staff-subteam-title">D팀</div>
                         <div class="staff-subteam-list"></div>
                     </div>
                     <div class="staff-subteam" id="staff-unknown">
@@ -362,10 +406,10 @@ class OrganizationChart {
                 // staffSubteam 값에 따라 배치
                 staffTeamUsers.forEach(user => {
                     let subteamId;
-                    if (user.staffSubteam === 'A-1') subteamId = 'staff-A1';
-                    else if (user.staffSubteam === 'B-1') subteamId = 'staff-B1';
-                    else if (user.staffSubteam === 'C-1') subteamId = 'staff-C1';
-                    else if (user.staffSubteam === 'C-2') subteamId = 'staff-C2';
+                    if (user.staffSubteam === 'A') subteamId = 'staff-A';
+                    else if (user.staffSubteam === 'B') subteamId = 'staff-B';
+                    else if (user.staffSubteam === 'C') subteamId = 'staff-C';
+                    else if (user.staffSubteam === 'D') subteamId = 'staff-D';
                     else subteamId = 'staff-unknown';
                     const subteamList = document.querySelector(`#${subteamId} .staff-subteam-list`);
                     if (subteamList) {
@@ -456,6 +500,82 @@ class OrganizationChart {
                 }
             });
         });
+    }
+    // 메모 편집 모드 시작
+    static editMemo(userId) {
+        const displayEl = document.getElementById(`memo-display-${userId}`);
+        const editEl = document.getElementById(`memo-edit-${userId}`);
+        const editBtn = document.querySelector(`[onclick="OrganizationChart.editMemo('${userId}')"]`);
+        const buttonsEl = document.getElementById(`memo-buttons-${userId}`);
+        
+        displayEl.classList.add('hidden');
+        editEl.classList.remove('hidden');
+        editBtn.classList.add('hidden');
+        buttonsEl.classList.remove('hidden');
+        
+        editEl.focus();
+        editEl.dataset.originalValue = editEl.value;
+    }
+    
+    // 메모 편집 취소
+    static cancelMemoEdit(userId) {
+        const displayEl = document.getElementById(`memo-display-${userId}`);
+        const editEl = document.getElementById(`memo-edit-${userId}`);
+        const editBtn = document.querySelector(`[onclick="OrganizationChart.editMemo('${userId}')"]`);
+        const buttonsEl = document.getElementById(`memo-buttons-${userId}`);
+        
+        editEl.value = editEl.dataset.originalValue || '';
+        
+        displayEl.classList.remove('hidden');
+        editEl.classList.add('hidden');
+        editBtn.classList.remove('hidden');
+        buttonsEl.classList.add('hidden');
+    }
+    
+    // 메모 저장
+    static async saveMemo(userId) {
+        const editEl = document.getElementById(`memo-edit-${userId}`);
+        const displayEl = document.getElementById(`memo-display-${userId}`);
+        const workMemo = editEl.value.trim();
+        
+        try {
+            const response = await fetch(`/user/officers/${userId}/work-memo`, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ workMemo })
+            });
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                // UI 업데이트
+                if (workMemo) {
+                    displayEl.innerHTML = `<span class="memo-text">${workMemo}</span>`;
+                } else {
+                    displayEl.innerHTML = '<span class="memo-empty">업무 메모를 작성해보세요</span>';
+                }
+                
+                // 편집 모드 종료
+                this.cancelMemoEdit(userId);
+                
+                // allUsers 데이터도 업데이트
+                const user = this.allUsers?.find(u => u.id === userId);
+                if (user) {
+                    user.workMemo = workMemo;
+                }
+                
+                alert('업무 메모가 저장되었습니다.');
+                
+            } else {
+                alert(result.message || '저장 실패');
+            }
+            
+        } catch (error) {
+            console.error('메모 저장 오류:', error);
+            alert('네트워크 오류가 발생했습니다.');
+        }
     }
 }
 

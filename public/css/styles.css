@@ -1993,11 +1993,20 @@ tr:hover {
     animation: star-pop 0.3s ease;
   }
   
-  @keyframes star-pop {
-    0% { transform: scale(1); }
-    50% { transform: scale(1.2); }
-    100% { transform: scale(1); }
+
+  @keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
   }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+/* 이미지에 애니메이션 적용 */
+.floating-image {
+  animation: float 3s ease-in-out infinite;
+}
   
   /* 댓글 컨테이너 */
   .comment-container {

@@ -119,7 +119,7 @@ async function fetchUserInfo() {
     updateElement('user-createdAt', `가입일 : ${new Date(data.createdAt).toLocaleDateString()||'-'}`);
 
     // 활동 정보 업데이트
-    updateElement('user-active', `활성상태 : ${data.active ? '✅활동 , *동아리 부원임을 인증하는 마크입니다.*'  : '❌비활동 , *동아리 부원이 아님을 인증하는 마크입니다.*'}`);
+    updateElement('user-active', `활성상태 : ${data.active ? '✅활동 , * CONTENIDO 동아리 부원임을 인증하는 마크.*'  : '❌비활동 , *비활동부원 또는 게스트*'}`);
     updateElement('user-warningcount', `경고 횟수 : ${data.warningCount || 0}`);
     updateElement('user-totalcount', `총 참가 횟수 : ${data.participationCount?.totalCount || 0}`);
     updateElement('user-regularcount', `정기 참가 횟수 : ${data.participationCount?.regularCount || 0}`);
