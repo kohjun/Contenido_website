@@ -160,20 +160,10 @@ const userSchema = new mongoose.Schema({
   // staffTeam 세부 구분 필드 추가
   staffSubteam: {
     type: String,
-    enum: ['A', 'B', 'C', 'D'],
-    default: null,
-    required: false,
-    validate: {
-        validator: function(v) {
-            if (this.team !== 'staffTeam') {
-                return v === null || v === undefined || v === '';
-            }
-            return ['A', 'B', 'C', 'D'].includes(v) || v === null || v === '';
-        },
-        message: 'staffSubteam은 스태프팀 소속일 때만 설정할 수 있습니다.'
-        }
+    enum: ['A', 'B', 'C', 'D', ''],  // 빈 문자열 추가!
+    default: '',
+    required: false
   },
-  
   // 카카오 인증 관련 필드 정리
   kakaoAccessToken: {
     type: String,
