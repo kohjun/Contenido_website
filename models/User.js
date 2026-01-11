@@ -160,7 +160,7 @@ const userSchema = new mongoose.Schema({
   staffSubteam: {
     type: String,
     enum: ['A', 'B', 'C', 'D', ''],  // 빈 문자열 추가!
-    default: '',
+    default: null,
     required: false
   },
   // 카카오 인증 관련 필드 정리

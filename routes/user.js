@@ -613,12 +613,14 @@ router.post('/update-team-leader/:userId', authenticateToken, authorizeRoles('ad
     }
 });
 
-// 운영진 업무 메모 수정
-router.patch('/officers/:userId/work-memo', async (req, res) => {
+// 운영진 업무 메모 수정 - authenticateToken 추가
+router.patch('/officers/:userId/work-memo', authenticateToken, async (req, res) => {
   try {
     const { userId } = req.params;
     const { workMemo } = req.body;
-    const currentUserId = req.session.user._id;
+    
+    // ============ 수정: req.user 사용 (session 대신) ============
+    const currentUserId = req.user.id;  // req.user는 authenticateToken에서 설정됨
     
     // 권한 확인: 운영진 또는 관리자만 수정 가능
     const currentUser = await User.findById(currentUserId);
@@ -631,10 +633,19 @@ router.patch('/officers/:userId/work-memo', async (req, res) => {
     
     // 대상 유저가 운영진인지 확인
     const targetUser = await User.findById(userId);
-    if (!targetUser || targetUser.role !== 'officer') {
+    if (!targetUser) {
       return res.status(404).json({ 
         success: false, 
-        message: '운영진을 찾을 수 없습니다.' 
+        message: '사용자를 찾을 수 없습니다.' 
+      });
+    }
+    
+    // ============ 수정: officer가 아니어도 메모 저장 가능하도록 ============
+    // (조직도에서 officer만 표시되므로 실제로는 officer만 들어옴)
+    if (targetUser.role !== 'officer') {
+      return res.status(400).json({ 
+        success: false, 
+        message: '운영진만 업무 메모를 설정할 수 있습니다.' 
       });
     }
     
@@ -648,6 +659,13 @@ router.patch('/officers/:userId/work-memo', async (req, res) => {
     
     // 업무 메모 업데이트
     targetUser.workMemo = workMemo || '';
+    
+    // ============ 추가: validation 문제 방지 ============
+    // officer가 아닌데 workMemo가 설정되는 것 방지
+    if (targetUser.role !== 'officer') {
+      targetUser.workMemo = undefined;
+    }
+    
     await targetUser.save();
     
     res.json({ 
@@ -660,9 +678,17 @@ router.patch('/officers/:userId/work-memo', async (req, res) => {
     
   } catch (error) {
     console.error('업무 메모 수정 오류:', error);
+    console.error('Error stack:', error.stack);
+    
+    // Validation 에러 상세 정보
+    if (error.name === 'ValidationError') {
+      console.error('Validation errors:', error.errors);
+    }
+    
     res.status(500).json({ 
       success: false, 
-      message: '서버 오류가 발생했습니다.' 
+      message: '서버 오류가 발생했습니다.',
+      error: error.message
     });
   }
 });
