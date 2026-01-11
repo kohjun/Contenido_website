@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { MapPin, Phone, Calendar, Plus, X } from 'lucide-react';
-import '../css/PartnershipPage.css';
+import '../PartnershipPage.css';
 
 // 제휴 추가 모달 컴포넌트
 const AddPartnerModal = ({ isOpen, onClose, onAdd }) => {
