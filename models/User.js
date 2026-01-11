@@ -156,13 +156,24 @@ const userSchema = new mongoose.Schema({
   participatedEvents: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Event' }],
   reviews: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Review' }],
   application: applicationSchema,
+
   // staffTeam 세부 구분 필드 추가
   staffSubteam: {
     type: String,
     enum: ['A', 'B', 'C', 'D'],
-    required: function () { return this.team === 'staffTeam'; },
-    default: 'A'
+    default: null,
+    required: false,
+    validate: {
+        validator: function(v) {
+            if (this.team !== 'staffTeam') {
+                return v === null || v === undefined || v === '';
+            }
+            return ['A', 'B', 'C', 'D'].includes(v) || v === null || v === '';
+        },
+        message: 'staffSubteam은 스태프팀 소속일 때만 설정할 수 있습니다.'
+        }
   },
+  
   // 카카오 인증 관련 필드 정리
   kakaoAccessToken: {
     type: String,
