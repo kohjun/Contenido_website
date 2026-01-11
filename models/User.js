@@ -81,8 +81,7 @@ const userSchema = new mongoose.Schema({
   workMemo: {
     type: String,
     default: '',
-    maxlength: 500,
-    required: function() { return this.role === 'officer'; }
+    maxlength: 500
   },
   createdAt: { type: Date, default: Date.now }, // 회원가입 날짜 필드 추가
   displayName: { type: String, required: true },
