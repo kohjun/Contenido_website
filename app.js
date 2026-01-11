@@ -175,6 +175,7 @@ if (fs.existsSync(reactBuildPath)) {
             req.path.startsWith('/user') || 
             req.path.startsWith('/reviews') ||
             req.path.startsWith('/saved-places') ||
+            req.path.startsWith('/savedPlaces') || 
             req.path.startsWith('/uploads')) {
             return next();
         }
@@ -203,6 +204,7 @@ app.get('*', (req, res, next) => {
         req.path.startsWith('/user') || 
         req.path.startsWith('/reviews') ||
         req.path.startsWith('/saved-places') ||
+        req.path.startsWith('/savedPlaces') ||
         req.path.startsWith('/uploads')) {
         return next();
     }
