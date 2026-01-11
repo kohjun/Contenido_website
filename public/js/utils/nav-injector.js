@@ -585,7 +585,7 @@ const AuthModule = {
               <a href="/apply"><h3>신입부원 지원하기</h3></a>
               <a href="/rules.html"><h3>동아리회칙 및  메뉴얼</h3></a>
               <a href="" onclick="alert('추후 확장 예정입니다!')"><h3>회비내역(예정)</h3></a>
-              <a href=""><h3>협찬 및 제휴</h3></a>
+              <a href="/partnerships"><h3>협찬 및 제휴</h3></a>
           </div>
       </div>
   </aside>
