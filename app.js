@@ -99,7 +99,7 @@ app.use('/events', require('./routes/events'));
 app.use('/user', require('./routes/user'));
 app.use('/reviews', require('./routes/reviews'));
 app.use('/application', require('./routes/application'));
-app.use('/savedPlaces', require('./routes/SavedPlaces'));
+app.use('/savedPlaces', require('./routes/savedPlaces'));
 app.use('/application-result', require('./routes/applicationResult'));
 app.use('/announcement', require('./routes/announcement'));
 app.use('/api/bingo', require('./routes/bingo'));
