@@ -173,7 +173,7 @@ if (fs.existsSync(reactBuildPath)) {
             req.path.startsWith('/events') || 
             req.path.startsWith('/user') || 
             req.path.startsWith('/reviews') ||
-            req.path.startsWith('/SavedPlaces') ||  // 추가
+            req.path.startsWith('/savedPlaces') ||  // 추가
             req.path.startsWith('/application') ||
             req.path.startsWith('/announcement') ||
             req.path.startsWith('/api/') ||
