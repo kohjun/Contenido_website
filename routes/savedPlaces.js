@@ -1,14 +1,70 @@
 const express = require('express');
 const router = express.Router();
 const SavedPlace = require('../models/SavedPlace');
+const User = require('../models/User');
 const authenticateToken = require('../middleware/authMiddleware');
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
 
-// 모든 저장된 장소 조회
+// ========== 이미지 업로드 설정 ==========
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    const uploadDir = 'public/uploads/partnerships';
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir, { recursive: true });
+    }
+    cb(null, uploadDir);
+  },
+  filename: (req, file, cb) => {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    cb(null, 'partnership-' + uniqueSuffix + path.extname(file.originalname));
+  }
+});
+
+const upload = multer({
+  storage: storage,
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
+  fileFilter: (req, file, cb) => {
+    const allowedTypes = /jpeg|jpg|png|gif|webp/;
+    const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
+    const mimetype = allowedTypes.test(file.mimetype);
+    
+    if (mimetype && extname) {
+      return cb(null, true);
+    } else {
+      cb(new Error('이미지 파일만 업로드 가능합니다.'));
+    }
+  }
+});
+
+// ========== 권한 체크 미들웨어 ==========
+const checkPartnershipPermission = async (req, res, next) => {
+  try {
+    const user = await User.findById(req.user.id);
+    
+    if (!user) {
+      return res.status(404).json({ message: '사용자를 찾을 수 없습니다.' });
+    }
+
+    // admin이거나 cooperationTeam인 경우만 허용
+    if (user.role === 'admin' || user.team === 'cooperationTeam') {
+      return next();
+    }
+
+    return res.status(403).json({ 
+      message: '제휴 관리 권한이 없습니다. (대외협력팀 또는 관리자만 가능)' 
+    });
+  } catch (error) {
+    console.error('권한 확인 중 오류:', error);
+    return res.status(500).json({ message: '서버 오류가 발생했습니다.' });
+  }
+};
+
+// ========== 모든 저장된 장소 조회 ==========
 router.get('/', authenticateToken, async (req, res) => {
   try {
-    // Content-Type 헤더 명시적 설정
     res.setHeader('Content-Type', 'application/json');
-
     const places = await SavedPlace.find().sort('-createdAt');
     res.json(places);
   } catch (error) {
@@ -20,10 +76,25 @@ router.get('/', authenticateToken, async (req, res) => {
   }
 });
 
+// ========== 현재 사용자 권한 확인 API ==========
+router.get('/check-permission', authenticateToken, async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id);
+    const hasPermission = user.role === 'admin' || user.team === 'cooperationTeam';
+    
+    res.json({ 
+      hasPermission,
+      role: user.role,
+      team: user.team 
+    });
+  } catch (error) {
+    console.error('Error checking permission:', error);
+    res.status(500).json({ message: '권한 확인 중 오류가 발생했습니다.' });
+  }
+});
 
-
-// 새로운 장소 저장
-router.post('/', authenticateToken, async (req, res) => {
+// ========== 새로운 장소 저장 (권한 필요) ==========
+router.post('/', authenticateToken, checkPartnershipPermission, upload.single('image'), async (req, res) => {
   try {
     res.setHeader('Content-Type', 'application/json');
 
@@ -38,14 +109,22 @@ router.post('/', authenticateToken, async (req, res) => {
       latitude,
       capacity,
       facilities,
-      memo
+      memo,
+      discountRate,
+      partnershipDate
     } = req.body;
 
     // 필수 필드 검증
-    if (!placeId || !placeName || !addressName || !longitude || !latitude|| !capacity || !facilities) {
+    if (!placeId || !placeName || !addressName || !longitude || !latitude || !capacity) {
       return res.status(400).json({ 
         message: '필수 정보가 누락되었습니다.' 
       });
+    }
+
+    // 이미지 URL 처리
+    let imageUrl = '/images/placeholder.png';
+    if (req.file) {
+      imageUrl = `/uploads/partnerships/${req.file.filename}`;
     }
 
     const savedPlace = new SavedPlace({
@@ -57,11 +136,14 @@ router.post('/', authenticateToken, async (req, res) => {
       category,
       location: {
         type: 'Point',
-        coordinates: [longitude, latitude]
+        coordinates: [parseFloat(longitude), parseFloat(latitude)]
       },
       capacity,
-      facilities,
+      facilities: Array.isArray(facilities) ? facilities : JSON.parse(facilities || '[]'),
       memo,
+      discountRate: discountRate || '',
+      partnershipDate: partnershipDate || new Date(),
+      imageUrl,
       creator: req.user.id
     });
 
@@ -79,28 +161,8 @@ router.post('/', authenticateToken, async (req, res) => {
   }
 });
 
-
-// 메모 업데이트 라우트 추가
-router.put('/:id/memo', async (req, res) => {
-  try {
-      const { memo } = req.body;
-      const place = await SavedPlace.findById(req.params.id);
-      
-      if (!place) {
-          return res.status(404).json({ message: '장소를 찾을 수 없습니다.' });
-      }
-
-      place.memo = memo;
-      await place.save();
-
-      res.json({ message: '메모가 업데이트되었습니다.' });
-  } catch (error) {
-      console.error('Error updating memo:', error);
-      res.status(500).json({ message: '메모 업데이트 중 오류가 발생했습니다.' });
-  }
-});
-// 장소 삭제
-router.delete('/:id', authenticateToken, async (req, res) => {
+// ========== 장소 삭제 (권한 필요) ==========
+router.delete('/:id', authenticateToken, checkPartnershipPermission, async (req, res) => {
   try {
     res.setHeader('Content-Type', 'application/json');
 
@@ -111,11 +173,12 @@ router.delete('/:id', authenticateToken, async (req, res) => {
       });
     }
 
-    // 삭제 권한 확인 (생성자만 삭제 가능)
-    if (place.creator && place.creator.toString() !== req.user.id) {
-      return res.status(403).json({ 
-        message: '이 장소를 삭제할 권한이 없습니다.' 
-      });
+    // 이미지 파일 삭제
+    if (place.imageUrl && place.imageUrl !== '/images/placeholder.png') {
+      const imagePath = path.join(__dirname, '../public', place.imageUrl);
+      if (fs.existsSync(imagePath)) {
+        fs.unlinkSync(imagePath);
+      }
     }
 
     await place.deleteOne();
@@ -129,11 +192,10 @@ router.delete('/:id', authenticateToken, async (req, res) => {
   }
 });
 
-// 특정 장소 정보 조회
+// ========== 특정 장소 정보 조회 ==========
 router.get('/:id', authenticateToken, async (req, res) => {
   try {
     res.setHeader('Content-Type', 'application/json');
-
     const place = await SavedPlace.findById(req.params.id);
     if (!place) {
       return res.status(404).json({ 

@@ -16,10 +16,24 @@ const savedPlaceSchema = new mongoose.Schema({
   roadAddressName: String,
   phoneNumber: String,
   category: String,
-  memo: { // 메모 필드 추가
+  memo: {
     type: String,
     default: ''
   },
+  // ========== 새로 추가 ==========
+  discountRate: {
+    type: String,  // "10%", "20%" 등
+    default: ''
+  },
+  partnershipDate: {
+    type: Date,
+    default: Date.now
+  },
+  imageUrl: {
+    type: String,
+    default: '/images/placeholder.png'
+  },
+  // ========== 기존 필드 ==========
   location: {
     type: {
       type: String,
@@ -27,7 +41,7 @@ const savedPlaceSchema = new mongoose.Schema({
       default: 'Point'
     },
     coordinates: {
-      type: [Number],  // [longitude, latitude]
+      type: [Number],
       required: true
     }
   },
