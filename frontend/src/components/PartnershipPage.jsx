@@ -1,6 +1,541 @@
 import React, { useState, useEffect } from 'react';
 import { MapPin, Phone, Calendar, Plus, X } from 'lucide-react';
-import '../PartnershipPage.css';
+
+// 스타일 정의
+const styles = `
+  .partnership-page {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 40px 20px;
+    background: #f8f9fa;
+    min-height: 100vh;
+  }
+
+  .page-header {
+    text-align: center;
+    margin-bottom: 48px;
+  }
+
+  .page-header h1 {
+    font-size: 2.5rem;
+    font-weight: 800;
+    color: #1a1a1a;
+    margin-bottom: 12px;
+  }
+
+  .page-subtitle {
+    font-size: 1.1rem;
+    color: #666;
+  }
+
+  .filter-section {
+    background: white;
+    padding: 24px;
+    border-radius: 16px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    margin-bottom: 32px;
+  }
+
+  .filter-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+
+  .category-filters {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .filter-btn {
+    padding: 10px 24px;
+    border: 2px solid #e5e7eb;
+    background: white;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    color: #666;
+  }
+
+  .filter-btn:hover {
+    border-color: #0a84fe;
+    color: #0a84fe;
+  }
+
+  .filter-btn.active {
+    background: #0a84fe;
+    border-color: #0a84fe;
+    color: white;
+  }
+
+  .btn-add-partner {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    background: #0a84fe;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .btn-add-partner:hover {
+    background: #0066cc;
+    transform: translateY(-2px);
+  }
+
+  .search-box {
+    position: relative;
+  }
+
+  .search-box input {
+    width: 100%;
+    padding: 12px 40px 12px 16px;
+    border: 2px solid #e5e7eb;
+    border-radius: 8px;
+    font-size: 0.95rem;
+  }
+
+  .search-box input:focus {
+    outline: none;
+    border-color: #0a84fe;
+  }
+
+  .search-icon {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    pointer-events: none;
+  }
+
+  .partners-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: 24px;
+  }
+
+  .partnership-card {
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+    transition: transform 0.2s, box-shadow 0.2s;
+    position: relative;
+  }
+
+  .partnership-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+  }
+
+  .category-ribbon {
+    position: absolute;
+    top: 0;
+    right: 20px;
+    z-index: 10;
+  }
+
+  .category-ribbon .relative {
+    position: relative;
+  }
+
+  .fill-gray {
+    fill: #2d3748;
+  }
+
+  .category-text {
+    position: absolute;
+    top: 12px;
+    left: 50%;
+    transform: translateX(-50%);
+    color: white;
+    font-size: 0.8rem;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+
+  .card-image {
+    width: 100%;
+    height: 200px;
+    overflow: hidden;
+    background: #f0f0f0;
+  }
+
+  .card-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .card-content {
+    padding: 20px;
+  }
+
+  .card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 12px;
+  }
+
+  .partner-name {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: #1a1a1a;
+    margin: 0;
+  }
+
+  .btn-delete {
+    padding: 4px;
+    background: #fee;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    color: #dc2626;
+    transition: all 0.2s;
+  }
+
+  .btn-delete:hover {
+    background: #fcc;
+  }
+
+  .partnership-date {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.85rem;
+    color: #666;
+    margin-bottom: 16px;
+  }
+
+  .partnership-date .icon {
+    width: 16px;
+    height: 16px;
+  }
+
+  .info-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+
+  .info-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.9rem;
+    color: #555;
+  }
+
+  .info-item .icon {
+    width: 18px;
+    height: 18px;
+    color: #0a84fe;
+  }
+
+  .info-icon {
+    font-size: 1.1rem;
+  }
+
+  .info-text {
+    flex: 1;
+  }
+
+  .partner-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 16px;
+  }
+
+  .tag {
+    padding: 4px 10px;
+    background: #f0f0f0;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    color: #555;
+  }
+
+  .benefits-section {
+    margin-bottom: 16px;
+    padding: 12px;
+    background: #f8f9fa;
+    border-radius: 8px;
+  }
+
+  .benefits-section h4 {
+    font-size: 0.9rem;
+    margin-bottom: 8px;
+    color: #333;
+  }
+
+  .benefits-section ul {
+    margin: 0;
+    padding-left: 20px;
+  }
+
+  .benefits-section li {
+    font-size: 0.85rem;
+    color: #666;
+    line-height: 1.6;
+  }
+
+  .card-actions {
+    display: flex;
+    gap: 8px;
+  }
+
+  .btn-action {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 10px;
+    border: none;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .btn-location {
+    background: #0a84fe;
+    color: white;
+  }
+
+  .btn-location:hover {
+    background: #0066cc;
+  }
+
+  .btn-contact {
+    background: #10b981;
+    color: white;
+  }
+
+  .btn-contact:hover {
+    background: #059669;
+  }
+
+  .btn-icon {
+    width: 18px;
+    height: 18px;
+  }
+
+  .modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: 20px;
+  }
+
+  .modal-content {
+    background: white;
+    border-radius: 16px;
+    width: 100%;
+    max-width: 600px;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+
+  .modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 24px;
+    border-bottom: 1px solid #e5e7eb;
+  }
+
+  .modal-header h2 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin: 0;
+  }
+
+  .btn-close {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: #999;
+    padding: 0;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .btn-close:hover {
+    color: #333;
+  }
+
+  .modal-body {
+    padding: 24px;
+  }
+
+  .form-group {
+    margin-bottom: 20px;
+  }
+
+  .form-group label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: #333;
+  }
+
+  .form-group input,
+  .form-group select,
+  .form-group textarea {
+    width: 100%;
+    padding: 10px 12px;
+    border: 2px solid #e5e7eb;
+    border-radius: 8px;
+    font-size: 0.95rem;
+  }
+
+  .form-group input:focus,
+  .form-group select:focus,
+  .form-group textarea:focus {
+    outline: none;
+    border-color: #0a84fe;
+  }
+
+  .facilities-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+
+  .facility-checkbox {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    padding: 6px;
+    border-radius: 4px;
+    transition: background 0.2s;
+  }
+
+  .facility-checkbox:hover {
+    background: #f8f9fa;
+  }
+
+  .facility-checkbox input {
+    width: auto;
+  }
+
+  .modal-actions {
+    display: flex;
+    gap: 12px;
+    padding: 24px;
+    border-top: 1px solid #e5e7eb;
+  }
+
+  .btn-cancel,
+  .btn-submit {
+    flex: 1;
+    padding: 12px;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .btn-cancel {
+    background: #f3f4f6;
+    color: #666;
+  }
+
+  .btn-cancel:hover {
+    background: #e5e7eb;
+  }
+
+  .btn-submit {
+    background: #0a84fe;
+    color: white;
+  }
+
+  .btn-submit:hover {
+    background: #0066cc;
+  }
+
+  .loading-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 60vh;
+    gap: 16px;
+  }
+
+  .loading-spinner {
+    width: 48px;
+    height: 48px;
+    border: 4px solid #f3f4f6;
+    border-top-color: #0a84fe;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+  }
+
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+
+  .no-results {
+    text-align: center;
+    padding: 60px 20px;
+    color: #999;
+  }
+
+  @media (max-width: 768px) {
+    .page-header h1 {
+      font-size: 2rem;
+    }
+
+    .filter-header {
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    .category-filters {
+      justify-content: center;
+    }
+
+    .partners-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .facilities-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .card-actions {
+      flex-direction: column;
+    }
+  }
+`;
 
 // 제휴 추가 모달 컴포넌트
 const AddPartnerModal = ({ isOpen, onClose, onAdd }) => {
@@ -99,94 +634,94 @@ const AddPartnerModal = ({ isOpen, onClose, onAdd }) => {
       <div className="modal-content" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
           <h2>제휴 추가하기</h2>
-          <button className="modal-close" onClick={onClose}>
+          <button className="btn-close" onClick={onClose}>
             <X size={24} />
           </button>
         </div>
         
-        <form onSubmit={handleSubmit} className="modal-form">
-          <div className="form-group">
-            <label>장소명 *</label>
-            <input
-              type="text"
-              value={formData.placeName}
-              onChange={(e) => setFormData({...formData, placeName: e.target.value})}
-              placeholder="예) 카페 콘텐트"
-              required
-            />
-          </div>
+        <form onSubmit={handleSubmit}>
+          <div className="modal-body">
+            <div className="form-group">
+              <label>장소명 *</label>
+              <input
+                type="text"
+                value={formData.placeName}
+                onChange={(e) => setFormData({...formData, placeName: e.target.value})}
+                placeholder="예: 카페 콘텐츠"
+                required
+              />
+            </div>
 
-          <div className="form-group">
-            <label>카테고리 *</label>
-            <select
-              value={formData.category}
-              onChange={(e) => setFormData({...formData, category: e.target.value})}
-              required
-            >
-              {categories.map(cat => (
-                <option key={cat} value={cat}>{cat}</option>
-              ))}
-            </select>
-          </div>
+            <div className="form-group">
+              <label>카테고리</label>
+              <select
+                value={formData.category}
+                onChange={(e) => setFormData({...formData, category: e.target.value})}
+              >
+                {categories.map(cat => (
+                  <option key={cat} value={cat}>{cat}</option>
+                ))}
+              </select>
+            </div>
 
-          <div className="form-group">
-            <label>주소 *</label>
-            <input
-              type="text"
-              value={formData.addressName}
-              onChange={(e) => setFormData({...formData, addressName: e.target.value})}
-              placeholder="예) 서울시 강남구 역삼동 123-45"
-              required
-            />
-          </div>
+            <div className="form-group">
+              <label>주소 *</label>
+              <input
+                type="text"
+                value={formData.addressName}
+                onChange={(e) => setFormData({...formData, addressName: e.target.value})}
+                placeholder="예: 서울시 강남구 테헤란로 123"
+                required
+              />
+            </div>
 
-          <div className="form-group">
-            <label>전화번호 *</label>
-            <input
-              type="tel"
-              value={formData.phoneNumber}
-              onChange={(e) => setFormData({...formData, phoneNumber: e.target.value})}
-              placeholder="예) 02-1234-5678"
-              required
-            />
-          </div>
+            <div className="form-group">
+              <label>연락처 *</label>
+              <input
+                type="tel"
+                value={formData.phoneNumber}
+                onChange={(e) => setFormData({...formData, phoneNumber: e.target.value})}
+                placeholder="예: 02-1234-5678"
+                required
+              />
+            </div>
 
-          <div className="form-group">
-            <label>수용 인원 *</label>
-            <select
-              value={formData.capacity}
-              onChange={(e) => setFormData({...formData, capacity: e.target.value})}
-              required
-            >
-              {capacityOptions.map(cap => (
-                <option key={cap} value={cap}>{cap}명</option>
-              ))}
-            </select>
-          </div>
+            <div className="form-group">
+              <label>수용 인원</label>
+              <select
+                value={formData.capacity}
+                onChange={(e) => setFormData({...formData, capacity: e.target.value})}
+              >
+                {capacityOptions.map(cap => (
+                  <option key={cap} value={cap}>{cap}명</option>
+                ))}
+              </select>
+            </div>
 
-          <div className="form-group">
-            <label>제휴 혜택 및 메모</label>
-            <textarea
-              value={formData.memo}
-              onChange={(e) => setFormData({...formData, memo: e.target.value})}
-              placeholder="제휴 혜택, 특이사항 등을 입력하세요..."
-              rows="4"
-            />
-          </div>
+            <div className="form-group">
+              <label>제휴 혜택</label>
+              <textarea
+                value={formData.memo}
+                onChange={(e) => setFormData({...formData, memo: e.target.value})}
+                placeholder="한 줄당 하나의 혜택을 입력하세요&#10;예:&#10;10% 할인&#10;웰컴 드링크 제공"
+                rows="4"
+              />
+            </div>
 
-          <div className="form-group">
-            <label>편의시설</label>
-            <div className="facilities-grid">
-              {facilitiesOptions.map(facility => (
-                <label key={facility} className="facility-checkbox">
-                  <input
-                    type="checkbox"
-                    checked={formData.facilities.includes(facility)}
-                    onChange={() => handleFacilityToggle(facility)}
-                  />
-                  <span>{facility}</span>
-                </label>
-              ))}
+            <div className="form-group">
+              <label>편의시설</label>
+              <div className="facilities-grid">
+                {facilitiesOptions.map(facility => (
+                  <label key={facility} className="facility-checkbox">
+                    <input
+                      type="checkbox"
+                      checked={formData.facilities.includes(facility)}
+                      onChange={() => handleFacilityToggle(facility)}
+                    />
+                    <span>{facility}</span>
+                  </label>
+                ))}
+              </div>
             </div>
           </div>
 
@@ -422,75 +957,81 @@ const PartnershipPage = () => {
 
   if (loading) {
     return (
-      <div className="loading-container">
-        <div className="loading-spinner"></div>
-        <p>로딩 중...</p>
-      </div>
+      <>
+        <style>{styles}</style>
+        <div className="loading-container">
+          <div className="loading-spinner"></div>
+          <p>로딩 중...</p>
+        </div>
+      </>
     );
   }
 
   return (
-    <div className="partnership-page">
-      <div className="page-header">
-        <h1>제휴 파트너</h1>
-        <p className="page-subtitle">
-          CONTENIDO와 함께하는 {partners.length}개의 파트너
-        </p>
-      </div>
+    <>
+      <style>{styles}</style>
+      <div className="partnership-page">
+        <div className="page-header">
+          <h1>제휴 파트너</h1>
+          <p className="page-subtitle">
+            CONTENIDO와 함께하는 {partners.length}개의 파트너
+          </p>
+        </div>
 
-      <div className="filter-section">
-        <div className="filter-header">
-          <div className="category-filters">
-            {categories.map(category => (
-              <button
-                key={category}
-                className={`filter-btn ${selectedCategory === category ? 'active' : ''}`}
-                onClick={() => setSelectedCategory(category)}
-              >
-                {category === 'all' ? '전체' : category}
-              </button>
-            ))}
+        <div className="filter-section">
+          <div className="filter-header">
+            <div className="category-filters">
+              {categories.map(category => (
+                <button
+                  key={category}
+                  className={`filter-btn ${selectedCategory === category ? 'active' : ''}`}
+                  onClick={() => setSelectedCategory(category)}
+                >
+                  {category === 'all' ? '전체' : category}
+                </button>
+              ))}
+            </div>
+            
+            <button className="btn-add-partner" onClick={() => setIsModalOpen(true)}>
+              <Plus size={20} />
+              제휴 추가하기
+            </button>
           </div>
-          
-          <button className="btn-add-partner" onClick={() => setIsModalOpen(true)}>
-            <Plus size={20} />
-            제휴 추가하기
-          </button>
-        </div>
 
-        <div className="search-box">
-          <input
-            type="text"
-            placeholder="파트너명, 위치 검색..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-          <span className="search-icon">🔍</span>
-        </div>
-      </div>
-
-      <div className="partners-grid">
-        {filteredPartners.length > 0 ? (
-          filteredPartners.map(partner => (
-            <PartnershipCard 
-              key={partner._id} 
-              partner={partner}
-              onDelete={handleDeletePartner}
+          <div className="search-box">
+            <input
+              type="text"
+              placeholder="파트너명, 위치 검색..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
             />
-          ))
-        ) : (
-          <div className="no-results">
-            <p>검색 결과가 없습니다.</p>
+            <span className="search-icon">🔍</span>
           </div>
-        )}
-      </div>
+        </div>
 
-      <AddPartnerModal 
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        onAdd={handleAddPartner}
-      />
-    </div>
+        <div className="partners-grid">
+          {filteredPartners.length > 0 ? (
+            filteredPartners.map(partner => (
+              <PartnershipCard 
+                key={partner._id} 
+                partner={partner}
+                onDelete={handleDeletePartner}
+              />
+            ))
+          ) : (
+            <div className="no-results">
+              <p>검색 결과가 없습니다.</p>
+            </div>
+          )}
+        </div>
+
+        <AddPartnerModal 
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          onAdd={handleAddPartner}
+        />
+      </div>
+    </>
   );
 };
 

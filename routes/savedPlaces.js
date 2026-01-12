@@ -38,6 +38,7 @@ router.post('/', authenticateToken, async (req, res) => {
       latitude,
       capacity,
       facilities,
+      memo
     } = req.body;
 
     // 필수 필드 검증
@@ -60,6 +61,7 @@ router.post('/', authenticateToken, async (req, res) => {
       },
       capacity,
       facilities,
+      memo,
       creator: req.user.id
     });
 

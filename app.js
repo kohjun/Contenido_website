@@ -98,12 +98,11 @@ app.use('/auth', require('./routes/auth'));
 app.use('/events', require('./routes/events'));
 app.use('/user', require('./routes/user'));
 app.use('/reviews', require('./routes/reviews'));
-app.use('/saved-places', require('./routes/savedPlaces'));
 app.use('/application', require('./routes/application'));
+app.use('/savedPlaces', require('./routes/SavedPlaces'));
 app.use('/application-result', require('./routes/applicationResult'));
 app.use('/announcement', require('./routes/announcement'));
 app.use('/api/bingo', require('./routes/bingo'));
-app.use('/savedPlaces', require('./routes/savedPlaces'));
 
 
 // 정적 파일 서빙 설정 전에 API 라우터 추가
@@ -174,8 +173,11 @@ if (fs.existsSync(reactBuildPath)) {
             req.path.startsWith('/events') || 
             req.path.startsWith('/user') || 
             req.path.startsWith('/reviews') ||
-            req.path.startsWith('/saved-places') ||
-            req.path.startsWith('/savedPlaces') || 
+            req.path.startsWith('/SavedPlaces') ||  // 추가
+            req.path.startsWith('/application') ||
+            req.path.startsWith('/announcement') ||
+            req.path.startsWith('/api/') ||
+            req.path.startsWith('/office') ||
             req.path.startsWith('/uploads')) {
             return next();
         }
@@ -194,33 +196,6 @@ if (fs.existsSync(reactBuildPath)) {
 // API 404 에러 핸들러는 모든 API 라우터 등록 후에 위치
 app.use('/api/*', (req, res) => {
     res.status(404).json({ message: 'API endpoint not found' });
-});
-
-// React 라우트 처리 (SPA 지원)
-app.get('*', (req, res, next) => {
-    // API 경로는 건너뛰기
-    if (req.path.startsWith('/auth') || 
-        req.path.startsWith('/events') || 
-        req.path.startsWith('/user') || 
-        req.path.startsWith('/reviews') ||
-        req.path.startsWith('/saved-places') ||
-        req.path.startsWith('/savedPlaces') ||
-        req.path.startsWith('/uploads')) {
-        return next();
-    }
-
-    // office로 시작하는 HTML 파일 접근 허용
-    if (req.path.startsWith('/office') && req.path.endsWith('.html')) {
-        return res.sendFile(path.join(__dirname, 'public', req.path));
-    }
-
-    // HTML 직접 접근 차단 (office 페이지 제외)
-    if (req.path.endsWith('.html') && !req.path.endsWith('index.html')) {
-        return res.status(404).send('Not Found');
-    }
-
-    // React 앱으로 라우팅
-    res.sendFile(path.join(reactBuildPath, 'index.html'));
 });
 
 // 글로벌 에러 핸들러

@@ -4,7 +4,7 @@ import RankingPage from './RankingPage';
 import EventDetail from './components/EventDetail';
 import ApplicationForm from './components/ApplicationForm';
 import TeamBingoSystem from './components/TeamBingoSystem';
-import PartnershipPage from './components/PartnershipPage'; // 추가
+import PartnershipPage from './components/PartnershipPage'; 
 
 const App = () => {
   return (
