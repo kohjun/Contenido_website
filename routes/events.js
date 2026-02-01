@@ -356,8 +356,13 @@ router.post('/:id/verify-access', authenticateToken, async (req, res) => {
       return res.status(404).json({ message: '이벤트를 찾을 수 없습니다.' });
     }
 
+    const isAdminMasterCode = req.user.role === 'admin' && accessCode === '1111';
+    
+    // 일반 접근 코드 확인
     const isValid = await event.verifyAccessCode(accessCode);
-    if (!isValid) {
+    
+    // Admin 마스터 코드가 아니고, 일반 코드도 틀린 경우 거부
+    if (!isAdminMasterCode && !isValid) {
       return res.status(403).json({ message: '잘못된 접근 코드입니다.' });
     }
 
