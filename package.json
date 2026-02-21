@@ -15,8 +15,8 @@
   "description": "",
   "dependencies": {
     "@toast-ui/calendar": "^2.0.1",
-    "bcrypt": "^5.1.1",
-    "connect-mongo": "^5.1.0",
+    "bcrypt": "^6.0.0",
+    "connect-mongo": "^6.0.0",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",

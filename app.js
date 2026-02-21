@@ -10,7 +10,7 @@ const path = require('path');
 const fs = require('fs');
 const authenticateToken = require('./middleware/authMiddleware');
 const favicon = require('serve-favicon');
-const MongoStore = require('connect-mongo');
+const MongoStore = require('connect-mongo').default;
 const app = express();
 
 // 스케줄러 추가
@@ -70,10 +70,10 @@ app.use(
         saveUninitialized: false,
         rolling: true, // 활동할 때마다 세션 갱신
         store: MongoStore.create({
-            mongoUrl: process.env.MONGO_URI,
-            ttl: 5 * 60 * 60, // 5시간
+            mongoUrl: process.env.MONGO_URI, 
+            ttl: 5 * 60 * 60,
             autoRemove: 'native',
-            touchAfter: 24 * 3600 // 24시간마다 세션 업데이트
+            touchAfter: 24 * 3600
         }),
         cookie: {
             httpOnly: true,
