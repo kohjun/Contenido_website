@@ -5,6 +5,8 @@ import EventDetail from './components/EventDetail';
 import ApplicationForm from './components/ApplicationForm';
 import TeamBingoSystem from './components/TeamBingoSystem';
 import PartnershipPage from './components/PartnershipPage'; 
+import Archives from './components/Archives';
+import ArchiveDetail from './components/ArchiveDetail';
 
 const App = () => {
   return (
@@ -15,6 +17,8 @@ const App = () => {
         <Route path="/apply" element={<ApplicationForm />} />
         <Route path="/TeamBingo" element={<TeamBingoSystem />} />
         <Route path="/partnerships" element={<PartnershipPage />} /> 
+        <Route path="/archives" element={<Archives />} />
+        <Route path="/archives/:id" element={<ArchiveDetail />} />
       </Routes>
     </BrowserRouter>
   );
