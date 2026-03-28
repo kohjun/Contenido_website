@@ -297,7 +297,34 @@ p {
   font-size: 0.875rem;
   transition: all 0.2s;
 }
+.btn-archive {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 20px;
+  background: rgba(10, 132, 254, 0.10);
+  border: none;
+  border-radius: 10px;
+  color: #0A84FE;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  transition: background 0.18s;
+}
 
+.btn-archive::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 3px;
+  background: #0A84FE;
+  border-radius: 10px 0 0 10px;
+}
+
+.btn-archive:hover { background: rgba(10, 132, 254, 0.16); }
+.btn-archive:active { transform: scale(0.98); }
 .form-group input:focus,
 .form-group select:focus,
 .form-group textarea:focus {
