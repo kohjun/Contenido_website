@@ -48,6 +48,7 @@
 //             isAdditionalInfoComplete: true,
 //             name: '고준',
 //             phonenumber: '01022458697',
+//             warningCount: "1",
 //             gender: 'male',
 //             birthDate: new Date('2000-01-30'),
 //             preferredActivity: '노원구'
@@ -78,7 +79,7 @@
   
 // public/js/utils/nav-injector.js
 
-// 인증 모듈 먼저 정의
+//인증 모듈 먼저 정의
 const AuthModule = {
     /**
      * 인증 토큰 유효성 검사
@@ -425,6 +426,142 @@ const AuthModule = {
       background-color: #0875e0;
   }
   
+  /* 드롭다운 관련 스타일 */
+  .user-dropdown {
+      position: relative;
+      display: inline-block;
+  }
+  
+  .user-dropdown-button {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      padding: 8px 15px;
+      background-color: #f8f9fa;
+      color: #333;
+      border: 1px solid #ddd;
+      border-radius: 20px;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.3s;
+      white-space: nowrap;
+  }
+  
+  .user-dropdown-button:hover {
+      background-color: #e9ecef;
+      border-color: #0A84FE;
+  }
+  
+  .user-dropdown-button .arrow {
+      font-size: 10px;
+      transition: transform 0.3s;
+  }
+  
+  .user-dropdown-button.active .arrow {
+      transform: rotate(180deg);
+  }
+  
+  .user-dropdown-menu {
+      position: absolute;
+      top: calc(100% + 5px);
+      right: 0;
+      background-color: white;
+      border: 1px solid #ddd;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      min-width: 200px;
+      display: none;
+      z-index: 1002;
+      overflow: hidden;
+  }
+  
+  .user-dropdown-menu.show {
+      display: block;
+      animation: fadeIn 0.2s ease;
+  }
+  
+  @keyframes fadeIn {
+      from {
+          opacity: 0;
+          transform: translateY(-10px);
+      }
+      to {
+          opacity: 1;
+          transform: translateY(0);
+      }
+  }
+  
+  .user-dropdown-header {
+      padding: 15px;
+      border-bottom: 1px solid #eee;
+      background-color: #f8f9fa;
+  }
+  
+  .user-dropdown-name {
+      font-size: 16px;
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 8px;
+  }
+  
+  .user-dropdown-stats {
+      display: flex;
+      gap: 15px;
+      font-size: 13px;
+      color: #666;
+  }
+  
+  .stat-item {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+  }
+  
+  .stat-label {
+      color: #888;
+  }
+  
+  .stat-value {
+      font-weight: 600;
+      color: #0A84FE;
+  }
+  
+  .stat-value.warning {
+      color: #dc3545;
+  }
+  
+  .user-dropdown-actions {
+      padding: 8px;
+  }
+  
+  .dropdown-action-button {
+      width: 100%;
+      padding: 10px 15px;
+      background: none;
+      border: none;
+      text-align: left;
+      font-size: 14px;
+      color: #333;
+      cursor: pointer;
+      border-radius: 8px;
+      transition: background-color 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+  }
+  
+  .dropdown-action-button:hover {
+      background-color: #f8f9fa;
+  }
+  
+  .dropdown-action-button.logout {
+      color: #dc3545;
+  }
+  
+  .dropdown-action-button.logout:hover {
+      background-color: #fff5f5;
+  }
+  
   .user-info-nav {
       display: flex;
       align-items: center;
@@ -489,7 +626,7 @@ const AuthModule = {
       border-radius: 8px;
   }
   
-  @media (max-width: 1700px) {  /* 반응형 breakpoint 수정 */
+  @media (max-width: 1700px) {
       .ad-banner {
           display: none;
       }
@@ -501,8 +638,8 @@ const AuthModule = {
       }
       
       .container {
-          padding-top: 60px; /* 모바일에서 상단 여백 조정 */
-          padding-bottom: 55px; /* 모바일에서 하단 여백 조정 */
+          padding-top: 60px;
+          padding-bottom: 55px;
       }
   
       .custom-nav-icon {
@@ -544,24 +681,27 @@ const AuthModule = {
           white-space: nowrap;
       }
       
-      .user-info-nav {
-          flex-direction: row;
-          align-items: center;
-          gap: 5px;
+      .user-dropdown-button {
+          padding: 6px 12px;
+          font-size: 13px;
       }
       
-      .user-name {
-          font-size: 12px;
-          max-width: 80px;
-          white-space: nowrap;
-          overflow: hidden;
-          text-overflow: ellipsis;
+      .user-dropdown-menu {
+          min-width: 180px;
       }
-
-      .logout-button {
-          padding: 4px 8px;
-          font-size: 11px;
-          white-space: nowrap;
+      
+      .user-dropdown-name {
+          font-size: 14px;
+      }
+      
+      .user-dropdown-stats {
+          font-size: 12px;
+          gap: 10px;
+      }
+      
+      .dropdown-action-button {
+          font-size: 13px;
+          padding: 8px 12px;
       }
   }
   `;
@@ -580,7 +720,7 @@ const AuthModule = {
                   <li><a href="/calendar.html">이벤트 캘린더</a></li>
                   <li><a href="/ranking">활동 랭킹</a></li>
                   <li><a href="/event-staff.html" id="staffPageLink">이벤트 관리(운영진 전용)</a></li>
-                  <li><a href="">익명제보(예정)</a></li>
+                  
               </ul>
               <a href="/apply"><h3>신입부원 지원하기</h3></a>
               <a href="/rules.html"><h3>동아리회칙 및  메뉴얼</h3></a>
@@ -591,13 +731,13 @@ const AuthModule = {
   </aside>
   `;
   
-  // 상단 네비게이션 HTML - 로그인 버튼 추가
+  // 상단 네비게이션 HTML
   const topNavHTML = `
   <nav class="custom-top-nav">
       <button id="toggle-btn" class="toggle-btn" onclick="toggleSidebar()">☰</button>
       <span class="nav-title" onclick="goHome()"><img src="./images/HomeLogo.png" alt="Contenido Logo"></span>
       <div class="auth-area" id="auth-area">
-          <!-- 로그인 버튼 또는 사용자 정보는 자바스크립트로 동적 삽입 -->
+          <!-- 로그인 버튼 또는 드롭다운은 자바스크립트로 동적 삽입 -->
       </div>
   </nav>
   `;
@@ -619,7 +759,8 @@ const AuthModule = {
       </button>
   </nav>
   `;
-  // 광고 배너 HTML 수정
+  
+  // 광고 배너 HTML
   const adBannersHTML = `
       <div class="ad-banner-wrapper">
           <div class="ad-banner left-banner">
@@ -631,22 +772,78 @@ const AuthModule = {
       </div>
   `;
   
+  // 드롭다운 토글 함수
+  function toggleUserDropdown() {
+      const button = document.querySelector('.user-dropdown-button');
+      const menu = document.querySelector('.user-dropdown-menu');
+      
+      if (button && menu) {
+          button.classList.toggle('active');
+          menu.classList.toggle('show');
+      }
+  }
+  
+  // 외부 클릭 시 드롭다운 닫기
+  document.addEventListener('click', function(event) {
+      const dropdown = document.querySelector('.user-dropdown');
+      if (dropdown && !dropdown.contains(event.target)) {
+          const button = document.querySelector('.user-dropdown-button');
+          const menu = document.querySelector('.user-dropdown-menu');
+          if (button && menu) {
+              button.classList.remove('active');
+              menu.classList.remove('show');
+          }
+      }
+  });
+  
   // 인증 영역 업데이트 함수
   async function updateAuthArea() {
     const authArea = document.getElementById('auth-area');
     if (!authArea) return;
     
     try {
-      const response = await fetch('/user/info');
+      const response = await fetch('/user/info_database');
       
       if (response.status === 200) {
         // 로그인된 상태
         const userData = await response.json();
         
+        // 정기참여 횟수와 경고횟수 (User 모델에서 가져옴)
+        const regularAttendance = userData.participationCount?.regularCount || 0;
+        const warningCount = userData.warningCount || 0;
+        
         authArea.innerHTML = `
-          <div class="user-info-nav">
-            <span class="user-name">${userData.nickname}</span>
-            <button class="logout-button" onclick="AuthModule.logout()">로그아웃</button>
+          <div class="user-dropdown">
+            <button class="user-dropdown-button" onclick="toggleUserDropdown()">
+              <span>${userData.name}</span>
+              <span class="arrow">▼</span>
+            </button>
+            <div class="user-dropdown-menu">
+              <div class="user-dropdown-header">
+            <div class="user-dropdown-name">${userData.name}</div>
+            <div style="font-size: 13px; color: #666; margin-bottom: 8px;">역할 : ${userData.role}</div>
+            <div class="user-dropdown-stats">
+              <div class="stat-item">
+                <span class="stat-label">정기참여</span>
+                <span class="stat-value">${regularAttendance}회</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-label">경고</span>
+                <span class="stat-value ${warningCount > 0 ? 'warning' : ''}">${warningCount}회</span>
+              </div>
+            </div>
+              </div>
+              <div class="user-dropdown-actions">
+            <button class="dropdown-action-button" onclick="goToMyPage()">
+              
+              <span>마이페이지</span>
+            </button>
+            <button class="dropdown-action-button logout" onclick="AuthModule.logout()">
+            
+              <span>로그아웃</span>
+            </button>
+              </div>
+            </div>
           </div>
         `;
       } else {
@@ -662,6 +859,11 @@ const AuthModule = {
         <button class="login-button" onclick="AuthModule.loginWithKakao()">로그인</button>
       `;
     }
+  }
+  
+  // 마이페이지로 이동
+  function goToMyPage() {
+      window.location.href = '/mypage.html';
   }
   
   // 사이드바 토글 함수
@@ -685,17 +887,15 @@ const AuthModule = {
       window.location.href = '/';
   }
   
-  // 마이페이지 클릭 핸들러 추가
+  // 마이페이지 클릭 핸들러
   async function handleMyPageClick(event) {
     event.preventDefault();
     try {
       const response = await fetch('/user/info');
       if (!response.ok) {
-        // 로그인이 필요한 경우
-        AuthModule.redirectToLogin(true);
-        return;
+          AuthModule.redirectToLogin(true);
+          return;
       }
-      // 이미 로그인된 경우
       window.location.href = '/mypage.html';
     } catch (error) {
       console.error('Error:', error);

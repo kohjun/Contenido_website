@@ -10,7 +10,7 @@ const path = require('path');
 const fs = require('fs');
 const authenticateToken = require('./middleware/authMiddleware');
 const favicon = require('serve-favicon');
-const MongoStore = require('connect-mongo').default;
+const MongoStore = require('connect-mongo')(session);
 const app = express();
 
 // 스케줄러 추가
@@ -62,15 +62,16 @@ app.use((req, res, next) => {
     next();
 });
 
-// 세션 설정 개선
+// 세션 설정
 app.use(
     session({
         secret: process.env.SESSION_SECRET,
         resave: false,
         saveUninitialized: false,
-        rolling: true, // 활동할 때마다 세션 갱신
-        store: MongoStore.create({
-            mongoUrl: process.env.MONGO_URI, 
+        rolling: true,
+        // 이 부분을 아래와 같이 교체하세요
+        store: new MongoStore({
+            url: process.env.MONGO_URI, // v3에서는 'url'을 사용합니다
             ttl: 5 * 60 * 60,
             autoRemove: 'native',
             touchAfter: 24 * 3600
@@ -80,10 +81,10 @@ app.use(
             secure: process.env.NODE_ENV === 'production',
             sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
             domain: process.env.NODE_ENV === 'production' ? '.contenido.kr' : undefined,
-            maxAge: 5 * 60 * 60 * 1000 // 5시간으로 연장
+            maxAge: 5 * 60 * 60 * 1000
         },
-        name: 'sessionId', // 기본 connect.sid 대신 사용자 정의 이름 사용
-        proxy: process.env.NODE_ENV === 'production' // 프록시 환경에서 보안 설정 유지
+        name: 'sessionId',
+        proxy: process.env.NODE_ENV === 'production'
     })
 );
 
@@ -103,6 +104,7 @@ app.use('/savedPlaces', require('./routes/savedPlaces'));
 app.use('/application-result', require('./routes/applicationResult'));
 app.use('/announcement', require('./routes/announcement'));
 app.use('/api/bingo', require('./routes/bingo'));
+app.use('/archives', require('./routes/archives'));
 
 
 // 정적 파일 서빙 설정 전에 API 라우터 추가

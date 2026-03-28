@@ -96,6 +96,7 @@ router.get('/info_database', authenticateToken, async (req, res) => {
   }
 });
 
+
 //여러 참가자 데이터 조회
 router.get('/participants/users', async (req, res) => {
   try {
