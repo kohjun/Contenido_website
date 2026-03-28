@@ -135,7 +135,7 @@ const Archives = () => {
   };
 
   const openGuide = () => {
-    window.open('/uploads/guidpdf.pdf', '_blank', 'noopener,noreferrer');
+    window.open('/uploads/guidepdf.pdf', '_blank', 'noopener,noreferrer');
   };
 
   const getEventStatus = (event) =>
