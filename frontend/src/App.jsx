@@ -7,6 +7,7 @@ import TeamBingoSystem from './components/TeamBingoSystem';
 import PartnershipPage from './components/PartnershipPage'; 
 import Archives from './components/Archives';
 import ArchiveDetail from './components/ArchiveDetail';
+import ArchiveNew from './components/ArchiveNew';
 
 const App = () => {
   return (
@@ -18,6 +19,7 @@ const App = () => {
         <Route path="/TeamBingo" element={<TeamBingoSystem />} />
         <Route path="/partnerships" element={<PartnershipPage />} /> 
         <Route path="/archives" element={<Archives />} />
+        <Route path="/archives/new" element={<ArchiveNew />} />
         <Route path="/archives/:id" element={<ArchiveDetail />} />
       </Routes>
     </BrowserRouter>
