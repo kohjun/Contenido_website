@@ -90,7 +90,7 @@ router.get('/ended-events',
         ];
       }
       const events = await Event.find(eventQuery)
-        .select('title date place team')
+        .select('title date place team images')
         .sort({ date: -1 });
 
       const eventsWithStatus = await Promise.all(

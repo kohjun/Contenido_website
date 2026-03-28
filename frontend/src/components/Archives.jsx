@@ -39,30 +39,22 @@ const PAGE_SIZE = 20;
 
 const Archives = () => {
   const navigate = useNavigate();
-
-  // ✅ useAuth 훅으로 권한 체크 (간결!)
   const { isAuthorized, isLoading: isCheckingAuth, user } = useAuth(['officer', 'admin'], true);
 
-  // ── 통계 & 최근 이벤트 (hero용) ──────────────────────
-  const [summary, setSummary]           = useState({ total: 0, archived: 0 });
+  const [summary, setSummary] = useState({ total: 0, archived: 0 });
   const [recentEvents, setRecentEvents] = useState([]);
-
-  // ── 그리드 데이터 ─────────────────────────────────────
-  const [events, setEvents]           = useState([]);
-  const [page, setPage]               = useState(1);
-  const [hasMore, setHasMore]         = useState(true);
+  const [events, setEvents] = useState([]);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
   const [loadingInitial, setLoadingInitial] = useState(true);
-  const [loadingMore, setLoadingMore]       = useState(false);
-
-  // ── 검색 & 필터 ───────────────────────────────────────
+  const [loadingMore, setLoadingMore] = useState(false);
   const [searchInput, setSearchInput] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
-  const [activeFilter, setFilter]     = useState('전체');
+  const [activeFilter, setFilter] = useState('전체');
   const searchInputRef = useRef(null);
 
   const filters = ['전체', '완료', '대기중'];
 
-  // ── 검색/필터 바뀔 때마다 첫 페이지부터 재로드 ─────────
   useEffect(() => {
     if (isAuthorized) {
       loadInitial();
@@ -70,19 +62,17 @@ const Archives = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchQuery, activeFilter, isAuthorized]);
 
-  // ── 쿼리스트링 생성 ───────────────────────────────────
   const buildQS = (pageNum) => {
     const p = new URLSearchParams();
     p.set('page', pageNum);
     p.set('limit', PAGE_SIZE);
-    if (searchQuery)          p.set('search', searchQuery);
+    if (searchQuery) p.set('search', searchQuery);
     if (activeFilter !== '전체') {
       p.set('status', activeFilter === '완료' ? 'archived' : 'pending');
     }
     return p.toString();
   };
 
-  // ── 첫 페이지 로드 ────────────────────────────────────
   const loadInitial = async () => {
     setLoadingInitial(true);
     setEvents([]);
@@ -101,7 +91,6 @@ const Archives = () => {
       setHasMore(data.hasMore ?? false);
       setSummary({ total: data.total || 0, archived: data.archivedCount || 0 });
 
-      // 필터/검색 없을 때만 hero 카드 갱신
       if (!searchQuery && activeFilter === '전체') {
         setRecentEvents((data.events || []).slice(0, 4));
       }
@@ -112,7 +101,6 @@ const Archives = () => {
     }
   };
 
-  // ── 더보기 ────────────────────────────────────────────
   const loadMore = async () => {
     if (loadingMore || !hasMore) return;
     setLoadingMore(true);
@@ -133,11 +121,10 @@ const Archives = () => {
     }
   };
 
-  // ── 검색 실행 ─────────────────────────────────────────
   const executeSearch = () => setSearchQuery(searchInput.trim());
 
   const handleSearchKeyDown = (e) => {
-    if (e.key === 'Enter')  executeSearch();
+    if (e.key === 'Enter') executeSearch();
     if (e.key === 'Escape') { setSearchInput(''); setSearchQuery(''); }
   };
 
@@ -147,12 +134,10 @@ const Archives = () => {
     setFilter('전체');
   };
 
-  // ── 가이드 PDF 열기 ───────────────────────────────────
   const openGuide = () => {
-    window.open('/uploads/guidepdf.pdf', '_blank', 'noopener,noreferrer');
+    window.open('/uploads/guidpdf.pdf', '_blank', 'noopener,noreferrer');
   };
 
-  // ── 헬퍼 ─────────────────────────────────────────────
   const getEventStatus = (event) =>
     event.archived ? { label: '완료', color: 'blue' } : { label: '대기중', color: 'gray' };
 
@@ -160,7 +145,7 @@ const Archives = () => {
     const days = Math.floor((Date.now() - new Date(date).getTime()) / 86400000);
     if (days === 0) return '오늘';
     if (days === 1) return '어제';
-    if (days < 7)  return `${days}일 전`;
+    if (days < 7) return `${days}일 전`;
     if (days < 30) return `${Math.floor(days / 7)}주 전`;
     return new Date(date).toLocaleDateString('ko-KR');
   };
@@ -182,14 +167,13 @@ const Archives = () => {
 
   const isFiltered = !!(searchQuery || activeFilter !== '전체');
 
-  // ✅ 권한 체크 중이면 로딩 화면
   if (isCheckingAuth) {
     return (
-      <div style={{ 
-        display: 'flex', 
+      <div style={{
+        display: 'flex',
         flexDirection: 'column',
-        justifyContent: 'center', 
-        alignItems: 'center', 
+        justifyContent: 'center',
+        alignItems: 'center',
         height: '100vh',
         gap: '16px'
       }}>
@@ -206,16 +190,12 @@ const Archives = () => {
     );
   }
 
-  // ✅ 권한 없으면 아무것도 렌더링하지 않음
   if (!isAuthorized) {
     return null;
   }
 
-  // ✅ 권한 확인 완료 - 기존 UI 렌더링
   return (
     <div className="archives-container">
-
-      {/* ── Hero ── */}
       <div className="archives-hero">
         <div className="hero-content animate-fade-up">
           <div className="hero-badge">
@@ -223,12 +203,12 @@ const Archives = () => {
             이벤트 아카이브
           </div>
           <h1 className="hero-title">
-            모든 이벤트를<br/>
-            <span className="highlight">체계적으로</span><br/>
+            모든 이벤트를<br />
+            <span className="highlight">체계적으로</span><br />
             보존하세요
           </h1>
           <p className="hero-description">
-            종료된 이벤트를 포트폴리오 형식으로 아카이빙.<br/>
+            종료된 이벤트를 포트폴리오 형식으로 아카이빙.<br />
             언제든 다시 꺼내볼 수 있는 지식의 도서관입니다.
           </p>
           <div className="hero-actions">
@@ -256,7 +236,6 @@ const Archives = () => {
           </div>
         </div>
 
-        {/* Live Card */}
         <div className="hero-card animate-fade-up-delay">
           <div className="card-header">
             <span>최근 아카이빙</span>
@@ -284,12 +263,11 @@ const Archives = () => {
         </div>
       </div>
 
-      {/* ── 검색바 ── */}
       <div className="archives-search-section">
         <div className="search-bar">
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style={{ flexShrink: 0 }}>
-            <circle cx="6.5" cy="6.5" r="4" stroke={C.sig} strokeWidth="1.5" fill="none"/>
-            <path d="M11 11l2.5 2.5" stroke={C.sig} strokeWidth="1.5" strokeLinecap="round"/>
+            <circle cx="6.5" cy="6.5" r="4" stroke={C.sig} strokeWidth="1.5" fill="none" />
+            <path d="M11 11l2.5 2.5" stroke={C.sig} strokeWidth="1.5" strokeLinecap="round" />
           </svg>
 
           <input
@@ -337,7 +315,6 @@ const Archives = () => {
           </div>
         </div>
 
-        {/* 검색 결과 안내 */}
         {isFiltered && (
           <div style={{ padding: '10px 4px', fontSize: '13px', color: C.soft, display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
             {searchQuery && <span><strong style={{ color: C.sig }}>"{searchQuery}"</strong> 검색 결과</span>}
@@ -357,7 +334,6 @@ const Archives = () => {
         )}
       </div>
 
-      {/* ── 이벤트 그리드 ── */}
       <div className="archives-grid-section">
         <div className="section-header">
           <span className="section-title">
@@ -375,11 +351,8 @@ const Archives = () => {
           )}
         </div>
 
-        {/* 초기 로딩 */}
         {loadingInitial ? (
           <div className="loading-state">이벤트를 불러오는 중...</div>
-
-        /* 결과 없음 */
         ) : events.length === 0 ? (
           <div className="empty-state">
             <FileIcon type="event" size={48} />
@@ -397,21 +370,37 @@ const Archives = () => {
               <p>종료된 이벤트가 없습니다.</p>
             )}
           </div>
-
-        /* 그리드 */
         ) : (
           <>
             <div className="event-grid">
               {events.map((event, i) => {
                 const status = getEventStatus(event);
+                const thumbnail = event.images?.[0] || event.thumbnail || null;
+
                 return (
                   <div
                     key={event._id}
                     className={`event-card animate-fade-up-${(i % 4) + 1}`}
                     onClick={() => navigate(`/archives/${event._id}`)}
                   >
+                    {thumbnail && (
+                      <div className="event-card-thumbnail">
+                        <img
+                          src={thumbnail}
+                          alt={event.title}
+                          onError={(e) => {
+                            e.target.style.display = 'none';
+                            e.target.parentElement.style.display = 'none';
+                          }}
+                        />
+                        <div className="thumbnail-overlay">
+                          <span className="thumbnail-status">{status.label}</span>
+                        </div>
+                      </div>
+                    )}
+
                     <div className="event-card-header">
-                      <span className="event-card-label">{status.label.toUpperCase()}</span>
+                      {!thumbnail && <span className="event-card-label">{status.label.toUpperCase()}</span>}
                       <FileIcon type="event" size={34} />
                     </div>
                     <div className="event-card-body">
@@ -429,7 +418,7 @@ const Archives = () => {
                         </span>
                         <div className="event-card-icon">
                           <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
-                            <path d="M5 1v8M2 4l3-3 3 3" stroke={C.sig} strokeWidth="1.2" strokeLinecap="round"/>
+                            <path d="M5 1v8M2 4l3-3 3 3" stroke={C.sig} strokeWidth="1.2" strokeLinecap="round" />
                           </svg>
                         </div>
                       </div>
@@ -439,7 +428,6 @@ const Archives = () => {
               })}
             </div>
 
-            {/* ── 더보기 버튼 ── */}
             {hasMore ? (
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', margin: '36px 0 16px' }}>
                 <button
@@ -469,7 +457,7 @@ const Archives = () => {
                   ) : (
                     <>
                       <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                        <path d="M7 2v10M3 8l4 4 4-4" stroke={C.sig} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+                        <path d="M7 2v10M3 8l4 4 4-4" stroke={C.sig} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
                       </svg>
                       더보기 (20개씩)
                     </>
@@ -480,7 +468,6 @@ const Archives = () => {
                 </p>
               </div>
             ) : (
-              /* 전체 로드 완료 */
               events.length > PAGE_SIZE && (
                 <div style={{ textAlign: 'center', padding: '28px 0', fontSize: '13px', color: C.soft }}>
                   ✓ 전체 {events.length}개를 모두 불러왔습니다.

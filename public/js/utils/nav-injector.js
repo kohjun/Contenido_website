@@ -821,15 +821,22 @@ const AuthModule = {
             <div class="user-dropdown-menu">
               <div class="user-dropdown-header">
             <div class="user-dropdown-name">${userData.name}</div>
-            <div style="font-size: 13px; color: #666; margin-bottom: 8px;">역할 : ${userData.role}</div>
+            <div style="font-size: 13px; color: #666; margin-bottom: 8px;">역할 : ${
+              userData.role === 'admin' ? '관리자' :
+              userData.role === 'starter' ? '스타터' :
+              userData.role === 'participant' ? '참가자' :
+              userData.role === 'officer' ? '운영진' :
+              userData.role
+            }</div>
+            
             <div class="user-dropdown-stats">
               <div class="stat-item">
-                <span class="stat-label">정기참여</span>
-                <span class="stat-value">${regularAttendance}회</span>
+            <span class="stat-label">정기참여</span>
+            <span class="stat-value">${regularAttendance}회</span>
               </div>
               <div class="stat-item">
-                <span class="stat-label">경고</span>
-                <span class="stat-value ${warningCount > 0 ? 'warning' : ''}">${warningCount}회</span>
+            <span class="stat-label">경고</span>
+            <span class="stat-value ${warningCount > 0 ? 'warning' : ''}">${warningCount}회</span>
               </div>
             </div>
               </div>
