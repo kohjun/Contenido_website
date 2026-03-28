@@ -1,113 +1,12 @@
 // 인증 모듈 먼저 정의
-const AuthModule = {
-    /**
-     * 인증 토큰 유효성 검사
-     * @returns {Promise<boolean>} 토큰 유효 여부
-     */
-    verifyToken: async function() {
-        // 개발용 - 항상 true 반환
-        return true;
-    },
-  
-    /**
-     * 로그인 필요 시 로그인 페이지로 리다이렉트
-     * @param {boolean} showAlert 알림 표시 여부 (선택사항, 기본값: true)
-     */
-    redirectToLogin: function(showAlert = true) {
-        // 개발용 - 로그인 페이지로 리다이렉트하지 않고 항상 인증된 상태 유지
-        return true;
-    },
-  
-    /**
-     * 인증 상태 확인 및 미인증 시 로그인 페이지로 리다이렉트
-     * @returns {Promise<boolean>} 인증 여부
-     */
-    checkAuthentication: async function() {
-        // 개발용 - 항상 true 반환
-        return true;
-    },
-  
-    /**
-     * 현재 로그인한 사용자 정보 로드
-     * @returns {Promise<Object|null>} 사용자 정보 객체 또는 실패 시 null
-     */
-    loadUserInfo: async function() {
-        // 개발용 더미 유저 정보 반환
-        return {
-            _id: '673aed9a051a576b3e2285e1',
-            id: '673aed9a051a576b3e2285e1',
-            email: 'kohjunn@naver.com',
-            nickname: '고 준',
-            displayName: '고 준',
-            profileImage: 'https://img1.kakaocdn.net/thumb/R640x640.q70/?fname=http://t1.kakaocdn.net/account_images/default_profile.jpeg',
-            role: 'admin',
-            team: 'operationTeam',
-            department: 'operation',
-            isDepartmentHead: true,
-            isActive: true,
-            isAdditionalInfoComplete: true,
-            name: '고준',
-            phonenumber: '01022458697',
-            warningCount: "1",
-            gender: 'male',
-            birthDate: new Date('2000-01-30'),
-            preferredActivity: '노원구'
-        };
-    },
-  
-    /**
-     * 사용자 로그아웃 처리
-     * @param {boolean} redirect 로그아웃 후 메인 페이지로 리다이렉트 여부 (선택사항, 기본값: true)
-     * @returns {Promise<boolean>} 로그아웃 성공 여부
-     */
-    logout: async function(redirect = true) {
-      if (redirect) {
-        window.location.href = '/';
-      }
-      return true;
-    },
-  
-    /**
-     * 카카오 로그인 실행
-     */
-    loginWithKakao: async function() {
-        // 개발용 - 즉시 홈페이지로 리다이렉트
-        window.location.href = '/';
-    }
-  };
-
-  
-// public/js/utils/nav-injector.js
-
-// 인증 모듈 먼저 정의
 // const AuthModule = {
 //     /**
 //      * 인증 토큰 유효성 검사
 //      * @returns {Promise<boolean>} 토큰 유효 여부
 //      */
 //     verifyToken: async function() {
-//       try {
-//         console.log('토큰 유효성 검사');
-//         const response = await fetch('/auth/check-token');
-//         const data = await response.json();
-        
-//         if (!data.isValid) {
-//           console.log('인증 토큰이 유효하지 않음');
-          
-//           if (data.reason === 'session_mismatch') {
-//             console.log('세션과 토큰 불일치, 세션 초기화 필요');
-//             // 세션 초기화를 위한 로그아웃 처리
-//             await this.logout(false); // 페이지 리다이렉트 없이 로그아웃만 처리
-//           }
-          
-//           return false;
-//         }
-//         console.log('토큰 유효성 확인 완료');
+//         // 개발용 - 항상 true 반환
 //         return true;
-//       } catch (error) {
-//         console.error('토큰 검증 실패:', error);
-//         return false;
-//       }
 //     },
   
 //     /**
@@ -115,12 +14,8 @@ const AuthModule = {
 //      * @param {boolean} showAlert 알림 표시 여부 (선택사항, 기본값: true)
 //      */
 //     redirectToLogin: function(showAlert = true) {
-//       if (showAlert) {
-//         alert('로그인이 필요합니다.');
-//       }
-//       // 현재 URL을 state 파라미터로 전달하여 카카오 로그인으로 리디렉션
-//       const currentUrl = encodeURIComponent(window.location.href);
-//       window.location.href = `/auth/kakao?state=${currentUrl}`;
+//         // 개발용 - 로그인 페이지로 리다이렉트하지 않고 항상 인증된 상태 유지
+//         return true;
 //     },
   
 //     /**
@@ -128,12 +23,8 @@ const AuthModule = {
 //      * @returns {Promise<boolean>} 인증 여부
 //      */
 //     checkAuthentication: async function() {
-//       const isTokenValid = await this.verifyToken();
-//       if (!isTokenValid) {
-//         this.redirectToLogin();
-//         return false;
-//       }
-//       return true;
+//         // 개발용 - 항상 true 반환
+//         return true;
 //     },
   
 //     /**
@@ -141,20 +32,27 @@ const AuthModule = {
 //      * @returns {Promise<Object|null>} 사용자 정보 객체 또는 실패 시 null
 //      */
 //     loadUserInfo: async function() {
-//       try {
-//         console.log('사용자 정보 로드 시도');
-//         const response = await fetch('/user/info');
-//         if (!response.ok) {
-//           throw new Error('사용자 정보를 가져올 수 없습니다.');
-//         }
-        
-//         const user = await response.json();
-//         console.log(`로그인된 사용자: ${user.nickname}, ID: ${user.id}`);
-//         return user;
-//       } catch (error) {
-//         console.error('사용자 정보 로드 실패:', error);
-//         return null;
-//       }
+//         // 개발용 더미 유저 정보 반환
+//         return {
+//             _id: '673aed9a051a576b3e2285e1',
+//             id: '673aed9a051a576b3e2285e1',
+//             email: 'kohjunn@naver.com',
+//             nickname: '고 준',
+//             displayName: '고 준',
+//             profileImage: 'https://img1.kakaocdn.net/thumb/R640x640.q70/?fname=http://t1.kakaocdn.net/account_images/default_profile.jpeg',
+//             role: 'admin',
+//             team: 'operationTeam',
+//             department: 'operation',
+//             isDepartmentHead: true,
+//             isActive: true,
+//             isAdditionalInfoComplete: true,
+//             name: '고준',
+//             phonenumber: '01022458697',
+//             warningCount: "1",
+//             gender: 'male',
+//             birthDate: new Date('2000-01-30'),
+//             preferredActivity: '노원구'
+//         };
 //     },
   
 //     /**
@@ -163,87 +61,189 @@ const AuthModule = {
 //      * @returns {Promise<boolean>} 로그아웃 성공 여부
 //      */
 //     logout: async function(redirect = true) {
-//       try {
-//         console.log('로그아웃 시도');
-//         const response = await fetch('/auth/logout', {
-//           method: 'GET',
-//           credentials: 'include'
-//         });
-  
-//         if (response.ok) {
-//           // 로컬 스토리지/세션 스토리지 클리어
-//           localStorage.clear();
-//           sessionStorage.clear();
-          
-//           console.log('로그아웃 성공');
-          
-//           if (redirect) {
-//             window.location.href = '/index.html';
-//           }
-//           return true;
-//         } else {
-//           console.error('로그아웃 실패');
-//           if (redirect) {
-//             alert('로그아웃 처리 중 오류가 발생했습니다.');
-//           }
-//           return false;
-//         }
-//       } catch (error) {
-//         console.error('로그아웃 에러:', error);
-//         if (redirect) {
-//           alert('로그아웃 처리 중 오류가 발생했습니다.');
-//         }
-//         return false;
+//       if (redirect) {
+//         window.location.href = '/';
 //       }
+//       return true;
 //     },
   
 //     /**
 //      * 카카오 로그인 실행
 //      */
 //     loginWithKakao: async function() {
-//         try {
-//           console.log('카카오 로그인 시도');
-          
-//           // 서버의 TokenService를 이용한 토큰 검증 요청
-//           const response = await fetch('/auth/check-token', {
-//             method: 'GET',
-//             credentials: 'include', // 쿠키 포함
-//             headers: {
-//                 'Accept': 'application/json',
-//                 'Content-Type': 'application/json'
-//             }
-//           });
-      
-//           const data = await response.json();
-          
-//           if (data.isValid) {
-//             // 토큰이 유효하면 메인 페이지로 리디렉션
-//             console.log('유효한 토큰이 있음, 메인 페이지로 이동');
-//             window.location.href = '/';
-//           } else {
-//             // 토큰/세션 불일치 감지 시 로그아웃 처리 후 로그인
-//             if (data.reason === 'session_mismatch') {
-//               console.log('세션과 토큰 불일치 감지, 재로그인 필요');
-//               // 로그아웃 처리 (리디렉션 없이)
-//               await fetch('/auth/logout', {
-//                 method: 'GET',
-//                 credentials: 'include'
-//               });
-//             }
-            
-//             // 카카오 로그인으로 리디렉션
-//             console.log('카카오 로그인으로 이동');
-//             const currentUrl = encodeURIComponent(window.location.pathname + window.location.search);
-//             window.location.href = `/auth/kakao?state=${currentUrl}`;
-//           }
-//         } catch (error) {
-//           console.error('토큰 검증 실패:', error);
-//           // 오류 발생 시 카카오 로그인으로 리디렉션
-//           const currentUrl = encodeURIComponent(window.location.pathname + window.location.search);
-//           window.location.href = `/auth/kakao?state=${currentUrl}`;
-//         }
-//       }
+//         // 개발용 - 즉시 홈페이지로 리다이렉트
+//         window.location.href = '/';
+//     }
 //   };
+
+  
+// public/js/utils/nav-injector.js
+
+//인증 모듈 먼저 정의
+const AuthModule = {
+    /**
+     * 인증 토큰 유효성 검사
+     * @returns {Promise<boolean>} 토큰 유효 여부
+     */
+    verifyToken: async function() {
+      try {
+        console.log('토큰 유효성 검사');
+        const response = await fetch('/auth/check-token');
+        const data = await response.json();
+        
+        if (!data.isValid) {
+          console.log('인증 토큰이 유효하지 않음');
+          
+          if (data.reason === 'session_mismatch') {
+            console.log('세션과 토큰 불일치, 세션 초기화 필요');
+            // 세션 초기화를 위한 로그아웃 처리
+            await this.logout(false); // 페이지 리다이렉트 없이 로그아웃만 처리
+          }
+          
+          return false;
+        }
+        console.log('토큰 유효성 확인 완료');
+        return true;
+      } catch (error) {
+        console.error('토큰 검증 실패:', error);
+        return false;
+      }
+    },
+  
+    /**
+     * 로그인 필요 시 로그인 페이지로 리다이렉트
+     * @param {boolean} showAlert 알림 표시 여부 (선택사항, 기본값: true)
+     */
+    redirectToLogin: function(showAlert = true) {
+      if (showAlert) {
+        alert('로그인이 필요합니다.');
+      }
+      // 현재 URL을 state 파라미터로 전달하여 카카오 로그인으로 리디렉션
+      const currentUrl = encodeURIComponent(window.location.href);
+      window.location.href = `/auth/kakao?state=${currentUrl}`;
+    },
+  
+    /**
+     * 인증 상태 확인 및 미인증 시 로그인 페이지로 리다이렉트
+     * @returns {Promise<boolean>} 인증 여부
+     */
+    checkAuthentication: async function() {
+      const isTokenValid = await this.verifyToken();
+      if (!isTokenValid) {
+        this.redirectToLogin();
+        return false;
+      }
+      return true;
+    },
+  
+    /**
+     * 현재 로그인한 사용자 정보 로드
+     * @returns {Promise<Object|null>} 사용자 정보 객체 또는 실패 시 null
+     */
+    loadUserInfo: async function() {
+      try {
+        console.log('사용자 정보 로드 시도');
+        const response = await fetch('/user/info');
+        if (!response.ok) {
+          throw new Error('사용자 정보를 가져올 수 없습니다.');
+        }
+        
+        const user = await response.json();
+        console.log(`로그인된 사용자: ${user.nickname}, ID: ${user.id}`);
+        return user;
+      } catch (error) {
+        console.error('사용자 정보 로드 실패:', error);
+        return null;
+      }
+    },
+  
+    /**
+     * 사용자 로그아웃 처리
+     * @param {boolean} redirect 로그아웃 후 메인 페이지로 리다이렉트 여부 (선택사항, 기본값: true)
+     * @returns {Promise<boolean>} 로그아웃 성공 여부
+     */
+    logout: async function(redirect = true) {
+      try {
+        console.log('로그아웃 시도');
+        const response = await fetch('/auth/logout', {
+          method: 'GET',
+          credentials: 'include'
+        });
+  
+        if (response.ok) {
+          // 로컬 스토리지/세션 스토리지 클리어
+          localStorage.clear();
+          sessionStorage.clear();
+          
+          console.log('로그아웃 성공');
+          
+          if (redirect) {
+            window.location.href = '/index.html';
+          }
+          return true;
+        } else {
+          console.error('로그아웃 실패');
+          if (redirect) {
+            alert('로그아웃 처리 중 오류가 발생했습니다.');
+          }
+          return false;
+        }
+      } catch (error) {
+        console.error('로그아웃 에러:', error);
+        if (redirect) {
+          alert('로그아웃 처리 중 오류가 발생했습니다.');
+        }
+        return false;
+      }
+    },
+  
+    /**
+     * 카카오 로그인 실행
+     */
+    loginWithKakao: async function() {
+        try {
+          console.log('카카오 로그인 시도');
+          
+          // 서버의 TokenService를 이용한 토큰 검증 요청
+          const response = await fetch('/auth/check-token', {
+            method: 'GET',
+            credentials: 'include', // 쿠키 포함
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            }
+          });
+      
+          const data = await response.json();
+          
+          if (data.isValid) {
+            // 토큰이 유효하면 메인 페이지로 리디렉션
+            console.log('유효한 토큰이 있음, 메인 페이지로 이동');
+            window.location.href = '/';
+          } else {
+            // 토큰/세션 불일치 감지 시 로그아웃 처리 후 로그인
+            if (data.reason === 'session_mismatch') {
+              console.log('세션과 토큰 불일치 감지, 재로그인 필요');
+              // 로그아웃 처리 (리디렉션 없이)
+              await fetch('/auth/logout', {
+                method: 'GET',
+                credentials: 'include'
+              });
+            }
+            
+            // 카카오 로그인으로 리디렉션
+            console.log('카카오 로그인으로 이동');
+            const currentUrl = encodeURIComponent(window.location.pathname + window.location.search);
+            window.location.href = `/auth/kakao?state=${currentUrl}`;
+          }
+        } catch (error) {
+          console.error('토큰 검증 실패:', error);
+          // 오류 발생 시 카카오 로그인으로 리디렉션
+          const currentUrl = encodeURIComponent(window.location.pathname + window.location.search);
+          window.location.href = `/auth/kakao?state=${currentUrl}`;
+        }
+      }
+  };
 
 
 
