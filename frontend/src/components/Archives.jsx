@@ -399,10 +399,12 @@ const Archives = () => {
                       </div>
                     )}
 
-                    <div className="event-card-header">
-                      {!thumbnail && <span className="event-card-label">{status.label.toUpperCase()}</span>}
-                      <FileIcon type="event" size={34} />
-                    </div>
+                    {!thumbnail && (
+                      <div className="event-card-header">
+                        <span className="event-card-label">{status.label.toUpperCase()}</span>
+                        <FileIcon type="event" size={34} />
+                      </div>
+                    )}
                     <div className="event-card-body">
                       <div className="event-card-title">
                         {searchQuery ? highlightText(event.title, searchQuery) : event.title}
