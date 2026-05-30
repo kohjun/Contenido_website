@@ -1,1000 +1,1178 @@
-let currentRole = 'all';
-let currentPage = 1;
-const usersPerPage = 20;
-let searchResults = [];
-let users = [];
-let selectedUserId = null;
+/* =====================================================================
+   hr.js — 인사팀 관리 페이지 로직 (v20260539)
+   ---------------------------------------------------------------------
+   IIFE 패턴 — 이 파일은 다음 두 환경 모두에서 동작해야 함:
+   (1) office_hr.html 직접 로드: defer 없이 body 끝에서 실행
+   (2) office.html → 사이드바 인사팀 클릭 → sidebar.js가 DOM 주입 후
+       동적으로 <script src="..."> 삽입. 이 시점 DOMContentLoaded는
+       이미 fired. 또 사이드바를 두 번 누르면 같은 코드가 재실행됨.
+   ===================================================================== */
+(function () {
+  'use strict';
+  console.log('[hr.js] loaded — version 20260539');
 
-// ============ 검색 상태 저장 변수 추가 ============
-let currentSearchOption = 'name';
-let currentSearchInput = '';
-// ============ 검색 상태 저장 변수 추가 끝 ============
-
-// 페이지 로드 시 초기화
-document.addEventListener('DOMContentLoaded', () => {
-    loadUsers();
-    initializeDialogs();
-});
-
-// 다이얼로그 초기화 (이벤트 리스너 등)
-function initializeDialogs() {
-    // 컨텍스트 메뉴 닫기 이벤트
-    document.addEventListener('click', function (e) {
-        if (!e.target.closest('.context-menu')) {
-            const contextMenu = document.getElementById('contextMenu');
-            if (contextMenu) contextMenu.style.display = 'none';
-        }
-    });
-
-    // 모달 바깥 영역 클릭 시 닫기
-    document.addEventListener('click', function (e) {
-        if (e.target.classList.contains('warning-modal-overlay')) {
-            closeWarningModal();
-        }
-    });
-}
-
-// 사용자 데이터 로드
-async function loadUsers() {
-    try {
-        const response = await fetch('/user/participants/users');
-        if (!response.ok) {
-            throw new Error(`Failed to fetch users: ${response.statusText}`);
-        }
-        users = await response.json();
-        showUsersByRole(currentRole);
-    } catch (error) {
-        alert('사용자 데이터를 로드하지 못했습니다.');
-    }
-}
-
-// 컨텍스트 메뉴 표시
-function handleContextMenu(e, userId, userName, userRole) {
-    e.preventDefault();
-    selectedUserId = userId;
-    
-    const contextMenu = document.getElementById('contextMenu');
-    if (!contextMenu) {
-        return;
-    }
-    const user = users.find(u => u.id === userId);
-
-    let menuContent = `<div class="context-menu-header">${userName}</div>`;
-    if (userRole === 'admin') {
-        menuContent += `<div class="menu-item disabled">Admin은 변경할 수 없습니다</div>`;
-    } else {
-        menuContent += `<button onclick="showDialog('roleChangeDialog')">역할 변경</button>`;
-        if (userRole === 'officer') {
-            menuContent += `<button onclick="showDialog('teamChangeDialog')">팀 변경</button>`;
-        }
-        if (user && user.team === 'staffTeam') {
-            menuContent += `<button onclick="showStaffSubteamDialog()">스태프팀 변경</button>`;
-        }
-    }
-
-    contextMenu.innerHTML = menuContent;
-    contextMenu.style.display = 'block';
-    contextMenu.style.left = `${e.clientX}px`;
-    contextMenu.style.top = `${e.clientY}px`;
-}
-
-// 다이얼로그 표시/숨김
-function showDialog(dialogId) {
-    const contextMenu = document.getElementById('contextMenu');
-    const dialog = document.getElementById(dialogId);
-    if (!dialog) {
-        alert(`다이얼로그(${dialogId})를 찾을 수 없습니다.`);
-        return;
-    }
-    if (contextMenu) contextMenu.style.display = 'none';
-    dialog.style.display = 'flex';
-}
-
-function closeDialog(dialogId) {
-    const dialog = document.getElementById(dialogId);
-    if (dialog) dialog.style.display = 'none';
-}
-
-// 경고 부여 모달 표시
-function showWarningModal(userId, userName) {
-    const modal = document.createElement('div');
-    modal.className = 'warning-modal-overlay';
-    modal.innerHTML = `
-        <div class="warning-modal">
-            <div class="warning-modal-header">
-                <h3>${userName}님에게 경고 부여</h3>
-                <button onclick="closeWarningModal()" class="modal-close-btn">&times;</button>
-            </div>
-            <div class="warning-modal-body">
-                <div class="form-group">
-                    <label for="warning-category">경고 분류:</label>
-                    <select id="warning-category" required>
-                        <option value="정기모임">정기모임</option>
-                        <option value="스태프활동">스태프활동</option>
-                        <option value="운영진활동">운영진활동</option>
-                        <option value="번개활동">번개활동</option>
-                        <option value="조별활동">조별활동</option>
-                        <option value="기타">기타</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="warning-reason">경고 사유:</label>
-                    <textarea id="warning-reason" rows="4" placeholder="경고 사유를 상세히 입력해주세요..." required></textarea>
-                </div>
-            </div>
-            <div class="warning-modal-footer">
-                <button onclick="closeWarningModal()" class="btn-cancel">취소</button>
-                <button onclick="issueWarning('${userId}', '${userName}')" class="btn-confirm">경고 부여</button>
-            </div>
-        </div>
-    `;
-    
-    document.body.appendChild(modal);
-    document.getElementById('warning-reason').focus();
-}
-
-// 경고 부여 실행
-async function issueWarning(userId, userName) {
-    const category = document.getElementById('warning-category').value;
-    const reason = document.getElementById('warning-reason').value.trim();
-    
-    if (!reason) {
-        alert('경고 사유를 입력해주세요.');
-        return;
-    }
-    
-    try {
-        const response = await fetch(`/user/issue-warning/${userId}`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ reason, category })
-        });
-        
-        if (!response.ok) {
-            const error = await response.json();
-            throw new Error(error.message);
-        }
-        
-        const result = await response.json();
-        closeWarningModal();
-        
-        // 성공 메시지와 함께 사용자 목록 새로고침
-        alert(`${userName}님에게 경고가 부여되었습니다.\n사유: ${reason}\n현재 경고 횟수: ${result.warningCount}회`);
-        await loadUsers();
-        // ============ 수정: showUsersByRole 대신 refreshCurrentView 호출 ============
-        refreshCurrentView();
-        // ============ 수정 끝 ============
-        highlightModifiedUser(userId);
-        
-    } catch (error) {
-        console.error('경고 부여 중 오류:', error);
-        alert(`경고 부여에 실패했습니다: ${error.message}`);
-    }
-}
-
-// 경고 내역 조회 모달
-function showWarningHistoryModal(userId, userName) {
-    const modal = document.createElement('div');
-    modal.className = 'warning-modal-overlay';
-    modal.innerHTML = `
-        <div class="warning-history-modal">
-            <div class="warning-modal-header">
-                <h3>${userName}님의 경고 내역</h3>
-                <button onclick="closeWarningModal()" class="modal-close-btn">&times;</button>
-            </div>
-            <div class="warning-modal-body">
-                <div class="loading-indicator">경고 내역을 불러오는 중...</div>
-            </div>
-        </div>
-    `;
-    
-    document.body.appendChild(modal);
-    loadWarningHistory(userId);
-}
-
-// 경고 내역 로드
-async function loadWarningHistory(userId) {
-    try {
-        const response = await fetch(`/user/warning-history/${userId}?showAll=true`);
-        if (!response.ok) {
-            throw new Error('경고 내역을 불러올 수 없습니다.');
-        }
-        
-        const data = await response.json();
-        const modalBody = document.querySelector('.warning-modal-body');
-        
-        if (data.warningHistory.length === 0) {
-            modalBody.innerHTML = `
-                <div class="no-warnings">
-                    <p>경고 내역이 없습니다.</p>
-                    <p>마지막 초기화: ${data.lastResetDate ? new Date(data.lastResetDate).toLocaleDateString() : '없음'}</p>
-                </div>
-            `;
-            return;
-        }
-        
-        const historyHtml = data.warningHistory.map(warning => `
-            <div class="warning-item ${warning.isActive ? 'active-warning' : 'inactive-warning'}">
-                <div class="warning-header">
-                    <span class="warning-category">[${warning.category}]</span>
-                    <span class="warning-date">${new Date(warning.issuedAt).toLocaleString()}</span>
-                    ${warning.isActive ? 
-                        `<button onclick="removeWarning('${userId}', '${warning.id}')" class="btn-remove-warning">삭제</button>` 
-                        : '<span class="warning-status">삭제됨</span>'
-                    }
-                </div>
-                <div class="warning-content">
-                    <p><strong>사유:</strong> ${warning.reason}</p>
-                    <p><strong>부여자:</strong> ${warning.issuedByName}</p>
-                    ${!warning.isActive && warning.removedAt ? 
-                        `<p class="removal-info"><strong>삭제일:</strong> ${new Date(warning.removedAt).toLocaleString()} | <strong>삭제자:</strong> ${warning.removedByName || 'System'} | <strong>삭제 사유:</strong> ${warning.removalReason || '없음'}</p>`
-                        : ''
-                    }
-                </div>
-            </div>
-        `).join('');
-        
-        modalBody.innerHTML = `
-            <div class="warning-summary">
-                <p><strong>현재 경고 횟수:</strong> ${data.currentWarningCount}회</p>
-                <p><strong>마지막 초기화:</strong> ${data.lastResetDate ? new Date(data.lastResetDate).toLocaleDateString() : '없음'}</p>
-            </div>
-            <div class="warning-history-list">
-                ${historyHtml}
-            </div>
-        `;
-        
-    } catch (error) {
-        console.error('경고 내역 로드 중 오류:', error);
-        document.querySelector('.warning-modal-body').innerHTML = `
-            <div class="error-message">
-                <p>경고 내역을 불러오는데 실패했습니다.</p>
-                <p>${error.message}</p>
-            </div>
-        `;
-    }
-}
-
-// 경고 삭제
-async function removeWarning(userId, warningId) {
-    if (!confirm('이 경고를 삭제하시겠습니까?')) {
-        return;
-    }
-    
-    const reason = prompt('삭제 사유를 입력해주세요:', '관리자 판단');
-    if (!reason) return;
-    
-    try {
-        const response = await fetch(`/user/remove-warning/${userId}/${warningId}`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ reason })
-        });
-        
-        if (!response.ok) {
-            const error = await response.json();
-            throw new Error(error.message);
-        }
-        
-        alert('경고가 삭제되었습니다.');
-        loadWarningHistory(userId); // 내역 새로고침
-        await loadUsers();
-        // ============ 수정: showUsersByRole 대신 refreshCurrentView 호출 ============
-        refreshCurrentView();
-        // ============ 수정 끝 ============
-        
-    } catch (error) {
-        console.error('경고 삭제 중 오류:', error);
-        alert(`경고 삭제에 실패했습니다: ${error.message}`);
-    }
-}
-
-// 모달 닫기
-function closeWarningModal() {
-    const modal = document.querySelector('.warning-modal-overlay');
-    if (modal) {
-        modal.remove();
-    }
-}
-
-// 역할 업데이트
-async function updateUserRole() {
-    if (!selectedUserId) {
-        alert('선택된 사용자가 없습니다.');
-        return;
-    }
-
-    const roleSelect = document.getElementById('roleSelect');
-    if (!roleSelect) {
-        alert('역할 선택 요소를 찾을 수 없습니다.');
-        return;
-    }
-    const newRole = roleSelect.value;
-
-    try {
-        const requestBody = { role: newRole };
-        if (newRole === 'officer') {
-            requestBody.department = 'operation';
-            requestBody.team = 'operationTeam';
-        }
-        if (newRole === 'guest') {
-            requestBody.active = false;
-        }
-
-        const response = await fetch(`/user/update-role/${selectedUserId}`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json'
-            },
-            body: JSON.stringify(requestBody)
-        });
-
-        if (!response.ok) {
-            const error = await response.json();
-            throw new Error(error.message || '역할 업데이트 실패');
-        }
-
-        await loadUsers();
-        // ============ 수정: showUsersByRole 대신 refreshCurrentView 호출 ============
-        refreshCurrentView();
-        // ============ 수정 끝 ============
-        highlightModifiedUser(selectedUserId);
-        closeDialog('roleChangeDialog');
-        alert('역할이 성공적으로 변경되었습니다.');
-    } catch (error) {
-        alert(error.message || '역할 변경 중 오류가 발생했습니다.');
-    }
-}
-
-// 팀과 부서 매핑
-const teamDepartmentMapping = {
-    'operationTeam': 'operation', 'HumanResourceTeam': 'operation', 'financeTeam': 'operation', 'cooperationTeam': 'operation',
-    'marketingTeam': 'promotion', 'designTeam': 'promotion', 'videoTeam': 'promotion',
-    'PlanningTeam': 'planning', 'regularTeam': 'planning', 'staffTeam': 'planning', 'starterTeam': 'planning'
+/* ───────── 전역 상태 ───────── */
+const state = {
+  allUsers: [],            // 서버에서 받은 전체
+  selectedIds: new Set(),  // 선택된 userId
+  filters: {
+    search: '',
+    role: 'all',
+    active: 'all',
+    gender: 'all',
+    warning: 'all'
+  },
+  sortMode: 'name-asc',
+  page: 1,
+  perPage: 20,
+  // 현재 선택된 user (단일 행동: 역할 변경, 팀 변경 등)
+  contextUserId: null,
+  // 경고 모달 컨텍스트
+  warningTargetId: null,
+  // 일괄 처리 컨텍스트
+  bulkActionType: null,
+  // 현재 사용자의 HR 권한 (admin 또는 officer+인사팀)
+  canManage: false
 };
 
-// 팀 업데이트
-async function updateUserTeam() {
-    if (!selectedUserId) {
-        alert('선택된 사용자가 없습니다.');
-        return;
-    }
+const TEAM_KOR = {
+  operationTeam: '운영팀',
+  HumanResourceTeam: '인사팀',
+  financeTeam: '재무팀',
+  cooperationTeam: '대외협력팀',
+  marketingTeam: '홍보팀',
+  designTeam: '디자인팀',
+  videoTeam: '영상제작팀',
+  PlanningTeam: '기획팀',
+  regularTeam: '정기모임팀',
+  staffTeam: '스태프팀',
+  starterTeam: '스타터팀',
+  noTeam: '없음'
+};
 
-    const teamSelect = document.getElementById('teamSelect');
-    if (!teamSelect) {
-        alert('팀 선택 요소를 찾을 수 없습니다.');
-        return;
-    }
-    const newTeam = teamSelect.value;
-    const newDepartment = teamDepartmentMapping[newTeam];
+const TEAM_CODE = {
+  operationTeam: 'O',
+  HumanResourceTeam: 'H',
+  financeTeam: 'F',
+  cooperationTeam: 'CO',
+  marketingTeam: 'M',
+  designTeam: 'D',
+  videoTeam: 'V',
+  PlanningTeam: 'P',
+  regularTeam: 'R',
+  staffTeam: 'S',
+  starterTeam: 'St'
+};
 
-    try {
-        const body = { team: newTeam, department: newDepartment };
-        const response = await fetch(`/user/update-team/${selectedUserId}`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-            body: JSON.stringify(body)
-        });
+const ROLE_KOR = {
+  admin: '관리자',
+  officer: '운영진',
+  staffTeam: '스태프',
+  participant: '참가자',
+  starter: '스타터',
+  guest: '게스트'
+};
 
-        if (!response.ok) {
-            const error = await response.json();
-            console.error('Team update failed:', error);
-            throw new Error(error.message || '팀 업데이트 실패');
-        }
-
-        console.log('Team update successful, reloading users...');
-        await loadUsers();
-        // ============ 수정: showUsersByRole 대신 refreshCurrentView 호출 ============
-        refreshCurrentView();
-        // ============ 수정 끝 ============
-        highlightModifiedUser(selectedUserId);
-        closeDialog('teamChangeDialog');
-        alert('팀이 성공적으로 변경되었습니다.');
-    } catch (error) {
-        console.error('Error updating user team:', error);
-        alert(error.message || '팀 변경 중 오류가 발생했습니다.');
-    }
+/* ───────── 부팅 ───────── */
+function bootHR() {
+  // HR DOM이 실제로 존재하는지 확인 — sidebar.js가 인사팀 외 다른 페이지를
+  // 표시하는 동안 캐시된 hr.js가 우연히 실행될 가능성 차단.
+  if (!document.getElementById('role-chips')) {
+    console.log('[hr.js] HR DOM not found — skipping init');
+    return;
+  }
+  bindFilterChips();
+  bindSearchInput();
+  bindSortSelect();
+  bindRoleOptionGrid();
+  bindTeamOptionGrid();
+  bindStaffOptionGrid();
+  checkHRPermission();
+  loadUsers();
 }
 
-// 스태프 소그룹 변경 다이얼로그 표시
-function showStaffSubteamDialog() {
-    const contextMenu = document.getElementById('contextMenu');
-    const dialog = document.getElementById('staffSubteamDialog');
-    const select = document.getElementById('staffSubteamModalSelect');
-
-    if (!dialog || !select) {
-        console.error('Staff subteam dialog or select element not found');
-        alert('스태프 소그룹 다이얼로그를 찾을 수 없습니다.');
-        return;
+/* ───────── 현재 사용자의 HR 권한 체크 ─────────
+   admin 또는 (officer + team='HumanResourceTeam') 만 회원 관리 기능 사용 가능 */
+async function checkHRPermission() {
+  try {
+    const res = await fetch('/user/info', { credentials: 'include' });
+    if (!res.ok) {
+      state.canManage = false;
+      applyPermissionToUI();
+      return;
     }
-
-    const user = users.find(u => u.id === selectedUserId);
-    select.value = user?.staffSubteam || '';
-    if (contextMenu) contextMenu.style.display = 'none';
-    dialog.style.display = 'flex';
+    const me = await res.json();
+    const isAdmin = me.role === 'admin';
+    const isHROfficer = me.role === 'officer' && me.team === 'HumanResourceTeam';
+    state.canManage = isAdmin || isHROfficer;
+    applyPermissionToUI();
+  } catch (e) {
+    console.error('권한 확인 실패:', e);
+    state.canManage = false;
+    applyPermissionToUI();
+  }
 }
 
-// 스태프 소그룹 변경 확인
-async function confirmStaffSubteamOnly() {
-    const select = document.getElementById('staffSubteamModalSelect');
-    if (!select) {
-        console.error('Staff subteam select element not found');
-        alert('스태프 소그룹 선택 요소를 찾을 수 없습니다.');
-        return;
-    }
-    const staffSubteam = select.value;
-    if (!staffSubteam) {
-        console.error('No staff subteam selected');
-        alert('스태프 소그룹을 반드시 선택해야 합니다.');
-        return;
-    }
-
-    try {
-        const response = await fetch(`/user/update-staffsubteam/${selectedUserId}`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-            body: JSON.stringify({ staffSubteam })
-        });
-
-        if (!response.ok) {
-            const error = await response.json();
-            console.error('Staff subteam update failed:', error);
-            throw new Error(error.message || '스태프 소그룹 업데이트 실패');
-        }
-
-        await loadUsers();
-        // ============ 수정: showUsersByRole 대신 refreshCurrentView 호출 ============
-        refreshCurrentView();
-        // ============ 수정 끝 ============
-        highlightModifiedUser(selectedUserId);
-        closeDialog('staffSubteamDialog');
-        alert('스태프 소그룹이 성공적으로 변경되었습니다.');
-    } catch (error) {
-        console.error('Error updating staff subteam:', error);
-        alert(error.message || '스태프 소그룹 변경 중 오류가 발생했습니다.');
-    }
+function applyPermissionToUI() {
+  // 권한 없으면 일괄 작업 바를 영구히 숨기고 readonly 배너 표시
+  const bulkBar = document.getElementById('bulk-bar');
+  if (bulkBar && !state.canManage) {
+    bulkBar.style.display = 'none';
+  }
+  // 읽기 전용 알림 배너
+  if (!state.canManage && !document.getElementById('readonly-banner')) {
+    const banner = document.createElement('div');
+    banner.id = 'readonly-banner';
+    banner.style.cssText = 'background:#FEF3C7;color:#92400E;padding:10px 14px;border-radius:12px;margin-bottom:16px;font-size:0.85rem;text-align:center;border:1px solid #FDE68A;';
+    banner.textContent = '👀 읽기 전용 모드 — 회원 관리 기능은 관리자 또는 인사팀 운영진만 사용할 수 있습니다.';
+    const filterCard = document.querySelector('.filter-card');
+    if (filterCard) filterCard.parentNode.insertBefore(banner, filterCard);
+  }
 }
 
-// 변경된 유저 행 하이라이트
-function highlightModifiedUser(userId) {
-    const userRow = document.querySelector(`tr[data-userid='${userId}']`);
-    if (userRow) {
-        userRow.classList.add('recently-modified');
-        setTimeout(() => {
-            userRow.classList.remove('recently-modified');
-        }, 60000); // 1분
-    } else {
-        console.warn(`User row for ID ${userId} not found`);
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', bootHR);
+} else {
+  // DOMContentLoaded 이미 지난 시점 (sidebar.js가 늦게 주입한 경우)
+  bootHR();
+}
+
+/* ───────── 1. 데이터 로딩 ───────── */
+async function loadUsers() {
+  try {
+    const res = await fetch('/user/participants/users', { credentials: 'include' });
+    if (!res.ok) throw new Error('회원 정보를 불러오지 못했습니다');
+    const users = await res.json();
+    state.allUsers = users.map(u => ({
+      ...u,
+      _participation: (u.participationCount && (u.participationCount.regularCount || 0)) || 0,
+      _warning: u.warningCount || 0
+    }));
+
+    updateStats();
+    updateRoleCounts();
+    applyFiltersAndRender();
+  } catch (err) {
+    console.error('loadUsers error:', err);
+    toast('회원 정보를 불러오지 못했습니다', 'error');
+  }
+}
+
+/* ───────── 2. 통계 ───────── */
+function updateStats() {
+  const all = state.allUsers;
+  const active = all.filter(u => u.active).length;
+  const inactive = all.length - active;
+  const warnTotal = all.reduce((sum, u) => sum + (u.warningCount || 0), 0);
+
+  document.getElementById('stat-total').textContent = all.length;
+  document.getElementById('stat-active').textContent = active;
+  document.getElementById('stat-inactive').textContent = inactive;
+  document.getElementById('stat-warning').textContent = warnTotal;
+
+  document.getElementById('total-count').textContent = all.length;
+}
+
+function updateRoleCounts() {
+  const counts = { all: state.allUsers.length };
+  state.allUsers.forEach(u => {
+    const r = u.role || 'guest';
+    counts[r] = (counts[r] || 0) + 1;
+  });
+  document.querySelectorAll('.chip-count').forEach(el => {
+    const key = el.dataset.count;
+    el.textContent = counts[key] || 0;
+  });
+}
+
+/* ───────── 3. 필터/검색 ───────── */
+function bindFilterChips() {
+  ['role-chips', 'active-chips', 'gender-chips', 'warning-chips'].forEach(groupId => {
+    const group = document.getElementById(groupId);
+    if (!group) return;
+    group.addEventListener('click', e => {
+      const chip = e.target.closest('.chip');
+      if (!chip) return;
+      group.querySelectorAll('.chip').forEach(c => c.classList.remove('is-active'));
+      chip.classList.add('is-active');
+      if (groupId === 'role-chips')     state.filters.role    = chip.dataset.role;
+      if (groupId === 'active-chips')   state.filters.active  = chip.dataset.active;
+      if (groupId === 'gender-chips')   state.filters.gender  = chip.dataset.gender;
+      if (groupId === 'warning-chips')  state.filters.warning = chip.dataset.warning;
+      state.page = 1;
+      applyFiltersAndRender();
+    });
+  });
+}
+
+function bindSearchInput() {
+  const input = document.getElementById('search-input');
+  if (!input) return;
+  let timer;
+  input.addEventListener('input', () => {
+    clearTimeout(timer);
+    timer = setTimeout(() => {
+      state.filters.search = input.value.trim().toLowerCase();
+      state.page = 1;
+      applyFiltersAndRender();
+    }, 200);
+  });
+}
+
+function bindSortSelect() {
+  const sel = document.getElementById('sort-select');
+  if (!sel) return;
+  sel.addEventListener('change', () => {
+    state.sortMode = sel.value;
+    applyFiltersAndRender();
+  });
+}
+
+function resetAllFilters() {
+  state.filters = { search: '', role: 'all', active: 'all', gender: 'all', warning: 'all' };
+  document.getElementById('search-input').value = '';
+  document.querySelectorAll('.chip-group').forEach(group => {
+    const chips = group.querySelectorAll('.chip');
+    chips.forEach(c => c.classList.remove('is-active'));
+    if (chips[0]) chips[0].classList.add('is-active');
+  });
+  state.sortMode = 'name-asc';
+  document.getElementById('sort-select').value = 'name-asc';
+  state.page = 1;
+  applyFiltersAndRender();
+}
+
+/* ───────── 4. 필터 적용 ───────── */
+function getFilteredUsers() {
+  const f = state.filters;
+  return state.allUsers.filter(u => {
+    // 역할
+    if (f.role !== 'all' && u.role !== f.role) return false;
+    // 활성
+    if (f.active === 'active' && !u.active) return false;
+    if (f.active === 'inactive' && u.active) return false;
+    // 성별
+    if (f.gender !== 'all' && (u.gender || '') !== f.gender) return false;
+    // 경고
+    const wc = u.warningCount || 0;
+    if (f.warning === 'none' && wc !== 0) return false;
+    if (f.warning === 'hasWarn' && wc < 1) return false;
+    if (f.warning === 'high' && wc < 3) return false;
+    // 검색어 (이름/대학/전화 끝4자리)
+    if (f.search) {
+      const last4 = (u.phonenumber || '').slice(-4);
+      const blob = [
+        u.name || '',
+        u.displayName || '',
+        u.university || '',
+        u.department || '',
+        last4
+      ].join(' ').toLowerCase();
+      if (!blob.includes(f.search)) return false;
     }
+    return true;
+  });
 }
 
-// 유저 행 생성 (경고 관리 부분 수정)
-function generateUserRow(user) {
-    if (!user) return '';
-
-    const warningCount = user.warningCount || 0;
-    const regularCount = user.participationCount?.regularCount || 0;
-    const teamName = getTeamNameInKorean(user.team, user.staffSubteam);
-    const joinDate = user.createdAt ? new Date(user.createdAt).toLocaleDateString() : '-';
-    const secureProfileImage = user.profileImage ? user.profileImage.replace(/^http:/, 'https:') : '/images/basic_Image.png';
-    const phoneSuffix = user.phonenumber ? user.phonenumber.replace(/\D/g, '').slice(-4) : '';
-
-    const roleDisplay = {
-        'officer': '운영진', 'starter': '스타터', 'admin': '관리자',
-        'participant': '참가자', 'guest': '게스트'
-    };
-    const genderDisplay = user.gender === 'male' ? '남' : user.gender === 'female' ? '여' : '-';
-    const universityDisplay = user.university ? user.university : 'N/A';
-    return `
-        <tr oncontextmenu="handleContextMenu(event, '${user.id}', '${user.name || ''}', '${user.role}')" 
-            data-userid="${user.id}" data-warning="${warningCount}">
-            <td><img src="${secureProfileImage}" alt="Profile" class="profile-image" onerror="this.src='/images/basic_Image.png'"></td>
-            <td>${user.name || '--'}${phoneSuffix ? `(${phoneSuffix})` : ''}(${user.displayName || '--'})</td>
-            <td>${roleDisplay[user.role] || user.role}</td>
-            <td>${teamName || '-'}</td>
-            <td>${genderDisplay}</td>
-            <td>${universityDisplay}</td>
-            <td class="warning-count-cell">
-                <button onclick="updateWarningCount('${user.id}', ${Math.max(0, warningCount - 1)})" class="warning-btn" ${warningCount <= 0 ? 'disabled' : ''} title="경고 1회 차감">-</button>
-                <span class="warning-count" onclick="showWarningHistoryModal('${user.id}', '${user.name || user.displayName}')" 
-                      title="클릭하여 경고 내역 확인" style="cursor: pointer; text-decoration: underline; color: #007bff;">${warningCount}</span>
-                <button onclick="showWarningModal('${user.id}', '${user.name || user.displayName}')" class="warning-btn" title="경고 부여">+</button>
-            </td>
-            <td class="participation-count-cell">
-                <button onclick="updateParticipationCount('${user.id}', ${Math.max(0, regularCount - 1)})" class="warning-btn" ${regularCount <= 0 ? 'disabled' : ''}>-</button>
-                <span>${regularCount}</span>
-                <button onclick="updateParticipationCount('${user.id}', ${regularCount + 1})" class="warning-btn">+</button>
-            </td>
-            <td>
-                <label class="toggle-switch">
-                    <input type="checkbox" ${user.active ? 'checked' : ''} onclick="toggleUserActive('${user.id}', this.checked)">
-                    <span class="slider"></span>
-                </label>
-            </td>
-            <td>${joinDate}</td>
-        </tr>`;
+// 이름이 비어있거나 '-' 인 경우는 항상 맨 뒤로 빠지도록
+function isNamelessUser(u) {
+  const n = (u && u.name ? String(u.name).trim() : '');
+  return n === '' || n === '-';
 }
 
-function getTeamNameInKorean(team, staffSubteam) {
-    const teamMapping = {
-        "operationTeam": "운영팀", "HumanResourceTeam": "인사팀", "financeTeam": "재무팀",
-        "cooperationTeam": "대외협력팀", "marketingTeam": "홍보팀", "designTeam": "디자인팀",
-        "videoTeam": "영상제작팀", "PlanningTeam": "기획팀", "regularTeam": "정기모임팀",
-        "staffTeam": "스태프팀", "starterTeam": "스타터팀"
-    };
-    if (team === "staffTeam" && staffSubteam) {
-        return `${teamMapping[team]}(${staffSubteam})`;
+function sortUsers(arr) {
+  const m = state.sortMode;
+  const sorted = [...arr];
+  sorted.sort((a, b) => {
+    // 이름 없는(또는 '-') 사용자는 정렬 모드와 관계없이 항상 맨 뒤
+    const aNameless = isNamelessUser(a);
+    const bNameless = isNamelessUser(b);
+    if (aNameless && !bNameless) return 1;
+    if (!aNameless && bNameless) return -1;
+
+    switch (m) {
+      case 'name-asc':       return (a.name || '').localeCompare(b.name || '', 'ko');
+      case 'name-desc':      return (b.name || '').localeCompare(a.name || '', 'ko');
+      case 'createdAt-desc': return new Date(b.createdAt || 0) - new Date(a.createdAt || 0);
+      case 'createdAt-asc':  return new Date(a.createdAt || 0) - new Date(b.createdAt || 0);
+      case 'warning-desc':   return (b.warningCount || 0) - (a.warningCount || 0);
+      case 'warning-asc':    return (a.warningCount || 0) - (b.warningCount || 0);
+      case 'regular-desc':   return b._participation - a._participation;
+      case 'regular-asc':    return a._participation - b._participation;
+      default: return 0;
     }
-    return teamMapping[team] || team;
+  });
+  return sorted;
 }
 
-// 참가 횟수 업데이트
-async function updateParticipationCount(userId, newCount) {
-    await updateCount(userId, 'participation', { regularCount: newCount }, '참가 횟수');
+function getPageUsers(filtered) {
+  const start = (state.page - 1) * state.perPage;
+  return filtered.slice(start, start + state.perPage);
 }
 
-// 경고 횟수 업데이트 (기존 방식 - 긴급용)
-async function updateWarningCount(userId, newCount) {
-    if (newCount < 0) return;
-    
-    // 경고 감소 시 확인
-    if (confirm('경고를 직접 차감하시겠습니까?\n권장: 경고 번호를 클릭하여 개별 경고를 삭제해주세요.')) {
-        await updateCount(userId, 'warning', { warningCount: newCount }, '경고 횟수');
+/* ───────── 5. 렌더 ───────── */
+function applyFiltersAndRender() {
+  const filtered = sortUsers(getFilteredUsers());
+  document.getElementById('filtered-count').textContent = filtered.length;
+
+  const total = filtered.length;
+  const maxPage = Math.max(1, Math.ceil(total / state.perPage));
+  if (state.page > maxPage) state.page = maxPage;
+
+  const pageUsers = getPageUsers(filtered);
+  renderTable(pageUsers);
+  renderCards(pageUsers);
+  renderPagination(total);
+  updateBulkBar();
+}
+
+function renderListOnly() {
+  const filtered = sortUsers(getFilteredUsers());
+  const pageUsers = getPageUsers(filtered);
+  renderTable(pageUsers);
+  renderCards(pageUsers);
+}
+
+function renderTable(users) {
+  const tbody = document.getElementById('user-table-body');
+  if (!tbody) return;
+  if (!users.length) {
+    tbody.innerHTML = `
+      <tr><td colspan="11">
+        <div class="empty-state">
+          <div class="emoji">🔍</div>
+          <h3>조건에 맞는 회원이 없어요</h3>
+          <p>검색어나 필터를 조정해보세요</p>
+        </div>
+      </td></tr>`;
+    return;
+  }
+  tbody.innerHTML = users.map(u => userRowHTML(u)).join('');
+  bindRowEvents();
+}
+
+function renderCards(users) {
+  const wrap = document.getElementById('user-cards');
+  if (!wrap) return;
+  if (!users.length) {
+    wrap.innerHTML = `
+      <div class="empty-state">
+        <div class="emoji">🔍</div>
+        <h3>조건에 맞는 회원이 없어요</h3>
+        <p>검색어나 필터를 조정해보세요</p>
+      </div>`;
+    return;
+  }
+  wrap.innerHTML = users.map(u => userCardHTML(u)).join('');
+  bindCardEvents();
+}
+
+function userRowHTML(u) {
+  const isSel = state.selectedIds.has(u.id);
+  const teamKor = u.team ? (TEAM_KOR[u.team] || '없음') : '없음';
+  const teamCode = u.team ? (TEAM_CODE[u.team] || '') : '';
+  const roleClass = `role-${(u.role || 'guest').toLowerCase()}`;
+  const profile = u.profileImage || '/profile-images/default.png';
+  const date = u.createdAt ? new Date(u.createdAt).toLocaleDateString('ko-KR') : '-';
+  const gender = u.gender === 'male' ? '남' : u.gender === 'female' ? '여' : '-';
+  const warnHasClass = (u.warningCount || 0) > 0 ? 'has-warn' : '';
+
+  return `
+    <tr data-id="${u.id}" class="${isSel ? 'is-selected' : ''}">
+      <td class="col-check">
+        <input type="checkbox" class="row-check" data-id="${u.id}" ${isSel ? 'checked' : ''}>
+      </td>
+      <td class="col-profile">
+        <img class="profile-image" src="${escapeAttr(profile)}" alt="profile"
+             onclick="window.location.href='profile.html?userId=${u.id}'">
+      </td>
+      <td>
+        <div style="display:flex; flex-direction:column; align-items:center; gap:2px;">
+          <strong>${escapeHTML(u.name || '-')}${u.phonenumber ? '(' + u.phonenumber.slice(-4) + ')' : ''}</strong>
+          ${u.displayName ? `<span style="font-size:0.75rem; color:var(--c-text-soft);">${escapeHTML(u.displayName)}</span>` : ''}
+        </div>
+      </td>
+      <td>
+        <span class="role-pill ${roleClass} ${u.role === 'admin' ? 'is-locked' : ''}" data-id="${u.id}" data-action="role" title="${u.role === 'admin' ? '관리자 역할은 변경 불가' : '클릭하여 역할 변경'}">
+          ${ROLE_KOR[u.role] || '게스트'}${u.role === 'admin' ? ' 🔒' : ''}
+        </span>
+      </td>
+      <td>
+        ${teamKor === '없음'
+          ? `<span class="no-team" data-id="${u.id}" data-action="team">없음</span>`
+          : `<span class="team-pill" data-team="${teamCode}" data-id="${u.id}" data-action="team">${teamKor}</span>`}
+      </td>
+      <td><span class="gender-chip">${gender}</span></td>
+      <td>${escapeHTML(u.university || '-')}</td>
+      <td>
+        <div class="count-cell">
+          <input type="number" min="0" class="count-input warning-input ${warnHasClass}"
+                 data-id="${u.id}" data-field="warning" value="${u.warningCount || 0}">
+          <button class="warning-link" data-id="${u.id}" data-action="warning-add">+</button>
+          <button class="warning-link" data-id="${u.id}" data-action="warning-list">목록</button>
+        </div>
+      </td>
+      <td>
+        <div class="count-cell">
+          <input type="number" min="0" class="count-input"
+                 data-id="${u.id}" data-field="participation" value="${u._participation}">
+        </div>
+      </td>
+      <td>
+        <label class="active-toggle">
+          <input type="checkbox" data-id="${u.id}" data-action="toggle-active" ${u.active ? 'checked' : ''}>
+          <span class="active-slider"></span>
+        </label>
+      </td>
+      <td style="font-size:0.8rem; color:var(--c-text-muted);">${date}</td>
+    </tr>`;
+}
+
+function userCardHTML(u) {
+  const isSel = state.selectedIds.has(u.id);
+  const teamKor = u.team ? (TEAM_KOR[u.team] || '없음') : '없음';
+  const teamCode = u.team ? (TEAM_CODE[u.team] || '') : '';
+  const roleClass = `role-${(u.role || 'guest').toLowerCase()}`;
+  const profile = u.profileImage || '/profile-images/default.png';
+  const gender = u.gender === 'male' ? '남' : u.gender === 'female' ? '여' : '-';
+  const last4 = u.phonenumber ? u.phonenumber.slice(-4) : '';
+  const hasWarn = (u.warningCount || 0) > 0;
+
+  return `
+    <div class="user-card ${isSel ? 'is-selected' : ''}" data-id="${u.id}">
+      <!-- Row 1: 체크 / 아바타 / 이름 / 활성토글 -->
+      <div class="card-row-main">
+        <input type="checkbox" class="user-card-check row-check" data-id="${u.id}" ${isSel ? 'checked' : ''}>
+        <img class="user-card-avatar" src="${escapeAttr(profile)}" alt="profile"
+             onclick="window.location.href='profile.html?userId=${u.id}'">
+        <div class="user-card-name">
+          <h4>${escapeHTML(u.name || '-')}${last4 ? `<span class="last4">(${last4})</span>` : ''}</h4>
+          <div class="sub">${escapeHTML(u.university || '-')} · ${gender}</div>
+        </div>
+        <label class="active-toggle">
+          <input type="checkbox" data-id="${u.id}" data-action="toggle-active" ${u.active ? 'checked' : ''}>
+          <span class="active-slider"></span>
+        </label>
+      </div>
+
+      <!-- Row 2: 역할/팀 pills + 경고/참가 numbers + 액션 -->
+      <div class="card-row-meta">
+        <span class="role-pill ${roleClass} ${u.role === 'admin' ? 'is-locked' : ''}" data-id="${u.id}" data-action="role">
+          ${ROLE_KOR[u.role] || '게스트'}${u.role === 'admin' ? ' 🔒' : ''}
+        </span>
+        ${teamKor === '없음'
+          ? `<span class="no-team" data-id="${u.id}" data-action="team">팀없음</span>`
+          : `<span class="team-pill" data-team="${teamCode}" data-id="${u.id}" data-action="team">${teamKor}</span>`}
+        <span class="mini-stat ${hasWarn ? 'warn' : ''}" data-id="${u.id}" data-action="warning-list" title="경고 내역">
+          ⚠ ${u.warningCount || 0}
+        </span>
+        <span class="mini-stat">
+          참가 <input type="number" min="0" class="count-input-inline"
+                     data-id="${u.id}" data-field="participation" value="${u._participation}">
+        </span>
+        <button class="icon-action" type="button" data-id="${u.id}" data-action="warning-add" title="경고 부여">⚠+</button>
+      </div>
+    </div>`;
+}
+
+/* ───────── 6. 이벤트 바인딩 ───────── */
+function bindRowEvents() {
+  const tbody = document.getElementById('user-table-body');
+  if (!tbody) return;
+
+  tbody.querySelectorAll('.row-check').forEach(cb => {
+    cb.addEventListener('change', e => {
+      const id = e.target.dataset.id;
+      if (e.target.checked) state.selectedIds.add(id);
+      else state.selectedIds.delete(id);
+      e.target.closest('tr')?.classList.toggle('is-selected', e.target.checked);
+      updateBulkBar();
+    });
+  });
+
+  tbody.querySelectorAll('[data-action="role"]').forEach(el => {
+    el.addEventListener('click', () => openRoleDialog(el.dataset.id));
+  });
+
+  tbody.querySelectorAll('[data-action="team"]').forEach(el => {
+    el.addEventListener('click', () => openTeamDialog(el.dataset.id));
+  });
+
+  tbody.querySelectorAll('[data-action="warning-add"]').forEach(el => {
+    el.addEventListener('click', () => openWarningModal(el.dataset.id));
+  });
+
+  tbody.querySelectorAll('[data-action="warning-list"]').forEach(el => {
+    el.addEventListener('click', () => openWarningHistory(el.dataset.id));
+  });
+
+  tbody.querySelectorAll('[data-action="toggle-active"]').forEach(el => {
+    el.addEventListener('change', e => {
+      toggleUserActive(e.target.dataset.id, e.target.checked);
+    });
+  });
+
+  tbody.querySelectorAll('input[data-field="participation"]').forEach(inp => {
+    inp.addEventListener('blur', () => {
+      const val = parseInt(inp.value);
+      if (!Number.isNaN(val) && val >= 0) {
+        updateParticipation(inp.dataset.id, val);
+      } else {
+        inp.value = state.allUsers.find(u => u.id === inp.dataset.id)?._participation || 0;
+      }
+    });
+  });
+
+  tbody.querySelectorAll('input[data-field="warning"]').forEach(inp => {
+    inp.addEventListener('blur', () => {
+      const val = parseInt(inp.value);
+      const original = state.allUsers.find(u => u.id === inp.dataset.id)?.warningCount || 0;
+      if (val === original) return;
+      inp.value = original;
+      toast('경고 횟수는 [+] 버튼으로 추가하거나 내역에서 삭제해주세요', 'warn');
+    });
+  });
+}
+
+function bindCardEvents() {
+  const wrap = document.getElementById('user-cards');
+  if (!wrap) return;
+
+  wrap.querySelectorAll('.row-check').forEach(cb => {
+    cb.addEventListener('change', e => {
+      const id = e.target.dataset.id;
+      if (e.target.checked) state.selectedIds.add(id);
+      else state.selectedIds.delete(id);
+      e.target.closest('.user-card')?.classList.toggle('is-selected', e.target.checked);
+      updateBulkBar();
+    });
+  });
+
+  wrap.querySelectorAll('[data-action="role"]').forEach(el => {
+    el.addEventListener('click', () => openRoleDialog(el.dataset.id));
+  });
+  wrap.querySelectorAll('[data-action="team"]').forEach(el => {
+    el.addEventListener('click', () => openTeamDialog(el.dataset.id));
+  });
+  wrap.querySelectorAll('[data-action="warning-add"]').forEach(el => {
+    el.addEventListener('click', () => openWarningModal(el.dataset.id));
+  });
+  wrap.querySelectorAll('[data-action="warning-list"]').forEach(el => {
+    el.addEventListener('click', () => openWarningHistory(el.dataset.id));
+  });
+  wrap.querySelectorAll('[data-action="toggle-active"]').forEach(el => {
+    el.addEventListener('change', e => {
+      toggleUserActive(e.target.dataset.id, e.target.checked);
+    });
+  });
+  wrap.querySelectorAll('input[data-field="participation"]').forEach(inp => {
+    inp.addEventListener('blur', () => {
+      const val = parseInt(inp.value);
+      if (!Number.isNaN(val) && val >= 0) {
+        updateParticipation(inp.dataset.id, val);
+      } else {
+        inp.value = state.allUsers.find(u => u.id === inp.dataset.id)?._participation || 0;
+      }
+    });
+  });
+  wrap.querySelectorAll('input[data-field="warning"]').forEach(inp => {
+    inp.addEventListener('blur', () => {
+      const val = parseInt(inp.value);
+      const original = state.allUsers.find(u => u.id === inp.dataset.id)?.warningCount || 0;
+      if (val === original) return;
+      inp.value = original;
+      toast('경고는 [경고] 버튼으로 추가해주세요', 'warn');
+    });
+  });
+}
+
+/* ───────── 7. 페이지네이션 ───────── */
+function renderPagination(total) {
+  const wrap = document.getElementById('pagination');
+  if (!wrap) return;
+  const maxPage = Math.max(1, Math.ceil(total / state.perPage));
+  if (maxPage <= 1) {
+    wrap.innerHTML = '';
+    return;
+  }
+  const cur = state.page;
+  const items = [];
+  items.push(`<button ${cur === 1 ? 'disabled' : ''} onclick="changePage(${cur - 1})">‹</button>`);
+  const win = 2;
+  for (let i = 1; i <= maxPage; i++) {
+    if (i === 1 || i === maxPage || (i >= cur - win && i <= cur + win)) {
+      items.push(`<button class="${i === cur ? 'active' : ''}" onclick="changePage(${i})">${i}</button>`);
+    } else if (i === cur - win - 1 || i === cur + win + 1) {
+      items.push(`<button disabled>…</button>`);
     }
+  }
+  items.push(`<button ${cur === maxPage ? 'disabled' : ''} onclick="changePage(${cur + 1})">›</button>`);
+  wrap.innerHTML = items.join('');
 }
 
-// 공통 카운트 업데이트 로직
-async function updateCount(userId, type, body, alertName) {
-    try {
-        const response = await fetch(`/user/update-${type}/${userId}`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(body)
-        });
+function changePage(p) {
+  state.page = p;
+  applyFiltersAndRender();
+}
 
-        if (!response.ok) {
-            const error = await response.json();
-            console.error(`${type} update failed:`, error);
-            throw new Error(`Failed to update ${type} count`);
-        }
-
-        await loadUsers();
-        // ============ 수정: showUsersByRole 대신 refreshCurrentView 호출 ============
-        refreshCurrentView();
-        // ============ 수정 끝 ============
-        alert(`${alertName}가 업데이트되었습니다.`);
-    } catch (error) {
-        console.error(`Error updating ${type} count:`, error);
-        alert(`${alertName} 업데이트에 실패했습니다.`);
+/* ───────── 8. 단일 행 액션 ───────── */
+async function updateParticipation(userId, count) {
+  if (!state.canManage) {
+    toast('관리자 또는 인사팀 운영진만 사용할 수 있습니다', 'warn');
+    return;
+  }
+  try {
+    const res = await fetch(`/user/update-participation/${userId}`, {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ regularCount: count })
+    });
+    if (!res.ok) throw new Error('업데이트 실패');
+    const u = state.allUsers.find(x => x.id === userId);
+    if (u) {
+      u._participation = count;
+      u.participationCount = u.participationCount || {};
+      u.participationCount.regularCount = count;
     }
+    toast(`참여 횟수: ${count}회로 변경됨`, 'success');
+    flashRow(userId);
+  } catch (e) {
+    console.error(e);
+    toast('참여 횟수 업데이트 실패', 'error');
+  }
 }
 
-// 활성 상태 토글
 async function toggleUserActive(userId, active) {
-    try {
-        const response = await fetch(`/user/toggle-active/${userId}`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ active })
-        });
-        if (!response.ok) {
-            const error = await response.json();
-            console.error('Active status update failed:', error);
-            throw new Error('Failed to update user status');
-        }
-
-        await loadUsers();
-        // ============ 수정: showUsersByRole 대신 refreshCurrentView 호출 ============
-        refreshCurrentView();
-        // ============ 수정 끝 ============
-        alert('활성상태가 변경되었습니다.');
-    } catch (error) {
-        console.error('Error toggling user active status:', error);
-        alert('활성상태 변경에 실패했습니다.');
-    }
-}
-
-// ============ 검색 기능 개선 부분 시작 ============
-
-// 역할별 사용자 표시
-function showUsersByRole(role, resetPage = true) {
-    currentRole = role;
-    
-    if (resetPage) {
-        // 역할 버튼 클릭 시에만 검색 초기화
-        currentPage = 1;
-        searchResults = [];
-        currentSearchOption = 'name';
-        currentSearchInput = '';
-        const searchInput = document.getElementById('search-input');
-        const searchOption = document.getElementById('search-option');
-        if (searchInput) searchInput.value = '';
-        if (searchOption) searchOption.value = 'name';
-    }
-
-    // 역할 버튼 활성화 상태 업데이트
-    document.querySelectorAll('.role-button').forEach(button => {
-        button.classList.toggle('active', button.getAttribute('data-role') === role);
+  if (!state.canManage) {
+    toast('관리자 또는 인사팀 운영진만 사용할 수 있습니다', 'warn');
+    // 토글 시각 상태 되돌리기
+    const cb = document.querySelector(`input[data-id="${userId}"][data-action="toggle-active"]`);
+    if (cb) cb.checked = !active;
+    return;
+  }
+  try {
+    const res = await fetch(`/user/toggle-active/${userId}`, {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ active })
     });
-
-    // 현재 뷰 새로고침
-    refreshCurrentView();
+    if (!res.ok) throw new Error('상태 변경 실패');
+    const u = state.allUsers.find(x => x.id === userId);
+    if (u) u.active = active;
+    updateStats();
+    toast(active ? '활성화됨' : '비활성화됨', 'success');
+    flashRow(userId);
+  } catch (e) {
+    console.error(e);
+    toast('상태 변경 실패', 'error');
+  }
 }
 
-// 현재 뷰 새로고침 (검색 상태 유지) - 새로 추가
-function refreshCurrentView() {
-    // 검색 결과가 있으면 검색 적용, 없으면 전체 users 사용
-    const filteredUsers = (searchResults.length > 0 || currentSearchInput !== '') ? searchResults : users;
-    
-    let usersToDisplay;
-    if (currentRole === 'all') {
-        usersToDisplay = filteredUsers;
-    } else if (currentRole === 'staffTeam') {
-        usersToDisplay = filteredUsers.filter(user => user.team === 'staffTeam');
-    } else {
-        usersToDisplay = filteredUsers.filter(user => user.role === currentRole);
-    }
-
-    displayUsers(usersToDisplay);
+function flashRow(userId) {
+  document.querySelectorAll(`tr[data-id="${userId}"]`).forEach(tr => {
+    tr.classList.remove('recently-modified');
+    void tr.offsetWidth;
+    tr.classList.add('recently-modified');
+  });
 }
 
-// 사용자 목록 표시
-function displayUsers(usersToShow) {
-    const userTableBody = document.getElementById('user-table-body');
-    if (!userTableBody) return;
+/* ───────── 9. 역할 변경 ───────── */
+function bindRoleOptionGrid() {
+  const grid = document.getElementById('role-option-grid');
+  if (!grid) return;
+  grid.addEventListener('click', e => {
+    const btn = e.target.closest('button[data-value]');
+    if (!btn) return;
+    grid.querySelectorAll('button').forEach(b => b.classList.remove('is-active'));
+    btn.classList.add('is-active');
+    document.getElementById('roleSelect').value = btn.dataset.value;
+    // officer 선택 시에만 팀 picker 노출
+    toggleRoleTeamField(btn.dataset.value);
+  });
 
-    const isMobile = window.innerWidth <= 768;
-
-    if (isMobile) {
-        // 모바일: 카드형 레이아웃
-        renderMobileCards(usersToShow);
-    } else {
-        // 데스크톱: 테이블 레이아웃
-        const startIndex = (currentPage - 1) * usersPerPage;
-        const endIndex = startIndex + usersPerPage;
-        const paginatedUsers = usersToShow.slice(startIndex, endIndex);
-        
-        userTableBody.innerHTML = paginatedUsers.map(user => generateUserRow(user)).join('');
-    }
-
-    renderPagination(usersToShow.length);
-}
-
-// 페이지네이션 렌더링
-function renderPagination(totalUsers) {
-    const totalPages = Math.ceil(totalUsers / usersPerPage);
-    const paginationDiv = document.getElementById('pagination');
-    if (!paginationDiv) return;
-
-    let paginationHTML = '';
-    
-    if (currentPage > 1) {
-        paginationHTML += `<button onclick="changePage(${currentPage - 1})">이전</button>`;
-    }
-    
-    for (let i = 1; i <= totalPages; i++) {
-        paginationHTML += `<button class="${i === currentPage ? 'active' : ''}" 
-                                   onclick="changePage(${i})">${i}</button>`;
-    }
-    
-    if (currentPage < totalPages) {
-        paginationHTML += `<button onclick="changePage(${currentPage + 1})">다음</button>`;
-    }
-    
-    paginationDiv.innerHTML = paginationHTML;
-}
-
-// 페이지 변경
-function changePage(page) {
-    currentPage = page;
-    refreshCurrentView();
-}
-
-// 검색 기능 (대학교 검색 추가, 검색 상태 저장)
-function searchUsers() {
-    // 현재 검색 상태 저장
-    currentSearchOption = document.getElementById('search-option')?.value || 'name';
-    currentSearchInput = document.getElementById('search-input')?.value.toLowerCase() || '';
-
-    // 검색어가 비어있으면 검색 결과 초기화
-    if (currentSearchInput === '') {
-        searchResults = [];
-        currentPage = 1;
-        refreshCurrentView();
-        return;
-    }
-
-    searchResults = users.filter(user => {
-        if (!user) return false;
-        
-        switch (currentSearchOption) {
-            case 'name':
-                return user.name?.toLowerCase().includes(currentSearchInput) || false;
-            
-            case 'university':
-                // 대학교 검색 - 포함 검색 (새로 추가됨)
-                return user.university?.toLowerCase().includes(currentSearchInput) || false;
-            
-            case 'warningCount':
-                return (user.warningCount || 0).toString() === currentSearchInput;
-            
-            case 'active':
-                if (currentSearchInput === '활성' || currentSearchInput === 'active') return user.active;
-                if (currentSearchInput === '비활성' || currentSearchInput === 'inactive') return !user.active;
-                return false;
-            
-            case 'role':
-                const roleMap = { 
-                    '참가자': 'participant', 
-                    '운영진': 'officer', 
-                    '스타터': 'starter', 
-                    '게스트': 'guest' 
-                };
-                const searchRole = roleMap[currentSearchInput] || currentSearchInput;
-                return (user.role || '').toLowerCase() === searchRole;
-            
-            case 'gender':
-                if (currentSearchInput === '남' || currentSearchInput === 'male') return user.gender === 'male';
-                if (currentSearchInput === '여' || currentSearchInput === 'female') return user.gender === 'female';
-                return false;
-            
-            default:
-                return true;
-        }
+  // 다이얼로그 내 팀 picker
+  const teamGrid = document.getElementById('role-team-grid');
+  if (teamGrid) {
+    teamGrid.addEventListener('click', e => {
+      const btn = e.target.closest('button[data-value]');
+      if (!btn) return;
+      teamGrid.querySelectorAll('button').forEach(b => b.classList.remove('is-active'));
+      btn.classList.add('is-active');
+      document.getElementById('roleTeamSelect').value = btn.dataset.value;
     });
-
-    currentPage = 1;
-    refreshCurrentView();
+  }
 }
 
-// 검색 초기화
-function resetSearch() {
-    document.getElementById('search-input').value = '';
-    const searchOption = document.getElementById('search-option');
-    if (searchOption) searchOption.value = 'name';
-    
-    searchResults = [];
-    currentSearchOption = 'name';
-    currentSearchInput = '';
-    currentPage = 1;
-    
-    refreshCurrentView();
+function toggleRoleTeamField(role) {
+  const wrap = document.getElementById('role-team-field');
+  if (!wrap) return;
+  wrap.style.display = role === 'officer' ? '' : 'none';
 }
-// 모바일 카드 렌더링 함수 (새로 추가)
-function renderMobileCards(usersToShow) {
-    const userList = document.getElementById('user-list');
-    const userTableBody = document.getElementById('user-table-body');
-    
-    // 테이블 내용 비우기
-    userTableBody.innerHTML = '';
-    
-    // 기존 카드 컨테이너 제거
-    let cardsContainer = userList.querySelector('.mobile-cards-container');
-    if (cardsContainer) {
-        cardsContainer.remove();
-    }
-    
-    // 새 카드 컨테이너 생성
-    cardsContainer = document.createElement('div');
-    cardsContainer.className = 'mobile-cards-container';
-    
-    // 페이지네이션 적용
-    const startIndex = (currentPage - 1) * usersPerPage;
-    const endIndex = startIndex + usersPerPage;
-    const paginatedUsers = usersToShow.slice(startIndex, endIndex);
-    
-    // 카드 생성
-    paginatedUsers.forEach(user => {
-        const card = createUserCard(user);
-        cardsContainer.appendChild(card);
+
+function openRoleDialog(userId) {
+  if (!state.canManage) {
+    toast('관리자 또는 인사팀 운영진만 사용할 수 있습니다', 'warn');
+    return;
+  }
+  const u = state.allUsers.find(x => x.id === userId);
+  // 관리자(admin) 역할 변경 차단
+  if (u && u.role === 'admin') {
+    toast('관리자(admin) 역할은 변경할 수 없습니다', 'warn');
+    return;
+  }
+  state.contextUserId = userId;
+  const cur = (u && u.role) || 'participant';
+  const grid = document.getElementById('role-option-grid');
+  grid.querySelectorAll('button').forEach(b => {
+    b.classList.toggle('is-active', b.dataset.value === cur);
+  });
+  document.getElementById('roleSelect').value = cur;
+
+  // 팀 picker 초기화 — 현재 팀이 있으면 미리 선택
+  const curTeam = (u && u.team) || '';
+  const teamGrid = document.getElementById('role-team-grid');
+  if (teamGrid) {
+    teamGrid.querySelectorAll('button').forEach(b => {
+      b.classList.toggle('is-active', b.dataset.value === curTeam);
     });
-    
-    // 테이블 앞에 카드 컨테이너 삽입
-    const table = userList.querySelector('.user-table');
-    userList.insertBefore(cardsContainer, table);
+  }
+  document.getElementById('roleTeamSelect').value = curTeam;
+  toggleRoleTeamField(cur);
+
+  openDialog('roleChangeDialog');
 }
 
-// 사용자 카드 생성 함수 (새로 추가)
-function createUserCard(user) {
-    if (!user) return null;
-    
-    const card = document.createElement('div');
-    card.className = 'user-card';
-    card.dataset.userId = user.id;
-    
-    // 역할/팀/성별 매핑
-    const roleMap = {
-        participant: '참가자',
-        starter: '스타터',
-        officer: '운영진',
-        guest: '게스트',
-        admin: '관리자'
-    };
-    
-    const genderMap = {
-        male: '남',
-        female: '여',
-        other: '기타'
-    };
-    
-    const roleClass = `role-${user.role}`;
-    const warningCount = user.warningCount || 0;
-    const warningClass = warningCount === 0 ? 'warning-0' : '';
-    const regularCount = user.participationCount?.regularCount || 0;
-    const teamName = getTeamNameInKorean(user.team, user.staffSubteam);
-    const secureProfileImage = user.profileImage ? user.profileImage.replace(/^http:/, 'https:') : '/images/basic_Image.png';
-    const phoneSuffix = user.phonenumber ? user.phonenumber.replace(/\D/g, '').slice(-4) : '';
-    const joinDate = user.createdAt ? new Date(user.createdAt).toLocaleDateString('ko-KR') : '-';
-    
-    card.innerHTML = `
-        <div class="user-card-header">
-            <img 
-                src="${secureProfileImage}" 
-                alt="${user.name}"
-                class="user-card-profile"
-                onerror="this.src='/images/basic_Image.png'"
-            >
-            <div class="user-card-main-info">
-                <div class="user-card-name">
-                    ${user.name || '--'}${phoneSuffix ? `(${phoneSuffix})` : ''}
-                </div>
-                <span class="user-card-role ${roleClass}">
-                    ${roleMap[user.role] || user.role}
-                </span>
-            </div>
-        </div>
-        
-        <div class="user-card-body">
-            <div class="user-card-info-item">
-                <div class="user-card-info-label">팀</div>
-                <div class="user-card-info-value">${teamName || '-'}</div>
-            </div>
-            <div class="user-card-info-item">
-                <div class="user-card-info-label">성별</div>
-                <div class="user-card-info-value">${genderMap[user.gender] || '-'}</div>
-            </div>
-            <div class="user-card-info-item">
-                <div class="user-card-info-label">대학</div>
-                <div class="user-card-info-value">${user.university || '-'}</div>
-            </div>
-            <div class="user-card-info-item">
-                <div class="user-card-info-label">가입일</div>
-                <div class="user-card-info-value">${joinDate}</div>
-            </div>
-        </div>
-        
-        <div class="user-card-footer">
-            <div class="user-card-warning ${warningClass}" onclick="showWarningHistoryModal('${user.id}', '${user.name || user.displayName}')">
-                ⚠️ 경고 ${warningCount}회
-            </div>
-            <div class="user-card-counters">
-                <div class="counter-group">
-                    <button class="counter-btn" onclick="event.stopPropagation(); updateParticipationCount('${user.id}', ${Math.max(0, regularCount - 1)})" ${regularCount <= 0 ? 'disabled' : ''}>-</button>
-                    <span class="counter-value">${regularCount}</span>
-                    <button class="counter-btn" onclick="event.stopPropagation(); updateParticipationCount('${user.id}', ${regularCount + 1})">+</button>
-                </div>
-            </div>
-            <button class="user-card-action-btn" onclick="event.stopPropagation(); showMobileActionSheet('${user.id}')">
-                관리
-            </button>
-        </div>
-        
-        <div class="user-card-toggle">
-            <label class="toggle-switch">
-                <input type="checkbox" ${user.active ? 'checked' : ''} onclick="event.stopPropagation(); toggleUserActive('${user.id}', this.checked)">
-                <span class="slider"></span>
-            </label>
-            <span>${user.active ? '활성' : '비활성'}</span>
-        </div>
-    `;
-    
-    return card;
-}
-
-// 모바일 액션 시트 표시 (새로 추가)
-function showMobileActionSheet(userId) {
-    selectedUserId = userId;
-    const user = users.find(u => u.id === userId);
-    
-    if (!user) return;
-    
-    // 기존 액션 시트 제거
-    const existingSheet = document.querySelector('.mobile-action-sheet');
-    if (existingSheet) {
-        existingSheet.remove();
+async function updateUserRole() {
+  const userId = state.contextUserId;
+  if (!userId) return;
+  const newRole = document.getElementById('roleSelect').value;
+  const body = { role: newRole };
+  if (newRole === 'officer') {
+    const newTeam = document.getElementById('roleTeamSelect').value;
+    if (!newTeam) {
+      toast('운영진은 팀을 선택해주세요', 'warn');
+      return;
     }
-    
-    // 액션 목록 구성
-    const actions = [];
-    
-    if (user.role !== 'admin') {
-        actions.push({ label: '역할 변경', action: () => showDialog('roleChangeDialog') });
-        
-        if (user.role === 'officer') {
-            actions.push({ label: '팀 변경', action: () => showDialog('teamChangeDialog') });
-        }
-        
-        if (user.team === 'staffTeam') {
-            actions.push({ label: '스태프팀 변경', action: () => showStaffSubteamDialog() });
-        }
+    body.team = newTeam;
+  }
+  try {
+    const res = await fetch(`/user/update-role/${userId}`, {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.message || '역할 변경 실패');
     }
-    
-    actions.push(
-        { label: '경고 부여', action: () => showWarningModal(userId, user.name || user.displayName) },
-        { label: '경고 내역 보기', action: () => showWarningHistoryModal(userId, user.name || user.displayName) },
-        { label: '취소', action: () => {}, className: 'cancel' }
-    );
-    
-    // 액션 시트 생성
-    const sheet = document.createElement('div');
-    sheet.className = 'mobile-action-sheet';
-    
-    const actionsHtml = actions.map(action => {
-        const actionStr = action.action.toString();
-        const functionCall = actionStr.match(/\(\) => (.+)/)?.[1] || '';
-        
-        return `
-            <button class="action-sheet-item ${action.className || ''}" 
-                    onclick="${functionCall}; closeMobileActionSheet();">
-                ${action.label}
-            </button>
-        `;
-    }).join('');
-    
-    sheet.innerHTML = `
-        <div class="action-sheet-overlay" onclick="closeMobileActionSheet()"></div>
-        <div class="action-sheet-content">
-            <div class="action-sheet-header">
-                <strong>${user.name || user.displayName}</strong> 관리
-            </div>
-            ${actionsHtml}
-        </div>
-    `;
-    
-    document.body.appendChild(sheet);
+    const data = await res.json();
+    const u = state.allUsers.find(x => x.id === userId);
+    if (u) {
+      u.role = newRole;
+      u.team = data.team || (newRole === 'officer' ? body.team : undefined);
+      u.department = data.department;
+      if (typeof data.active === 'boolean') u.active = data.active;
+    }
+    closeDialog('roleChangeDialog');
+    updateStats();
+    updateRoleCounts();
+    applyFiltersAndRender();
+    let msg = `역할: ${ROLE_KOR[newRole]}로 변경됨`;
+    if (data.autoActivated) msg += ' · 활성화됨';
+    toast(msg, 'success');
+  } catch (e) {
+    console.error(e);
+    toast(e.message || '역할 변경 실패', 'error');
+  }
 }
 
-// 모바일 액션 시트 닫기 (새로 추가)
-function closeMobileActionSheet() {
-    const sheet = document.querySelector('.mobile-action-sheet');
-    if (sheet) {
-        sheet.remove();
-    }
+/* ───────── 10. 팀 변경 ───────── */
+function bindTeamOptionGrid() {
+  const grid = document.getElementById('team-option-grid');
+  if (!grid) return;
+  grid.addEventListener('click', e => {
+    const btn = e.target.closest('button[data-value]');
+    if (!btn) return;
+    grid.querySelectorAll('button').forEach(b => b.classList.remove('is-active'));
+    btn.classList.add('is-active');
+    document.getElementById('teamSelect').value = btn.dataset.value;
+  });
 }
 
-// 화면 크기 변경 감지 (새로 추가)
-window.addEventListener('resize', () => {
-    // 디바운싱을 위한 타이머
-    clearTimeout(window.resizeTimer);
-    window.resizeTimer = setTimeout(() => {
-        refreshCurrentView();
-    }, 250);
+function openTeamDialog(userId) {
+  if (!state.canManage) {
+    toast('관리자 또는 인사팀 운영진만 사용할 수 있습니다', 'warn');
+    return;
+  }
+  state.contextUserId = userId;
+  const u = state.allUsers.find(x => x.id === userId);
+  const cur = (u && u.team) || 'operationTeam';
+  const grid = document.getElementById('team-option-grid');
+  grid.querySelectorAll('button').forEach(b => {
+    b.classList.toggle('is-active', b.dataset.value === cur);
+  });
+  document.getElementById('teamSelect').value = cur;
+  openDialog('teamChangeDialog');
+}
+
+async function updateUserTeam() {
+  const userId = state.contextUserId;
+  if (!userId) return;
+  const newTeam = document.getElementById('teamSelect').value;
+  try {
+    const res = await fetch(`/user/update-team/${userId}`, {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ team: newTeam })
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.message || '팀 변경 실패');
+    }
+    const data = await res.json();
+    const u = state.allUsers.find(x => x.id === userId);
+    if (u) {
+      u.team = newTeam;
+      if (data.department) u.department = data.department;
+    }
+    closeDialog('teamChangeDialog');
+    applyFiltersAndRender();
+    toast(`팀: ${TEAM_KOR[newTeam]}로 변경됨`, 'success');
+  } catch (e) {
+    console.error(e);
+    toast(e.message || '팀 변경 실패', 'error');
+  }
+}
+
+/* ───────── 11. 스태프 소그룹 ───────── */
+function bindStaffOptionGrid() {
+  const grid = document.getElementById('staff-option-grid');
+  if (!grid) return;
+  grid.addEventListener('click', e => {
+    const btn = e.target.closest('button[data-value]');
+    if (!btn) return;
+    grid.querySelectorAll('button').forEach(b => b.classList.remove('is-active'));
+    btn.classList.add('is-active');
+    document.getElementById('staffSubteamModalSelect').value = btn.dataset.value;
+  });
+}
+
+async function confirmStaffSubteamOnly() {
+  const userId = state.contextUserId;
+  if (!userId) return;
+  const sub = document.getElementById('staffSubteamModalSelect').value;
+  if (!sub) {
+    toast('소그룹을 선택해주세요', 'warn');
+    return;
+  }
+  try {
+    const res = await fetch(`/user/update-staffsubteam/${userId}`, {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ staffSubteam: sub })
+    });
+    if (!res.ok) throw new Error('소그룹 변경 실패');
+    closeDialog('staffSubteamDialog');
+    toast(`스태프 소그룹: ${sub}로 변경됨`, 'success');
+  } catch (e) {
+    console.error(e);
+    toast('소그룹 변경 실패', 'error');
+  }
+}
+
+/* ───────── 12. 경고 부여 / 내역 ───────── */
+function openWarningModal(userId) {
+  if (!state.canManage) {
+    toast('관리자 또는 인사팀 운영진만 사용할 수 있습니다', 'warn');
+    return;
+  }
+  state.warningTargetId = userId;
+  const u = state.allUsers.find(x => x.id === userId);
+  document.getElementById('warning-target-name').textContent = u ? `· ${u.name}` : '';
+  document.getElementById('warning-reason').value = '';
+  document.getElementById('warning-category').value = '태도';
+  openDialog('warningModal');
+}
+
+function closeWarningModal() { closeDialog('warningModal'); }
+
+async function issueWarning() {
+  const userId = state.warningTargetId;
+  if (!userId) return;
+  const reason = document.getElementById('warning-reason').value.trim();
+  const category = document.getElementById('warning-category').value;
+  if (!reason) { toast('사유를 입력해주세요', 'warn'); return; }
+
+  try {
+    const res = await fetch(`/user/issue-warning/${userId}`, {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ reason, category })
+    });
+    if (!res.ok) throw new Error('경고 부여 실패');
+    const data = await res.json();
+    const u = state.allUsers.find(x => x.id === userId);
+    if (u) u.warningCount = data.warningCount;
+    closeWarningModal();
+    updateStats();
+    applyFiltersAndRender();
+    toast(`경고 부여 완료 (현재 ${data.warningCount}회)`, 'success');
+  } catch (e) {
+    console.error(e);
+    toast('경고 부여 실패', 'error');
+  }
+}
+
+async function openWarningHistory(userId) {
+  state.warningTargetId = userId;
+  const u = state.allUsers.find(x => x.id === userId);
+  document.getElementById('warning-history-name').textContent = u ? `· ${u.name}` : '';
+  document.getElementById('warning-history-body').innerHTML = '<div class="empty-state"><p>불러오는 중…</p></div>';
+  openDialog('warningHistoryModal');
+  try {
+    const res = await fetch(`/user/warning-history/${userId}`, { credentials: 'include' });
+    if (!res.ok) throw new Error('내역 불러오기 실패');
+    const data = await res.json();
+    renderWarningHistory(data.warningHistory || data.warnings || []);
+  } catch (e) {
+    console.error(e);
+    document.getElementById('warning-history-body').innerHTML = `<div class="empty-state"><p>내역을 불러오지 못했습니다</p></div>`;
+  }
+}
+
+function closeWarningHistoryModal() { closeDialog('warningHistoryModal'); }
+
+function renderWarningHistory(warnings) {
+  const body = document.getElementById('warning-history-body');
+  if (!warnings.length) {
+    body.innerHTML = '<div class="empty-state"><div class="emoji">✨</div><h3>경고 내역이 없어요</h3><p>이 회원은 깨끗합니다</p></div>';
+    return;
+  }
+  body.innerHTML = `<div class="warning-history-list">${warnings.map(w => `
+    <div class="warning-item ${w.isActive ? '' : 'inactive'}">
+      <div class="warning-item-top">
+        <span class="warning-item-category">${escapeHTML(w.category || '기타')}</span>
+        <span style="font-size:0.75rem; color:var(--c-text-muted);">${new Date(w.issuedAt).toLocaleString('ko-KR')}</span>
+      </div>
+      <div class="warning-item-reason">${escapeHTML(w.reason || '-')}</div>
+      <div class="warning-item-meta">
+        <span>부여: ${escapeHTML(w.issuedByName || '운영진')}${w.isActive ? '' : ' · <s>비활성</s>'}</span>
+        ${w.isActive ? `<button onclick="removeWarning('${w.id || w._id}')">삭제</button>` : ''}
+      </div>
+    </div>`).join('')}</div>`;
+}
+
+async function removeWarning(warningId) {
+  const userId = state.warningTargetId;
+  if (!userId) return;
+  if (!confirm('이 경고를 비활성화할까요?')) return;
+  try {
+    const res = await fetch(`/user/remove-warning/${userId}/${warningId}`, {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ reason: '관리자 판단' })
+    });
+    if (!res.ok) throw new Error('경고 삭제 실패');
+    const data = await res.json();
+    const u = state.allUsers.find(x => x.id === userId);
+    if (u) u.warningCount = data.warningCount;
+    // reload history
+    openWarningHistory(userId);
+    updateStats();
+    applyFiltersAndRender();
+    toast('경고가 비활성화되었습니다', 'success');
+  } catch (e) {
+    console.error(e);
+    toast('경고 삭제 실패', 'error');
+  }
+}
+
+/* ───────── 13. 선택 / 일괄 처리 ───────── */
+function updateBulkBar() {
+  const bar = document.getElementById('bulk-bar');
+  const count = state.selectedIds.size;
+  document.getElementById('bulk-count').textContent = count;
+  bar?.classList.toggle('is-visible', count > 0);
+}
+
+function clearSelection() {
+  state.selectedIds.clear();
+  document.querySelectorAll('.row-check').forEach(cb => { cb.checked = false; });
+  document.querySelectorAll('.user-table tbody tr.is-selected').forEach(tr => tr.classList.remove('is-selected'));
+  document.querySelectorAll('.user-card.is-selected').forEach(c => c.classList.remove('is-selected'));
+  updateBulkBar();
+}
+
+function openBulkDialog(action) {
+  if (!state.canManage) {
+    toast('관리자 또는 인사팀 운영진만 사용할 수 있습니다', 'warn');
+    return;
+  }
+  if (state.selectedIds.size === 0) {
+    toast('선택된 회원이 없습니다', 'warn');
+    return;
+  }
+  state.bulkActionType = action;
+  const titleMap = {
+    addParticipation: '참여 횟수 일괄 추가',
+    subtractParticipation: '참여 횟수 일괄 차감',
+    addWarning: '경고 일괄 부여'
+  };
+  const descMap = {
+    addParticipation: `선택된 ${state.selectedIds.size}명의 정기 참여 횟수를 N회만큼 늘립니다`,
+    subtractParticipation: `선택된 ${state.selectedIds.size}명의 정기 참여 횟수를 N회만큼 차감합니다 (최소 0)`,
+    addWarning: `선택된 ${state.selectedIds.size}명에게 동일한 사유로 경고를 부여합니다`
+  };
+  document.getElementById('bulk-dialog-title').textContent = titleMap[action];
+  document.getElementById('bulk-dialog-desc').textContent = descMap[action];
+
+  const amountField = document.getElementById('bulk-amount-field');
+  const categoryField = document.getElementById('bulk-category-field');
+  const reasonField = document.getElementById('bulk-reason-field');
+
+  if (action === 'addWarning') {
+    amountField.style.display = 'none';
+    categoryField.style.display = '';
+    reasonField.style.display = '';
+    document.getElementById('bulk-reason').value = '';
+    document.getElementById('bulk-category').value = '태도';
+    document.getElementById('bulk-confirm-btn').className = 'modal-btn danger';
+    document.getElementById('bulk-confirm-btn').textContent = '경고 부여';
+  } else {
+    amountField.style.display = '';
+    categoryField.style.display = 'none';
+    reasonField.style.display = 'none';
+    document.getElementById('bulk-amount').value = 1;
+    document.getElementById('bulk-confirm-btn').className = 'modal-btn primary';
+    document.getElementById('bulk-confirm-btn').textContent = '적용';
+  }
+  openDialog('bulkDialog');
+}
+
+async function submitBulkAction() {
+  const action = state.bulkActionType;
+  if (!action) return;
+  const userIds = Array.from(state.selectedIds);
+  if (userIds.length === 0) { toast('선택된 회원이 없습니다', 'warn'); return; }
+
+  const body = { userIds, action };
+
+  if (action === 'addWarning') {
+    body.category = document.getElementById('bulk-category').value;
+    body.reason = document.getElementById('bulk-reason').value.trim();
+    if (!body.reason) { toast('사유를 입력해주세요', 'warn'); return; }
+  } else {
+    const amt = parseInt(document.getElementById('bulk-amount').value);
+    if (!Number.isInteger(amt) || amt < 1) { toast('1 이상의 정수를 입력해주세요', 'warn'); return; }
+    body.amount = amt;
+  }
+
+  try {
+    document.getElementById('bulk-confirm-btn').disabled = true;
+    const res = await fetch('/user/bulk-update', {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.message || '일괄 처리 실패');
+    }
+    const data = await res.json();
+    closeDialog('bulkDialog');
+    toast(data.message || `${data.processed}명 처리 완료`, 'success');
+    clearSelection();
+    // 데이터 다시 로드 (서버 상태 동기화)
+    await loadUsers();
+  } catch (e) {
+    console.error(e);
+    toast(e.message || '일괄 처리 실패', 'error');
+  } finally {
+    document.getElementById('bulk-confirm-btn').disabled = false;
+  }
+}
+
+/* ───────── 14. 다이얼로그 헬퍼 ───────── */
+function openDialog(id) {
+  document.getElementById(id)?.classList.add('is-open');
+}
+function closeDialog(id) {
+  document.getElementById(id)?.classList.remove('is-open');
+}
+
+// 오버레이 클릭으로 닫기
+document.addEventListener('click', e => {
+  if (e.target.classList && e.target.classList.contains('modal-overlay')) {
+    e.target.classList.remove('is-open');
+  }
 });
 
-// 전역 스코프에 새 함수 할당
-window.showMobileActionSheet = showMobileActionSheet;
-window.closeMobileActionSheet = closeMobileActionSheet;
+// ESC로 닫기
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    document.querySelectorAll('.modal-overlay.is-open').forEach(o => o.classList.remove('is-open'));
+  }
+});
 
-// 전역 스코프에 함수 할당
+/* ───────── 15. 토스트 ───────── */
+let toastTimer;
+function toast(msg, type = '') {
+  const el = document.getElementById('toast');
+  if (!el) return;
+  el.textContent = msg;
+  el.className = 'toast is-show ' + (type || '');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => {
+    el.classList.remove('is-show');
+  }, 2400);
+}
+
+/* ───────── 16. 유틸 ───────── */
+function escapeHTML(s) {
+  if (s === null || s === undefined) return '';
+  return String(s)
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#39;');
+}
+function escapeAttr(s) {
+  return escapeHTML(s).replaceAll('`', '&#96;');
+}
+
+/* ───────── 외부 노출 ─────────
+   HTML inline onclick="..." + sidebar.js의 typeof loadUsers === 'function'
+   체크가 동작하도록 window에 노출. IIFE를 재실행해도 window.foo = newFoo로
+   덮어쓰이므로 이전 클로저의 state는 자연스럽게 GC됨. */
+window.resetAllFilters = resetAllFilters;
+window.changePage = changePage;
+window.openRoleDialog = openRoleDialog;
+window.openTeamDialog = openTeamDialog;
+window.openWarningModal = openWarningModal;
+window.openWarningHistory = openWarningHistory;
+window.closeWarningModal = closeWarningModal;
+window.closeWarningHistoryModal = closeWarningHistoryModal;
 window.updateUserRole = updateUserRole;
 window.updateUserTeam = updateUserTeam;
 window.confirmStaffSubteamOnly = confirmStaffSubteamOnly;
-window.closeDialog = closeDialog;
-window.showUsersByRole = showUsersByRole;
-window.searchUsers = searchUsers;
-window.resetSearch = resetSearch;
-window.handleContextMenu = handleContextMenu;
-window.showStaffSubteamDialog = showStaffSubteamDialog;
-window.updateWarningCount = updateWarningCount;
-window.updateParticipationCount = updateParticipationCount;
-window.toggleUserActive = toggleUserActive;
-window.changePage = changePage;
-
-// 새로 추가된 경고 관리 함수들
-window.showWarningModal = showWarningModal;
 window.issueWarning = issueWarning;
-window.showWarningHistoryModal = showWarningHistoryModal;
-window.loadWarningHistory = loadWarningHistory;
 window.removeWarning = removeWarning;
-window.closeWarningModal = closeWarningModal;
+window.openBulkDialog = openBulkDialog;
+window.submitBulkAction = submitBulkAction;
+window.clearSelection = clearSelection;
+window.openDialog = openDialog;
+window.closeDialog = closeDialog;
+// sidebar.js가 호출함
+window.loadUsers = loadUsers;
+window.bootHR = bootHR;
+
+})();

@@ -1,85 +1,106 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ko">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>이벤트 참가 현황</title>
-  <link rel="stylesheet" href="/css/styles.css" />
-  <style>
-    /* isSelective가 true일 때 기존 표 형식 숨기기 */
-    .hidden {
-      display: none;
-    }
-    
-    /* 모바일 반응형 스타일 추가 */
-    @media (max-width: 768px) {
-      table th, table td {
-        padding: 6px 4px;
-        font-size: 0.85rem;
-      }
-      
-      .role-badge {
-        font-size: 0.7rem;
-        padding: 2px 4px;
-        min-width: 40px;
-      }
-      
-      .application-item {
-        padding: 10px;
-      }
-    }
-    
-    /* 역할과 성별 표시를 위한 추가 스타일 */
-    .role-gender {
-      margin-top: 5px;
-      display: inline-block;
-    }
-    
-    /* 지원서 항목 스타일 개선 */
-    .participant-info {
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      gap: 10px;
-    }
-  </style>
+  <title>신청자 관리 · Contenido</title>
+  <link rel="stylesheet" href="/css/event-status-staff.css?v=20260537" />
 </head>
 <body>
   <div class="container">
-    <h1>이벤트 참가 현황</h1>
-    <div id="event-details"></div>
-    
-    <button onclick="downloadExcel()" class="applied-download-btn"><svg xmlns="http://www.w3.org/2000/svg" class="icon" viewBox="0 0 24 24" fill="white" width="20" height="20">
-      <path d="M12 16l4-5h-3V4h-2v7H8l4 5zm-9 2h18v2H3v-2z"/>
-    </svg>
-    신청자 목록 Download</button>
-    
-    <table id="participant-table">
-      <thead>
-        <tr>
-          <th>이름(생년)</th>
-          <th>역할(성별)</th>
-          <th>전화번호</th>
-          <th>신청일시</th>
-          <th>상태</th>
-          <th>관리</th>
-        </tr>
-      </thead>
-      <tbody id="participant-list"></tbody>
-    </table>
-    <div id="application-list"></div>
+    <!-- 헤더 -->
+    <header class="ess-header">
+      <button onclick="window.location.href='event-staff.html'" class="ess-back-btn">
+        ← 이벤트 관리
+      </button>
+      <h1>신청자 관리</h1>
+    </header>
 
-    <!-- 지원서 모달 -->
-    <div id="application-modal" class="modal">
-      <div class="modal-content">
-        <span class="close-modal" onclick="closeModal()">&times;</span>
-        <div id="application-content"></div>
+    <!-- 이벤트 요약 -->
+    <section class="event-summary" id="event-summary">
+      <h2 id="es-title">로딩 중…</h2>
+      <div class="es-meta" id="es-meta"></div>
+      <div class="es-tags" id="es-tags"></div>
+    </section>
+
+    <!-- 통계 카드 그리드 -->
+    <section class="stats-grid" id="stats-grid"></section>
+
+    <!-- 분포도 차트들 (성비 / 연령 / 지역) -->
+    <section class="dist-section">
+      <h3 class="dist-section-title">📊 신청자 분포</h3>
+      <div class="dist-grid">
+        <div class="dist-card" id="dist-gender">
+          <div class="dist-card-title">성비</div>
+          <div class="dist-card-body"></div>
+        </div>
+        <div class="dist-card" id="dist-age">
+          <div class="dist-card-title">연령대</div>
+          <div class="dist-card-body"></div>
+        </div>
+        <div class="dist-card dist-card-wide" id="dist-region">
+          <div class="dist-card-title">선호 활동 지역</div>
+          <div class="dist-card-body"></div>
+        </div>
       </div>
+    </section>
+
+    <!-- 필터 탭 -->
+    <nav class="filter-tabs" id="filter-tabs">
+      <button class="filter-tab is-active" data-status="all">
+        전체 <span class="ft-count" id="count-all">0</span>
+      </button>
+      <button class="filter-tab" data-status="approved">
+        승인 <span class="ft-count" id="count-approved">0</span>
+      </button>
+      <button class="filter-tab" data-status="pending">
+        대기 <span class="ft-count" id="count-pending">0</span>
+      </button>
+      <button class="filter-tab" data-status="rejected">
+        거절 <span class="ft-count" id="count-rejected">0</span>
+      </button>
+      <button class="filter-tab" data-status="cancelled">
+        취소 <span class="ft-count" id="count-cancelled">0</span>
+      </button>
+    </nav>
+
+    <!-- 정렬 + 다운로드 툴바 -->
+    <div class="toolbar">
+      <div class="left">
+        <label for="sort-select">정렬</label>
+        <select id="sort-select" class="sort-select">
+          <option value="appliedAt-desc">신청일 최신순</option>
+          <option value="appliedAt-asc">신청일 오래된순</option>
+          <option value="name">이름 가나다순</option>
+          <option value="status">상태순 (승인→대기→거절→취소)</option>
+          <option value="age-young">어린 사람 순</option>
+          <option value="age-old">나이 많은 순</option>
+          <option value="count-desc">정기 참여횟수 많은 순</option>
+          <option value="count-asc">정기 참여횟수 적은 순</option>
+        </select>
+      </div>
+      <button onclick="downloadExcel()" class="download-btn">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+          <path d="M12 16l4-5h-3V4h-2v7H8l4 5zm-9 2h18v2H3v-2z"/>
+        </svg>
+        Excel 다운로드
+      </button>
     </div>
 
-    <button onclick="window.location.href='event-staff.html'" class="back-button">돌아가기</button>
+    <!-- 신청자 카드 리스트 -->
+    <div id="participant-list" class="participant-list">
+      <div class="empty">신청자를 불러오는 중…</div>
+    </div>
   </div>
 
-  <script src="/js/event-status.js"></script>
+  <!-- 지원서 모달 (현재 사용 안 함, 백업용) -->
+  <div id="application-modal" class="modal">
+    <div class="modal-content">
+      <button class="close-modal" onclick="closeModal()" aria-label="닫기">&times;</button>
+      <div id="application-content"></div>
+    </div>
+  </div>
+
+  <script src="/js/event-status.js?v=20260537"></script>
 </body>
 </html>

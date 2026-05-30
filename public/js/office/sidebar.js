@@ -194,54 +194,37 @@ const Sidebar = (function() {
       //1. 운영팀
       if (pageId === 'operationTeam') {
         try {
-          // 기존 대시보드 초기화 상태 리셋
           window.dashboardInitialized = false;
-          
-          // 1. CSS 파일이 이미 로드되어 있는지 확인
-          if (!document.querySelector('link[href="/css/operation.css"]')) {
-            const cssLink = document.createElement('link');
-            cssLink.rel = 'stylesheet';
-            cssLink.href = '/css/operation.css';
-            document.head.appendChild(cssLink);
-          }
 
-          // 2. Chart.js가 로드되어 있는지 확인
-          if (!window.Chart) {
-            await new Promise((resolve, reject) => {
-              const chartScript = document.createElement('script');
-              chartScript.src = 'https://cdn.jsdelivr.net/npm/chart.js';
-              chartScript.onload = resolve;
-              chartScript.onerror = reject;
-              document.head.appendChild(chartScript);
-            });
-          }
+          // CSS — 항상 fresh 보장
+          document.querySelectorAll('link[href^="/css/operation.css"]').forEach(l => l.remove());
+          const cssLink = document.createElement('link');
+          cssLink.rel = 'stylesheet';
+          cssLink.href = '/css/operation.css?t=' + Date.now();
+          document.head.appendChild(cssLink);
 
-          // 3. HTML 컨텐츠 로드
-          const mainContent = document.getElementById('main-content');
-          const response = await fetch('/office_operation.html');
-          const html = await response.text();
-          mainContent.innerHTML = html;
+          // HTML 주입 (이미 위에서 mainContent.innerHTML = html 됐지만 보장 차원)
+          // — 위 공통 흐름에서 fetch + innerHTML 이 이미 일어남.
 
-          // 4. dashboard.js 로드 또는 재로드
-          const existingDashboard = document.querySelector('script[src="/js/office/dashboard.js"]');
-          if (existingDashboard) {
-            existingDashboard.remove();
-          }
+          // 기존 dashboard.js 모두 제거 (버전 query 포함)
+          document.querySelectorAll('script[src^="/js/office/dashboard.js"]').forEach(s => s.remove());
 
+          // dashboard.js — fresh fetch
           await new Promise((resolve, reject) => {
-            const dashboardScript = document.createElement('script');
-            dashboardScript.src = '/js/office/dashboard.js';
-            dashboardScript.onload = resolve;
-            dashboardScript.onerror = reject;
-            document.body.appendChild(dashboardScript);
+            const s = document.createElement('script');
+            s.src = '/js/office/dashboard.js?t=' + Date.now();
+            s.onload = resolve;
+            s.onerror = reject;
+            document.body.appendChild(s);
           });
 
-          // 5. Dashboard 초기화
-          if (window.Dashboard) {
+          // IIFE 가 자동 부팅하지만 안전 차원 명시 호출
+          if (typeof window.bootDashboard === 'function') {
+            window.bootDashboard();
+          } else if (window.Dashboard) {
             await window.Dashboard.initialize();
-            window.dashboardInitialized = true;
           }
-
+          window.dashboardInitialized = true;
         } catch (error) {
           console.error('Error loading operation team page:', error);
           const mainContent = document.getElementById('main-content');
@@ -277,24 +260,32 @@ const Sidebar = (function() {
 
       //3. 인사팀
       if (pageId === 'HumanResourceTeam') {
-        // hr.js 스크립트가 이미 있다면 제거
-        const existingHRScript = document.querySelector('script[src="/js/office/hr.js"]');
-        if (existingHRScript) {
-          existingHRScript.remove();
+        // CSS도 함께 보장
+        if (!document.querySelector('link[href^="/css/hr.css"]')) {
+          const cssLink = document.createElement('link');
+          cssLink.rel = 'stylesheet';
+          cssLink.href = '/css/hr.css?v=' + Date.now();
+          document.head.appendChild(cssLink);
         }
 
-        // hr.js 새로 로드
+        // 기존 hr.js 스크립트 제거 (버전 query 포함된 것도 포함)
+        document.querySelectorAll('script[src^="/js/office/hr.js"]').forEach(s => s.remove());
+
+        // hr.js 새로 로드 — 항상 fresh
         await new Promise((resolve, reject) => {
           const hrScript = document.createElement('script');
-          hrScript.src = '/js/office/hr.js';
+          hrScript.src = '/js/office/hr.js?t=' + Date.now();
           hrScript.onload = resolve;
           hrScript.onerror = reject;
           document.body.appendChild(hrScript);
         });
 
-        // 사용자 데이터 로드 함수 호출
-        if (typeof loadUsers === 'function') {
-          loadUsers();
+        // hr.js는 IIFE로 자동 부팅하지만,
+        // 안전을 위해 노출된 bootHR도 한 번 더 호출 (idempotent하게 동작하도록 DOM 체크 포함됨)
+        if (typeof window.bootHR === 'function') {
+          window.bootHR();
+        } else if (typeof window.loadUsers === 'function') {
+          window.loadUsers();
         }
       }
 
@@ -360,52 +351,45 @@ const Sidebar = (function() {
       //10.스태프팀
       if (pageId === 'planningTeam') {
         try {
-          // 기존 planning.js 스크립트 제거
-          const existingPlanningScript = document.querySelector('script[src="/js/office/planning.js"]');
-          if (existingPlanningScript) {
-            existingPlanningScript.remove();
-          }
+          // CSS — 항상 fresh
+          document.querySelectorAll('link[href^="/css/office/planning.css"]').forEach(l => l.remove());
+          const cssLink = document.createElement('link');
+          cssLink.rel = 'stylesheet';
+          cssLink.href = '/css/office/planning.css?t=' + Date.now();
+          document.head.appendChild(cssLink);
 
-          // CSS 파일 확인 및 추가
-          if (!document.querySelector('link[href="/css/office/planning.css"]')) {
-            const cssLink = document.createElement('link');
-            cssLink.rel = 'stylesheet';
-            cssLink.href = '/css/office/planning.css';
-            document.head.appendChild(cssLink);
-          }
-
-          // Chart.js 로드 확인
+          // Chart.js
           if (!window.Chart) {
             await new Promise((resolve, reject) => {
-              const chartScript = document.createElement('script');
-              chartScript.src = 'https://cdn.jsdelivr.net/npm/chart.js';
-              chartScript.onload = resolve;
-              chartScript.onerror = reject;
-              document.head.appendChild(chartScript);
+              const s = document.createElement('script');
+              s.src = 'https://cdn.jsdelivr.net/npm/chart.js';
+              s.onload = resolve;
+              s.onerror = reject;
+              document.head.appendChild(s);
             });
           }
 
-          // HTML 컨텐츠 로드
+          // HTML 주입 (위에서 mainContent.innerHTML=html 됐어도 명시)
           const mainContent = document.getElementById('main-content');
-          const response = await fetch('/office_planning.html');
-          const html = await response.text();
-          mainContent.innerHTML = html;
+          const r = await fetch('/office_planning.html');
+          mainContent.innerHTML = await r.text();
 
-          // planning.js 새로 로드 및 초기화
+          // 기존 planning.js 모두 제거 (버전 query 포함)
+          document.querySelectorAll('script[src^="/js/office/planning.js"]').forEach(s => s.remove());
+
+          // planning.js — fresh fetch
           await new Promise((resolve, reject) => {
-            const planningScript = document.createElement('script');
-            planningScript.src = '/js/office/planning.js';
-            planningScript.onload = () => {
-              // planning.js가 로드된 후 초기화 함수 호출
-              if (typeof window.initDashboard === 'function') {
-                window.initDashboard();
-              }
-              resolve();
-            };
-            planningScript.onerror = reject;
-            document.body.appendChild(planningScript);
+            const s = document.createElement('script');
+            s.src = '/js/office/planning.js?t=' + Date.now();
+            s.onload = resolve;
+            s.onerror = reject;
+            document.body.appendChild(s);
           });
 
+          // IIFE 자동 부팅 백업으로 명시 호출
+          if (typeof window.bootPlanning === 'function') {
+            window.bootPlanning();
+          }
         } catch (error) {
           console.error('Error loading planning team page:', error);
           const mainContent = document.getElementById('main-content');

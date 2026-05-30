@@ -1,46 +1,356 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ko">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Events</title>
+  <title>진행중인 이벤트 · Contenido</title>
   <link rel="stylesheet" href="/css/styles.css" />
+  <link rel="stylesheet" href="/css/modern.css?v=20260533" />
+  <script src="https://t1.kakaocdn.net/kakao_js_sdk/2.5.0/kakao.min.js"></script>
+  <style>
+    .month-header {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      margin-bottom: var(--sp-3);
+    }
+    .month-meta {
+      font-size: 13px;
+      color: var(--c-text-muted);
+      margin: 0 0 16px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      max-width: 100%;
+      text-align: center;
+      line-height: 1.5;
+    }
+    .month-meta .meta-line {
+      display: inline-flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+    .month-meta .meta-line-status { margin-top: 2px; }
+    .month-meta b {
+      font-weight: 600;
+      color: var(--c-text);
+    }
+    .month-meta .pill {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 10px;
+      border-radius: var(--r-pill);
+      letter-spacing: 0.02em;
+      margin-left: 4px;
+      background: var(--c-danger-soft);
+      color: #B91C1C;
+    }
+    .month-meta .pill.pill-success {
+      background: var(--c-success-soft);
+      color: #065F46;
+    }
+    .month-meta .pill.pill-warning {
+      background: var(--c-warning-soft);
+      color: #92400E;
+    }
+    .month-meta .pill.pill-closed {
+      background: var(--c-surface-3);
+      color: var(--c-text-muted);
+    }
+    .month-meta.is-hidden { display: none; }
+    @media (max-width: 480px) {
+      .month-meta { font-size: 12px; }
+      .month-meta .pill { font-size: 10px; padding: 2px 8px; margin-left: 0; }
+    }
+
+    /* 부채꼴 프리뷰 */
+    .fan-preview {
+      padding: 56px 0 12px;
+      overflow-x: auto;
+      overflow-y: visible;
+      margin-bottom: var(--sp-3);
+      scrollbar-width: thin;
+    }
+    .fan-cards {
+      display: flex;
+      justify-content: center;
+      align-items: flex-end;
+      gap: 18px;
+      min-width: max-content;
+      padding: 0 60px;
+    }
+    .fan-card {
+      width: 110px;
+      height: 175px;
+      flex-shrink: 0;
+      background: var(--c-surface);
+      border: 1px solid var(--c-border);
+      border-radius: var(--r-md);
+      overflow: hidden;
+      cursor: pointer;
+      text-align: left;
+      transform-origin: 50% 100%;
+      transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1),
+                  border-color 0.3s,
+                  box-shadow 0.3s;
+      box-shadow: var(--sh-1);
+      text-decoration: none;
+    }
+    .fan-card:hover {
+      transform: rotate(0deg) translateY(-30px) scale(1.1) !important;
+      z-index: 100 !important;
+      border-color: var(--c-brand) !important;
+      box-shadow: var(--sh-pop);
+    }
+    .fan-card .thumb {
+      height: 100px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      background: var(--c-surface-3);
+      color: var(--c-text-soft);
+      font-size: 28px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+    .fan-card .thumb .thumb-img {
+      position: absolute;
+      inset: 0;
+      width: 100%; height: 100%;
+      object-fit: cover;
+    }
+    .fan-card .thumb .thumb-text {
+      position: relative;
+      z-index: 0;
+    }
+    .fan-card .thumb[data-team="S"] { background: var(--c-team-s); color: #78350F; }
+    .fan-card .thumb[data-team="R"] { background: var(--c-team-r); color: #4C1D95; }
+    .fan-card .thumb[data-team="A"] { background: var(--c-team-a); color: #1E3A8A; }
+    .fan-card .thumb[data-team="B"] { background: var(--c-team-b); color: #065F46; }
+    .fan-card .thumb[data-team="C"] { background: var(--c-team-c); color: #991B1B; }
+    .fan-card .thumb[data-team="D"] { background: var(--c-team-d); color: #9A3412; }
+    .fan-card .thumb[data-team="P"] { background: var(--c-team-p); color: #0C4A6E; }
+    .fan-card .fc-badge {
+      position: absolute;
+      top: 8px;
+      left: 8px;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: var(--r-pill);
+      background: rgba(255, 255, 255, 0.85);
+      color: var(--c-text);
+      letter-spacing: 0.02em;
+    }
+    .fan-card .body {
+      padding: 10px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .fan-card .name {
+      font-size: 12px;
+      font-weight: 600;
+      margin: 0;
+      line-height: 1.3;
+      color: var(--c-text);
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    .fan-card .date {
+      font-size: 10px;
+      color: var(--c-text-muted);
+      margin: 0;
+    }
+    .fan-empty {
+      padding: 36px 16px;
+      color: var(--c-text-muted);
+      font-size: 0.9rem;
+      text-align: center;
+      background: var(--c-surface-2);
+      border-radius: var(--r-md);
+      border: 1px dashed var(--c-border);
+    }
+
+    /* 액션 영역 */
+    .header-actions {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: var(--sp-3);
+      margin-bottom: var(--sp-5);
+    }
+    .header-actions .btn-kakao { min-width: 240px; }
+
+    /* nav-row — 페이지 어디에 놓여도 가운데 정렬 */
+    .nav-row {
+      display: flex;
+      gap: var(--sp-3);
+      flex-wrap: wrap;
+      justify-content: center;
+      align-items: center;
+      width: 100%;
+      margin: 0 0 var(--sp-5);
+    }
+    .nav-row .btn { min-width: 140px; }
+    @media (max-width: 480px) {
+      .nav-row .btn { flex: 1; min-width: 0; }
+    }
+
+    /* 팀 약어 / 안내 */
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--sp-2);
+      justify-content: center;
+      margin: 0 0 var(--sp-3);
+    }
+    .legend .chip { background: var(--c-surface-2); }
+
+    .notice-row {
+      display: flex;
+      justify-content: center;
+      margin-bottom: var(--sp-6);
+    }
+    .notice-row .notice { max-width: 520px; }
+
+    /* 섹션 헤딩 — 가운데 정렬 (양쪽 라인) */
+    .section-heading {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: var(--sp-3);
+      margin: var(--sp-3) 0 var(--sp-4);
+    }
+    .section-heading h1,
+    .section-heading h2 {
+      font-size: 1.15rem;
+      font-weight: 600;
+      color: var(--c-text);
+      margin: 0;
+      white-space: nowrap;
+      text-align: center;
+    }
+    .section-heading::before,
+    .section-heading::after {
+      content: '';
+      flex: 1;
+      max-width: 80px;
+      height: 1px;
+      background: var(--c-border);
+    }
+  </style>
 </head>
-<body>
-  <div class="container">
-    <h1>진행중인 이벤트</h1>
-    <div class="navigation-buttons">
-      <button onclick="window.location.href='calendar.html'" class="calendar-button">
-        <i class="calendar-icon">📅</i>
-        이벤트 캘린더
-      </button>
-      <button onclick="window.location.href='ended-events.html'" class="ended-events-button">
-        <i class="history-icon">📋</i>
-        종료된 이벤트
-      </button>
-    </div>
-    <p>※활동부원만 신청 가능합니다.(마이페이지를 통해 확인)</p>
-    <p>S : 스타터팀, R : 정기모임팀, A ~ D : 스태프팀</p>
-    <p id="participant-rules-notice" style="color: red; display: none;">
-      ⚠️ 참가자 규칙 적용: 활동부원은 일주일 이내 취소 시 경고 1회
-    </p>
-    
-    
-    <div id="events-list"></div>
+<body class="modern">
+  <div class="container modern">
+    <br>
+    <!-- 1) 월 타이틀 + 신청기간 메타 -->
+    <header class="month-header">
+      <h1 class="page-title is-month" id="page-month-title"></h1>
+      <p class="month-meta is-hidden" id="month-meta"></p>
+    </header>
 
-    <!-- 페이지네이션 추가 -->
-    <div class="pagination-container">
-      <button class="pagination-button" id="prev-page" disabled>&lt; 이전</button>
-      <span id="page-info">페이지 1</span>
-      <button class="pagination-button" id="next-page">다음 &gt;</button>
+    <!-- 2) 이번 달 이벤트 부채꼴 프리뷰 -->
+    <section class="fan-preview" aria-label="이번 달 이벤트 미리보기">
+      <div class="fan-cards" id="fan-cards"></div>
+    </section>
+
+    <!-- 3) 카카오 공유 + 네비 -->
+    <div class="header-actions">
+      <button type="button" class="btn btn-kakao" onclick="shareEventsListToKakao()">
+        <img src="/images/kakao-icon.png" alt="">
+        카카오톡으로 공유하기
+      </button>
+
+      
     </div>
 
-    
+    <!-- 4) 팀 약어 -->
+    <div class="legend">
+      <span class="badge badge-team" data-team="S">S</span>
+      <span class="chip">스타터팀</span>
+      <span class="badge badge-team" data-team="R">R</span>
+      <span class="chip">정기모임팀</span>
+      <span class="badge badge-team" data-team="A">A</span>
+      <span class="badge badge-team" data-team="B">B</span>
+      <span class="badge badge-team" data-team="C">C</span>
+      <span class="badge badge-team" data-team="D">D</span>
+      <span class="chip">스태프팀 (A~D)</span>
+      <span class="badge badge-team" data-team="P">P</span>
+      <span class="chip">기획팀</span>
+    </div>
 
-  
+    
+    <br><br>
+    <!-- 6) 진행중인 이벤트 섹션 -->
+    <div class="section-heading">
+      <h1>진행중인 이벤트</h1>
+    </div>
+    <!-- 5) 활동부원 안내 -->
+    <div class="notice-row">
+      <div class="notice">
+        <span>활동부원만 신청 가능합니다. (마이페이지에서 확인)</span>
+      </div>
+    </div>
+
+    <div class="nav-row">
+        <button type="button" class="btn btn-ghost"
+                onclick="window.location.href='calendar.html'">
+          이벤트 캘린더
+        </button>
+        <button type="button" class="btn btn-ghost"
+                onclick="window.location.href='ended-events.html'">
+          종료된 이벤트
+        </button>
+      </div>
+
+    <!-- 참가자 규칙 안내 (조건부) -->
+    <div id="participant-rules-notice" class="notice is-warning is-hidden">
+      <span class="ic" aria-hidden="true">⚠️</span>
+      <span>참가자 규칙 적용: 활동부원은 참가가 확정된 이후에 취소 시 경고 1회</span>
+    </div>
+
+    <!-- 이벤트 카드 그리드 -->
+    <div id="events-list" class="events-list"></div>
+
+    <!-- 페이지네이션 -->
+    <nav class="pagination" aria-label="이벤트 페이지">
+      <button type="button" class="icon-btn" id="prev-page" aria-label="이전 페이지" disabled>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+      </button>
+      <span class="page-info" id="page-info">페이지 1</span>
+      <button type="button" class="icon-btn" id="next-page" aria-label="다음 페이지">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+      </button>
+    </nav>
+
   </div>
-  <!-- Include events.js which already calls checkUserRole -->
-  <script src="/js/events.js"></script>
-  <script src="/js/utils/nav-injector.js"></script>
+
+  <!-- 토스트 컨테이너 -->
+  <div class="toast-container" id="toast-container"></div>
+
+  <script>
+    // 상단 월 표시 (events.js의 updateMonthHeader가 데이터 로드 후 재설정)
+    (function () {
+      const t = document.getElementById('page-month-title');
+      if (t) {
+        const now = new Date();
+        t.textContent = `${now.getMonth() + 1}월 이벤트`;
+      }
+    })();
+  </script>
+
+  <script src="/js/utils/ui.js"></script>
+  <script src="/js/utils/apply-confirm.js"></script>
+  <script src="/js/events.js?v=20260536"></script>
+  <script src="/js/events-kakao-share.js"></script>
+  <script src="/js/utils/nav-injector.js?v=20260533"></script>
 </body>
 </html>

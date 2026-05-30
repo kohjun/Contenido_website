@@ -1,0 +1,1091 @@
+/* =========================================================================
+   additional-info.css — 이벤트 상세 페이지 통합 스타일 (self-contained)
+   이 페이지에 필요한 모든 룰을 한 파일에 모았어. styles.css / modern.css 의존 없음.
+
+   구성:
+     1) Font / Base
+     2) Design tokens (CSS variables)
+     3) Container / Layout
+     4) Hero image
+     5) Title + Share button
+     6) Icon info rows (legacy display)
+     7) Refund policy display
+     8) Event contents
+     9) Button group + share modal
+    10) Button utility (.btn / .btn-primary / .btn-ghost / .btn-lg)
+    11) Image upload (편집 모드)
+    12) Edit mode — 카드형 폼 (modern 톤)
+   ========================================================================= */
+
+/* =========================================================================
+   1) Font / Base
+   ========================================================================= */
+
+@font-face {
+  font-family: 'GmarketSansMedium';
+  src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_2001@1.1/GmarketSansMedium.woff') format('woff');
+  font-weight: normal;
+  font-style: normal;
+}
+
+body {
+  font-family: 'GmarketSansMedium', sans-serif;
+  background-color: #f4f4f4;
+  color: #333;
+  margin: 0;
+  padding: 0;
+  line-height: 1.6;
+}
+
+/* =========================================================================
+   2) Design tokens
+   ========================================================================= */
+
+:root {
+  /* Brand */
+  --c-brand:         #0A84FE;
+  --c-brand-strong:  #0875E0;
+  --c-brand-soft:    #E8F2FF;
+  --c-brand-tint:    #F2F8FF;
+
+  /* Surface */
+  --c-bg:        #F5F6F8;
+  --c-surface:   #FFFFFF;
+  --c-surface-2: #F8FAFC;
+  --c-surface-3: #EEF2F7;
+
+  /* Text */
+  --c-text:       #1F2937;
+  --c-text-soft:  #4B5563;
+  --c-text-muted: #6B7280;
+  --c-text-faint: #9CA3AF;
+
+  /* Border */
+  --c-border:        #E5E7EB;
+  --c-border-strong: #D1D5DB;
+
+  /* Semantic */
+  --c-success:      #10B981;
+  --c-success-soft: #D1FAE5;
+  --c-warning:      #F59E0B;
+  --c-warning-soft: #FEF3C7;
+  --c-danger:       #EF4444;
+  --c-danger-soft:  #FEE2E2;
+
+  /* Radii */
+  --r-sm:   8px;
+  --r-md:  12px;
+  --r-lg:  16px;
+  --r-xl:  20px;
+  --r-pill: 999px;
+
+  /* Spacing */
+  --sp-1:  4px;
+  --sp-2:  8px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+  --sp-5: 20px;
+  --sp-6: 24px;
+  --sp-7: 32px;
+
+  /* Shadows */
+  --sh-1: 0 1px 2px rgba(15, 23, 42, 0.04), 0 1px 1px rgba(15, 23, 42, 0.03);
+  --sh-2: 0 4px 10px rgba(15, 23, 42, 0.06), 0 2px 4px rgba(15, 23, 42, 0.04);
+
+  /* Motion */
+  --ease:   cubic-bezier(0.4, 0, 0.2, 1);
+  --t-fast: 120ms;
+  --t-base: 180ms;
+
+  /* Font */
+  --ff-base: 'GmarketSansMedium', system-ui, -apple-system, 'Segoe UI', sans-serif;
+}
+
+/* =========================================================================
+   3) Container / Layout
+   ========================================================================= */
+
+.container {
+  width: 100%;
+  max-width: 750px;
+  margin: 0 auto;
+  padding: 1rem;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  position: relative;
+  box-sizing: border-box;
+  min-height: calc(100vh - 70px - 65px);
+}
+
+#event-details {
+  background-color: #ffffff;
+  padding: 15px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+}
+
+.event-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+/* =========================================================================
+   4) Hero image
+   ========================================================================= */
+
+.main-event-image {
+  width: 100%;
+  height: auto;
+  max-height: 300px;
+  margin: 0 auto 20px;
+  border-radius: 8px;
+  overflow: hidden;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.main-event-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+/* =========================================================================
+   5) Title + Share button
+   ========================================================================= */
+
+.title-share-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding: 10px 0;
+}
+.event-title {
+  font-size: 24px;
+  color: #333;
+  font-family: var(--ff-base);
+  margin-bottom: 20px;
+}
+.share-btn-container {
+  display: flex;
+  align-items: center;
+}
+.share-button {
+  cursor: pointer;
+  border: none;
+  background: none;
+  padding: 5px;
+  transition: transform 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+}
+.share-button img {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+}
+.share-button:hover { transform: scale(1.1); }
+
+/* =========================================================================
+   6) Icon info rows (legacy display)
+   ========================================================================= */
+
+.icon-info {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin-bottom: 30px;
+}
+.info-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: black;
+  font-size: 16px;
+}
+/* img에 .info-icon이 직접 붙는 경우 + .info-icon 안의 img 둘 다 커버 */
+img.info-icon,
+.info-icon img {
+  width: 18px;
+  height: 18px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+.info-icon {
+  color: var(--c-brand);
+}
+
+/* =========================================================================
+   7) Refund policy display
+   ========================================================================= */
+
+.refund-policy-section {
+  margin: 20px 0 15px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.refund-policy-section h3 {
+  margin: 0;
+  font-size: 1rem;
+  color: var(--c-brand);
+  font-weight: 600;
+}
+.refund-policy-section h3 span {
+  color: var(--c-brand);
+}
+.refund-policy-content {
+  line-height: 1.5;
+  padding-left: 4px;
+}
+.refund-standard {
+  color: var(--c-brand);
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.refund-custom {
+  color: #fd7e14;
+  font-weight: 500;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  line-height: 1.4;
+}
+.refund-none {
+  color: var(--c-text-muted);
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* =========================================================================
+   Application section (modify-event.js가 동적으로 삽입)
+   ========================================================================= */
+
+#application-section {
+  margin: 24px 0 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.status-text {
+  text-align: center;
+  font-size: 0.92rem;
+  color: var(--c-text-soft);
+  margin: 0;
+  padding: 10px 14px;
+  background: var(--c-surface-2);
+  border-radius: 10px;
+  line-height: 1.5;
+}
+
+.submit-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 14px 20px;
+  font-family: var(--ff-base);
+  font-size: 1rem;
+  font-weight: 600;
+  border-radius: var(--r-md);
+  border: 1px solid var(--c-brand);
+  background: var(--c-brand);
+  color: #fff;
+  cursor: pointer;
+  transition: transform var(--t-fast) var(--ease),
+              background-color var(--t-base) var(--ease),
+              box-shadow var(--t-base) var(--ease);
+  box-shadow: 0 4px 12px rgba(10, 132, 254, 0.25);
+}
+.submit-button:hover:not(:disabled) {
+  background: var(--c-brand-strong);
+  border-color: var(--c-brand-strong);
+  transform: translateY(-1px);
+  box-shadow: 0 8px 18px rgba(10, 132, 254, 0.32);
+}
+.submit-button:disabled,
+.submit-button[disabled] {
+  background: #E5E7EB;
+  border-color: #E5E7EB;
+  color: var(--c-text-faint);
+  cursor: not-allowed;
+  box-shadow: none;
+  opacity: 1;
+}
+
+/* 지원서 양식 카드 (선별적 이벤트) */
+.application-form {
+  background: var(--c-surface-2);
+  border: 1px solid var(--c-border);
+  border-radius: 12px;
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.application-form h3 {
+  margin: 0;
+  font-size: 1rem;
+  color: var(--c-text);
+}
+.question-section { display: flex; flex-direction: column; gap: 6px; }
+.question-text {
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: var(--c-text);
+  margin: 0;
+}
+.answer-textarea {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px 12px;
+  font-family: inherit;
+  font-size: 0.92rem;
+  border: 1px solid var(--c-border-strong);
+  border-radius: 8px;
+  background: #fff;
+  min-height: 72px;
+  resize: vertical;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.answer-textarea:focus {
+  outline: none;
+  border-color: var(--c-brand);
+  box-shadow: 0 0 0 3px rgba(10, 132, 254, 0.18);
+}
+.answer-textarea:disabled {
+  background: #f3f4f6;
+  color: var(--c-text-muted);
+  cursor: not-allowed;
+}
+
+/* Rules status (modify-event.js가 동적으로 삽입) */
+.rules-status {
+  color: var(--c-brand);
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  padding: 12px 14px;
+  background: var(--c-brand-tint);
+  border: 1px solid var(--c-brand-soft);
+  border-radius: 10px;
+  margin: 14px 0;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  font-weight: 500;
+}
+.rules-status strong { color: var(--c-brand-strong); font-weight: 600; }
+
+/* =========================================================================
+   8) Event contents
+   ========================================================================= */
+
+.event-contents-section {
+  margin-top: 30px;
+  border-top: 1px solid #eee;
+  padding-top: 20px;
+}
+.event-contents-section p {
+  font-size: 16px;
+  line-height: 1.6;
+  color: #333;
+}
+
+/* =========================================================================
+   9) Button group + share modal
+   ========================================================================= */
+
+.button-group {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 20px;
+  justify-content: center;
+}
+.button-group button {
+  flex: 1;
+  min-width: 120px;
+  padding: 12px 18px;
+  font-family: var(--ff-base);
+  font-size: 0.95rem;
+  font-weight: 500;
+  border-radius: var(--r-md);
+  border: 1px solid var(--c-border);
+  background: var(--c-surface);
+  color: var(--c-text);
+  cursor: pointer;
+  transition: transform var(--t-fast) var(--ease),
+              background-color var(--t-base) var(--ease),
+              box-shadow var(--t-base) var(--ease),
+              border-color var(--t-base) var(--ease);
+}
+.button-group button:hover {
+  background: var(--c-surface-2);
+  border-color: var(--c-border-strong);
+  transform: translateY(-1px);
+}
+.button-group #modify-button {
+  background: var(--c-brand);
+  color: #fff;
+  border-color: var(--c-brand);
+  box-shadow: 0 4px 12px rgba(10, 132, 254, 0.28);
+}
+.button-group #modify-button:hover {
+  background: var(--c-brand-strong);
+  border-color: var(--c-brand-strong);
+  box-shadow: 0 8px 18px rgba(10, 132, 254, 0.32);
+}
+
+.share-modal {
+  display: none;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: white;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  z-index: 1000;
+  width: 280px;
+}
+.share-option {
+  display: flex;
+  align-items: center;
+  padding: 12px;
+  cursor: pointer;
+  border: 1px solid #eee;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+.share-option:hover {
+  background-color: #f8f9fa;
+  transform: translateX(5px);
+}
+.share-option img {
+  width: 24px;
+  height: 24px;
+  margin-right: 12px;
+}
+.share-option span {
+  color: #333;
+  font-size: 0.95rem;
+}
+#kakao-share-button img {
+  width: 60px;
+  height: auto;
+}
+.share-modal button {
+  width: 100%;
+  padding: 8px;
+  margin-top: 15px;
+  border: none;
+  border-radius: 6px;
+  background-color: #f1f3f5;
+  color: #333;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.share-modal button:hover { background-color: #e9ecef; }
+
+.modal-backdrop {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
+/* =========================================================================
+  10) Button utility (edit-actions에서 사용)
+   ========================================================================= */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-2);
+  font-family: var(--ff-base);
+  font-size: 0.95rem;
+  font-weight: 500;
+  line-height: 1;
+  padding: 12px 18px;
+  border-radius: var(--r-md);
+  border: 1px solid transparent;
+  cursor: pointer;
+  user-select: none;
+  transition: transform var(--t-fast) var(--ease),
+              background-color var(--t-base) var(--ease),
+              box-shadow var(--t-base) var(--ease),
+              border-color var(--t-base) var(--ease),
+              color var(--t-base) var(--ease);
+  white-space: nowrap;
+}
+.btn:disabled,
+.btn[aria-disabled="true"] {
+  cursor: not-allowed;
+  opacity: 0.55;
+  pointer-events: none;
+}
+.btn-primary {
+  background: var(--c-brand);
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(10, 132, 254, 0.28);
+}
+.btn-primary:hover:not(:disabled) {
+  background: var(--c-brand-strong);
+  transform: translateY(-1px);
+  box-shadow: 0 8px 18px rgba(10, 132, 254, 0.32);
+}
+.btn-ghost {
+  background: var(--c-surface);
+  color: var(--c-text);
+  border-color: var(--c-border);
+}
+.btn-ghost:hover:not(:disabled) {
+  background: var(--c-surface-2);
+  border-color: var(--c-border-strong);
+  transform: translateY(-1px);
+}
+.btn-lg {
+  padding: 16px 22px;
+  font-size: 1rem;
+}
+
+/* =========================================================================
+  11) Image upload (편집 모드)
+   ========================================================================= */
+
+.image-section {
+  margin: 20px 0;
+  padding: 20px;
+  background-color: #f8fafc;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+}
+.image-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 10px;
+}
+.image-upload-button {
+  width: 200px;
+  height: 100px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border: 2px dashed #d1d5db;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background-color: #f9fafb;
+}
+.image-upload-button:hover {
+  border-color: var(--c-brand);
+  background-color: #f0f9ff;
+}
+.image-upload-button.disabled {
+  border-color: #e5e7eb;
+  background-color: #f3f4f6;
+  cursor: not-allowed;
+}
+.image-upload-button.disabled .plus-icon { color: #9ca3af; }
+.image-upload-button.disabled:hover {
+  border-color: #e5e7eb;
+  background-color: #f3f4f6;
+}
+.plus-icon {
+  font-size: 32px;
+  color: var(--c-brand);
+  margin-bottom: 5px;
+}
+.upload-text {
+  font-size: 14px;
+  color: var(--c-text-muted);
+}
+.image-upload-input { display: none; }
+
+.image-wrapper {
+  position: relative;
+  width: 100px;
+  height: 100px;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid var(--c-border);
+}
+.image-wrapper img,
+.event-image-preview {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.image-delete-btn {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: rgba(15, 23, 42, 0.8);
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 1;
+}
+
+/* =========================================================================
+  12) Edit mode — 카드형 폼 (modern 톤)
+   ========================================================================= */
+
+/* Edit 진입 시 legacy display 숨김 */
+.edit-mode-active .title-share-container,
+.edit-mode-active #event-details .icon-info,
+.edit-mode-active #application-section,
+.edit-mode-active .button-group {
+  display: none !important;
+}
+
+/* Edit form 컨테이너 */
+.edit-form-section {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin: 12px 0 24px;
+}
+.edit-form-header {
+  text-align: center;
+  padding: 12px 0 4px;
+}
+.edit-form-header h2 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 0 0 4px;
+  color: var(--c-text);
+  letter-spacing: -0.01em;
+}
+.edit-form-header p {
+  margin: 0;
+  color: var(--c-text-muted);
+  font-size: 0.88rem;
+}
+
+/* Card */
+.edit-card {
+  background: #fff;
+  border: 1px solid var(--c-border);
+  border-radius: 14px;
+  padding: 20px 18px;
+  box-shadow: var(--sh-1);
+}
+.edit-section-title {
+  font-size: 0.98rem;
+  font-weight: 600;
+  margin: 0 0 14px;
+  color: var(--c-text);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.edit-section-title small {
+  font-weight: 400;
+  color: var(--c-text-faint);
+  font-size: 0.85em;
+  margin-left: 4px;
+}
+
+/* Row grid */
+.edit-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 12px;
+}
+.edit-card .field + .field,
+.edit-card .field + .edit-row,
+.edit-card .edit-row + .field,
+.edit-card .edit-row + .edit-row { margin-top: 12px; }
+
+/* Fields & inputs */
+.edit-card .field-label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 4px;
+  display: block;
+}
+.edit-card .field-label .opt {
+  color: var(--c-text-faint);
+  font-weight: 400;
+  font-size: 0.78rem;
+}
+.edit-card .field-hint {
+  color: var(--c-text-muted);
+  font-size: 0.78rem;
+  margin-top: 4px;
+  display: block;
+}
+.edit-card input.input,
+.edit-card textarea.textarea {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px 12px;
+  font-family: inherit;
+  font-size: 0.95rem;
+  border: 1px solid var(--c-border-strong);
+  border-radius: 9px;
+  background: #fff;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.edit-card input.input:focus,
+.edit-card textarea.textarea:focus {
+  outline: none;
+  border-color: var(--c-brand);
+  box-shadow: 0 0 0 3px rgba(10, 132, 254, 0.18);
+}
+.edit-card .input-with-icon { position: relative; }
+.edit-card .input-with-icon .input { padding-right: 38px; }
+.edit-card .input-with-icon .input-suffix {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--c-text-faint);
+  font-size: 0.88rem;
+  pointer-events: none;
+}
+
+.edit-team-display {
+  padding: 10px 14px;
+  background: #f9fafb;
+  border-radius: 9px;
+  color: var(--c-text-muted);
+  font-size: 0.9rem;
+}
+.edit-team-display strong { color: var(--c-brand); }
+
+/* Fee 모드 토글 */
+.edit-fee-toggle {
+  display: inline-flex;
+  background: #f1f5f9;
+  border-radius: 10px;
+  padding: 4px;
+  margin-bottom: 12px;
+  gap: 0;
+}
+.edit-fee-toggle label {
+  padding: 6px 18px;
+  border-radius: 7px;
+  cursor: pointer;
+  font-size: 0.88rem;
+  color: var(--c-text-muted);
+  transition: all 0.18s;
+  user-select: none;
+}
+.edit-fee-toggle label.is-active {
+  background: var(--c-brand);
+  color: #fff;
+  font-weight: 600;
+  box-shadow: 0 1px 3px rgba(10, 132, 254, 0.3);
+}
+.edit-fee-toggle input { display: none; }
+
+/* Tag picker */
+.edit-tag-picker {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.edit-tag-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.edit-tag-cat {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--c-text-muted);
+}
+.edit-tag-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+.edit-tag-chip {
+  background: #fff;
+  border: 1px solid var(--c-border-strong);
+  color: var(--c-text-soft);
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.15s;
+}
+.edit-tag-chip:hover {
+  border-color: var(--c-brand);
+  color: var(--c-brand-strong);
+}
+.edit-tag-chip.is-active {
+  background: var(--c-brand-soft);
+  border-color: var(--c-brand);
+  color: var(--c-brand-strong);
+  font-weight: 600;
+}
+
+/* 환불 라디오 카드 */
+.edit-radio-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.edit-radio-card label.edit-radio {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 14px;
+  background: #fff;
+  border: 1.5px solid var(--c-border);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.edit-radio-card label.edit-radio:hover { border-color: #c7d2fe; }
+.edit-radio-card label.edit-radio:has(input:checked) {
+  background: var(--c-brand-soft);
+  border-color: var(--c-brand);
+}
+.edit-radio-card label.edit-radio input[type="radio"] {
+  margin-top: 2px;
+  accent-color: var(--c-brand);
+}
+.edit-radio-card label.edit-radio strong {
+  display: block;
+  color: var(--c-text);
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+.edit-radio-card label.edit-radio small {
+  display: block;
+  color: var(--c-text-muted);
+  font-size: 0.82rem;
+  margin-top: 2px;
+}
+
+/* 체크 카드 */
+.edit-check {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 14px;
+  background: #fff;
+  border: 1.5px solid var(--c-border);
+  border-radius: 10px;
+  cursor: pointer;
+}
+.edit-check:has(input:checked) {
+  background: var(--c-brand-soft);
+  border-color: var(--c-brand);
+}
+.edit-check input[type="checkbox"] {
+  margin-top: 2px;
+  accent-color: var(--c-brand);
+}
+.edit-check strong {
+  color: var(--c-text);
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+.edit-check small {
+  display: block;
+  color: var(--c-text-muted);
+  font-size: 0.82rem;
+  margin-top: 2px;
+}
+
+/* 액션 버튼 영역 */
+.edit-actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding-top: 12px;
+}
+.edit-actions .btn { flex: 1; min-width: 120px; }
+.edit-actions .btn-primary { flex: 2; }
+
+/* =========================================================================
+   Responsive — Mobile-friendly
+   ========================================================================= */
+
+/* ── Tablet & 작은 데스크탑 (max 768px) ───────────────────────────────── */
+@media (max-width: 768px) {
+  body { line-height: 1.55; }
+
+  .container {
+    padding: 14px 12px;
+    border-radius: 0;
+    box-shadow: none;
+    max-width: 100%;
+    margin: 0;
+  }
+
+  #event-details {
+    padding: 8px 4px;
+    margin-bottom: 12px;
+  }
+
+  .main-event-image {
+    max-height: none;
+    height: auto;
+    margin: 6px auto 16px;
+    border-radius: 12px;
+  }
+  .main-event-image img {
+    width: 100%;
+    max-width: 100%;
+    height: auto;
+  }
+
+  .title-share-container {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 4px 0 8px;
+    margin-bottom: 12px;
+  }
+  .event-title {
+    font-size: 19px;
+    margin-bottom: 0;
+    word-break: keep-all;
+    line-height: 1.35;
+    flex: 1;
+  }
+  .share-btn-container { flex-shrink: 0; }
+
+  .icon-info {
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+  .info-row { font-size: 14px; }
+  img.info-icon,
+  .info-icon img {
+    width: 16px;
+    height: 16px;
+  }
+
+  .refund-policy-section h3 { font-size: 0.95rem; }
+  .refund-policy-content { font-size: 0.9rem; }
+
+  .rules-status {
+    padding: 10px 12px;
+    font-size: 0.85rem;
+  }
+
+  .button-group {
+    flex-direction: column;
+    gap: 8px;
+  }
+  .button-group button {
+    flex: none;
+    width: 100%;
+    min-width: 0;
+    padding: 13px 16px;
+    font-size: 0.95rem;
+  }
+
+  /* 모달 — 모바일에선 풀폭에 가깝게 */
+  .share-modal {
+    width: calc(100% - 40px);
+    max-width: 320px;
+    padding: 18px;
+  }
+
+  /* 신청 섹션 */
+  .submit-button {
+    padding: 13px 16px;
+    font-size: 0.95rem;
+  }
+
+  /* 이미지 업로드 영역 */
+  .image-section { padding: 14px 12px; }
+  .image-upload-button {
+    width: 100%;
+    max-width: 200px;
+    height: 90px;
+  }
+  .image-wrapper {
+    width: 84px;
+    height: 84px;
+  }
+}
+
+/* ── 작은 모바일 (max 480px) — 더 컴팩트 ────────────────────────────── */
+@media (max-width: 480px) {
+  .container { padding: 12px 10px; }
+
+  .event-title { font-size: 18px; }
+
+  .refund-policy-section h3 { font-size: 0.92rem; }
+
+  /* Edit form 카드 */
+  .edit-form-section { gap: 12px; margin: 8px 0 20px; }
+  .edit-form-header h2 { font-size: 1.25rem; }
+  .edit-form-header p { font-size: 0.82rem; }
+
+  .edit-card { padding: 16px 14px; border-radius: 12px; }
+  .edit-section-title { font-size: 0.95rem; margin-bottom: 12px; }
+
+  /* 모든 그리드 1열로 */
+  .edit-row { grid-template-columns: 1fr; gap: 10px; }
+
+  /* iOS Safari 자동 줌 방지 — 모바일 input 폰트 16px 이상 */
+  .edit-card input.input,
+  .edit-card textarea.textarea,
+  .answer-textarea {
+    font-size: 16px;
+  }
+
+  /* 액션 버튼 세로 */
+  .edit-actions { flex-direction: column; gap: 10px; }
+  .edit-actions .btn { width: 100%; min-width: 0; }
+
+  /* Fee 토글 풀폭 */
+  .edit-fee-toggle {
+    display: flex;
+    width: 100%;
+  }
+  .edit-fee-toggle label {
+    flex: 1;
+    text-align: center;
+    padding: 8px 12px;
+  }
+
+  /* 라디오/체크 카드 패딩 줄임 */
+  .edit-radio-card label.edit-radio,
+  .edit-check {
+    padding: 10px 12px;
+  }
+
+  /* 태그 칩 살짝 작게 */
+  .edit-tag-chip {
+    padding: 5px 11px;
+    font-size: 0.82rem;
+  }
+}

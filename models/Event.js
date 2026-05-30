@@ -21,19 +21,19 @@ const appliedParticipantSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ['pending', 'approved', 'rejected'],
+    enum: ['pending', 'approved', 'rejected', 'cancelled'],
     default: 'pending'
   },
   // 상태 변경 이력을 저장할 필드 추가
   statusHistory: [{
     previousStatus: {
       type: String,
-      enum: ['pending', 'approved', 'rejected'],
+      enum: ['pending', 'approved', 'rejected', 'cancelled'],
       required: true
     },
     newStatus: {
       type: String,
-      enum: ['pending', 'approved', 'rejected'],
+      enum: ['pending', 'approved', 'rejected', 'cancelled'],
       required: true
     },
     changedBy: {
@@ -145,7 +145,43 @@ const eventSchema = new mongoose.Schema({
     type: Boolean,
     default: true
   },
-  additionalQuestions: [questionSchema]
+  additionalQuestions: [questionSchema],
+
+  // ===== 태그 (운영진이 등록 시 카테고리별 단일 선택) =====
+  // 카테고리: 분위기 / 장르 / 방식 / 장소
+  // 예: ['신입추천', '여행', '팀전', '실내']
+  tags: {
+    type: [String],
+    default: []
+  },
+
+  // ===== 신청/확정 기간 =====
+  // null이면 미사용 — 신청은 즉시 가능
+  applicationStartAt:     { type: Date, default: null },
+  applicationDeadlineAt:  { type: Date, default: null },
+  confirmationDeadlineAt: { type: Date, default: null },
+  // 스케줄러가 자동 확정 수행 후 세팅 (중복 처리 방지)
+  autoConfirmedAt:        { type: Date, default: null },
+
+  // ===== 신청 한도 (정원과 분리) =====
+  // null이면 participants 기준
+  maxApplicants: {
+    type: Number,
+    default: null
+  },
+
+  // ===== 참가비 모드 =====
+  // fixed: participation_fee 만 사용
+  // range: participation_fee(= min) + participation_fee_max
+  feeType: {
+    type: String,
+    enum: ['fixed', 'range'],
+    default: 'fixed'
+  },
+  participation_fee_max: {
+    type: Number,
+    default: null
+  }
 });
 eventSchema.pre('save', async function(next) {
   if (this.isModified('accessCode')) {

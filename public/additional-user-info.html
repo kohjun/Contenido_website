@@ -1,104 +1,542 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ko">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>추가 정보 입력</title>
-  <link rel="stylesheet" href="/css/styles.css">
-  <!-- 통합된 nav-injector.js만 포함 -->
+  <title>추가 정보 입력 · Contenido</title>
   <script src="/js/utils/nav-injector.js" defer></script>
+  <style>
+    /* ───────── tokens ───────── */
+    @font-face {
+      font-family: 'GmarketSansMedium';
+      src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_2001@1.1/GmarketSansMedium.woff') format('woff');
+      font-weight: normal;
+      font-style: normal;
+    }
+
+    :root {
+      --c-brand:        #0A84FE;
+      --c-brand-strong: #0875E0;
+      --c-brand-soft:   #E8F2FF;
+      --c-brand-tint:   #F2F8FF;
+      --c-bg:           #F0F6FF;
+      --c-surface:      #FFFFFF;
+      --c-surface-2:    #F5F8FC;
+      --c-text:         #1F2937;
+      --c-text-muted:   #5A6B7C;
+      --c-text-soft:    #94A3B8;
+      --c-border:       #E2E8F0;
+      --c-border-soft:  #EEF2F7;
+      --c-success:      #10B981;
+
+      --r-md: 12px;
+      --r-lg: 16px;
+      --r-xl: 20px;
+      --r-pill: 999px;
+
+      --sh-sm: 0 1px 2px rgba(15, 23, 42, .06);
+      --sh-md: 0 4px 12px rgba(15, 23, 42, .08);
+      --sh-lg: 0 12px 28px rgba(10, 132, 254, .15);
+
+      --t-fast: 120ms ease;
+      --t-base: 200ms ease;
+    }
+
+    /* ───────── base ───────── */
+    * { box-sizing: border-box; font-family: 'GmarketSansMedium', system-ui, sans-serif; }
+    html, body { margin: 0; padding: 0; }
+    body {
+      background: var(--c-bg);
+      color: var(--c-text);
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+      font-size: 16px;
+      min-height: 100vh;
+    }
+    input, select, textarea, button { font-family: inherit; font-size: 16px; }
+    button { cursor: pointer; }
+
+    /* ───────── page layout ───────── */
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 32px 20px calc(40px + 80px);
+    }
+
+    /* hero */
+    .form-hero {
+      text-align: center;
+      margin-bottom: 24px;
+    }
+    .form-hero .emoji {
+      display: inline-block;
+      width: 64px;
+      height: 64px;
+      background: var(--c-brand-soft);
+      border-radius: 50%;
+      font-size: 1.8rem;
+      line-height: 64px;
+      margin-bottom: 12px;
+    }
+    .form-hero h1 {
+      margin: 0 0 6px;
+      font-size: 1.55rem;
+      color: var(--c-text);
+      letter-spacing: -0.01em;
+    }
+    .form-hero p {
+      margin: 0;
+      color: var(--c-text-muted);
+      font-size: 0.9rem;
+    }
+
+    /* progress dots */
+    .progress {
+      display: flex;
+      justify-content: center;
+      gap: 6px;
+      margin-top: 16px;
+    }
+    .progress span {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--c-border);
+    }
+    .progress span.is-active {
+      background: var(--c-brand);
+      width: 28px;
+      border-radius: var(--r-pill);
+    }
+
+    /* card */
+    .form-card {
+      background: var(--c-surface);
+      border: 1px solid var(--c-border-soft);
+      border-radius: var(--r-xl);
+      padding: 28px 24px;
+      box-shadow: var(--sh-md);
+    }
+
+    .form-section {
+      margin-bottom: 18px;
+    }
+    .form-section:last-of-type { margin-bottom: 0; }
+
+    .field-label {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.86rem;
+      color: var(--c-text-muted);
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    .field-label .req {
+      color: #EF4444;
+      font-weight: 700;
+    }
+
+    .input,
+    .select {
+      width: 100%;
+      padding: 13px 14px;
+      border: 1.5px solid var(--c-border);
+      border-radius: var(--r-md);
+      background: var(--c-surface);
+      color: var(--c-text);
+      outline: none;
+      transition: var(--t-fast);
+      appearance: none;
+      -webkit-appearance: none;
+    }
+
+    .input:focus,
+    .select:focus {
+      border-color: var(--c-brand);
+      background: var(--c-brand-tint);
+      box-shadow: 0 0 0 3px var(--c-brand-soft);
+    }
+
+    .input::placeholder {
+      color: var(--c-text-soft);
+    }
+
+    .select {
+      background-image:
+        linear-gradient(45deg, transparent 50%, var(--c-text-muted) 50%),
+        linear-gradient(135deg, var(--c-text-muted) 50%, transparent 50%);
+      background-position:
+        calc(100% - 18px) 50%,
+        calc(100% - 13px) 50%;
+      background-size: 5px 5px, 5px 5px;
+      background-repeat: no-repeat;
+      padding-right: 36px;
+    }
+
+    .hint {
+      font-size: 0.78rem;
+      color: var(--c-text-soft);
+      margin-top: 4px;
+    }
+
+    /* gender chip select */
+    .chip-row {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+    }
+    .gender-chip {
+      padding: 13px 8px;
+      border: 1.5px solid var(--c-border);
+      border-radius: var(--r-md);
+      background: var(--c-surface);
+      color: var(--c-text-muted);
+      font-weight: 600;
+      font-size: 0.95rem;
+      transition: var(--t-fast);
+      text-align: center;
+    }
+    .gender-chip:hover {
+      border-color: var(--c-brand-soft);
+      background: var(--c-brand-tint);
+    }
+    .gender-chip.is-active {
+      background: var(--c-brand);
+      border-color: var(--c-brand);
+      color: #fff;
+    }
+
+    /* row layout */
+    .row-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+
+    /* submit */
+    .btn-row {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+    }
+    .submit-btn {
+      flex: 1;
+      padding: 16px;
+      border: none;
+      border-radius: var(--r-md);
+      background: var(--c-brand);
+      color: #fff;
+      font-size: 1rem;
+      font-weight: 700;
+      transition: var(--t-base);
+      letter-spacing: 0.02em;
+      box-shadow: var(--sh-md);
+      cursor: pointer;
+      font-family: inherit;
+    }
+    .submit-btn:hover {
+      background: var(--c-brand-strong);
+      transform: translateY(-1px);
+      box-shadow: var(--sh-lg);
+    }
+    .submit-btn:active {
+      transform: translateY(0);
+    }
+    .submit-btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+    .cancel-btn {
+      flex: 1;
+      padding: 16px;
+      border: 1.5px solid var(--c-border);
+      border-radius: var(--r-md);
+      background: var(--c-surface);
+      color: var(--c-text-muted);
+      font-size: 1rem;
+      font-weight: 700;
+      transition: var(--t-base);
+      cursor: pointer;
+      font-family: inherit;
+    }
+    .cancel-btn:hover {
+      background: var(--c-surface-2);
+      color: var(--c-text);
+      border-color: var(--c-text-soft);
+    }
+
+    /* footer note */
+    .form-note {
+      margin-top: 16px;
+      font-size: 0.78rem;
+      color: var(--c-text-soft);
+      text-align: center;
+    }
+
+    /* toast */
+    .toast {
+      position: fixed;
+      bottom: 88px;
+      left: 50%;
+      transform: translateX(-50%) translateY(20px);
+      background: var(--c-text);
+      color: #fff;
+      padding: 12px 20px;
+      border-radius: var(--r-md);
+      font-size: 0.9rem;
+      box-shadow: var(--sh-lg);
+      opacity: 0;
+      pointer-events: none;
+      transition: var(--t-base);
+      z-index: 1100;
+      max-width: 90vw;
+    }
+    .toast.is-show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+    .toast.success { background: var(--c-success); }
+    .toast.error   { background: #EF4444; }
+
+    /* responsive */
+    @media (max-width: 480px) {
+      .container { padding: 20px 16px calc(32px + 80px); }
+      .form-card { padding: 22px 18px; }
+      .form-hero h1 { font-size: 1.35rem; }
+      .row-2 { grid-template-columns: 1fr; gap: 0; }
+      .row-2 > .form-section { margin-bottom: 18px; }
+    }
+  </style>
 </head>
 <body>
   <div class="container">
-    <h1>추가 정보 입력</h1>
-    <form id="additional-info-form">
-      <label for="name">이름:</label>
-      <input type="text" id="name" name="name" required>
+    <!-- 헤로 -->
+    <div class="form-hero">
+      <div class="emoji">👋</div>
+      <h1>반가워요!</h1>
+      <p>Contenido 활동을 위해 몇 가지만 더 알려주세요</p>
+      <div class="progress">
+        <span></span>
+        <span class="is-active"></span>
+      </div>
+    </div>
 
-      <label for="gender">성별:</label>
-      <select id="gender" name="gender" required>
-        <option value="male">남성</option>
-        <option value="female">여성</option>
-        <option value="other">기타</option>
-      </select>
+    <!-- 카드 -->
+    <form id="additional-info-form" class="form-card" autocomplete="on">
+      <div class="form-section">
+        <label class="field-label" for="name">이름 <span class="req">*</span></label>
+        <input class="input" type="text" id="name" name="name" placeholder="실명을 입력해주세요" required>
+      </div>
 
-      <label for="birthDate">생년월일:</label>
-      <input type="date" id="birthDate" name="birthDate" required>
-      <label for="university">대학:</label>
-      <input type="text" id="university" name="university" placeholder="대학교 이름을 입력하세요" required>
-      <label for="phonenumber">전화번호:</label>
-      <input type="tel" id="phonenumber" name="phonenumber" placeholder="01012345678" required>
+      <div class="form-section">
+        <label class="field-label">성별 <span class="req">*</span></label>
+        <div class="chip-row" id="gender-chips">
+          <button type="button" class="gender-chip" data-value="male">남성</button>
+          <button type="button" class="gender-chip" data-value="female">여성</button>
+        </div>
+        <input type="hidden" id="gender" name="gender" required>
+      </div>
 
-      <label for="preferredActivity">활동희망지역:</label>
-      <select id="preferredActivity" name="preferredActivity" required>
-        <option value="">활동희망지역 선택</option>
-        <option value="강남구">강남구</option>
-        <option value="강동구">강동구</option>
-        <option value="강북구">강북구</option>
-        <option value="강서구">강서구</option>
-        <option value="관악구">관악구</option>
-        <option value="광진구">광진구</option>
-        <option value="구로구">구로구</option>
-        <option value="금천구">금천구</option>
-        <option value="노원구">노원구</option>
-        <option value="도봉구">도봉구</option>
-        <option value="동대문구">동대문구</option>
-        <option value="동작구">동작구</option>
-        <option value="마포구">마포구</option>
-        <option value="서대문구">서대문구</option>
-        <option value="서초구">서초구</option>
-        <option value="성동구">성동구</option>
-        <option value="성북구">성북구</option>
-        <option value="송파구">송파구</option>
-        <option value="양천구">양천구</option>
-        <option value="영등포구">영등포구</option>
-        <option value="용산구">용산구</option>
-        <option value="은평구">은평구</option>
-        <option value="종로구">종로구</option>
-        <option value="중구">중구</option>
-        <option value="중랑구">중랑구</option>
-      </select>
+      <div class="row-2">
+        <div class="form-section">
+          <label class="field-label" for="birthDate">생년월일 <span class="req">*</span></label>
+          <input class="input" type="date" id="birthDate" name="birthDate" required>
+        </div>
+        <div class="form-section">
+          <label class="field-label" for="phonenumber">전화번호 <span class="req">*</span></label>
+          <input class="input" type="tel" id="phonenumber" name="phonenumber"
+                 placeholder="01012345678" pattern="[0-9]{10,11}" required>
+        </div>
+      </div>
 
-      <button type="submit">제출</button>
+      <div class="form-section">
+        <label class="field-label" for="university">대학 <span class="req">*</span></label>
+        <input class="input" type="text" id="university" name="university"
+               placeholder="예: 서울대학교" required>
+      </div>
+
+      <div class="form-section">
+        <label class="field-label" for="preferredActivity">활동 희망 지역 <span class="req">*</span></label>
+        <select class="select" id="preferredActivity" name="preferredActivity" required>
+          <option value="">활동희망지역 선택</option>
+          <option value="강남구">강남구</option>
+          <option value="강동구">강동구</option>
+          <option value="강북구">강북구</option>
+          <option value="강서구">강서구</option>
+          <option value="관악구">관악구</option>
+          <option value="광진구">광진구</option>
+          <option value="구로구">구로구</option>
+          <option value="금천구">금천구</option>
+          <option value="노원구">노원구</option>
+          <option value="도봉구">도봉구</option>
+          <option value="동대문구">동대문구</option>
+          <option value="동작구">동작구</option>
+          <option value="마포구">마포구</option>
+          <option value="서대문구">서대문구</option>
+          <option value="서초구">서초구</option>
+          <option value="성동구">성동구</option>
+          <option value="성북구">성북구</option>
+          <option value="송파구">송파구</option>
+          <option value="양천구">양천구</option>
+          <option value="영등포구">영등포구</option>
+          <option value="용산구">용산구</option>
+          <option value="은평구">은평구</option>
+          <option value="종로구">종로구</option>
+          <option value="중구">중구</option>
+          <option value="중랑구">중랑구</option>
+        </select>
+        <p class="hint">자주 활동할 수 있는 지역을 선택해주세요</p>
+      </div>
+
+      <div class="btn-row" id="btn-row">
+        <button type="button" class="cancel-btn" id="cancel-btn" style="display:none;">
+          취소
+        </button>
+        <button type="submit" class="submit-btn" id="submit-btn">
+          시작하기 →
+        </button>
+      </div>
+
+      <p class="form-note">입력하신 정보는 활동 매칭과 안전한 모임 운영에만 사용돼요</p>
     </form>
   </div>
 
+  <div id="toast" class="toast"></div>
+
   <script>
-    // 사용자 인증 확인
+    /* ───────── edit mode 감지 ───────── */
+    const isEditMode = new URLSearchParams(window.location.search).get('edit') === '1';
+    const submitDefaultText = isEditMode ? '확인' : '시작하기 →';
+
+    /* ───────── gender chips ───────── */
+    document.getElementById('gender-chips').addEventListener('click', (e) => {
+      const chip = e.target.closest('.gender-chip');
+      if (!chip) return;
+      document.querySelectorAll('.gender-chip').forEach(c => c.classList.remove('is-active'));
+      chip.classList.add('is-active');
+      document.getElementById('gender').value = chip.dataset.value;
+    });
+
+    /* ───────── toast ───────── */
+    let toastTimer;
+    function toast(msg, type = '') {
+      const el = document.getElementById('toast');
+      if (!el) return;
+      el.textContent = msg;
+      el.className = 'toast is-show ' + (type || '');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => { el.classList.remove('is-show'); }, 2400);
+    }
+
+    /* ───────── auth check ───────── */
     async function checkUserAuth() {
       try {
-        // AuthModule 사용 (nav-injector.js에서 제공)
-        const isAuthenticated = await AuthModule.checkAuthentication();
-        if (!isAuthenticated) {
-          console.log('인증되지 않은 사용자');
-          return;
+        if (typeof AuthModule !== 'undefined' && AuthModule.checkAuthentication) {
+          const isAuthenticated = await AuthModule.checkAuthentication();
+          if (!isAuthenticated) {
+            console.log('인증되지 않은 사용자');
+            return;
+          }
+          console.log('사용자 인증 완료, 폼 제출 기능 활성화');
         }
-        
-        console.log('사용자 인증 완료, 폼 제출 기능 활성화');
       } catch (error) {
         console.error('인증 확인 중 오류:', error);
       }
     }
-    
-    document.addEventListener('DOMContentLoaded', function() {
-      // 인증 확인
+
+    /* ───────── edit 모드 — 기존 정보 prefill ───────── */
+    async function prefillForm() {
+      try {
+        const res = await fetch('/user/info_database', { credentials: 'include' });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const u = await res.json();
+
+        if (u.name) document.getElementById('name').value = u.name;
+        if (u.phonenumber) document.getElementById('phonenumber').value = u.phonenumber;
+        if (u.university) document.getElementById('university').value = u.university;
+        if (u.preferredActivity) {
+          const sel = document.getElementById('preferredActivity');
+          sel.value = u.preferredActivity;
+        }
+
+        // 생년월일 — ISO → YYYY-MM-DD
+        if (u.birthDate) {
+          const d = new Date(u.birthDate);
+          if (!isNaN(d.getTime())) {
+            const yyyy = d.getFullYear();
+            const mm = String(d.getMonth() + 1).padStart(2, '0');
+            const dd = String(d.getDate()).padStart(2, '0');
+            document.getElementById('birthDate').value = `${yyyy}-${mm}-${dd}`;
+          }
+        }
+
+        // 성별 — chip 활성화 (남/여만 / "other"는 무시)
+        if (u.gender === 'male' || u.gender === 'female') {
+          const chip = document.querySelector(`.gender-chip[data-value="${u.gender}"]`);
+          if (chip) {
+            chip.classList.add('is-active');
+            document.getElementById('gender').value = u.gender;
+          }
+        }
+      } catch (e) {
+        console.error('prefill 실패:', e);
+        toast('기존 정보를 불러오지 못했습니다', 'error');
+      }
+    }
+
+    /* ───────── edit 모드 UI 전환 ───────── */
+    function applyEditModeUI() {
+      // 헤더
+      document.querySelector('.form-hero .emoji').textContent = '✏️';
+      document.querySelector('.form-hero h1').textContent = '추가정보 수정';
+      document.querySelector('.form-hero p').textContent = '필요한 항목을 수정한 뒤 확인을 눌러주세요';
+      // 진행 점 숨김
+      const prog = document.querySelector('.progress');
+      if (prog) prog.style.display = 'none';
+      // 제출 버튼 텍스트
+      document.getElementById('submit-btn').textContent = '확인';
+      // 취소 버튼 표시
+      document.getElementById('cancel-btn').style.display = '';
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
       checkUserAuth();
-      
-      // 폼 제출 이벤트 핸들러
-      document.getElementById('additional-info-form').addEventListener('submit', async function (e) {
+
+      if (isEditMode) {
+        applyEditModeUI();
+        prefillForm();
+      }
+
+      // 취소 버튼 → mypage 로 복귀
+      document.getElementById('cancel-btn').addEventListener('click', () => {
+        window.location.href = '/mypage.html';
+      });
+
+      document.getElementById('additional-info-form').addEventListener('submit', async (e) => {
         e.preventDefault();
 
+        const gender = document.getElementById('gender').value;
+        if (!gender) {
+          toast('성별을 선택해주세요', 'error');
+          return;
+        }
+
         const formData = {
-          name: document.getElementById('name').value,
-          gender: document.getElementById('gender').value,
+          name: document.getElementById('name').value.trim(),
+          gender,
           birthDate: document.getElementById('birthDate').value,
-          university: document.getElementById('university').value,
-          phonenumber: document.getElementById('phonenumber').value,
+          university: document.getElementById('university').value.trim(),
+          phonenumber: document.getElementById('phonenumber').value.trim(),
           preferredActivity: document.getElementById('preferredActivity').value
         };
 
+        const submitBtn = document.getElementById('submit-btn');
+        submitBtn.disabled = true;
+        submitBtn.textContent = '저장 중...';
+
         try {
-          console.log('추가 정보 제출 중...');
           const response = await fetch('/auth/additional-info', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -108,16 +546,23 @@
           const result = await response.json();
 
           if (response.ok) {
-            console.log('추가 정보 제출 성공');
-            alert(result.message);
-            window.location.href = result.redirectUrl || '/events.html';
+            toast(isEditMode ? '수정되었습니다' : (result.message || '저장되었습니다!'), 'success');
+            setTimeout(() => {
+              // edit 모드면 무조건 mypage로, 신규 입력은 result.redirectUrl 우선
+              window.location.href = isEditMode
+                ? '/mypage.html'
+                : (result.redirectUrl || '/events.html');
+            }, 800);
           } else {
-            console.error('추가 정보 제출 실패:', result.message);
-            alert(`에러: ${result.message}`);
+            toast(result.message || '저장에 실패했습니다', 'error');
+            submitBtn.disabled = false;
+            submitBtn.textContent = submitDefaultText;
           }
         } catch (error) {
           console.error('추가 정보 제출 중 오류:', error);
-          alert('추가 정보 제출 중 문제가 발생했습니다.');
+          toast('네트워크 오류가 발생했습니다', 'error');
+          submitBtn.disabled = false;
+          submitBtn.textContent = submitDefaultText;
         }
       });
     });

@@ -5,6 +5,11 @@ const Event = require('../models/Event');
 const Organization = require('../models/organization');
 const { authorizeRoles } = require('../middleware/roleMiddleware');
 const authenticateToken = require('../middleware/authMiddleware'); // 추가
+const {
+  getOperationOverview,
+  getPlanningDetail,
+  getTeamComparison
+} = require('../utils/analyticsAggregator');
 
 // 조직도 데이터 API
 router.get('/organization', authorizeRoles('officer', 'admin'), async (req, res) => {
@@ -124,11 +129,67 @@ router.get('/team-statistics',
         res.json(statistics);
     } catch (error) {
         console.error('Error fetching team statistics:', error);
-        res.status(500).json({ 
+        res.status(500).json({
             message: '팀 통계 조회 중 오류가 발생했습니다.',
-            error: error.message 
+            error: error.message
         });
     }
 });
+
+/* ============================================================
+   신규 — 운영팀 페이지 종합 통계 (월별 가입 전체 기간 + 분포)
+   ============================================================ */
+router.get('/analytics/operation-overview',
+  authenticateToken,
+  authorizeRoles('officer', 'admin'),
+  async (req, res) => {
+    try {
+      const data = await getOperationOverview();
+      res.json(data);
+    } catch (error) {
+      console.error('Error in operation-overview:', error);
+      res.status(500).json({ message: '운영팀 통계 조회 중 오류', error: error.message });
+    }
+  });
+
+/* ============================================================
+   신규 — 기획팀 팀별 상세 통계
+   query: team=A|B|C|D, range=all|3m|6m|year
+   ============================================================ */
+router.get('/analytics/planning-detail',
+  authenticateToken,
+  authorizeRoles('officer', 'admin'),
+  async (req, res) => {
+    try {
+      const team = req.query.team || 'A';
+      const range = req.query.range || 'all';
+      if (!['A', 'B', 'C', 'D'].includes(team)) {
+        return res.status(400).json({ message: '유효하지 않은 팀입니다.' });
+      }
+      const data = await getPlanningDetail(team, range);
+      res.json(data);
+    } catch (error) {
+      console.error('Error in planning-detail:', error);
+      res.status(500).json({ message: '기획팀 상세 통계 조회 중 오류', error: error.message });
+    }
+  });
+
+/* ============================================================
+   신규 — 기획팀 4팀 비교
+   query: range=all|3m|6m|year
+   ============================================================ */
+router.get('/analytics/team-comparison',
+  authenticateToken,
+  authorizeRoles('officer', 'admin'),
+  async (req, res) => {
+    try {
+      const range = req.query.range || 'all';
+      const data = await getTeamComparison(range);
+      res.json(data);
+    } catch (error) {
+      console.error('Error in team-comparison:', error);
+      res.status(500).json({ message: '팀 비교 통계 조회 중 오류', error: error.message });
+    }
+  });
 
 module.exports = router;

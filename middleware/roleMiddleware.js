@@ -100,17 +100,39 @@ const requireActiveUser = (req, res, next) => {
     if (!req.user) {
         return res.status(401).json({ message: 'Authentication required' });
     }
-  
+
     if (!req.user.active) {
-        return res.status(403).json({ 
-            message: 'Your account must be active to perform this action' 
+        return res.status(403).json({
+            message: 'Your account must be active to perform this action'
         });
     }
-  
+
+    next();
+};
+
+// 인사팀 페이지의 회원 관리 액션 권한:
+// - admin (관리자) 또는
+// - officer && team === 'HumanResourceTeam' (운영진 중 인사팀)
+// 그 외는 403
+const requireHRPermission = (req, res, next) => {
+    if (!req.user) {
+        return res.status(401).json({ message: '로그인이 필요합니다.' });
+    }
+
+    const isAdmin = req.user.role === 'admin';
+    const isHROfficer = req.user.role === 'officer' && req.user.team === 'HumanResourceTeam';
+
+    if (!isAdmin && !isHROfficer) {
+        return res.status(403).json({
+            message: '이 작업은 관리자 또는 인사팀 운영진만 수행할 수 있습니다.'
+        });
+    }
+
     next();
 };
 
 module.exports = {
     authorizeRoles,
     requireActiveUser,
+    requireHRPermission,
 };

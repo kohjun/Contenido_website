@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const authenticateToken = require('../middleware/authMiddleware');
-const { authorizeRoles } = require('../middleware/roleMiddleware');
+const { authorizeRoles, requireHRPermission } = require('../middleware/roleMiddleware');
 const User = require('../models/User');
 
 // 토큰을 사용해서 유저 정보 얻기
@@ -246,7 +246,7 @@ router.get('/participants/bingo',
 
 // POST 
 // 유저 활성 상태 토글
-router.post('/toggle-active/:userId', authenticateToken, async (req, res) => {
+router.post('/toggle-active/:userId', authenticateToken, requireHRPermission, async (req, res) => {
   try {
     const { userId } = req.params;
     const { active } = req.body;
@@ -271,7 +271,7 @@ router.post('/toggle-active/:userId', authenticateToken, async (req, res) => {
 });
 
 // 참가 횟수 업데이트
-router.post('/update-participation/:userId', authenticateToken, async (req, res) => {
+router.post('/update-participation/:userId', authenticateToken, requireHRPermission, async (req, res) => {
   try {
     const { userId } = req.params;
     const { regularCount } = req.body;
@@ -306,7 +306,7 @@ router.post('/update-participation/:userId', authenticateToken, async (req, res)
 });
 
 // 경고 부여 - authorizeRoles 미들웨어 추가
-router.post('/issue-warning/:userId', authenticateToken, async (req, res) => {
+router.post('/issue-warning/:userId', authenticateToken, requireHRPermission, async (req, res) => {
   try {
     const { userId } = req.params;
     const { reason, category = '기타' } = req.body;
@@ -357,7 +357,7 @@ router.post('/issue-warning/:userId', authenticateToken, async (req, res) => {
 
 
 // 특정 경고 삭제/비활성화
-router.post('/remove-warning/:userId/:warningId', authenticateToken, async (req, res) => {
+router.post('/remove-warning/:userId/:warningId', authenticateToken, requireHRPermission, async (req, res) => {
   try {
     const { userId, warningId } = req.params;
     const { reason = '관리자 판단' } = req.body;
@@ -394,92 +394,128 @@ router.post('/remove-warning/:userId/:warningId', authenticateToken, async (req,
   }
 });
 
-//역할 변경 업데이트 
-// user.js
-router.post('/update-role/:userId', authenticateToken, async (req, res) => {
+// 팀 → 부서 매핑 (update-role / update-team 양쪽에서 사용)
+const TEAM_TO_DEPARTMENT = {
+  operationTeam:     'operation',
+  cooperationTeam:   'operation',
+  HumanResourceTeam: 'operation',
+  financeTeam:       'operation',
+  marketingTeam:     'promotion',
+  designTeam:        'promotion',
+  videoTeam:         'promotion',
+  PlanningTeam:      'planning',
+  regularTeam:       'planning',
+  staffTeam:         'planning',
+  starterTeam:       'planning'
+};
+
+//역할 변경 업데이트
+router.post('/update-role/:userId', authenticateToken, requireHRPermission, async (req, res) => {
   try {
     const { userId } = req.params;
-    const { role } = req.body;
-
-    // console.log(`사용자 ${userId} 역할 변경 요청: ${role}`);
+    const { role, team } = req.body;
 
     const validRoles = ['participant', 'starter', 'officer', 'guest'];
     if (!validRoles.includes(role)) {
-      console.log(`유효하지 않은 역할: ${role}`);
       return res.status(400).json({ message: '유효하지 않은 역할입니다.' });
     }
 
     const user = await User.findById(userId);
     if (!user) {
-      console.log(`사용자 ${userId}를 찾을 수 없음`);
       return res.status(404).json({ message: '사용자를 찾을 수 없습니다.' });
     }
 
-    const updateFields = { role };
+    const previousRole = user.role;
+    const previousActive = user.active;
+
+    const updateFields = { $set: { role } };
 
     if (role === 'officer') {
-      // officer로 변경 시 부서와 팀 정보 필요
-      if (!req.body.department) {
-        console.log('운영진 변경 시 부서 정보 누락');
-        return res.status(400).json({ message: '운영진의 경우 부서 정보가 필요합니다.' });
+      // officer로 변경 시 team 필수, department는 team으로부터 자동 도출
+      if (!team) {
+        return res.status(400).json({ message: '운영진은 팀 선택이 필요합니다.' });
       }
-      updateFields.department = req.body.department;
-      updateFields.team = req.body.team || 'operationTeam';
-      updateFields.isDepartmentHead = false;
+      const department = TEAM_TO_DEPARTMENT[team];
+      if (!department) {
+        return res.status(400).json({ message: `알 수 없는 팀입니다: ${team}` });
+      }
+      updateFields.$set.department = department;
+      updateFields.$set.team = team;
+      updateFields.$set.isDepartmentHead = false;
     } else {
-      // officer가 아닌 경우 부서와 팀 정보 제거
-      updateFields.$unset = { 
-        department: 1, 
+      // officer가 아닌 경우 부서/팀/팀장 필드 제거
+      updateFields.$unset = {
+        department: 1,
         team: 1,
-        isDepartmentHead: 1 
+        isDepartmentHead: 1
       };
+    }
+
+    // guest → participant 변경 시 자동 활성화
+    let autoActivated = false;
+    if (previousRole === 'guest' && role === 'participant' && !previousActive) {
+      updateFields.$set.active = true;
+      autoActivated = true;
     }
 
     const updatedUser = await User.findByIdAndUpdate(
       userId,
-      role === 'officer' ? updateFields : { $set: { role }, $unset: updateFields.$unset },
+      updateFields,
       { new: true }
     );
 
-    // console.log(`사용자 ${userId} 역할 변경 완료: ${updatedUser.role}`);
+    console.log(`사용자 ${userId} 역할 변경 완료: ${previousRole} → ${updatedUser.role}${autoActivated ? ' (자동 활성화)' : ''}`);
     res.status(200).json({
       message: '역할이 성공적으로 변경되었습니다.',
       role: updatedUser.role,
       department: updatedUser.department,
-      team: updatedUser.team
+      team: updatedUser.team,
+      active: updatedUser.active,
+      autoActivated
     });
   } catch (error) {
     console.error(`역할 변경 중 오류:`, error);
-    res.status(500).json({ message: '역할 변경 중 오류가 발생했습니다.' });
+    res.status(500).json({
+      message: '역할 변경 중 오류가 발생했습니다.',
+      error: error.message
+    });
   }
 });
 
 // 팀 변경 라우트
-router.post('/update-team/:userId', authenticateToken, async (req, res) => {
+router.post('/update-team/:userId', authenticateToken, requireHRPermission, async (req, res) => {
   try {
       const { userId } = req.params;
-      const { team, department } = req.body;
+      const { team } = req.body;
+      let { department } = req.body;
 
-      // console.log(`사용자 ${userId} 팀 변경 요청: 부서=${department}, 팀=${team}`);
+      if (!team) {
+          return res.status(400).json({ message: '팀이 지정되지 않았습니다.' });
+      }
 
       const user = await User.findById(userId);
       if (!user) {
-          console.log(`사용자 ${userId}를 찾을 수 없음`);
           return res.status(404).json({ message: '사용자를 찾을 수 없습니다.' });
       }
 
-      // officer 역할인지 확인
-      if (user.role !== 'officer') {
-          console.log(`사용자 ${userId}는 운영진이 아님`);
-          return res.status(400).json({ message: '운영진만 팀을 변경할 수 있습니다.' });
+      // 팀 변경 가능한 대상: officer 또는 admin
+      if (!['officer', 'admin'].includes(user.role)) {
+          return res.status(400).json({ message: '운영진과 관리자만 팀을 변경할 수 있습니다.' });
       }
 
-      // 팀과 부서 업데이트
+      // department가 누락되었으면 team에서 자동 도출
+      if (!department) {
+          department = TEAM_TO_DEPARTMENT[team];
+          if (!department) {
+              return res.status(400).json({ message: `알 수 없는 팀입니다: ${team}` });
+          }
+      }
+
       user.team = team;
       user.department = department;
       await user.save();
 
-      // console.log(`사용자 ${userId} 팀 변경 완료: 부서=${user.department}, 팀=${user.team}`);
+      console.log(`사용자 ${userId} 팀 변경 완료: 부서=${user.department}, 팀=${user.team}`);
       res.status(200).json({
           message: '팀이 성공적으로 변경되었습니다.',
           team: user.team,
@@ -487,12 +523,15 @@ router.post('/update-team/:userId', authenticateToken, async (req, res) => {
       });
   } catch (error) {
       console.error(`팀 변경 중 오류:`, error);
-      res.status(500).json({ message: '팀 변경 중 오류가 발생했습니다.' });
+      res.status(500).json({
+          message: '팀 변경 중 오류가 발생했습니다.',
+          error: error.message
+      });
   }
 });
 
 // 스태프 소그룹만 단독 변경 라우트
-router.post('/update-staffsubteam/:userId', authenticateToken, async (req, res) => {
+router.post('/update-staffsubteam/:userId', authenticateToken, requireHRPermission, async (req, res) => {
   try {
       const { userId } = req.params;
       const { staffSubteam } = req.body;
@@ -691,6 +730,84 @@ router.patch('/officers/:userId/work-memo', authenticateToken, async (req, res) 
       message: '서버 오류가 발생했습니다.',
       error: error.message
     });
+  }
+});
+
+// 일괄 업데이트 (참여횟수 / 경고)
+router.post('/bulk-update', authenticateToken, requireHRPermission, async (req, res) => {
+  try {
+    const { userIds, action, amount, reason, category } = req.body;
+    const issuedBy = req.user.id;
+    const issuedByName = req.user.name;
+
+    if (!Array.isArray(userIds) || userIds.length === 0) {
+      return res.status(400).json({ message: '선택된 사용자가 없습니다.' });
+    }
+
+    if (!['addParticipation', 'subtractParticipation', 'addWarning'].includes(action)) {
+      return res.status(400).json({ message: '유효하지 않은 작업입니다.' });
+    }
+
+    const users = await User.find({ _id: { $in: userIds } });
+    if (users.length === 0) {
+      return res.status(404).json({ message: '대상 사용자를 찾을 수 없습니다.' });
+    }
+
+    let processed = 0;
+    const errors = [];
+
+    for (const user of users) {
+      try {
+        if (action === 'addParticipation') {
+          const delta = Number(amount) || 1;
+          if (!user.participationCount) {
+            user.participationCount = { totalCount: 0, regularCount: 0 };
+          }
+          user.participationCount.regularCount = (user.participationCount.regularCount || 0) + delta;
+          await user.save();
+          processed++;
+        } else if (action === 'subtractParticipation') {
+          const delta = Number(amount) || 1;
+          if (!user.participationCount) {
+            user.participationCount = { totalCount: 0, regularCount: 0 };
+          }
+          user.participationCount.regularCount = Math.max(0, (user.participationCount.regularCount || 0) - delta);
+          await user.save();
+          processed++;
+        } else if (action === 'addWarning') {
+          if (!reason || reason.trim().length === 0) {
+            errors.push({ userId: user._id, message: '경고 사유 누락' });
+            continue;
+          }
+          const newWarning = {
+            reason: reason.trim(),
+            issuedBy,
+            issuedByName,
+            category: category || '기타',
+            issuedAt: new Date()
+          };
+          user.warningHistory.push(newWarning);
+          user.warningCount = (user.warningCount || 0) + 1;
+          await user.save();
+          processed++;
+        }
+      } catch (err) {
+        console.error(`사용자 ${user._id} 일괄 업데이트 실패:`, err);
+        errors.push({ userId: user._id, message: err.message });
+      }
+    }
+
+    console.log(`일괄 업데이트 완료: ${action}, 처리됨 ${processed}/${users.length}`);
+
+    res.status(200).json({
+      message: `${processed}명에게 작업이 적용되었습니다.`,
+      processed,
+      total: users.length,
+      errors
+    });
+  } catch (error) {
+    console.error('일괄 업데이트 중 오류:', error);
+    res.status(500).json({ message: '일괄 업데이트 중 오류가 발생했습니다.' });
   }
 });
 

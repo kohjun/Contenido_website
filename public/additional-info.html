@@ -4,11 +4,11 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>이벤트 내용</title>
-  <link rel="stylesheet" href="/css/styles.css">
+  <link rel="stylesheet" href="/css/additional-info.css?v=20260529">
   <!-- 카카오 SDK -->
   <script src="https://t1.kakaocdn.net/kakao_js_sdk/2.5.0/kakao.min.js"></script>
   <!-- 통합된 nav-injector.js만 포함 (auth-module.js 통합됨) -->
-  <script src="/js/utils/nav-injector.js" defer></script>
+  <script src="/js/utils/nav-injector.js?v=20260533" defer></script>
 </head>
 <body>
   <div class="container">
@@ -55,13 +55,27 @@
               <img src="/images/additional-eventFee.png" alt="참가비" class="info-icon">
               <span class="info-value"><span id="event-fee"></span></span>
             </div>
+            <!-- 태그 (참가비 바로 아래, 조건부 표시) -->
+            <div class="info-row" id="event-tags-row" style="display: none;">
+              <span class="info-value" id="event-tags"></span>
+            </div>
+            <!-- 신청 기간 (조건부 표시) -->
+            <div class="info-row" id="event-application-period-row" style="display: none;">
+              <img src="/images/additional-eventDate.png" alt="신청 기간" class="info-icon">
+              <span class="info-value">신청 기간: <span id="event-application-period"></span></span>
+            </div>
+            <!-- 참가자 확정 마감 (조건부 표시) -->
+            <div class="info-row" id="event-confirmation-deadline-row" style="display: none;">
+              <img src="/images/additional-eventDate.png" alt="확정 마감" class="info-icon">
+              <span class="info-value">확정 마감: <span id="event-confirmation-deadline"></span></span>
+            </div>
             <!-- 이벤트 내용 섹션 -->
             <div class="event-contents-section">
               <img src="/images/eventContents.png" alt="참가비" class="info-icon">
               &nbsp; <span id="event-contents"></span>
             </div>
             <div class="refund-policy-section">
-              <h3><span style="color: orange;">환불정책</span></h3>
+              <h3><span>환불정책</span></h3>
               &nbsp; <div id="refund-policy-display" class="refund-policy-content"></div>
             </div>
           </div>
@@ -75,8 +89,8 @@
 
       <!-- 수정 모드 컨트롤 -->
       <div id="edit-controls" style="display: none;">
-        <div class="image-section">
-          <h3>이벤트 이미지(최대 3장)</h3>
+        <div class="edit-card image-section">
+          <h3 class="edit-section-title">🖼️ 이벤트 이미지 <small>(최대 3장)</small></h3>
           <div class="image-container">
             <label for="edit-image" class="image-upload-button" id="image-upload-label">
               <span class="plus-icon">+</span>
@@ -85,11 +99,11 @@
             </label>
           </div>
         </div>
-        
+
         <!-- 확인/취소 버튼 -->
-        <div id="confirmation-buttons">
-          <button id="confirm-button" onclick="submitEdit()">확인</button>
-          <button id="cancel-button" onclick="cancelEdit()">취소</button>
+        <div id="confirmation-buttons" class="edit-actions">
+          <button id="confirm-button" class="btn btn-primary btn-lg" onclick="submitEdit()">저장하기</button>
+          <button id="cancel-button" class="btn btn-ghost" onclick="cancelEdit()">취소</button>
         </div>
       </div>
 
@@ -117,8 +131,10 @@
     </div>
     <div id="modalBackdrop" class="modal-backdrop" onclick="closeShareModal()"></div>
 
+    <!-- 약관 동의 모달 유틸 -->
+    <script src="/js/utils/apply-confirm.js"></script>
     <!-- 이벤트 관련 스크립트 -->
-    <script src="/js/modify-event.js"></script>
+    <script src="/js/modify-event.js?v=20260529"></script>
   </div>
 </body>
 </html>

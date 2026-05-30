@@ -1,366 +1,266 @@
-const Dashboard = {
-  async initialize() {
-    try {
-      if (!window.Chart) {
-        await this.loadChartJS();
-      }
-      const userData = await this.fetchUserData();
-      this.initializeCharts(userData);
-      this.updateStatistics(userData);
-    } catch (error) {
-      console.error('Dashboard initialization error:', error);
-      throw error;
-    }
-  },
+/* =====================================================================
+   dashboard.js — 운영팀 대시보드 로직
+   ---------------------------------------------------------------------
+   IIFE 패턴 — office.html 사이드바에서 동적 주입되어도 안전하게 동작.
+   ===================================================================== */
+(function () {
+  'use strict';
+  console.log('[dashboard.js] loaded — v20260540');
 
-  async loadChartJS() {
-    return new Promise((resolve, reject) => {
-      const script = document.createElement('script');
-      script.src = 'https://cdn.jsdelivr.net/npm/chart.js';
-      script.onload = resolve;
-      script.onerror = reject;
-      document.head.appendChild(script);
+  // Chart.js 인스턴스 보관 — 재실행 시 dispose
+  const chartRegistry = {};
+
+  /* ───────── Chart.js 로딩 ───────── */
+  async function loadChartJS() {
+    if (window.Chart) return;
+    await new Promise((resolve, reject) => {
+      const s = document.createElement('script');
+      s.src = 'https://cdn.jsdelivr.net/npm/chart.js';
+      s.onload = resolve;
+      s.onerror = reject;
+      document.head.appendChild(s);
     });
-  },
+  }
 
-  async fetchUserData() {
-    const response = await fetch('/user/participants/users');
-    if (!response.ok) {
-      throw new Error('Failed to fetch user data');
-    }
-    return response.json();
-  },
+  /* ───────── 데이터 가져오기 ───────── */
+  async function fetchOverview() {
+    const res = await fetch('/office/analytics/operation-overview', { credentials: 'include' });
+    if (!res.ok) throw new Error(`operation-overview HTTP ${res.status}`);
+    return res.json();
+  }
 
-  initializeCharts(userData) {
-    if (!userData || !Array.isArray(userData)) {
-      console.error('Invalid user data:', userData);
+  /* ───────── 통계 상단 카드 ───────── */
+  function renderStats(data) {
+    const { members, avgParticipation } = data;
+    const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+    set('totalMembers', members.total);
+    set('activeMembers', members.active);
+    set('inactiveMembers', members.inactive);
+    set('avgParticipation', avgParticipation.toFixed(1));
+
+    const ratio = members.total ? Math.round(members.active / members.total * 100) : 0;
+    set('totalSub', '명');
+    set('activeSub', `${ratio}%`);
+    set('inactiveSub', `${100 - ratio}%`);
+
+    set('averageAge', data.avgAge ? data.avgAge.toFixed(1) : '-');
+  }
+
+  /* ───────── 월별 가입 추이 (Chart.js) ───────── */
+  function renderGrowthChart(signupTrend) {
+    const canvas = document.getElementById('growthChart');
+    if (!canvas) return;
+    if (chartRegistry.growth) { chartRegistry.growth.destroy(); }
+    if (!signupTrend || !signupTrend.length) {
+      const ctx = canvas.getContext('2d');
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.font = '14px GmarketSansMedium, sans-serif';
+      ctx.fillStyle = '#94A3B8';
+      ctx.textAlign = 'center';
+      ctx.fillText('데이터 없음', canvas.width / 2, canvas.height / 2);
       return;
     }
-
-    const { roleCounts, genderData, activityData, avgAge, monthlySignups } = this.processData(userData);
-
-    const commonChartOptions = {
-      plugins: {
-        legend: {
-          position: 'bottom',
-          labels: {
-            generateLabels: function(chart) {
-              const data = chart.data;
-              const total = data.datasets[0].data.reduce((sum, value) => sum + value, 0);
-              return data.labels.map((label, i) => ({
-                text: `${label} (${data.datasets[0].data[i]}명, ${Math.round(data.datasets[0].data[i]/total*100)}%)`,
-                fillStyle: data.datasets[0].backgroundColor[i],
-                index: i
-              }));
-            }
-          }
-        },
-        tooltip: {
-          callbacks: {
-            label: function(context) {
-              const total = context.dataset.data.reduce((sum, value) => sum + value, 0);
-              const value = context.raw;
-              const percentage = Math.round((value / total) * 100);
-              return `${value}명 (${percentage}%)`;
-            }
-          }
-        }
-      }
-    };
-
-    // 역할 분포 차트
-    this.createChart('roleChart', {
-      type: 'pie',
-      data: {
-        labels: ['운영진', '참가자', '스타터', '게스트'],
-        datasets: [{
-          data: [
-            roleCounts['officer'] || 0,
-            roleCounts['participant'] || 0,
-            roleCounts['starter'] || 0,
-            roleCounts['guest'] || 0
-          ],
-          backgroundColor: ['#4BC0C0', '#0A84FE', '#FFCE56', '#ddd']
-        }]
-      },
-      options: commonChartOptions
-    });
-
-    // 성별 분포 차트
-    this.createChart('genderChart', {
-      type: 'pie',
-      data: {
-        labels: ['남성', '여성', '기타'],
-        datasets: [{
-          data: [
-            genderData['male'] || 0,
-            genderData['female'] || 0,
-            genderData['other'] || 0
-          ],
-          backgroundColor: ['#36A2EB', '#FF6384', '#FFCE56']
-        }]
-      },
-      options: commonChartOptions
-    });
-
-    // 선호 활동지역 차트
-    const topActivities = Object.entries(activityData)
-      .sort(([,a], [,b]) => b - a)
-      .slice(0, 5);
-
-    this.createChart('activityChart', {
-      type: 'bar',
-      data: {
-        labels: topActivities.map(([area]) => area),
-        datasets: [{
-          label: '선호 활동지역',
-          data: topActivities.map(([,count]) => count),
-          backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF'],
-          borderRadius: 5,
-          maxBarThickness: 50
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        indexAxis: 'y',  // 가로 막대 차트로 변경
-        scales: {
-          x: {
-            beginAtZero: true,
-            ticks: {
-              precision: 0,
-              font: { size: 12 }
-            },
-            grid: {
-              display: false
-            }
-          },
-          y: {
-            ticks: {
-              font: { size: 12 }
-            },
-            grid: {
-              display: false
-            }
-          }
-        },
-        plugins: {
-          legend: {
-            display: false  // 범례 숨김
-          },
-          tooltip: {
-            callbacks: {
-              label: function(context) {
-                return `${context.parsed.x}명`;
-              }
-            }
-          }
-        }
-      }
-    });
-
-    // 분기별 회원 현황 차트
-    this.createChart('growthChart', {
+    chartRegistry.growth = new Chart(canvas, {
       type: 'line',
       data: {
-        labels: monthlySignups.map(d => `${d.year}년 ${d.quarter}분기`),
-        datasets: [{
-          label: '신규 가입자',
-          data: monthlySignups.map(d => d.newMembers),
-          borderColor: '#4BC0C0',
-          backgroundColor: 'rgba(75, 192, 192, 0.1)',
-          tension: 0.3,
-          fill: true
+        labels: signupTrend.map(d => d.label),
+        datasets: [
+          {
+            label: '신규 가입자',
+            data: signupTrend.map(d => d.new),
+            borderColor: '#0A84FE',
+            backgroundColor: 'rgba(10,132,254,0.12)',
+            tension: 0.3,
+            fill: true,
+            yAxisID: 'y'
+          },
+          {
+            label: '누적 회원수',
+            data: signupTrend.map(d => d.cumulative),
+            borderColor: '#10B981',
+            backgroundColor: 'rgba(16,185,129,0.08)',
+            tension: 0.3,
+            fill: false,
+            yAxisID: 'y1'
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        interaction: { mode: 'index', intersect: false },
+        plugins: {
+          legend: { position: 'top', labels: { font: { family: 'GmarketSansMedium' } } },
+          tooltip: {
+            callbacks: {
+              label: (ctx) => `${ctx.dataset.label}: ${ctx.parsed.y}명`
+            }
+          }
         },
-        {
-          label: '총 회원수',
-          data: monthlySignups.map(d => d.totalMembers),
-          borderColor: '#FF6384',
-          backgroundColor: 'rgba(255, 99, 132, 0.1)',
-          tension: 0.3,
-          fill: true
-        }]
+        scales: {
+          x: { ticks: { font: { family: 'GmarketSansMedium' }, maxTicksLimit: 12 } },
+          y: {
+            beginAtZero: true,
+            position: 'left',
+            title: { display: true, text: '신규 가입(명)', font: { family: 'GmarketSansMedium' } }
+          },
+          y1: {
+            beginAtZero: true,
+            position: 'right',
+            grid: { drawOnChartArea: false },
+            title: { display: true, text: '누적(명)', font: { family: 'GmarketSansMedium' } }
+          }
+        }
+      }
+    });
+  }
+
+  /* ───────── 역할/성별 pie ───────── */
+  function renderPie(canvasId, regKey, labels, values, colors) {
+    const canvas = document.getElementById(canvasId);
+    if (!canvas) return;
+    if (chartRegistry[regKey]) { chartRegistry[regKey].destroy(); }
+    chartRegistry[regKey] = new Chart(canvas, {
+      type: 'pie',
+      data: {
+        labels,
+        datasets: [{ data: values, backgroundColor: colors, borderWidth: 0 }]
       },
       options: {
         responsive: true,
         maintainAspectRatio: false,
         plugins: {
           legend: {
-            display: true,
-            position: 'top'
+            position: 'bottom',
+            labels: {
+              font: { family: 'GmarketSansMedium', size: 11 },
+              generateLabels: (chart) => {
+                const data = chart.data;
+                const total = data.datasets[0].data.reduce((s, v) => s + v, 0) || 1;
+                return data.labels.map((label, i) => ({
+                  text: `${label} (${data.datasets[0].data[i]}명, ${Math.round(data.datasets[0].data[i] / total * 100)}%)`,
+                  fillStyle: data.datasets[0].backgroundColor[i],
+                  index: i
+                }));
+              }
+            }
           },
           tooltip: {
             callbacks: {
-              label: function(context) {
-                return `${context.dataset.label}: ${context.parsed.y}명`;
+              label: (ctx) => {
+                const total = ctx.dataset.data.reduce((s, v) => s + v, 0) || 1;
+                return `${ctx.label}: ${ctx.parsed}명 (${Math.round(ctx.parsed / total * 100)}%)`;
               }
             }
           }
-        },
-        scales: {
-          y: {
-            beginAtZero: true,
-            ticks: {
-              precision: 0
-            }
-          }
         }
       }
     });
+  }
 
-    // 연령 정보 업데이트
-    document.getElementById('averageAge').textContent = 
-      avgAge.toFixed(1);
-  },
+  function renderRoleChart(byRole) {
+    renderPie(
+      'roleChart', 'role',
+      ['관리자', '운영진', '참가자', '스타터', '게스트'],
+      [
+        byRole.admin || 0,
+        byRole.officer || 0,
+        byRole.participant || 0,
+        byRole.starter || 0,
+        byRole.guest || 0
+      ],
+      ['#1F2937', '#0A84FE', '#10B981', '#F59E0B', '#9CA3AF']
+    );
+  }
 
-  createChart(canvasId, config) {
-    const ctx = document.getElementById(canvasId);
-    if (ctx) {
-      return new Chart(ctx, config);
-    }
-  },
+  function renderGenderChart(byGender) {
+    renderPie(
+      'genderChart', 'gender',
+      ['남성', '여성', '기타'],
+      [byGender.male || 0, byGender.female || 0, (byGender.other || 0) + (byGender['-'] || 0)],
+      ['#3B82F6', '#EC4899', '#94A3B8']
+    );
+  }
 
-  processData(userData) {
-    if (!userData || !Array.isArray(userData)) {
-      return {
-        roleCounts: {},
-        genderData: {},
-        activityData: {},
-        avgAge: 0,
-        monthlySignups: []
-      };
-    }
-
-    const today = new Date();
-    const activeUsers = userData.filter(user => user.active);
-    
-    // 분기별 범위 정의
-    const quarterMonths = {
-      1: [1, 2, 3],    // 1분기
-      2: [4, 5, 6],    // 2분기
-      3: [7, 8, 9],    // 3분기
-      4: [10, 11, 12]  // 4분기
-    };
-
-    const getQuarterFromMonth = (month) => {
-      for (const [quarter, months] of Object.entries(quarterMonths)) {
-        if (months.includes(month)) {
-          return parseInt(quarter);
-        }
-      }
-      return 1;
-    };
-
-    // 실제 회원 수 계산 (게스트 제외)
-    const calculateActualMembers = (users, beforeDate) => {
-      return users.filter(user => {
-        const createdAt = new Date(user.createdAt);
-        return createdAt <= beforeDate && 
-               ['officer', 'participant', 'starter'].includes(user.role);
-      }).length;
-    };
-
-    const quarterlyData = {};
-    userData.forEach(user => {
-      if (user.createdAt) {
-        const date = new Date(user.createdAt);
-        const year = date.getFullYear();
-        const month = date.getMonth() + 1;
-        const quarter = getQuarterFromMonth(month);
-        const key = `${year}-${quarter}`;
-
-        if (!quarterlyData[key]) {
-          quarterlyData[key] = {
-            year,
-            quarter,
-            newMembers: 0,
-            totalMembers: 0
-          };
-        }
-        // 게스트가 아닌 경우만 카운트
-        if (['officer', 'participant', 'starter'].includes(user.role)) {
-          quarterlyData[key].newMembers++;
-        }
-      }
-    });
-
-    // 최근 8분기(2년) 데이터 생성
-    const last8Quarters = [];
-    let currentYear = today.getFullYear();
-    let currentQuarter = Math.floor((today.getMonth() / 3)) + 1;
-
-    for (let i = 0; i < 8; i++) {
-      const quarterEndDate = new Date(currentYear, quarterMonths[currentQuarter][2], 31);
-      const key = `${currentYear}-${currentQuarter}`;
-      
-      last8Quarters.unshift({
-        year: currentYear,
-        quarter: currentQuarter,
-        newMembers: quarterlyData[key]?.newMembers || 0,
-        totalMembers: calculateActualMembers(userData, quarterEndDate)
-      });
-
-      currentQuarter--;
-      if (currentQuarter < 1) {
-        currentQuarter = 4;
-        currentYear--;
-      }
-    }
-
-    return {
-      roleCounts: userData.reduce((acc, user) => {
-        if (user.role) {
-          acc[user.role] = (acc[user.role] || 0) + 1;
-        }
-        return acc;
-      }, {}),
-      
-      genderData: userData.reduce((acc, user) => {
-        if (user.gender) {
-          acc[user.gender] = (acc[user.gender] || 0) + 1;
-        }
-        return acc;
-      }, {}),
-      
-      activityData: userData.reduce((acc, user) => {
-        if (user.preferredActivity && user.preferredActivity !== '-') {
-          acc[user.preferredActivity] = (acc[user.preferredActivity] || 0) + 1;
-        }
-        return acc;
-      }, {}),
-
-      avgAge: activeUsers.reduce((acc, user) => {
-        if (user.birthDate) {
-          const birthYear = new Date(user.birthDate).getFullYear();
-          const age = today.getFullYear() - birthYear;
-          return acc + age;
-        }
-        return acc;
-      }, 0) / (activeUsers.filter(user => user.birthDate).length || 1),
-
-      monthlySignups: last8Quarters
-    };
-  },
-
-  updateStatistics(userData) {
-    if (!userData || !Array.isArray(userData)) {
-      console.error('Invalid user data in updateStatistics');
+  /* ───────── CSS bar 분포 ───────── */
+  function renderDistList(containerId, items, colorClass) {
+    const wrap = document.getElementById(containerId);
+    if (!wrap) return;
+    if (!items.length) {
+      wrap.innerHTML = '<div style="color:#94A3B8; text-align:center; padding:20px; font-size:0.85rem;">데이터 없음</div>';
       return;
     }
-
-    const actualMembers = userData.filter(u => 
-      ['officer', 'participant', 'starter'].includes(u.role));
-
-    document.getElementById('totalMembers').textContent = actualMembers.length+'명';
-    document.getElementById('activeMembers').textContent = 
-      actualMembers.filter(u => u.active).length+'명';
-    document.getElementById('avgParticipation').textContent = 
-      (actualMembers.reduce((acc, user) => 
-        acc + (user.participationCount?.regularCount || 0), 0) / actualMembers.length)
-      .toFixed(1)+'번';
+    const max = Math.max(...items.map(i => i.count), 1);
+    wrap.innerHTML = items.map(it => {
+      const pct = Math.max(2, Math.round(it.count / max * 100));
+      return `
+        <div class="dist-row">
+          <span class="dist-label">${escapeHTML(it.label)}</span>
+          <div class="dist-bar-wrap">
+            <div class="dist-bar-fill ${colorClass || ''}" style="width: ${pct}%;">
+              ${it.count > 0 ? it.count : ''}
+            </div>
+          </div>
+          <span class="dist-count">${it.count}명</span>
+        </div>`;
+    }).join('');
   }
-};
 
-if (typeof window !== 'undefined') {
-  window.Dashboard = Dashboard;
-}
+  function renderActivityHistogram(items) {
+    renderDistList('activityHistogram', items.map(i => ({ label: i.bucket, count: i.count })), 'info');
+  }
+
+  function renderAgeBuckets(buckets) {
+    const items = Object.entries(buckets).map(([label, count]) => ({ label, count }));
+    renderDistList('ageDistribution', items, 'warn');
+  }
+
+  function renderTopRegions(regions) {
+    renderDistList('topRegions', regions.map(r => ({ label: r.region, count: r.count })), 'success');
+  }
+
+  /* ───────── 부팅 ───────── */
+  async function bootDashboard() {
+    const dashboardEl = document.querySelector('.dashboard');
+    if (!dashboardEl) {
+      console.log('[dashboard.js] .dashboard DOM not found — skipping');
+      return;
+    }
+    try {
+      await loadChartJS();
+      const data = await fetchOverview();
+      renderStats(data);
+      renderGrowthChart(data.signupTrend);
+      renderRoleChart(data.members.byRole || {});
+      renderGenderChart(data.members.byGender || {});
+      renderActivityHistogram(data.activityHistogram || []);
+      renderAgeBuckets(data.members.ageBuckets || {});
+      renderTopRegions(data.topRegions || []);
+    } catch (e) {
+      console.error('[dashboard.js] init error:', e);
+      const err = document.createElement('div');
+      err.className = 'dashboard-error';
+      err.textContent = `대시보드를 불러오지 못했습니다 — ${e.message}`;
+      dashboardEl.insertBefore(err, dashboardEl.firstChild);
+    }
+  }
+
+  /* ───────── 유틸 ───────── */
+  function escapeHTML(s) {
+    if (s === null || s === undefined) return '';
+    return String(s)
+      .replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;')
+      .replaceAll('"', '&quot;').replaceAll("'", '&#39;');
+  }
+
+  /* ───────── 자동 부팅 + window 노출 ───────── */
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', bootDashboard);
+  } else {
+    bootDashboard();
+  }
+
+  // 옛 코드 호환 (sidebar.js의 typeof Dashboard 체크)
+  window.Dashboard = { initialize: bootDashboard };
+  window.bootDashboard = bootDashboard;
+})();

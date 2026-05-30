@@ -51,16 +51,16 @@ async function loadEventContent(eventId) {
       
       switch(currentEvent.refundPolicy) {
         case 'standard':
-          refundPolicyHTML = '<span class="refund-standard">💳 입금이 확인된 이후에는 환불이 불가능합니다</span>';
+          refundPolicyHTML = '<span class="refund-standard"> 참가자가 확정된 이후에는 환불이 불가능합니다</span>';
           break;
         case 'custom':
-          refundPolicyHTML = `<span class="refund-custom">⚠️ ${currentEvent.refundCustomDescription}</span>`;
+          refundPolicyHTML = `<span class="refund-custom"> ${currentEvent.refundCustomDescription}</span>`;
           break;
         case 'none':
-          refundPolicyHTML = '<span class="refund-none">📝 별도의 환불 규정이 없습니다</span>';
+          refundPolicyHTML = '<span class="refund-none"> 별도의 환불 규정이 없습니다</span>';
           break;
         default:
-          refundPolicyHTML = '<span class="refund-standard">💳 입금이 확인된 이후에는 환불이 불가능합니다</span>';
+          refundPolicyHTML = '<span class="refund-standard"> 참가자가 확정된 이후에는 환불이 불가능합니다</span>';
       }
       
       refundPolicyDisplay.innerHTML = refundPolicyHTML;
@@ -75,15 +75,60 @@ async function loadEventContent(eventId) {
     if (participantsElem) participantsElem.textContent = currentEvent.participants + '명';
     if (startTimeElem) startTimeElem.textContent = currentEvent.startTime;
     if (endTimeElem) endTimeElem.textContent = currentEvent.endTime;
-    if (feeElem) feeElem.textContent = currentEvent.participation_fee.toLocaleString() + '원';
+    if (feeElem) {
+      // 참가비: feeType이 range면 '최소 ~ 최대' 형식
+      const minStr = (currentEvent.participation_fee || 0).toLocaleString();
+      if (currentEvent.feeType === 'range' && currentEvent.participation_fee_max) {
+        feeElem.textContent = `${minStr} ~ ${currentEvent.participation_fee_max.toLocaleString()}원`;
+      } else {
+        feeElem.textContent = minStr + '원';
+      }
+    }
     if (contentsElem) contentsElem.innerHTML = currentEvent.contents.replace(/\n/g, "<br>");
+
+    // ===== 새 필드 표시 =====
+    // 신청 기간
+    const appPeriodRow = document.getElementById('event-application-period-row');
+    const appPeriodElem = document.getElementById('event-application-period');
+    if (appPeriodRow && appPeriodElem) {
+      if (currentEvent.applicationStartAt || currentEvent.applicationDeadlineAt) {
+        const fmt = (d) => d ? new Date(d).toLocaleString('ko-KR', {
+          month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit'
+        }) : '미정';
+        appPeriodElem.textContent = `${fmt(currentEvent.applicationStartAt)} ~ ${fmt(currentEvent.applicationDeadlineAt)}`;
+        appPeriodRow.style.display = '';
+      }
+    }
+    // 참가자 확정 마감
+    const conRow = document.getElementById('event-confirmation-deadline-row');
+    const conElem = document.getElementById('event-confirmation-deadline');
+    if (conRow && conElem && currentEvent.confirmationDeadlineAt) {
+      conElem.textContent = new Date(currentEvent.confirmationDeadlineAt).toLocaleString('ko-KR', {
+        month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit'
+      });
+      conRow.style.display = '';
+    }
+    // 태그 (#형식)
+    const tagsRow = document.getElementById('event-tags-row');
+    const tagsElem = document.getElementById('event-tags');
+    if (tagsRow && tagsElem && Array.isArray(currentEvent.tags) && currentEvent.tags.length > 0) {
+      tagsElem.innerHTML = currentEvent.tags.map(t => {
+        const safe = String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        return `<span style="display:inline-block;padding:2px 8px;margin-right:4px;background:#f1f5f9;border-radius:999px;font-size:0.85em;color:#475569;">#${safe}</span>`;
+      }).join(' ');
+      tagsRow.style.display = '';
+    }
+    // 참가 인원 표시: maxApplicants가 다르면 '최대 N명 신청' 부기
+    if (participantsElem && currentEvent.maxApplicants && currentEvent.maxApplicants !== currentEvent.participants) {
+      participantsElem.textContent = `${currentEvent.participants}명 (최대 ${currentEvent.maxApplicants}명 신청)`;
+    }
 
     // 참가자 규칙 상태 표시
     if (detailsElem && kakaoShareButton) {
       const rulesStatus = document.createElement('p');
       rulesStatus.className = 'rules-status';
       rulesStatus.innerHTML = currentEvent.hasParticipantRules ?
-        '✔  <strong>참가자 규칙이 적용되는 이벤트입니다.</strong><br>활동부원은 일주일 이내 취소 시 경고 1회가 부과됩니다.' :
+        ' <strong>참가자 규칙 적용</strong> 활동부원은 참가가 확정된 이후에 취소 시 경고 1회가 부과됩니다.' :
         '참가자 규칙이 적용되지 않는 일반 이벤트입니다.';
       // kakaoShareButton이 detailsElem의 자식인지 확인
       if (kakaoShareButton.parentNode === detailsElem) {
@@ -357,7 +402,13 @@ async function applyForEvent(eventId) {
   // 인증 상태 확인
   const isAuthenticated = await AuthModule.checkAuthentication();
   if (!isAuthenticated) return;
-  
+
+  // 약관 동의 모달
+  const agreed = typeof window.confirmEventApplication === 'function'
+    ? await window.confirmEventApplication()
+    : confirm('참가 확정 후에는 참가비 환불이 불가능하며, 취소 시 경고가 부여될 수 있습니다. 동의하시겠습니까?');
+  if (!agreed) return;
+
   console.log(`이벤트 ${eventId} 신청 시도`);
   try {
     const response = await fetch(`/events/${eventId}/apply`, {
@@ -392,213 +443,322 @@ function updateApplicationStatus() {
   }
 }
 
-function enableEdit() {
-  console.log('이벤트 수정 모드 활성화');
-  
-  const fields = [
-    { id: 'event-title', type: 'text', key: 'title' },
-    { id: 'event-place', type: 'text', key: 'place' },
-    { id: 'event-date', type: 'date', key: 'date' },
-    { id: 'event-participants', type: 'number', key: 'participants' },
-    { id: 'event-start-time', type: 'time', key: 'startTime' },
-    { id: 'event-end-time', type: 'time', key: 'endTime' },
-    { id: 'event-fee', type: 'number', key: 'participation_fee' },
-    { id: 'event-contents', type: 'textarea', key: 'contents' }
-  ];
+// ===== 수정 모드 (리디자인) =====
 
-  fields.forEach(field => {
-    const element = document.getElementById(field.id);
-    if (!element) {
-      console.warn(`Element ${field.id} not found`);
-      return;
-    }
-    
-    const input = document.createElement(field.type === 'textarea' ? 'textarea' : 'input');
-    input.id = `edit-${field.id}`;
-    input.type = field.type;
-    
-    // ============ 날짜 형식 변환 추가 ============
-    if (field.type === 'date') {
-      // currentEvent에서 직접 가져오기 (이미 로드되어 있음)
-      if (currentEvent && currentEvent.date) {
-        input.value = currentEvent.date;
-      } else {
-        // 화면 텍스트에서 파싱 (백업)
-        const dateText = element.textContent.trim();
-        const dateMatch = dateText.match(/(\d{4})년\s*(\d{1,2})월\s*(\d{1,2})일/);
-        if (dateMatch) {
-          const year = dateMatch[1];
-          const month = dateMatch[2].padStart(2, '0');
-          const day = dateMatch[3].padStart(2, '0');
-          input.value = `${year}-${month}-${day}`;
-        }
-      }
-    }
-    // ============ 날짜 형식 변환 끝 ============
-    else if (field.type === 'number') {
-      input.value = element.textContent.replace(/[^\d]/g, '');
-    } else if (field.type === 'textarea') {
-      // 줄바꿈 및 공백 복원: <br> → \n
-      input.value = element.innerHTML.replace(/<br\s*\/?>/gi, '\n');
-    } else {
-      input.value = element.textContent.trim();
-    }
-    
-    element.parentNode.replaceChild(input, element);
-  });
+const EDIT_TAG_CATEGORIES = {
+  '분위기': ['신입추천', '매니아추천', '부담없음', '룰복잡'],
+  '장르':   ['여행', '연애', '레이스', '심리추리', '서바이벌', '음악', '스포츠', '요리', '파티'],
+  '방식':   ['팀전', '개인전', '랜덤팀'],
+  '장소':   ['실내', '야외']
+};
 
-  // ============ 이미지 편집 UI 생성 추가 ============
-  const imageSection = document.querySelector('.image-section .image-container');
-  if (imageSection && currentEvent && currentEvent.images && currentEvent.images.length > 0) {
-    // 기존 내용 유지하면서 편집 가능하게 만들기
-    const existingUploadLabel = document.getElementById('image-upload-label');
-    
-    // 기존 이미지들 먼저 추가
-    currentEvent.images.forEach((imagePath, index) => {
-      // 이미 wrapper가 있는지 확인
-      const existingWrapper = Array.from(imageSection.querySelectorAll('.image-wrapper'))
-        .find(w => w.dataset.imagePath === imagePath);
-      
-      if (!existingWrapper) {
-        const wrapper = document.createElement('div');
-        wrapper.className = 'image-wrapper';
-        wrapper.dataset.imagePath = imagePath;
-        
-        const img = document.createElement('img');
-        if (/^https?:\/\//.test(imagePath)) {
-          img.src = imagePath;
-        } else {
-          img.src = window.location.origin + (imagePath.startsWith('/') ? imagePath : '/' + imagePath);
-        }
-        img.alt = `이벤트 이미지 ${index + 1}`;
-        img.className = 'event-image-preview';
-        img.onerror = function() {
-          this.src = window.location.origin + '/images/Basic_Event_Image.png';
-        };
-        
-        const deleteBtn = document.createElement('button');
-        deleteBtn.className = 'image-delete-btn';
-        deleteBtn.textContent = '×';
-        deleteBtn.onclick = function() { handleImageDelete(this); };
-        deleteBtn.style.display = 'block';
-        
-        wrapper.appendChild(img);
-        wrapper.appendChild(deleteBtn);
-        
-        // 업로드 버튼 앞에 삽입
-        if (existingUploadLabel) {
-          imageSection.insertBefore(wrapper, existingUploadLabel);
-        } else {
-          imageSection.appendChild(wrapper);
-        }
-      }
-    });
-    
-    // 업로드 버튼이 없으면 생성
-    if (!existingUploadLabel) {
-      const uploadLabel = document.createElement('label');
-      uploadLabel.htmlFor = 'edit-image';
-      uploadLabel.className = 'image-upload-button';
-      uploadLabel.id = 'image-upload-label';
-      uploadLabel.innerHTML = `
-        <span class="plus-icon">+</span>
-        <span class="upload-text">이미지 추가</span>
-      `;
-      
-      const fileInput = document.createElement('input');
-      fileInput.type = 'file';
-      fileInput.id = 'edit-image';
-      fileInput.accept = 'image/*';
-      fileInput.multiple = true;
-      fileInput.className = 'image-upload-input';
-      fileInput.onchange = handleImagePreview;
-      
-      uploadLabel.appendChild(fileInput);
-      imageSection.appendChild(uploadLabel);
-    }
-  }
-  // ============ 이미지 편집 UI 생성 끝 ============
+// ISO → datetime-local 입력값 (YYYY-MM-DDTHH:MM)
+function toDatetimeLocal(d) {
+  if (!d) return '';
+  const dt = new Date(d);
+  if (isNaN(dt.getTime())) return '';
+  const pad = (n) => String(n).padStart(2, '0');
+  return `${dt.getFullYear()}-${pad(dt.getMonth() + 1)}-${pad(dt.getDate())}T${pad(dt.getHours())}:${pad(dt.getMinutes())}`;
+}
 
-  const refundPolicyEditContainer = document.createElement('div');
-  refundPolicyEditContainer.className = 'refund-policy-edit-section';
-  refundPolicyEditContainer.innerHTML = `
-    <h4>환불 정책 수정</h4>
-    <div class="radio-group">
-      <label class="radio-label">
-        <input type="radio" name="edit-refund-policy" value="standard" ${currentEvent.refundPolicy === 'standard' ? 'checked' : ''}>
-        <span>일반적인 환불 규정</span>
-        <small class="radio-hint">입금이 확인된 이후에는 환불이 불가능합니다</small>
-      </label>
-      
-      <label class="radio-label">
-        <input type="radio" name="edit-refund-policy" value="custom" ${currentEvent.refundPolicy === 'custom' ? 'checked' : ''}>
-        <span>특수한 상황</span>
-        <small class="radio-hint">특별한 환불 규정이 적용되는 경우</small>
-      </label>
-    </div>
-    
-    <div id="edit-custom-refund-section" style="display: ${currentEvent.refundPolicy === 'custom' ? 'block' : 'none'};">
-      <label for="edit-custom-refund-description">환불 정책 설명:</label>
-      <textarea id="edit-custom-refund-description" rows="4" placeholder="특수한 환불 정책에 대해 상세히 설명해주세요...">${currentEvent.refundPolicy === 'custom' ? (currentEvent.refundCustomDescription || '') : ''}</textarea>
-    </div>
-  `;
+function _escA(s) {
+  return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+function _escT(s) {
+  return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
 
-  const rulesCheckboxContainer = document.createElement('div');
-  rulesCheckboxContainer.className = 'rules-checkbox-container';
-  rulesCheckboxContainer.innerHTML = `
-    <label class="checkbox-label">
-      <input type="checkbox" id="edit-hasParticipantRules" ${currentEvent.hasParticipantRules ? 'checked' : ''}>
-      <span>참가자 규칙 적용</span>
-    </label>
-    <span class="form-hint">활동부원은 취소 시 경고, 스타터/기존 참가자 패널티 없음</span>
-  `;
-  if (rulesCheckboxContainer.parentNode) {
-    rulesCheckboxContainer.parentNode.insertBefore(refundPolicyEditContainer, rulesCheckboxContainer.nextSibling);
-  }
+// (스타일은 /css/additional-info.css 로 분리됨)
 
-  // 환불 정책 라디오 버튼 이벤트 리스너 추가
-  const editRefundPolicyRadios = document.querySelectorAll('input[name="edit-refund-policy"]');
-  const editCustomRefundSection = document.getElementById('edit-custom-refund-section');
-
-  editRefundPolicyRadios.forEach(radio => {
-    radio.addEventListener('change', function() {
-      if (this.value === 'custom') {
-        editCustomRefundSection.style.display = 'block';
-        document.getElementById('edit-custom-refund-description').required = true;
-      } else {
-        editCustomRefundSection.style.display = 'none';
-        document.getElementById('edit-custom-refund-description').required = false;
-      }
-    });
-  });
-
-  // 이벤트 디테일과 이미지 컨테이너 참조 가져오기
+// 새 카드형 edit 폼 빌더
+function buildEditForm() {
   const eventDetails = document.getElementById('event-details');
-  const imageContainer = document.getElementById('event-image-container');
-  
-  // 이미지 컨테이너가 있는지 확인하고 있다면 그 앞에 체크박스 컨테이너 삽입
-  if (imageContainer && imageContainer.parentNode) {
-    imageContainer.parentNode.insertBefore(rulesCheckboxContainer, imageContainer);
-  } else {
-    // 이미지 컨테이너가 없다면 이벤트 디테일 끝에 추가
-    eventDetails.appendChild(rulesCheckboxContainer);
-  }
+  if (!eventDetails) return;
+  document.getElementById('edit-form-section')?.remove(); // 재진입 방지
 
-  // 이미지 관련 UI 활성화
-  const currentImages = document.querySelectorAll('.image-wrapper');
-  currentImages.forEach(wrapper => {
-    const deleteBtn = wrapper.querySelector('.image-delete-btn');
-    if (deleteBtn) {
-      deleteBtn.style.display = 'block';
-    }
+  const e = currentEvent;
+  const tags = Array.isArray(e.tags) ? e.tags : [];
+  const refund = e.refundPolicy || 'standard';
+
+  const fmtDate = (d) => {
+    if (!d) return '';
+    const dt = new Date(d);
+    if (isNaN(dt)) return '';
+    return `${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,'0')}-${String(dt.getDate()).padStart(2,'0')}`;
+  };
+
+  const tagPickerHtml = Object.entries(EDIT_TAG_CATEGORIES).map(([cat, list]) => `
+    <div class="edit-tag-group" data-cat="${cat}">
+      <span class="edit-tag-cat">${cat}</span>
+      <div class="edit-tag-chips">
+        ${list.map(t => `<button type="button" class="edit-tag-chip${tags.includes(t) ? ' is-active' : ''}" data-tag="${t}">${t}</button>`).join('')}
+      </div>
+    </div>
+  `).join('');
+
+  const section = document.createElement('div');
+  section.id = 'edit-form-section';
+  section.className = 'edit-form-section';
+  section.innerHTML = `
+    <div class="edit-form-header">
+      <h2>이벤트 수정</h2>
+      <p>변경할 내용을 수정한 뒤 저장을 눌러주세요</p>
+    </div>
+
+    <!-- 1. 기본 정보 -->
+    <div class="edit-card">
+      <h3 class="edit-section-title">📋 기본 정보</h3>
+      <div class="field">
+        <label class="field-label" for="edit-event-title">이벤트 제목</label>
+        <input type="text" id="edit-event-title" class="input" value="${_escA(e.title)}">
+      </div>
+      <div class="field">
+        <label class="field-label" for="edit-event-place">장소</label>
+        <input type="text" id="edit-event-place" class="input" value="${_escA(e.place)}">
+      </div>
+      <div class="edit-row">
+        <div class="field">
+          <label class="field-label" for="edit-event-participants">정원</label>
+          <input type="number" id="edit-event-participants" class="input" min="1" value="${e.participants || ''}">
+        </div>
+        <div class="field">
+          <label class="field-label" for="edit-max-applicants">최대 신청자수 <span class="opt">(선택)</span></label>
+          <input type="number" id="edit-max-applicants" class="input" min="1" value="${e.maxApplicants ?? ''}" placeholder="비워두면 무제한">
+        </div>
+      </div>
+      <div class="field">
+        <label class="field-label">담당 팀</label>
+        <div class="edit-team-display">현재 팀: <strong>${_escT(e.team || '-')}</strong> (변경 불가)</div>
+      </div>
+    </div>
+
+    <!-- 2. 일정 -->
+    <div class="edit-card">
+      <h3 class="edit-section-title">📅 일정</h3>
+      <div class="edit-row">
+        <div class="field">
+          <label class="field-label" for="edit-event-date">행사 날짜</label>
+          <input type="date" id="edit-event-date" class="input" value="${fmtDate(e.date)}">
+        </div>
+        <div class="field">
+          <label class="field-label" for="edit-event-start-time">시작</label>
+          <input type="time" id="edit-event-start-time" class="input" value="${_escA(e.startTime || '')}">
+        </div>
+        <div class="field">
+          <label class="field-label" for="edit-event-end-time">종료</label>
+          <input type="time" id="edit-event-end-time" class="input" value="${_escA(e.endTime || '')}">
+        </div>
+      </div>
+      <div class="field">
+        <label class="field-label" for="edit-application-start">신청 시작 <span class="opt">(선택)</span></label>
+        <input type="datetime-local" id="edit-application-start" class="input" value="${toDatetimeLocal(e.applicationStartAt)}">
+      </div>
+      <div class="field">
+        <label class="field-label" for="edit-application-deadline">신청 마감 <span class="opt">(선택)</span></label>
+        <input type="datetime-local" id="edit-application-deadline" class="input" value="${toDatetimeLocal(e.applicationDeadlineAt)}">
+      </div>
+      <div class="field">
+        <label class="field-label" for="edit-confirmation-deadline">참가자 확정 마감 <span class="opt">(선택)</span></label>
+        <input type="datetime-local" id="edit-confirmation-deadline" class="input" value="${toDatetimeLocal(e.confirmationDeadlineAt)}">
+        <span class="field-hint">시간 도래 시 시스템이 자동 확정 (성비 1:1, 어린 사람 우선)</span>
+      </div>
+    </div>
+
+    <!-- 3. 참가비 -->
+    <div class="edit-card">
+      <h3 class="edit-section-title">💰 참가비</h3>
+      <div class="edit-fee-toggle">
+        <label class="${e.feeType !== 'range' ? 'is-active' : ''}" data-mode="fixed">
+          <input type="radio" name="edit-fee-type" value="fixed" ${e.feeType !== 'range' ? 'checked' : ''}> 정액
+        </label>
+        <label class="${e.feeType === 'range' ? 'is-active' : ''}" data-mode="range">
+          <input type="radio" name="edit-fee-type" value="range" ${e.feeType === 'range' ? 'checked' : ''}> 범위
+        </label>
+      </div>
+      <div class="edit-row">
+        <div class="field">
+          <label class="field-label" for="edit-event-fee"><span id="edit-fee-label">${e.feeType === 'range' ? '최소' : '금액'}</span></label>
+          <div class="input-with-icon">
+            <input type="number" id="edit-event-fee" class="input" min="0" value="${e.participation_fee || 0}">
+            <span class="input-suffix">원</span>
+          </div>
+        </div>
+        <div class="field" id="edit-fee-max-field" style="display:${e.feeType === 'range' ? '' : 'none'};">
+          <label class="field-label" for="edit-participation-fee-max">최대</label>
+          <div class="input-with-icon">
+            <input type="number" id="edit-participation-fee-max" class="input" min="0" value="${e.participation_fee_max ?? ''}">
+            <span class="input-suffix">원</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4. 내용 -->
+    <div class="edit-card">
+      <h3 class="edit-section-title">📝 이벤트 내용</h3>
+      <textarea id="edit-event-contents" class="textarea" rows="6">${_escT(e.contents)}</textarea>
+    </div>
+
+    <!-- 5. 태그 -->
+    <div class="edit-card">
+      <h3 class="edit-section-title">🏷️ 태그 <small>카테고리별 하나씩 (다시 클릭하면 해제)</small></h3>
+      <div class="edit-tag-picker">
+        ${tagPickerHtml}
+      </div>
+    </div>
+
+    <!-- 6. 환불 정책 -->
+    <div class="edit-card">
+      <h3 class="edit-section-title"> 환불 정책</h3>
+      <div class="edit-radio-card">
+        <label class="edit-radio">
+          <input type="radio" name="edit-refund-policy" value="standard" ${refund === 'standard' ? 'checked' : ''}>
+          <div>
+            <strong>일반적인 환불 규정</strong>
+            <small>참가자가 확정된 이후에는 환불이 불가능합니다</small>
+          </div>
+        </label>
+        <label class="edit-radio">
+          <input type="radio" name="edit-refund-policy" value="custom" ${refund === 'custom' ? 'checked' : ''}>
+          <div>
+            <strong>특수한 상황 직접 설명</strong>
+            <small>특별한 환불 조건이 있는 경우</small>
+          </div>
+        </label>
+        <label class="edit-radio">
+          <input type="radio" name="edit-refund-policy" value="none" ${refund === 'none' ? 'checked' : ''}>
+          <div>
+            <strong>환불 규정 없음</strong>
+            <small>환불 정책을 별도로 명시하지 않음</small>
+          </div>
+        </label>
+      </div>
+      <div id="edit-custom-refund-section" class="field" style="margin-top:12px;display:${refund === 'custom' ? 'block' : 'none'};">
+        <label class="field-label" for="edit-custom-refund-description">환불 정책 상세 설명</label>
+        <textarea id="edit-custom-refund-description" class="textarea" rows="3" placeholder="특수한 환불 정책에 대해 상세히 설명해주세요...">${_escT(e.refundCustomDescription || '')}</textarea>
+      </div>
+    </div>
+
+    <!-- 7. 옵션 -->
+    <div class="edit-card">
+      <h3 class="edit-section-title">⚙️ 옵션</h3>
+      <label class="edit-check">
+        <input type="checkbox" id="edit-hasParticipantRules" ${e.hasParticipantRules ? 'checked' : ''}>
+        <div>
+          <strong>참가자 규칙 적용</strong>
+          <small>활동부원은 참가가 확정된 이후에 취소 시 경고 1회</small>
+        </div>
+      </label>
+    </div>
+  `;
+
+  eventDetails.appendChild(section);
+
+  // ===== 인터랙션 바인딩 =====
+
+  // 환불 정책 라디오 → custom 섹션 토글
+  document.querySelectorAll('input[name="edit-refund-policy"]').forEach(r => {
+    r.addEventListener('change', () => {
+      const sec = document.getElementById('edit-custom-refund-section');
+      if (sec) sec.style.display = (r.checked && r.value === 'custom') ? 'block' : 'none';
+    });
   });
 
-  // UI 상태 업데이트
+  // Fee 모드 토글
+  document.querySelectorAll('.edit-fee-toggle label').forEach(lbl => {
+    lbl.addEventListener('click', () => {
+      const mode = lbl.dataset.mode;
+      document.querySelectorAll('.edit-fee-toggle label').forEach(l => l.classList.remove('is-active'));
+      lbl.classList.add('is-active');
+      const radio = lbl.querySelector('input[type="radio"]');
+      if (radio) radio.checked = true;
+      const feeMaxField = document.getElementById('edit-fee-max-field');
+      const feeLabel = document.getElementById('edit-fee-label');
+      if (feeMaxField) feeMaxField.style.display = mode === 'range' ? '' : 'none';
+      if (feeLabel) feeLabel.textContent = mode === 'range' ? '최소' : '금액';
+    });
+  });
+
+  // 태그 칩 토글 (카테고리 내 단일 선택, 재클릭으로 해제)
+  document.querySelectorAll('#edit-form-section .edit-tag-group').forEach(group => {
+    const chips = group.querySelectorAll('.edit-tag-chip');
+    chips.forEach(chip => {
+      chip.addEventListener('click', () => {
+        const wasActive = chip.classList.contains('is-active');
+        chips.forEach(c => c.classList.remove('is-active'));
+        if (!wasActive) chip.classList.add('is-active');
+      });
+    });
+  });
+}
+
+// 이미지 wrapper 채우기 (기존 이미지)
+function populateImageWrappersInEdit() {
+  const imageSection = document.querySelector('.image-section .image-container');
+  if (!imageSection || !currentEvent || !currentEvent.images || currentEvent.images.length === 0) return;
+
+  const existingUploadLabel = document.getElementById('image-upload-label');
+
+  currentEvent.images.forEach((imagePath, index) => {
+    const dup = Array.from(imageSection.querySelectorAll('.image-wrapper'))
+      .find(w => w.dataset.imagePath === imagePath);
+    if (dup) return;
+
+    const wrapper = document.createElement('div');
+    wrapper.className = 'image-wrapper';
+    wrapper.dataset.imagePath = imagePath;
+
+    const img = document.createElement('img');
+    if (/^https?:\/\//.test(imagePath)) {
+      img.src = imagePath;
+    } else {
+      img.src = window.location.origin + (imagePath.startsWith('/') ? imagePath : '/' + imagePath);
+    }
+    img.alt = `이벤트 이미지 ${index + 1}`;
+    img.className = 'event-image-preview';
+    img.onerror = function () {
+      this.src = window.location.origin + '/images/Basic_Event_Image.png';
+    };
+
+    const deleteBtn = document.createElement('button');
+    deleteBtn.className = 'image-delete-btn';
+    deleteBtn.textContent = '×';
+    deleteBtn.onclick = function () { handleImageDelete(this); };
+    deleteBtn.style.display = 'block';
+
+    wrapper.appendChild(img);
+    wrapper.appendChild(deleteBtn);
+
+    if (existingUploadLabel) {
+      imageSection.insertBefore(wrapper, existingUploadLabel);
+    } else {
+      imageSection.appendChild(wrapper);
+    }
+  });
+}
+
+function enableEdit() {
+  console.log('이벤트 수정 모드 활성화 (리디자인)');
+
+  // body에 edit-mode 클래스 추가 → legacy display 숨김 (additional-info.css가 처리)
+  document.body.classList.add('edit-mode-active');
+
+  // 모던 카드형 edit 폼 빌드
+  buildEditForm();
+
+  // 이미지 wrapper 채우기 + edit-controls 표시
+  populateImageWrappersInEdit();
   document.getElementById('modify-button').style.display = 'none';
   document.getElementById('edit-controls').style.display = 'block';
-
-  // 이미지 업로드 상태 갱신
   updateImageUploadStatus();
+
+  // edit form section 안쪽 위치로 edit-controls 옮기기 (이미지 + 저장/취소 버튼)
+  const editForm = document.getElementById('edit-form-section');
+  const editControls = document.getElementById('edit-controls');
+  if (editForm && editControls && editControls.parentElement !== editForm) {
+    editForm.appendChild(editControls);
+  }
+
   console.log('이벤트 수정 모드 활성화 완료');
 }
 
@@ -720,19 +880,41 @@ async function submitEdit() {
       return;
     }
 
-    // ============ 수정: 데이터 구조 변경 ============
-    // 서버가 기대하는 형식으로 데이터 구성
+    // ===== 새 필드 수집 =====
+    const editMaxApplicants = document.getElementById('edit-max-applicants')?.value;
+    const editFeeType       = document.querySelector('input[name="edit-fee-type"]:checked')?.value || 'fixed';
+    const editFeeMax        = document.getElementById('edit-participation-fee-max')?.value;
+    const editAppStart      = document.getElementById('edit-application-start')?.value;
+    const editAppDeadline   = document.getElementById('edit-application-deadline')?.value;
+    const editConDeadline   = document.getElementById('edit-confirmation-deadline')?.value;
+    const editTags = Array.from(
+      document.querySelectorAll('#edit-form-section .edit-tag-chip.is-active')
+    ).map(el => el.dataset.tag);
+
+    // 새 필드 클라이언트 검증
+    if (editMaxApplicants && parseInt(editMaxApplicants) < participantsValue) {
+      alert('최대 신청자수는 정원보다 작을 수 없습니다.');
+      return;
+    }
+    if (editFeeType === 'range') {
+      if (!editFeeMax || parseInt(editFeeMax) <= participationFeeValue) {
+        alert('참가비 범위는 최대값이 최소값보다 커야 합니다.');
+        return;
+      }
+    }
+
+    // ============ 서버 PUT /update-content 페이로드 ============
     const requestData = {
       eventId,
-      // 이미지 관련 필드 (최상위)
+      // 이미지 관련
       currentImages,
       newImages: newImageUrls,
       deletedImages: deletedImagesArr,
-      // 참가자 규칙 및 환불 정책 (최상위)
+      // 참가자 규칙 / 환불 정책
       hasParticipantRules: document.getElementById('edit-hasParticipantRules')?.checked || false,
       refundPolicy: selectedRefundPolicy,
       refundCustomDescription: selectedRefundPolicy === 'custom' ? customRefundDescription : undefined,
-      // 이벤트 기본 정보 (최상위 - updatedData로 묶지 않음)
+      // 이벤트 기본 정보
       title: document.getElementById('edit-event-title').value,
       place: document.getElementById('edit-event-place').value,
       date: document.getElementById('edit-event-date').value,
@@ -740,9 +922,16 @@ async function submitEdit() {
       startTime: document.getElementById('edit-event-start-time').value,
       endTime: document.getElementById('edit-event-end-time').value,
       participation_fee: participationFeeValue,
-      contents: document.getElementById('edit-event-contents').value
+      contents: document.getElementById('edit-event-contents').value,
+      // 새 필드
+      tags: editTags,
+      maxApplicants:          editMaxApplicants ? parseInt(editMaxApplicants) : null,
+      feeType:                editFeeType,
+      participation_fee_max:  editFeeType === 'range' ? parseInt(editFeeMax) : null,
+      applicationStartAt:     editAppStart     || null,
+      applicationDeadlineAt:  editAppDeadline  || null,
+      confirmationDeadlineAt: editConDeadline  || null,
     };
-    // ============ 데이터 구조 변경 끝 ============
 
     console.log('이벤트 업데이트 요청', requestData);
     

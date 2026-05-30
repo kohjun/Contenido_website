@@ -3,78 +3,100 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>운영팀 대시보드</title>
+    <title>운영팀 대시보드 · Contenido</title>
     <link rel="stylesheet" href="/css/operation.css">
 </head>
 <body>
     <div class="dashboard">
-        <h2>동아리 현황 대시보드</h2>
-        
-        <div class="dashboard-grid">
-            <div class="stats-container">
-                <div class="stats-grid">
-                    <div class="stat-card total">
-                        <div class="stat-icon">👥</div>
-                        <div class="stat-info">
-                            <h4>총 부원 수</h4>
-                            <span id="totalMembers">-</span>
-                        </div>
-                    </div>
-                    <div class="stat-card active">
-                        <div class="stat-icon">✨</div>
-                        <div class="stat-info">
-                            <h4>활동 부원 수</h4>
-                            <span id="activeMembers">-</span>
-                        </div>
-                    </div>
-                    <div class="stat-card average">
-                        <div class="stat-icon">📊</div>
-                        <div class="stat-info">
-                            <h4>평균 정기 참여 횟수</h4>
-                            <span id="avgParticipation">-</span>
-                        </div>
-                    </div>
+        <!-- 헤더 -->
+        <header class="op-header">
+            <h2>운영팀 대시보드</h2>
+            <p>회원 통계와 분포를 한 곳에서 확인하세요</p>
+        </header>
+
+        <!-- 4-그리드 통계 카드 -->
+        <section class="op-stats">
+            <div class="op-stat-card">
+                
+                <div class="op-stat-label">전체 회원</div>
+                <div class="op-stat-value" id="totalMembers">-</div>
+                <div class="op-stat-sub" id="totalSub"></div>
+            </div>
+            <div class="op-stat-card">
+                
+                <div class="op-stat-label">활성 회원</div>
+                <div class="op-stat-value" id="activeMembers">-</div>
+                <div class="op-stat-sub" id="activeSub"></div>
+            </div>
+            <div class="op-stat-card">
+               
+                <div class="op-stat-label">비활성</div>
+                <div class="op-stat-value" id="inactiveMembers">-</div>
+                <div class="op-stat-sub" id="inactiveSub"></div>
+            </div>
+            <div class="op-stat-card">
+               
+                <div class="op-stat-label">평균 정기 참여</div>
+                <div class="op-stat-value" id="avgParticipation">-</div>
+                <div class="op-stat-sub">회 / 인</div>
+            </div>
+        </section>
+
+        <!-- 카드 그리드 -->
+        <section class="op-cards-grid">
+            <!-- 월별 회원가입 추이 (full width) -->
+            <div class="chart-card span-12">
+                <h3 class="chart-card-title"> 월별 회원가입 추이 <span class="badge">전체 기간</span></h3>
+                <div class="chart-body tall">
+                    <canvas id="growthChart"></canvas>
                 </div>
             </div>
-            
-            <div class="chart-container">
-                <h3>부원 구성</h3>
-                <canvas id="roleChart"></canvas>
-            </div>
-            
-            <div class="chart-container">
-                <h3>성별 분포</h3>
-                <canvas id="genderChart"></canvas>
-            </div>
-            
-            <div class="chart-container">
-                <h3>선호 활동지역 TOP 5</h3>
-                <canvas id="activityChart"></canvas>
+
+            <!-- 활동성 분포 (CSS bars) -->
+            <div class="chart-card span-6">
+                <h3 class="chart-card-title"> 회원 활동성 분포</h3>
+                <div class="dist-list" id="activityHistogram"></div>
             </div>
 
-            <div class="age-info">
-                <h3>부원 평균 연령</h3>
+            <!-- 평균 연령 -->
+            <div class="chart-card span-6">
+                <h3 class="chart-card-title"> 연령 분포</h3>
+                <div class="dist-list" id="ageDistribution"></div>
+            </div>
+
+            <!-- 역할 분포 -->
+            <div class="chart-card span-6">
+                <h3 class="chart-card-title"> 역할 구성</h3>
+                <div class="chart-body">
+                    <canvas id="roleChart"></canvas>
+                </div>
+            </div>
+
+            <!-- 성별 분포 -->
+            <div class="chart-card span-6">
+                <h3 class="chart-card-title">⚧ 성별 분포</h3>
+                <div class="chart-body">
+                    <canvas id="genderChart"></canvas>
+                </div>
+            </div>
+
+            <!-- 선호 활동지역 -->
+            <div class="chart-card span-8">
+                <h3 class="chart-card-title"> 선호 활동지역 TOP 7</h3>
+                <div class="dist-list" id="topRegions"></div>
+            </div>
+
+            <!-- 평균 연령 큰 숫자 -->
+            <div class="age-info-card span-4">
+                <h3>평균 회원 연령</h3>
                 <div class="age-display">
                     <span id="averageAge">-</span>
                     <span class="unit">세</span>
                 </div>
             </div>
-
-            <div class="chart-container growth-chart">
-                <h3>월별 회원가입 현황</h3>
-                <canvas id="growthChart"></canvas>
-            </div>
-        </div>
+        </section>
     </div>
-    
-    <!-- 초기화 코드만 남기고 스크립트 태그들은 제거 -->
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            if (window.Dashboard && !window.dashboardInitialized) {
-                window.Dashboard.initialize().catch(console.error);
-                window.dashboardInitialized = true;
-            }
-        });
-    </script>
+
+    <script src="/js/office/dashboard.js"></script>
 </body>
 </html>

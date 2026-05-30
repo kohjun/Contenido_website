@@ -1,0 +1,393 @@
+/* =========================================================================
+   ended-events.css — 종료된 이벤트 페이지 (self-contained)
+   styles.css / modern.css 의존 없음
+   ========================================================================= */
+
+/* ========= 1) Font & Base ========= */
+
+@font-face {
+  font-family: 'GmarketSansMedium';
+  src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_2001@1.1/GmarketSansMedium.woff') format('woff');
+  font-weight: normal;
+  font-style: normal;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  font-family: 'GmarketSansMedium', sans-serif;
+  background-color: #F0F6FF;
+  color: #1F2937;
+  margin: 0;
+  padding: 0;
+  line-height: 1.55;
+  -webkit-text-size-adjust: 100%;
+}
+
+h1, h2, h3, p { margin: 0; }
+button { font-family: inherit; }
+
+/* ========= 2) Tokens ========= */
+
+:root {
+  --c-brand:        #0A84FE;
+  --c-brand-strong: #0875E0;
+  --c-brand-soft:   #E8F2FF;
+  --c-brand-tint:   #F2F8FF;
+
+  --c-surface:   #FFFFFF;
+  --c-surface-2: rgba(10, 132, 254, 0.05);
+  --c-surface-3: rgba(10, 132, 254, 0.10);
+
+  --c-text:       #1F2937;
+  --c-text-soft:  #4B5563;
+  --c-text-muted: #6B7280;
+  --c-text-faint: #9CA3AF;
+
+  --c-border:        #E5E7EB;
+  --c-border-soft:   rgba(10, 132, 254, 0.15);
+  --c-border-strong: #D1D5DB;
+
+  --c-success:      #10B981;
+  --c-success-soft: #D1FAE5;
+  --c-success-text: #065F46;
+  --c-danger-soft:  #FEE2E2;
+
+  --r-sm: 8px;
+  --r-md: 12px;
+  --r-lg: 16px;
+  --r-xl: 20px;
+  --r-pill: 999px;
+
+  --sh-1: 0 1px 2px rgba(15,23,42,0.04), 0 1px 1px rgba(15,23,42,0.03);
+  --sh-2: 0 4px 12px rgba(15,23,42,0.06), 0 2px 4px rgba(15,23,42,0.04);
+  --sh-brand: 0 4px 12px rgba(10,132,254,0.25);
+
+  --ease:   cubic-bezier(0.4, 0, 0.2, 1);
+  --t-fast: 120ms;
+  --t-base: 180ms;
+
+  --ff-base: 'GmarketSansMedium', system-ui, -apple-system, 'Segoe UI', sans-serif;
+}
+
+/* ========= 3) Container ========= */
+
+.container {
+  width: 100%;
+  max-width: 720px;
+  margin: 88px auto;
+  padding: clamp(16px, 3vw, 28px);
+  background: var(--c-surface);
+  border-radius: var(--r-xl);
+  box-shadow: var(--sh-2);
+}
+
+/* ========= 4) Title section ========= */
+
+.title-section {
+  text-align: center;
+  margin-bottom: 24px;
+  padding-bottom: 20px;
+  border-bottom: 1px dashed var(--c-border);
+}
+.title-section h1 {
+  font-size: clamp(1.4rem, 2vw + 1rem, 1.8rem);
+  font-weight: 700;
+  color: var(--c-text);
+  letter-spacing: -0.01em;
+  margin-bottom: 6px;
+}
+.title-section .subtitle {
+  font-size: 0.92rem;
+  color: var(--c-text-muted);
+  margin: 0;
+}
+
+/* ========= 5) Month navigation ========= */
+
+.month-navigation {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 16px;
+  margin: 18px 0 22px;
+  padding: 10px 16px;
+  background: rgba(10, 132, 254, 0.05);
+  border: 1px solid var(--c-border-soft);
+  border-radius: var(--r-pill);
+}
+.month-nav-button {
+  background: #fff;
+  border: none;
+  color: var(--c-brand);
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--sh-1);
+  transition: all var(--t-base) var(--ease);
+}
+.month-nav-button:hover:not(:disabled) {
+  background: var(--c-brand);
+  color: #fff;
+  transform: scale(1.08);
+  box-shadow: 0 4px 12px rgba(10, 132, 254, 0.3);
+}
+.month-nav-button:active:not(:disabled) { transform: scale(0.98); }
+.month-nav-button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  background: var(--c-surface-2);
+}
+.month-nav-button svg {
+  width: 18px;
+  height: 18px;
+}
+
+.current-month-display {
+  min-width: 140px;
+  text-align: center;
+}
+.current-month-display span {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--c-brand-strong);
+  letter-spacing: -0.01em;
+}
+
+/* ========= 6) Ended events list / card ========= */
+
+.ended-events-container {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 4px 0 12px;
+}
+
+.ended-event-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px;
+  background: #fff;
+  border: 1px solid var(--c-border);
+  border-radius: var(--r-lg);
+  box-shadow: var(--sh-1);
+  transition: transform var(--t-base) var(--ease),
+              box-shadow var(--t-base) var(--ease),
+              border-color var(--t-base) var(--ease);
+}
+.ended-event-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--sh-2);
+  border-color: var(--c-brand-soft);
+}
+
+/* 이미지 프리뷰 */
+.event-image-preview {
+  flex-shrink: 0;
+  width: 84px;
+  height: 84px;
+  border-radius: var(--r-md);
+  overflow: hidden;
+  background: var(--c-surface-3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.event-image-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.event-image-preview .placeholder {
+  color: var(--c-text-faint);
+  font-size: 1.8rem;
+}
+
+/* 이벤트 정보 */
+.event-info {
+  flex: 1;
+  min-width: 0;
+}
+.event-info h3 {
+  font-size: 0.98rem;
+  font-weight: 700;
+  color: var(--c-text);
+  margin: 0 0 6px;
+  letter-spacing: -0.01em;
+  word-break: keep-all;
+}
+.event-details {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.detail-item {
+  display: flex;
+  align-items: center;
+  font-size: 0.82rem;
+  color: var(--c-text-muted);
+  line-height: 1.5;
+}
+.detail-item strong {
+  color: var(--c-text-soft);
+  margin-right: 6px;
+  min-width: 56px;
+  font-weight: 600;
+}
+
+/* 후기 작성 액션 */
+.review-action {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.review-icon-button {
+  background: var(--c-brand);
+  border: none;
+  width: 42px;
+  height: 42px;
+  border-radius: var(--r-md);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--sh-brand);
+  transition: all var(--t-base) var(--ease);
+}
+.review-icon-button:hover {
+  background: var(--c-brand-strong);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 18px rgba(10, 132, 254, 0.32);
+}
+.review-icon-button svg {
+  width: 20px;
+  height: 20px;
+  stroke: #fff;
+}
+
+.reviewed-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 6px 12px;
+  background: var(--c-success-soft);
+  color: var(--c-success-text);
+  border-radius: var(--r-pill);
+  font-size: 0.82rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.reviewed-badge svg {
+  width: 14px;
+  height: 14px;
+  fill: var(--c-success-text);
+}
+
+/* ========= 7) Empty / Error ========= */
+
+.empty-state {
+  text-align: center;
+  padding: 36px 20px;
+  background: rgba(10, 132, 254, 0.04);
+  border: 1px dashed rgba(10, 132, 254, 0.25);
+  border-radius: var(--r-md);
+  color: var(--c-text-muted);
+}
+.empty-state-icon {
+  font-size: 2.4rem;
+  margin-bottom: 10px;
+  opacity: 0.5;
+}
+.empty-state p {
+  font-size: 0.92rem;
+  margin: 0;
+}
+
+.error-state {
+  text-align: center;
+  padding: 24px 16px;
+  background: var(--c-danger-soft);
+  border-radius: var(--r-md);
+  color: #B91C1C;
+  font-size: 0.92rem;
+}
+.error-state p { margin: 4px 0; }
+
+/* ========= 8) Navigation buttons ========= */
+
+.navigation-buttons {
+  display: flex;
+  justify-content: center;
+  margin-top: 26px;
+}
+.navigation-buttons .nav-button {
+  padding: 12px 22px;
+  background: var(--c-brand);
+  color: #fff;
+  border: none;
+  border-radius: var(--r-md);
+  font-size: 0.92rem;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: var(--sh-brand);
+  transition: all var(--t-base) var(--ease);
+}
+.navigation-buttons .nav-button:hover {
+  background: var(--c-brand-strong);
+  transform: translateY(-1px);
+  box-shadow: 0 8px 18px rgba(10, 132, 254, 0.32);
+}
+
+/* ========= 9) Responsive ========= */
+
+@media (max-width: 768px) {
+  .container {
+    margin: 80px 0;
+    padding: 14px 12px;
+    border-radius: 0;
+    box-shadow: none;
+    max-width: 100%;
+  }
+
+  .month-navigation {
+    gap: 10px;
+    padding: 8px 12px;
+  }
+  .month-nav-button { width: 32px; height: 32px; }
+  .current-month-display span { font-size: 1rem; }
+
+  .ended-event-card {
+    gap: 10px;
+    padding: 12px;
+    border-radius: var(--r-md);
+  }
+  .event-image-preview { width: 72px; height: 72px; }
+  .event-info h3 { font-size: 0.93rem; }
+  .detail-item { font-size: 0.78rem; }
+  .detail-item strong { min-width: 50px; }
+
+  .review-icon-button { width: 36px; height: 36px; }
+  .review-icon-button svg { width: 18px; height: 18px; }
+  .reviewed-badge { font-size: 0.78rem; padding: 4px 10px; }
+}
+
+@media (max-width: 480px) {
+  .container { padding: 12px 10px; }
+
+  .ended-event-card {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .event-image-preview { width: 64px; height: 64px; }
+  .review-action { width: 100%; justify-content: flex-end; }
+
+  .navigation-buttons .nav-button { width: 100%; max-width: 240px; }
+}

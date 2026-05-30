@@ -118,6 +118,15 @@ async function fetchUserInfo() {
     updateElement('user-team', `팀 이름 : ${teamDisplay[data.team] || data.team || '-'}`);
     updateElement('user-createdAt', `가입일 : ${new Date(data.createdAt).toLocaleDateString()||'-'}`);
 
+    // 추가정보 입력 / 수정 버튼 토글
+    // 핵심 필드(이름/성별/전화/선호지역)가 모두 있으면 "수정" 모드, 없으면 "입력" 모드
+    const additionalBtn = document.getElementById('additional-info');
+    if (additionalBtn) {
+      const isAdditionalComplete = !!(data.name && data.gender && data.phonenumber && data.preferredActivity);
+      additionalBtn.textContent = isAdditionalComplete ? '추가정보 수정' : '추가정보 입력';
+      additionalBtn.dataset.mode = isAdditionalComplete ? 'edit' : 'create';
+    }
+
     // 활동 정보 업데이트
     updateElement('user-active', `활성상태 : ${data.active ? '✅활동 , * CONTENIDO 동아리 부원임을 인증하는 마크.*'  : '❌비활동 , *비활동부원 또는 게스트*'}`);
     updateElement('user-warningcount', `경고 횟수 : ${data.warningCount || 0}`);
@@ -402,9 +411,12 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('birthdate-input-container').style.display = 'block';
     document.getElementById('toggle-personal-info').style.display = 'none';
   });
-  //추가 정보 입력 버튼 이벤트
-  document.getElementById("additional-info").addEventListener("click", () => {
-    window.location.href = "/additional-user-info.html";
+  //추가 정보 입력/수정 버튼 이벤트
+  document.getElementById("additional-info").addEventListener("click", (e) => {
+    const isEdit = e.currentTarget.dataset.mode === 'edit';
+    window.location.href = isEdit
+      ? '/additional-user-info.html?edit=1'
+      : '/additional-user-info.html';
   });
 
   // 생년월일 확인 버튼 클릭 이벤트
