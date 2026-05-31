@@ -7,6 +7,7 @@ const router = express.Router();
 const authenticateToken = require('../../middleware/authMiddleware');
 const { requireHRPermission } = require('../../middleware/roleMiddleware');
 const User = require('../../models/User');
+const { createNotification } = require('../../utils/notify');
 
 // 경고 내역 조회
 router.get('/warning-history/:userId', authenticateToken, async (req, res) => {
@@ -14,7 +15,6 @@ router.get('/warning-history/:userId', authenticateToken, async (req, res) => {
     const { userId } = req.params;
 
     const user = await User.findById(userId)
-      .populate('warningHistory.issuedBy', 'name')
       .select('name warningCount warningHistory lastWarningResetDate');
 
     if (!user) {
@@ -77,6 +77,16 @@ router.post('/issue-warning/:userId', authenticateToken, requireHRPermission, as
     user.warningHistory.push(newWarning);
     user.warningCount += 1;
     await user.save();
+
+    // 경고 대상에게 알림 (비치명적)
+    createNotification({
+      userId,
+      type: 'warning_issued',
+      title: '경고가 부여되었습니다',
+      body: reason ? `사유: ${reason}` : '',
+      link: '/mypage.html',
+      meta: { actorName: issuedByName, status: category },
+    });
 
     console.log(`경고 부여 완료: ${user.name}(${userId}) - 사유: ${reason} - 부여자: ${issuedByName}`);
 

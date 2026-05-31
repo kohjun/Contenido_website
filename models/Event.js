@@ -9,6 +9,36 @@ const questionSchema = new mongoose.Schema({
   }
 });
 
+const statusHistoryEntrySchema = new mongoose.Schema({
+  previousStatus: {
+    type: String,
+    enum: ['pending', 'approved', 'rejected', 'cancelled'],
+    required: true
+  },
+  newStatus: {
+    type: String,
+    enum: ['pending', 'approved', 'rejected', 'cancelled'],
+    required: true
+  },
+  changedBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true
+  },
+  changerName: {
+    type: String,
+    required: true
+  },
+  changedAt: {
+    type: Date,
+    default: Date.now
+  },
+  isReset: {
+    type: Boolean,
+    default: false // 되돌리기 여부를 표시
+  }
+});
+
 const appliedParticipantSchema = new mongoose.Schema({
   userId: {
     type: mongoose.Schema.Types.ObjectId,
@@ -24,35 +54,20 @@ const appliedParticipantSchema = new mongoose.Schema({
     enum: ['pending', 'approved', 'rejected', 'cancelled'],
     default: 'pending'
   },
-  // 상태 변경 이력을 저장할 필드 추가
-  statusHistory: [{
-    previousStatus: {
+  // 참가확정(approved)자가 담당자에게 취소를 요청한 상태. 담당자가 '취소 처리'하면 cancelled로 전환.
+  cancellationRequested: { type: Boolean, default: false },
+  cancellationRequestedAt: { type: Date, default: null },
+  // 현재(활성) 신청의 상태 변경 이력
+  statusHistory: [statusHistoryEntrySchema],
+  // 재신청 시 이전 신청의 이력을 분리 보관 (취소 후 재신청한 각 시도가 하나의 레코드)
+  previousAttempts: [{
+    appliedAt: { type: Date },
+    statusHistory: [statusHistoryEntrySchema],
+    finalStatus: {
       type: String,
-      enum: ['pending', 'approved', 'rejected', 'cancelled'],
-      required: true
+      enum: ['pending', 'approved', 'rejected', 'cancelled']
     },
-    newStatus: {
-      type: String,
-      enum: ['pending', 'approved', 'rejected', 'cancelled'],
-      required: true
-    },
-    changedBy: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'User',
-      required: true
-    },
-    changerName: {
-      type: String,
-      required: true
-    },
-    changedAt: {
-      type: Date,
-      default: Date.now
-    },
-    isReset: {
-      type: Boolean,
-      default: false // 되돌리기 여부를 표시
-    }
+    closedAt: { type: Date, default: Date.now }
   }],
   // 선별적 이벤트용 답변
   answers: [{

@@ -624,6 +624,204 @@ const styles = `
       flex-direction: column;
     }
   }
+
+  /* =================================================================
+     캐주얼·모던 대폭 리디자인 (override layer — JSX/클래스명 무변경)
+     ================================================================= */
+  @font-face {
+    font-family: 'GmarketSansMedium';
+    src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_2001@1.1/GmarketSansMedium.woff') format('woff');
+    font-weight: normal; font-style: normal;
+  }
+  @keyframes floaty { 0%,100%{ transform: translateY(0); } 50%{ transform: translateY(-7px); } }
+
+  .partnership-page {
+    --pp-brand:#0A84FE; --pp-brand2:#3B9BFF; --pp-ink:#1F2937; --pp-muted:#64748B;
+    --pp-soft:#E8F2FF; --pp-tint:#F2F8FF; --pp-border:#E6ECF5;
+    --pp-grad:linear-gradient(135deg,#3B9BFF,#0A84FE);
+    --pp-shadow:0 10px 30px rgba(15,23,42,.08);
+    font-family:'GmarketSansMedium', system-ui, sans-serif;
+    background: radial-gradient(1100px 560px at 50% -10%, #DCEBFF 0%, #EEF4FF 42%, #F7FAFF 100%);
+    padding: 36px 20px 90px;
+  }
+  .partnership-page * { font-family: inherit; }
+
+  /* ----- 히어로 배너 ----- */
+  .page-header {
+    position:relative; overflow:hidden; text-align:center;
+    max-width:1160px; margin:0 auto 28px; padding:42px 24px 36px;
+    border-radius:28px; color:#fff;
+    background:linear-gradient(135deg,#0A84FE 0%, #3B9BFF 58%, #5EB0FF 100%);
+    box-shadow:0 18px 44px rgba(10,132,254,.30);
+  }
+  .page-header::before, .page-header::after {
+    content:''; position:absolute; border-radius:50%; background:rgba(255,255,255,.14); pointer-events:none;
+  }
+  .page-header::before { width:240px; height:240px; right:-70px; top:-90px; }
+  .page-header::after  { width:160px; height:160px; left:-50px; bottom:-70px; background:rgba(255,255,255,.10); }
+  .page-header h1 {
+    position:relative; z-index:1; margin:0; color:#fff; font-weight:800;
+    font-size:clamp(1.7rem,4.4vw,2.5rem); letter-spacing:-0.02em;
+  }
+  .page-header h1::before {
+    content:'🤝'; display:block; font-size:2.7rem; margin-bottom:10px;
+    animation:floaty 3s ease-in-out infinite; filter:drop-shadow(0 6px 10px rgba(0,0,0,.14));
+  }
+  .page-subtitle {
+    position:relative; z-index:1; display:inline-block; margin:14px 0 0;
+    padding:7px 16px; border-radius:999px; color:#fff; font-size:.92rem; font-weight:600;
+    background:rgba(255,255,255,.20); backdrop-filter:blur(4px);
+  }
+
+  /* ----- 필터 / 검색 ----- */
+  .filter-section {
+    max-width:1160px; margin:0 auto 26px; padding:18px;
+    background:#fff; border:1px solid var(--pp-border); border-radius:22px; box-shadow:var(--pp-shadow);
+  }
+  .no-permission-message {
+    background:#FFF7E6; border:1px solid #FCEBC0; color:#92610A;
+    border-radius:14px; padding:11px 14px; font-size:.85rem; margin-bottom:14px;
+  }
+  .filter-header { margin-bottom:14px; }
+  .filter-btn {
+    padding:9px 16px; border:1.5px solid var(--pp-border); border-radius:999px;
+    background:#fff; color:var(--pp-muted); font-weight:600; font-size:.88rem; transition:all .18s ease;
+  }
+  .filter-btn:hover { border-color:#BFDBFF; color:var(--pp-brand); background:var(--pp-tint); }
+  .filter-btn.active {
+    background:var(--pp-grad); border-color:transparent; color:#fff;
+    box-shadow:0 6px 16px rgba(10,132,254,.30);
+  }
+  .btn-add-partner {
+    display:inline-flex; align-items:center; gap:6px;
+    padding:11px 18px; border:none; border-radius:14px; cursor:pointer;
+    background:var(--pp-grad); color:#fff; font-weight:700; font-size:.9rem;
+    box-shadow:0 8px 18px rgba(10,132,254,.28); transition:all .18s ease;
+  }
+  .btn-add-partner:hover:not(:disabled) { transform:translateY(-2px); box-shadow:0 12px 24px rgba(10,132,254,.34); }
+  .btn-add-partner:disabled { opacity:.55; cursor:not-allowed; background:#9CA3AF; box-shadow:none; }
+  .search-box { position:relative; }
+  .search-box input {
+    width:100%; padding:13px 44px 13px 16px; border:1.5px solid var(--pp-border); border-radius:14px;
+    background:#FBFCFE; font-size:.92rem; color:var(--pp-ink); outline:none; transition:all .15s ease;
+  }
+  .search-box input:focus { border-color:var(--pp-brand); background:#fff; box-shadow:0 0 0 4px var(--pp-soft); }
+  .search-icon { position:absolute; right:14px; top:50%; transform:translateY(-50%); opacity:.55; }
+
+  /* ----- 카드 그리드 ----- */
+  .partners-grid {
+    max-width:1160px; margin:0 auto; display:grid; gap:22px;
+    grid-template-columns:repeat(auto-fill, minmax(300px, 1fr));
+  }
+  .partnership-card {
+    position:relative; display:flex; flex-direction:column; overflow:hidden;
+    background:#fff; border:1px solid #EEF2F8; border-radius:22px;
+    box-shadow:0 8px 24px rgba(15,23,42,.07); transition:transform .2s ease, box-shadow .2s ease;
+  }
+  .partnership-card:hover { transform:translateY(-6px); box-shadow:0 18px 40px rgba(10,132,254,.16); }
+
+  /* 할인 뱃지(리본 → 그라데이션 알약) */
+  .discount-ribbon {
+    position:absolute; top:14px; left:14px; right:auto; z-index:2;
+    width:auto; height:auto; transform:none; background:transparent; box-shadow:none;
+  }
+  .discount-text {
+    display:inline-flex; align-items:center; gap:4px; transform:none;
+    padding:7px 13px; border-radius:999px; color:#fff; font-weight:800; font-size:.82rem;
+    background:linear-gradient(135deg,#FF6B6B,#FF8E53); box-shadow:0 6px 16px rgba(255,107,107,.42);
+  }
+  .discount-text::before { content:'🎁'; font-size:.9rem; }
+
+  .card-image { position:relative; width:100%; height:190px; overflow:hidden; background:#EEF4FF; }
+  .card-image img { width:100%; height:100%; object-fit:cover; display:block; }
+  .image-upload-overlay { background:rgba(10,132,254,.5); backdrop-filter:blur(2px); }
+
+  .card-content { padding:18px; display:flex; flex-direction:column; gap:12px; flex:1; }
+  .card-header { display:flex; justify-content:space-between; align-items:flex-start; gap:8px; }
+  .partner-name { margin:0; font-size:1.16rem; font-weight:800; color:var(--pp-ink); line-height:1.3; }
+  .btn-delete {
+    flex-shrink:0; width:30px; height:30px; border:none; border-radius:9px;
+    background:#FEF2F2; color:#EF4444; cursor:pointer; font-size:.9rem;
+    display:inline-flex; align-items:center; justify-content:center; transition:all .15s ease;
+  }
+  .btn-delete:hover { background:#EF4444; color:#fff; }
+  .partnership-date { display:flex; align-items:center; gap:6px; color:#94A3B8; font-size:.78rem; }
+  .partnership-date .icon { width:14px; height:14px; }
+
+  .info-grid { display:flex; flex-direction:column; gap:8px; }
+  .info-item { display:flex; align-items:center; gap:8px; color:#475569; font-size:.86rem; }
+  .info-item .icon { width:16px; height:16px; color:var(--pp-brand); flex-shrink:0; }
+  .info-icon { font-size:.95rem; }
+
+  .partner-tags { display:flex; flex-wrap:wrap; gap:6px; }
+  .tag {
+    padding:5px 11px; border-radius:999px; background:var(--pp-tint);
+    color:#2E6FB0; font-size:.76rem; font-weight:600; border:1px solid #DCEAFB;
+  }
+  .benefits-section {
+    background:var(--pp-tint); border:1px solid #DCEAFB; border-radius:14px;
+    padding:12px 14px; font-size:.84rem; color:#3A5673; line-height:1.55;
+  }
+
+  .card-actions { display:flex; gap:8px; margin-top:auto; padding-top:4px; }
+  .btn-action {
+    flex:1; display:inline-flex; align-items:center; justify-content:center; gap:6px;
+    padding:11px; border:none; border-radius:13px; font-weight:700; font-size:.85rem; cursor:pointer; transition:all .18s ease;
+  }
+  .btn-icon { width:16px; height:16px; }
+  .btn-location { background:var(--pp-grad); color:#fff; box-shadow:0 6px 14px rgba(10,132,254,.26); }
+  .btn-location:hover { transform:translateY(-2px); box-shadow:0 10px 20px rgba(10,132,254,.32); }
+  .btn-contact { background:#fff; color:var(--pp-brand); border:1.5px solid #BFDBFF; }
+  .btn-contact:hover { background:var(--pp-tint); }
+
+  .no-results {
+    grid-column:1/-1; text-align:center; padding:60px 20px; color:#94A3B8;
+    background:#fff; border:1px dashed var(--pp-border); border-radius:20px;
+  }
+  .no-results::before { content:'🔍'; display:block; font-size:2.4rem; margin-bottom:10px; }
+  .loading-spinner { border-top-color:var(--pp-brand) !important; }
+
+  /* ----- 모달 ----- */
+  .modal-overlay { background:rgba(15,23,42,.45); backdrop-filter:blur(4px); }
+  .modal-content { border-radius:24px; box-shadow:0 24px 60px rgba(15,23,42,.28); border:1px solid rgba(255,255,255,.6); }
+  .modal-header { border-bottom:1px solid var(--pp-border); }
+  .modal-header h2 { font-weight:800; color:var(--pp-ink); }
+  .btn-close {
+    width:34px; height:34px; border:none; border-radius:10px; background:#F1F5F9; color:#64748B;
+    cursor:pointer; transition:all .15s ease; display:inline-flex; align-items:center; justify-content:center;
+  }
+  .btn-close:hover { background:#EF4444; color:#fff; }
+  .form-group label { font-weight:600; color:#475569; font-size:.85rem; }
+  .form-group input, .form-group select, .form-group textarea {
+    border:1.5px solid var(--pp-border); border-radius:12px; background:#FBFCFE; transition:all .15s ease;
+  }
+  .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+    border-color:var(--pp-brand); background:#fff; box-shadow:0 0 0 4px var(--pp-soft); outline:none;
+  }
+  .image-upload-area { border:2px dashed #C7D9F2; border-radius:16px; background:var(--pp-tint); transition:all .15s ease; }
+  .image-upload-area:hover, .image-upload-area.has-image { border-color:var(--pp-brand); background:var(--pp-soft); }
+  .upload-icon { color:var(--pp-brand); }
+  .facility-checkbox {
+    border:1.5px solid var(--pp-border); border-radius:10px; padding:8px 10px; cursor:pointer; transition:all .15s ease;
+  }
+  .facility-checkbox:hover { border-color:#BFDBFF; background:var(--pp-tint); }
+  .modal-actions { gap:10px; }
+  .btn-cancel {
+    background:#F1F5F9; color:#475569; border:none; border-radius:12px; font-weight:600;
+    padding:12px 18px; cursor:pointer; transition:all .15s ease;
+  }
+  .btn-cancel:hover { background:#E2E8F0; }
+  .btn-submit {
+    background:var(--pp-grad); color:#fff; border:none; border-radius:12px; font-weight:700;
+    padding:12px 22px; cursor:pointer; box-shadow:0 8px 18px rgba(10,132,254,.28); transition:all .18s ease;
+  }
+  .btn-submit:hover { transform:translateY(-2px); box-shadow:0 12px 24px rgba(10,132,254,.34); }
+
+  @media (max-width:768px) {
+    .partnership-page { padding:24px 14px 84px; }
+    .page-header { padding:34px 18px 28px; border-radius:22px; }
+    .partners-grid { grid-template-columns:1fr; }
+  }
 `;
 
 // 제휴 추가 모달 컴포넌트

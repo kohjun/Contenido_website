@@ -4,11 +4,11 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>이벤트 내용</title>
-  <link rel="stylesheet" href="/css/additional-info.css?v=20260529">
+  <link rel="stylesheet" href="/css/additional-info.css?v=20260609">
   <!-- 카카오 SDK -->
   <script src="https://t1.kakaocdn.net/kakao_js_sdk/2.5.0/kakao.min.js"></script>
   <!-- 통합된 nav-injector.js만 포함 (auth-module.js 통합됨) -->
-  <script src="/js/utils/nav-injector.js?v=20260533" defer></script>
+  <script src="/js/utils/nav-injector.js?v=20260602" defer></script>
 </head>
 <body>
   <div class="container">
@@ -107,11 +107,10 @@
         </div>
       </div>
 
-      <!-- 지원서 섹션 -->
-      <div id="application-section"></div>
-
-      <!-- 수정 버튼 -->
+      <!-- 수정/신청 버튼 -->
       <div class="button-group">
+        <!-- 지원서/신청 섹션 — 목록으로 버튼 바로 위에 위치 -->
+        <div id="application-section"></div>
         <button id="modify-button" onclick="enableEdit()" style="display: none">수정하기</button>
         <button onclick="window.location.href='events.html'">목록으로</button>
       </div>
@@ -134,7 +133,7 @@
     <!-- 약관 동의 모달 유틸 -->
     <script src="/js/utils/apply-confirm.js"></script>
     <!-- 이벤트 관련 스크립트 -->
-    <script src="/js/modify-event.js?v=20260529"></script>
+    <script src="/js/modify-event.js?v=20260610"></script>
   </div>
 </body>
 </html>

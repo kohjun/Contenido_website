@@ -1,78 +1,68 @@
-// 인증 모듈 먼저 정의
+// 인증 모듈 — 실인증 (AUTH_MODE=real 일 때 백엔드와 연동, dummy 모드에서도 /user/info가 더미를 반환하므로 호환)
 const AuthModule = {
-    /**
-     * 인증 토큰 유효성 검사
-     * @returns {Promise<boolean>} 토큰 유효 여부
-     */
+    /** 토큰/세션 유효성 검사 (/user/info 200 여부) */
     verifyToken: async function() {
-        // 개발용 - 항상 true 반환
-        return true;
+      try {
+        const res = await fetch('/user/info', { credentials: 'include' });
+        return res.ok;
+      } catch (e) {
+        return false;
+      }
     },
-  
-    /**
-     * 로그인 필요 시 로그인 페이지로 리다이렉트
-     * @param {boolean} showAlert 알림 표시 여부 (선택사항, 기본값: true)
-     */
+
+    /** 로그인 페이지(/login.html)로 이동 — ID/PW + 카카오 둘 다 제공 */
     redirectToLogin: function(showAlert = true) {
-        // 개발용 - 로그인 페이지로 리다이렉트하지 않고 항상 인증된 상태 유지
-        return true;
+      if (showAlert) {
+        try { alert('로그인이 필요합니다.'); } catch (e) {}
+      }
+      window.location.href = '/login.html';
     },
-  
-    /**
-     * 인증 상태 확인 및 미인증 시 로그인 페이지로 리다이렉트
-     * @returns {Promise<boolean>} 인증 여부
-     */
+
+    /** 로그인 페이지로 이동 (nav 로그인 버튼용) */
+    goToLogin: function() {
+      window.location.href = '/login.html';
+    },
+
+    /** 인증 확인 — 미인증이면 로그인 페이지로 리다이렉트 */
     checkAuthentication: async function() {
-        // 개발용 - 항상 true 반환
-        return true;
-    },
-  
-    /**
-     * 현재 로그인한 사용자 정보 로드
-     * @returns {Promise<Object|null>} 사용자 정보 객체 또는 실패 시 null
-     */
-    loadUserInfo: async function() {
-        // 개발용 더미 유저 정보 반환
-        return {
-            _id: '673aed9a051a576b3e2285e1',
-            id: '673aed9a051a576b3e2285e1',
-            email: 'kohjunn@naver.com',
-            nickname: '고 준',
-            displayName: '고 준',
-            profileImage: 'https://img1.kakaocdn.net/thumb/R640x640.q70/?fname=http://t1.kakaocdn.net/account_images/default_profile.jpeg',
-            role: 'admin',
-            team: 'operationTeam',
-            department: 'operation',
-            isDepartmentHead: true,
-            isActive: true,
-            isAdditionalInfoComplete: true,
-            name: '고준',
-            phonenumber: '01022458697',
-            warningCount: "1",
-            gender: 'male',
-            birthDate: new Date('2000-01-30'),
-            preferredActivity: '노원구'
-        };
-    },
-  
-    /**
-     * 사용자 로그아웃 처리
-     * @param {boolean} redirect 로그아웃 후 메인 페이지로 리다이렉트 여부 (선택사항, 기본값: true)
-     * @returns {Promise<boolean>} 로그아웃 성공 여부
-     */
-    logout: async function(redirect = true) {
-      if (redirect) {
-        window.location.href = '/';
+      const ok = await this.verifyToken();
+      if (!ok) {
+        this.redirectToLogin(false);
+        return false;
       }
       return true;
     },
-  
-    /**
-     * 카카오 로그인 실행
-     */
-    loginWithKakao: async function() {
-        // 개발용 - 즉시 홈페이지로 리다이렉트
-        window.location.href = '/';
+
+    /** 현재 로그인 사용자 정보 (/user/info) */
+    loadUserInfo: async function() {
+      try {
+        const res = await fetch('/user/info', { credentials: 'include' });
+        if (!res.ok) return null;
+        return await res.json();
+      } catch (e) {
+        console.error('사용자 정보 로드 실패:', e);
+        return null;
+      }
+    },
+
+    /** 로그아웃 — refresh 폐기 + 쿠키/세션 정리 후 로그인 페이지로 */
+    logout: async function(redirect = true) {
+      try {
+        await fetch('/auth/logout', { method: 'POST', credentials: 'include' });
+      } catch (e) {
+        console.error('로그아웃 요청 실패:', e);
+      }
+      try { localStorage.clear(); sessionStorage.clear(); } catch (e) {}
+      if (redirect) {
+        window.location.href = '/login.html';
+      }
+      return true;
+    },
+
+    /** 카카오 로그인 시작 (현재 페이지로 복귀) */
+    loginWithKakao: function() {
+      const ret = encodeURIComponent(window.location.origin + '/events.html');
+      window.location.href = '/auth/kakao?state=' + ret;
     }
   };
 
@@ -453,6 +443,51 @@ const AuthModule = {
       line-height: 1;
   }
 
+  /* ===== 알림 (종 + 뱃지 + 드롭다운) ===== */
+  .notif-wrap { position: relative; display: inline-flex; }
+  .notif-wrap .top-icon-btn { position: relative; }
+  .notif-badge {
+      position: absolute; top: -3px; right: -3px;
+      min-width: 16px; height: 16px; padding: 0 4px; box-sizing: border-box;
+      background: #EF4444; color: #fff;
+      font-size: 10px; font-weight: 700; line-height: 16px; text-align: center;
+      border-radius: 999px; box-shadow: 0 0 0 2px #fff;
+  }
+  .notif-panel {
+      position: absolute; top: calc(100% + 8px); right: 0;
+      width: 320px; max-height: 440px; overflow-y: auto;
+      background: #fff; border: 1px solid #E5E7EB; border-radius: 14px;
+      box-shadow: 0 12px 32px rgba(15,23,42,0.16);
+      display: none; z-index: 2000;
+  }
+  .notif-panel.show { display: block; }
+  .notif-panel-header {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 13px 16px; border-bottom: 1px solid #F1F1F1;
+      font-weight: 700; font-size: 0.92rem; color: #1F2937;
+      position: sticky; top: 0; background: #fff;
+  }
+  .notif-readall { background: none; border: none; color: #0A84FE; font-size: 12px; font-weight: 600; cursor: pointer; }
+  .notif-list { list-style: none; margin: 0; padding: 0; }
+  .notif-item { padding: 12px 16px; border-bottom: 1px solid #F4F4F5; cursor: pointer; transition: background .15s; }
+  .notif-item:last-child { border-bottom: none; }
+  .notif-item:hover { background: #F8FAFC; }
+  .notif-item.unread { background: rgba(10,132,254,0.06); }
+  .notif-item.unread .notif-title { font-weight: 700; }
+  .notif-title { font-size: 0.88rem; color: #1F2937; line-height: 1.4; }
+  .notif-time { font-size: 11px; color: #9CA3AF; margin-top: 4px; }
+  .notif-empty { padding: 32px 16px; text-align: center; color: #9CA3AF; font-size: 0.85rem; }
+  /* 모바일: 화면에 잘리지 않도록 뷰포트 고정 시트로 — 상단 네비 아래 가로 꽉 채움 */
+  @media (max-width: 480px) {
+      .notif-panel {
+          position: fixed;
+          top: 66px; left: 12px; right: 12px;
+          width: auto; max-width: none;
+          max-height: calc(100vh - 84px);
+          border-radius: 16px;
+      }
+  }
+
   /* (legacy) 옛 .toggle-btn은 더 이상 top nav에서 사용 안 함 */
   .toggle-btn {
       display: none;
@@ -522,6 +557,24 @@ const AuthModule = {
       transition: transform 0.18s ease;
       line-height: 1;
   }
+
+  /* 하단 네비 메뉴(햄버거) — 3개 바를 가지런하게, 시그니처색(#0A84FE) 고정 */
+  .custom-nav-icon--menu {
+      width: 26px; height: 26px;
+  }
+  .custom-nav-icon--menu .hamburger {
+      position: relative; display: block;
+      width: 22px; height: 2.5px; border-radius: 2px;
+      background: #0A84FE;
+  }
+  .custom-nav-icon--menu .hamburger::before,
+  .custom-nav-icon--menu .hamburger::after {
+      content: ''; position: absolute; left: 0;
+      width: 22px; height: 2.5px; border-radius: 2px;
+      background: #0A84FE;
+  }
+  .custom-nav-icon--menu .hamburger::before { top: -6.5px; }
+  .custom-nav-icon--menu .hamburger::after  { top: 6.5px; }
 
   .custom-nav-icon img {
       width: 26px;
@@ -902,9 +955,7 @@ const AuthModule = {
                   <li><a href="/ranking">활동 랭킹</a></li>
                   <li><a href="/event-staff.html" id="staffPageLink">이벤트 관리(운영진 전용)</a></li>
               </ul>
-              <a href="/apply"><h3>신입부원 지원하기</h3></a>
               <a href="/rules.html"><h3>동아리회칙 및  메뉴얼</h3></a>
-              <a href="" onclick="alert('추후 확장 예정입니다!')"><h3>회비내역(예정)</h3></a>
               <a href="/partnerships"><h3>협찬 및 제휴</h3></a>
           </div>
       </div>
@@ -917,9 +968,20 @@ const AuthModule = {
   <nav class="custom-top-nav">
       <span class="nav-title" onclick="goHome()">CONTENIDO</span>
       <div class="top-right-actions">
-          <button class="top-icon-btn" onclick="handleNotifications()" aria-label="알림">
-              <i class="custom-nav-icon">🔔</i>
-          </button>
+          <div class="notif-wrap">
+              <button class="top-icon-btn" onclick="handleNotifications(event)" aria-label="알림">
+                  <i class="custom-nav-icon">🔔</i>
+                  <span class="notif-badge" id="notif-badge" hidden>0</span>
+              </button>
+              <div class="notif-panel" id="notif-panel">
+                  <div class="notif-panel-header">
+                      <span>알림</span>
+                      <button class="notif-readall" type="button" onclick="markAllNotificationsRead()">모두 읽음</button>
+                  </div>
+                  <ul class="notif-list" id="notif-list"></ul>
+                  <div class="notif-empty" id="notif-empty" hidden>새 알림이 없습니다</div>
+              </div>
+          </div>
           <div class="auth-area" id="auth-area">
               <!-- 로그인 버튼 또는 드롭다운은 자바스크립트로 동적 삽입 -->
           </div>
@@ -931,7 +993,7 @@ const AuthModule = {
   const bottomNavHTML = `
   <nav class="custom-bottom-nav">
       <button class="custom-nav-button" onclick="toggleSidebar()" aria-label="메뉴">
-          <i class="custom-nav-icon">☰</i>
+          <i class="custom-nav-icon custom-nav-icon--menu"><span class="hamburger"></span></i>
       </button>
       <button class="custom-nav-button" onclick="goHome()" aria-label="홈">
           <i class="custom-nav-icon"><img src="./images/Home.jpeg" alt=""></i>
@@ -966,6 +1028,12 @@ const AuthModule = {
               menu.classList.remove('show');
           }
       }
+      // 알림 패널 바깥 클릭 시 닫기
+      const notifWrap = document.querySelector('.notif-wrap');
+      const notifPanel = document.getElementById('notif-panel');
+      if (notifWrap && notifPanel && !notifWrap.contains(event.target)) {
+          notifPanel.classList.remove('show');
+      }
   });
   
   // 인증 영역 업데이트 함수
@@ -987,12 +1055,12 @@ const AuthModule = {
         authArea.innerHTML = `
           <div class="user-dropdown">
             <button class="user-dropdown-button" onclick="toggleUserDropdown()">
-              <span>${userData.name}</span>
+              <span>${userData.name || userData.displayName || '회원'}</span>
               <span class="arrow">▼</span>
             </button>
             <div class="user-dropdown-menu">
               <div class="user-dropdown-header">
-            <div class="user-dropdown-name">${userData.name}</div>
+            <div class="user-dropdown-name">${userData.name || userData.displayName || '회원'}</div>
             <div style="font-size: 13px; color: #666; margin-bottom: 8px;">역할 : ${
               userData.role === 'admin' ? '관리자' :
               userData.role === 'starter' ? '스타터' :
@@ -1028,14 +1096,14 @@ const AuthModule = {
       } else {
         // 로그인되지 않은 상태
         authArea.innerHTML = `
-          <button class="login-button" onclick="AuthModule.loginWithKakao()">로그인</button>
+          <button class="login-button" onclick="AuthModule.goToLogin()">로그인</button>
         `;
       }
     } catch (error) {
       console.error('인증 상태 확인 오류:', error);
       // 오류 시 로그인 버튼 표시
       authArea.innerHTML = `
-        <button class="login-button" onclick="AuthModule.loginWithKakao()">로그인</button>
+        <button class="login-button" onclick="AuthModule.goToLogin()">로그인</button>
       `;
     }
   }
@@ -1060,9 +1128,81 @@ const AuthModule = {
       }
   }
   
-  // 네비게이션 함수들
-  function handleNotifications() {
-      alert('추후 확장예정입니다.')
+  // ===== 알림 =====
+  function handleNotifications(e) {
+      if (e) e.stopPropagation();
+      const panel = document.getElementById('notif-panel');
+      if (!panel) return;
+      const willOpen = !panel.classList.contains('show');
+      panel.classList.toggle('show');
+      if (willOpen) loadNotifications();
+  }
+
+  async function refreshNotifBadge() {
+      try {
+          const res = await fetch('/notifications/unread-count', { credentials: 'include' });
+          if (!res.ok) return;
+          const { count } = await res.json();
+          const badge = document.getElementById('notif-badge');
+          if (!badge) return;
+          if (count > 0) { badge.textContent = count > 99 ? '99+' : count; badge.hidden = false; }
+          else { badge.hidden = true; }
+      } catch (_) {}
+  }
+
+  function notifEscape(s) {
+      return String(s == null ? '' : s)
+          .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+  }
+  function notifTimeAgo(d) {
+      const t = new Date(d).getTime();
+      if (isNaN(t)) return '';
+      const diff = Math.floor((Date.now() - t) / 1000);
+      if (diff < 60) return '방금';
+      if (diff < 3600) return Math.floor(diff / 60) + '분 전';
+      if (diff < 86400) return Math.floor(diff / 3600) + '시간 전';
+      if (diff < 7 * 86400) return Math.floor(diff / 86400) + '일 전';
+      return new Date(d).toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' });
+  }
+
+  async function loadNotifications() {
+      const list = document.getElementById('notif-list');
+      const empty = document.getElementById('notif-empty');
+      if (!list) return;
+      try {
+          const res = await fetch('/notifications', { credentials: 'include' });
+          if (!res.ok) return;
+          const items = await res.json();
+          list.innerHTML = '';
+          if (empty) empty.hidden = items.length > 0;
+          items.forEach(n => {
+              const li = document.createElement('li');
+              li.className = 'notif-item' + (n.isRead ? ' read' : ' unread');
+              li.innerHTML = '<div class="notif-title">' + notifEscape(n.title) + '</div>' +
+                             '<div class="notif-time">' + notifTimeAgo(n.createdAt) + '</div>';
+              li.addEventListener('click', () => onNotificationClick(n));
+              list.appendChild(li);
+          });
+      } catch (_) {}
+  }
+
+  async function onNotificationClick(n) {
+      try {
+          if (!n.isRead) {
+              await fetch('/notifications/' + n._id + '/read', { method: 'POST', credentials: 'include' });
+              refreshNotifBadge();
+          }
+      } catch (_) {}
+      if (n.link) window.location.href = n.link;
+  }
+
+  async function markAllNotificationsRead() {
+      try {
+          await fetch('/notifications/read-all', { method: 'POST', credentials: 'include' });
+          refreshNotifBadge();
+          loadNotifications();
+      } catch (_) {}
   }
   
   function goHome() {
@@ -1104,6 +1244,10 @@ const AuthModule = {
           
           // 인증 영역 초기화
           updateAuthArea();
+
+          // 알림 뱃지 (로드 시 + 60초 폴링)
+          refreshNotifBadge();
+          setInterval(refreshNotifBadge, 60 * 1000);
   
           // 현재 페이지에 따라 active 클래스 추가
           const currentPath = window.location.pathname;

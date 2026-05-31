@@ -32,7 +32,8 @@ router.post('/upload-images',
         return res.status(404).json({ message: '이벤트를 찾을 수 없습니다.' });
       }
 
-      if (event.creator.toString() !== req.user.id) {
+      // admin 은 모든 이벤트 가능, officer 는 본인 생성 이벤트만
+      if (req.user.role === 'officer' && event.creator.toString() !== req.user.id) {
         return res.status(403).json({
           message: '이벤트 생성자만 이미지를 업로드할 수 있습니다.'
         });

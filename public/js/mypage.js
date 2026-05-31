@@ -401,6 +401,82 @@ function showPersonalInfo() {
 }
 
 // 페이지 로드 시 실행
+// ── 계정 연동 (카카오 ↔ 이메일/비번) ──
+function setLinkRow(id, label, on, onText, offText) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.textContent = label + ' ';
+  const badge = document.createElement('span');
+  badge.className = 'link-badge ' + (on ? 'is-on' : 'is-off');
+  badge.textContent = on ? onText : offText;
+  el.appendChild(badge);
+}
+
+async function loadLinkStatus() {
+  try {
+    const res = await fetch('/auth/link-status');
+    if (!res.ok) return;
+    const s = await res.json();
+    document.getElementById('link-email').textContent = `아이디(이메일): ${s.email || '-'}`;
+    setLinkRow('link-kakao-status', '카카오 로그인', s.hasKakao, '연동됨', '미연동');
+    setLinkRow('link-password-status', '비밀번호 로그인', s.hasPassword, '설정됨', '미설정');
+
+    const actions = document.getElementById('link-actions');
+    actions.innerHTML = '';
+    if (!s.hasKakao) {
+      const b = document.createElement('button');
+      b.className = 'link-btn link-btn--kakao';
+      b.textContent = '카카오 연동';
+      b.addEventListener('click', () => { window.location.href = '/auth/link-kakao'; });
+      actions.appendChild(b);
+    }
+    const pwBtn = document.createElement('button');
+    pwBtn.className = 'link-btn ' + (s.hasPassword ? 'link-btn--ghost' : 'link-btn--primary');
+    pwBtn.textContent = s.hasPassword ? '비밀번호 변경' : '비밀번호 설정';
+    pwBtn.addEventListener('click', () => {
+      const form = document.getElementById('link-password-form');
+      const show = form.style.display === 'none' || !form.style.display;
+      form.style.display = show ? 'block' : 'none';
+      document.getElementById('link-current-password').style.display = (show && s.hasPassword) ? 'block' : 'none';
+    });
+    actions.appendChild(pwBtn);
+  } catch (e) { console.error('연동 상태 로드 실패', e); }
+}
+
+async function submitLinkPassword() {
+  const password = document.getElementById('link-password-input').value;
+  const currentPassword = document.getElementById('link-current-password').value;
+  if (!password || password.length < 8) { alert('비밀번호는 8자 이상이어야 합니다.'); return; }
+  try {
+    const res = await fetch('/auth/link-password', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ password, currentPassword }),
+    });
+    const data = await res.json();
+    if (res.ok) {
+      alert(data.message || '저장되었습니다.');
+      document.getElementById('link-password-form').style.display = 'none';
+      document.getElementById('link-password-input').value = '';
+      document.getElementById('link-current-password').value = '';
+      loadLinkStatus();
+    } else {
+      alert(data.message || '저장에 실패했습니다.');
+    }
+  } catch (e) { alert('오류가 발생했습니다.'); }
+}
+
+function handleLinkQuery() {
+  const params = new URLSearchParams(window.location.search);
+  if (params.get('linked') === 'kakao') {
+    alert('카카오 연동이 완료되었습니다.');
+    history.replaceState(null, '', '/mypage.html');
+  } else if (params.get('linkError')) {
+    alert('카카오 연동 실패: ' + params.get('linkError'));
+    history.replaceState(null, '', '/mypage.html');
+  }
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   console.log('마이페이지 로드');
   fetchUserInfo();
@@ -421,4 +497,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // 생년월일 확인 버튼 클릭 이벤트
   document.getElementById('confirm-birthdate').addEventListener('click', showPersonalInfo);
+
+  // 계정 연동
+  loadLinkStatus();
+  handleLinkQuery();
+  document.getElementById('link-password-submit').addEventListener('click', submitLinkPassword);
+  document.getElementById('link-password-cancel').addEventListener('click', () => {
+    document.getElementById('link-password-form').style.display = 'none';
+  });
 });

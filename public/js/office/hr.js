@@ -31,6 +31,8 @@ const state = {
   warningTargetId: null,
   // 일괄 처리 컨텍스트
   bulkActionType: null,
+  bulkSource: null,          // 'main' | 'monthly' — 일괄경고 출처(메인 리스트 vs 월간현황 패널)
+  maSelected: new Set(),     // 월간 신청 현황 패널에서 체크된 회원 id
   // 현재 사용자의 HR 권한 (admin 또는 officer+인사팀)
   canManage: false
 };
@@ -89,6 +91,7 @@ function bootHR() {
   bindStaffOptionGrid();
   checkHRPermission();
   loadUsers();
+  initMonthlyApply();
 }
 
 /* ───────── 현재 사용자의 HR 권한 체크 ─────────
@@ -128,6 +131,136 @@ function applyPermissionToUI() {
     const filterCard = document.querySelector('.filter-card');
     if (filterCard) filterCard.parentNode.insertBefore(banner, filterCard);
   }
+}
+
+/* ───────── 월간 신청 현황 (이번 달 이벤트 · 1~5일 신청) ───────── */
+let _monthlyApplyLoaded = false;
+function _maEsc(s) {
+  return String(s == null ? '' : s)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+function initMonthlyApply() {
+  const toggle = document.getElementById('monthly-apply-toggle');
+  const panel = document.getElementById('monthly-apply-panel');
+  const chev = document.getElementById('monthly-apply-chev');
+  if (!toggle || !panel) return;
+  // 사이드바 경유 로드 시 bootHR가 두 번 호출돼(IIFE 자동부팅 + window.bootHR)
+  // 같은 토글에 클릭 핸들러가 중복 바인딩되면 클릭이 열렸다 바로 닫힘 → 한 번만 바인딩
+  if (toggle.dataset.maBound === '1') return;
+  toggle.dataset.maBound = '1';
+  toggle.addEventListener('click', () => {
+    const willOpen = panel.hasAttribute('hidden');
+    if (willOpen) {
+      panel.removeAttribute('hidden');
+      if (chev) chev.textContent = '▴';
+      loadMonthlyApply(); // 열 때마다 최신으로 (1~5일 중에도 실시간 반영)
+    } else {
+      panel.setAttribute('hidden', '');
+      if (chev) chev.textContent = '▾';
+    }
+  });
+}
+async function loadMonthlyApply() {
+  const summary = document.getElementById('ma-summary');
+  const cols = document.getElementById('ma-cols');
+  try {
+    const res = await fetch('/user/monthly-application-status', { credentials: 'include' });
+    if (!res.ok) {
+      let msg;
+      if (res.status === 403) msg = '권한이 없습니다 (인사팀 운영진/관리자 전용).';
+      else if (res.status === 401) msg = '로그인이 필요합니다. 다시 로그인해 주세요. (401)';
+      else if (res.status === 404) msg = '엔드포인트를 찾을 수 없습니다 — 서버 재시작이 필요합니다. (404)';
+      else msg = `신청 현황을 불러오지 못했습니다. (HTTP ${res.status})`;
+      if (summary) summary.textContent = msg;
+      console.warn('[monthly-apply] 조회 실패:', res.status);
+      return;
+    }
+    const d = await res.json();
+    _monthlyApplyLoaded = true;
+    state.maMonth = `${d.year}-${String(d.month).padStart(2, '0')}`;
+    state.maCanWarn = !!d.windowClosed && (d.eventCount || 0) > 0;
+    state.maWarnReason = (d.eventCount || 0) === 0 ? '이번 달 이벤트가 없어 경고를 부여할 수 없습니다.'
+                       : !d.windowClosed ? '신청 기간 진행 중 — 6일 이후 경고할 수 있습니다.'
+                       : '';
+    const note = d.windowClosed ? '' : ' · 신청 기간 진행 중 (6일 확정)';
+    const exemptNote = d.exemptCount ? ` · 신규가입 면제 ${d.exemptCount}명` : '';
+    if (summary) summary.innerHTML =
+      `${d.year}년 ${d.month}월 · 이벤트 ${d.eventCount}개 · ` +
+      `신청 <b style="color:#0A84FE">${d.appliedCount}</b> / ` +
+      `지각 <b style="color:#D97706">${d.lateCount || 0}</b> / ` +
+      `미신청 <b style="color:#EF4444">${d.notAppliedCount}</b>${exemptNote}${note}`;
+    const lateBadge = (iso) => {
+      if (!iso) return '';
+      const dt = new Date(iso);
+      return `<span style="color:#B45309;font-weight:600;font-size:.74rem;margin-left:4px;">${dt.getMonth() + 1}/${dt.getDate()} 신청</span>`;
+    };
+    const liHTML = (arr, selectable) => arr.length
+      ? arr.map(m => {
+          const cb = selectable ? `<input type="checkbox" class="ma-check" data-ma-id="${m.id}" onclick="maToggleOne('${m.id}', this.checked)">` : '';
+          const phone = m.phoneTail ? `<span style="color:#94A3B8;font-weight:500;font-size:.8rem;margin-left:2px;">(${_maEsc(m.phoneTail)})</span>` : '';
+          return `<li>${cb}<span class="ma-name">${_maEsc(m.name)}${phone}</span>${m.lateAt ? lateBadge(m.lateAt) : ''}${m.role === 'starter' ? '<span class="ma-tag">스타터</span>' : ''}</li>`;
+        }).join('')
+      : '<li class="ma-empty">없음</li>';
+    const setText = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+    const setHTML = (id, v) => { const el = document.getElementById(id); if (el) el.innerHTML = v; };
+    setText('ma-applied-count', d.appliedCount);
+    setText('ma-late-count', d.lateCount || 0);
+    setText('ma-notapplied-count', d.notAppliedCount);
+    setHTML('ma-applied-list', liHTML(d.applied, false));        // 신청 완료는 선택 불필요
+    setHTML('ma-late-list', liHTML(d.lateApplied || [], true));  // 지각 — 선택 가능
+    setHTML('ma-notapplied-list', liHTML(d.notApplied, true));   // 미신청 — 선택 가능
+    // 재조회 시 선택 초기화
+    state.maSelected.clear();
+    document.querySelectorAll('.ma-selectall').forEach(c => { c.checked = false; });
+    updateMaBar();
+    if (cols) cols.removeAttribute('hidden');
+  } catch (e) {
+    console.error('월간 신청 현황 로드 실패:', e);
+    if (summary) summary.textContent = '오류가 발생했습니다.';
+  }
+}
+
+/* 월간 신청 현황 — 선택(개별/전체) + 선택 인원 일괄 경고 */
+function updateMaBar() {
+  const n = state.maSelected.size;
+  const bar = document.getElementById('ma-bulk-bar');
+  const cnt = document.getElementById('ma-bulk-count');
+  const btn = document.getElementById('ma-warn-btn');
+  const noteEl = document.getElementById('ma-warn-note');
+  if (cnt) cnt.textContent = n;
+  if (bar) bar.style.display = n > 0 ? 'flex' : 'none';
+  if (btn) { btn.disabled = !state.maCanWarn; btn.title = state.maCanWarn ? '' : (state.maWarnReason || ''); }
+  if (noteEl) noteEl.textContent = state.maCanWarn ? '' : (state.maWarnReason || '');
+}
+function maToggleOne(id, checked) {
+  if (checked) state.maSelected.add(id); else state.maSelected.delete(id);
+  updateMaBar();
+}
+function maToggleAll(listId, checked) {
+  document.querySelectorAll(`#${listId} .ma-check`).forEach(cb => {
+    cb.checked = checked;
+    const id = cb.dataset.maId;
+    if (checked) state.maSelected.add(id); else state.maSelected.delete(id);
+  });
+  updateMaBar();
+}
+function openMonthlyWarning() {
+  if (!state.canManage) { toast('관리자 또는 인사팀 운영진만 사용할 수 있습니다', 'warn'); return; }
+  if (state.maSelected.size === 0) { toast('선택된 회원이 없습니다', 'warn'); return; }
+  if (!state.maCanWarn) { toast(state.maWarnReason || '지금은 경고를 부여할 수 없습니다', 'warn'); return; }
+  state.bulkActionType = 'addWarning';
+  state.bulkSource = 'monthly';
+  document.getElementById('bulk-dialog-title').textContent = '월간 미신청 경고 일괄 부여';
+  document.getElementById('bulk-dialog-desc').textContent = `${state.maMonth} · 선택된 ${state.maSelected.size}명에게 경고를 부여합니다 (같은 달 중복은 자동 제외)`;
+  document.getElementById('bulk-amount-field').style.display = 'none';
+  document.getElementById('bulk-category-field').style.display = '';
+  document.getElementById('bulk-reason-field').style.display = '';
+  document.getElementById('bulk-reason').value = `${state.maMonth} 월간 이벤트 미신청`;
+  document.getElementById('bulk-category').value = '월간미신청';
+  const btn = document.getElementById('bulk-confirm-btn');
+  btn.className = 'modal-btn danger';
+  btn.textContent = '경고 부여';
+  openDialog('bulkDialog');
 }
 
 if (document.readyState === 'loading') {
@@ -1020,6 +1153,7 @@ function openBulkDialog(action) {
     return;
   }
   state.bulkActionType = action;
+  state.bulkSource = 'main';
   const titleMap = {
     addParticipation: '참여 횟수 일괄 추가',
     subtractParticipation: '참여 횟수 일괄 차감',
@@ -1059,7 +1193,8 @@ function openBulkDialog(action) {
 async function submitBulkAction() {
   const action = state.bulkActionType;
   if (!action) return;
-  const userIds = Array.from(state.selectedIds);
+  const fromMonthly = state.bulkSource === 'monthly';
+  const userIds = fromMonthly ? Array.from(state.maSelected) : Array.from(state.selectedIds);
   if (userIds.length === 0) { toast('선택된 회원이 없습니다', 'warn'); return; }
 
   const body = { userIds, action };
@@ -1068,6 +1203,7 @@ async function submitBulkAction() {
     body.category = document.getElementById('bulk-category').value;
     body.reason = document.getElementById('bulk-reason').value.trim();
     if (!body.reason) { toast('사유를 입력해주세요', 'warn'); return; }
+    if (fromMonthly) body.targetMonth = state.maMonth; // 같은 달 중복 경고 방지
   } else {
     const amt = parseInt(document.getElementById('bulk-amount').value);
     if (!Number.isInteger(amt) || amt < 1) { toast('1 이상의 정수를 입력해주세요', 'warn'); return; }
@@ -1089,9 +1225,16 @@ async function submitBulkAction() {
     const data = await res.json();
     closeDialog('bulkDialog');
     toast(data.message || `${data.processed}명 처리 완료`, 'success');
-    clearSelection();
-    // 데이터 다시 로드 (서버 상태 동기화)
-    await loadUsers();
+    if (fromMonthly) {
+      state.maSelected.clear();
+      updateMaBar();
+      await loadUsers();   // 통계(경고 누적) 동기화
+      loadMonthlyApply();  // 패널 갱신(경고 부여 후 최신)
+    } else {
+      clearSelection();
+      await loadUsers();   // 데이터 다시 로드 (서버 상태 동기화)
+    }
+    state.bulkSource = null;
   } catch (e) {
     console.error(e);
     toast(e.message || '일괄 처리 실패', 'error');
@@ -1174,5 +1317,8 @@ window.closeDialog = closeDialog;
 // sidebar.js가 호출함
 window.loadUsers = loadUsers;
 window.bootHR = bootHR;
+window.maToggleOne = maToggleOne;
+window.maToggleAll = maToggleAll;
+window.openMonthlyWarning = openMonthlyWarning;
 
 })();

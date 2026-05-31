@@ -1,0 +1,49 @@
+/* EventDetail.css — 캐주얼·모던 리디자인 (Tailwind 컴포넌트 위 래퍼) */
+@font-face {
+  font-family: 'GmarketSansMedium';
+  src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_2001@1.1/GmarketSansMedium.woff') format('woff');
+  font-weight: normal; font-style: normal;
+}
+
+.event-detail-page {
+  font-family: 'GmarketSansMedium', system-ui, sans-serif;
+  min-height: 100vh;
+  background: radial-gradient(1100px 560px at 50% -10%, #DCEBFF 0%, #EEF4FF 42%, #F7FAFF 100%);
+  padding: 18px 12px 64px;
+}
+.event-detail-page * { font-family: inherit; }
+
+/* 가운데 카드 */
+.event-detail-page > .ed-card {
+  background: #fff;
+  border-radius: 24px;
+  box-shadow: 0 18px 44px rgba(15,23,42,.10);
+  border: 1px solid rgba(255,255,255,.7);
+  overflow: hidden;
+  min-height: 0;
+}
+/* 카드 내부 sticky 헤더/탭의 배경 둥글게 */
+.event-detail-page .ed-card .rounded-t-xl { border-top-left-radius: 24px; border-top-right-radius: 24px; }
+
+/* 브랜드 그라데이션 버튼 */
+.event-detail-page button.ed-primary {
+  background: linear-gradient(135deg,#3B9BFF,#0A84FE);
+  color: #fff; border: none; border-radius: 12px; font-weight: 700;
+  box-shadow: 0 8px 18px rgba(10,132,254,.26);
+  transition: transform .15s ease, box-shadow .15s ease;
+}
+.event-detail-page button.ed-primary:hover { transform: translateY(-2px); box-shadow: 0 12px 24px rgba(10,132,254,.32); }
+
+/* 입력 — 라운드 + 포커스 글로우 */
+.event-detail-page textarea,
+.event-detail-page input[type="text"] {
+  border-radius: 12px; border: 1.5px solid #E6ECF5; background: #FBFCFE;
+  transition: border-color .15s ease, box-shadow .15s ease, background .15s ease;
+}
+.event-detail-page textarea:focus,
+.event-detail-page input[type="text"]:focus {
+  border-color: #0A84FE; background: #fff; box-shadow: 0 0 0 4px #E8F2FF; outline: none;
+}
+
+/* 메인 이미지 살짝 더 둥글게 */
+.event-detail-page .ed-card img { border-radius: 16px; }

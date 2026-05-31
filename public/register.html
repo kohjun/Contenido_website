@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>회원가입 · Contenido</title>
+  <style>
+    @font-face {
+      font-family: 'GmarketSansMedium';
+      src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_2001@1.1/GmarketSansMedium.woff') format('woff');
+      font-weight: normal; font-style: normal;
+    }
+    :root {
+      --c-brand:#0A84FE; --c-brand-strong:#0875E0; --c-brand-soft:#E8F2FF; --c-brand-tint:#F2F8FF;
+      --c-bg:#EEF4FF; --c-surface:#FFFFFF;
+      --c-text:#1F2937; --c-text-muted:#5A6B7C; --c-text-soft:#94A3B8; --c-border:#E6ECF5;
+      --c-success:#10B981; --c-danger:#EF4444;
+      --r-md:14px; --r-lg:18px; --r-xl:26px; --r-pill:999px;
+      --sh-md:0 10px 30px rgba(15,23,42,.08); --sh-lg:0 18px 50px rgba(10,132,254,.18);
+      --t-fast:130ms ease; --t-base:220ms cubic-bezier(.4,0,.2,1);
+    }
+    * { box-sizing:border-box; font-family:'GmarketSansMedium',system-ui,sans-serif; }
+    html,body { margin:0; padding:0; }
+    body {
+      position:relative; overflow-x:hidden;
+      background:radial-gradient(1200px 600px at 50% -10%, #DCEBFF 0%, var(--c-bg) 45%, #F7FAFF 100%);
+      color:var(--c-text); min-height:100dvh; font-size:16px;
+      display:flex; align-items:center; justify-content:center; padding:24px;
+      -webkit-font-smoothing:antialiased;
+    }
+    body::before, body::after { content:""; position:fixed; border-radius:50%; filter:blur(60px); z-index:0; }
+    body::before { width:320px; height:320px; background:#9CC4FF; opacity:.5; top:-80px; right:-80px; }
+    body::after  { width:280px; height:280px; background:#FFC7E6; opacity:.4; bottom:-90px; left:-70px; }
+
+    .auth-card {
+      position:relative; z-index:1;
+      width:100%; max-width:430px; background:var(--c-surface);
+      border-radius:var(--r-xl); padding:38px 30px 30px; box-shadow:var(--sh-md);
+      border:1px solid rgba(255,255,255,.7);
+    }
+    .auth-hero { text-align:center; margin-bottom:26px; }
+    .auth-emoji { font-size:2.4rem; display:inline-block; margin-bottom:6px; animation:floaty 3s ease-in-out infinite; }
+    @keyframes floaty { 0%,100%{ transform:translateY(0); } 50%{ transform:translateY(-6px); } }
+    .auth-hero .logo { font-size:1.05rem; font-weight:700; color:var(--c-brand); letter-spacing:.12em; }
+    .auth-hero h1 { margin:8px 0 6px; font-size:1.5rem; letter-spacing:-0.01em; }
+    .auth-hero p { margin:0; color:var(--c-text-muted); font-size:0.9rem; line-height:1.55; }
+    .field { margin-bottom:15px; }
+    .field label { display:block; font-size:0.84rem; color:var(--c-text-muted); font-weight:600; margin-bottom:7px; padding-left:4px; }
+    .input {
+      width:100%; padding:14px 16px; border:1.5px solid var(--c-border);
+      border-radius:var(--r-md); background:#FBFCFE; color:var(--c-text);
+      outline:none; transition:var(--t-fast);
+    }
+    .input:focus { border-color:var(--c-brand); background:#fff; box-shadow:0 0 0 4px var(--c-brand-soft); }
+    .input::placeholder { color:var(--c-text-soft); }
+    .hint { font-size:0.76rem; color:var(--c-text-soft); margin:6px 0 0 4px; }
+    .hint.ok  { color:var(--c-success); }
+    .hint.bad { color:var(--c-danger); }
+    .submit-btn {
+      width:100%; padding:15px; margin-top:8px; border:none; border-radius:var(--r-md);
+      background:linear-gradient(135deg,#3B9BFF,var(--c-brand)); color:#fff; font-size:1.02rem; font-weight:700;
+      cursor:pointer; transition:var(--t-base); box-shadow:0 8px 20px rgba(10,132,254,.28);
+    }
+    .submit-btn:hover { transform:translateY(-2px); box-shadow:var(--sh-lg); }
+    .submit-btn:active { transform:translateY(0); }
+    .submit-btn:disabled { opacity:0.6; cursor:not-allowed; transform:none; }
+    .auth-foot { margin-top:22px; text-align:center; font-size:0.88rem; color:var(--c-text-muted); }
+    .auth-foot a { color:var(--c-brand); font-weight:700; text-decoration:none; }
+    .auth-foot a:hover { text-decoration:underline; }
+    .toast {
+      position:fixed; bottom:32px; left:50%; transform:translateX(-50%) translateY(20px);
+      background:var(--c-text); color:#fff; padding:13px 22px; border-radius:var(--r-pill);
+      font-size:0.9rem; box-shadow:var(--sh-lg); opacity:0; pointer-events:none;
+      transition:var(--t-base); z-index:1100; max-width:90vw;
+    }
+    .toast.is-show { opacity:1; transform:translateX(-50%) translateY(0); }
+    .toast.error { background:var(--c-danger); } .toast.success { background:var(--c-success); }
+    @media (max-width:480px){ .auth-card{ padding:30px 22px 24px; } }
+  </style>
+</head>
+<body>
+  <div class="auth-card">
+    <div class="auth-hero">
+      <span class="auth-emoji">🎉</span>
+      <div class="logo">CONTENIDO</div>
+      <h1>함께 시작해요</h1>
+      <p>이메일과 비밀번호로<br>간단하게 계정을 만드세요</p>
+    </div>
+
+    <form id="register-form" autocomplete="on">
+      <div class="field">
+        <label for="displayName">이름 / 닉네임</label>
+        <input class="input" type="text" id="displayName" name="displayName" placeholder="표시될 이름" required>
+      </div>
+      <div class="field">
+        <label for="email">이메일</label>
+        <input class="input" type="email" id="email" name="email" placeholder="you@example.com" required>
+      </div>
+      <div class="field">
+        <label for="password">비밀번호</label>
+        <input class="input" type="password" id="password" name="password" placeholder="8자 이상" required>
+        <p class="hint" id="pw-hint">8자 이상 입력해주세요</p>
+      </div>
+      <button type="submit" class="submit-btn" id="submit-btn">회원가입</button>
+    </form>
+
+    <div class="auth-foot">
+      이미 계정이 있으신가요? <a href="/login.html">로그인</a>
+    </div>
+  </div>
+
+  <div id="toast" class="toast"></div>
+
+  <script>
+    let toastTimer;
+    function toast(msg, type='') {
+      const el = document.getElementById('toast');
+      el.textContent = msg; el.className = 'toast is-show ' + type;
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => el.classList.remove('is-show'), 2600);
+    }
+
+    const pw = document.getElementById('password');
+    const pwHint = document.getElementById('pw-hint');
+    pw.addEventListener('input', () => {
+      const ok = pw.value.length >= 8;
+      pwHint.textContent = ok ? '사용 가능한 비밀번호입니다' : '8자 이상 입력해주세요';
+      pwHint.className = 'hint' + (ok ? ' ok' : (pw.value ? ' bad' : ''));
+    });
+
+    document.getElementById('register-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const displayName = document.getElementById('displayName').value.trim();
+      const email = document.getElementById('email').value.trim();
+      const password = pw.value;
+      if (password.length < 8) { toast('비밀번호는 8자 이상이어야 합니다', 'error'); return; }
+
+      const btn = document.getElementById('submit-btn');
+      btn.disabled = true; btn.textContent = '가입 중…';
+      try {
+        const res = await fetch('/auth/register', {
+          method:'POST', credentials:'include',
+          headers:{ 'Content-Type':'application/json' },
+          body: JSON.stringify({ email, password, displayName })
+        });
+        const data = await res.json();
+        if (res.ok) {
+          toast('회원가입이 완료되었습니다', 'success');
+          setTimeout(() => { window.location.href = data.redirectUrl || '/additional-user-info.html'; }, 700);
+        } else {
+          toast(data.message || '회원가입에 실패했습니다', 'error');
+          btn.disabled = false; btn.textContent = '회원가입';
+        }
+      } catch (err) {
+        toast('네트워크 오류가 발생했습니다', 'error');
+        btn.disabled = false; btn.textContent = '회원가입';
+      }
+    });
+  </script>
+</body>
+</html>

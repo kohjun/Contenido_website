@@ -4,8 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>마이 페이지</title>
-  <link rel="stylesheet" href="/css/mypage.css?v=20260531" />
-  <script src="/js/utils/nav-injector.js?v=20260533" defer></script>
+  <link rel="stylesheet" href="/css/mypage.css?v=20260601" />
+  <script src="/js/utils/nav-injector.js?v=20260602" defer></script>
 </head>
 
 <body>
@@ -64,6 +64,25 @@
       </div>
     </div>
 
+    <!-- 계정/로그인 연동 카드 -->
+    <div class="info-card" id="account-link-card">
+      <h4>계정 / 로그인</h4>
+      <div class="user-info" id="account-link-info">
+        <p id="link-email"></p>
+        <p id="link-kakao-status"></p>
+        <p id="link-password-status"></p>
+        <div id="link-actions" style="display:flex; gap:8px; flex-wrap:wrap; margin-top:8px;"></div>
+      </div>
+      <div id="link-password-form" style="display:none; margin-top:12px;">
+        <input type="password" id="link-current-password" placeholder="현재 비밀번호 (변경 시)" style="display:none; margin-bottom:6px;" />
+        <input type="password" id="link-password-input" placeholder="설정할 비밀번호 (8자 이상)" style="margin-bottom:6px;" />
+        <div style="display:flex; gap:8px;">
+          <button id="link-password-submit" class="link-btn link-btn--primary">저장</button>
+          <button id="link-password-cancel" type="button" class="link-btn link-btn--ghost">취소</button>
+        </div>
+      </div>
+    </div>
+
     <hr>
     <h3>신청한 이벤트</h3>
     
@@ -82,6 +101,6 @@
     </div>
     <br>
   <!-- Script -->
-  <script src="/js/mypage.js"></script>
+  <script src="/js/mypage.js?v=20260601"></script>
 </body>
 </html>

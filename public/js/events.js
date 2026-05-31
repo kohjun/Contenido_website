@@ -72,6 +72,62 @@ function escapeAttr(s) {
     .replace(/"/g, '&quot;').replace(/'/g, '&#039;');
 }
 
+// 장소 복사 / 네이버지도 검색 버튼 (웹·모바일 겸용 칩)
+function ensurePlaceActionStyles() {
+  if (document.getElementById('place-action-styles')) return;
+  const style = document.createElement('style');
+  style.id = 'place-action-styles';
+  style.textContent =
+    '.place-actions{display:inline-flex;align-items:center;gap:4px;margin-left:6px;vertical-align:middle;}' +
+    '.place-action{box-sizing:border-box;display:inline-flex;align-items:center;justify-content:center;height:22px;padding:0 7px;margin:0;border-radius:6px;font-size:.66rem;font-weight:700;line-height:1;cursor:pointer;text-decoration:none;border:1px solid transparent;white-space:nowrap;font-family:inherit;vertical-align:middle;-webkit-tap-highlight-color:transparent;transition:transform .1s ease,background .12s ease;}' +
+    '.place-action:active{transform:scale(.92);}' +
+    '.place-copy{background:#E8F2FF;color:#0A84FE;border-color:#CFE3FF;}' +
+    '.place-copy:hover{background:#D8EAFF;}' +
+    '.place-map{background:#E7F8EE;color:#06A34A;border-color:#BBEBCF;}' +
+    '.place-map:hover{background:#D6F2E2;}' +
+    '.place-action.copied{background:#0A84FE;color:#fff;border-color:transparent;}' +
+    '@media (max-width:480px){.place-action{height:24px;padding:0 8px;font-size:.68rem;}}';
+  document.head.appendChild(style);
+}
+
+function placeActions(place) {
+  if (!place) return '';
+  ensurePlaceActionStyles();
+  const esc = escapeAttr(place);
+  const q = encodeURIComponent(place);
+  return `<span class="place-actions">` +
+    `<button type="button" class="place-action place-copy" data-place="${esc}" onclick="copyPlace(event, this)" title="장소 복사" aria-label="장소 복사">복사</button>` +
+    `<a class="place-action place-map" href="https://map.naver.com/p/search/${q}" target="_blank" rel="noopener" title="네이버지도에서 검색" aria-label="네이버지도에서 검색" onclick="event.stopPropagation()">지도</a>` +
+    `</span>`;
+}
+
+function copyPlace(ev, btn) {
+  if (ev) { ev.stopPropagation(); ev.preventDefault(); }
+  const text = btn && btn.getAttribute('data-place');
+  if (!text) return;
+  const flash = () => {
+    btn.textContent = '복사됨';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = '복사'; btn.classList.remove('copied'); }, 1200);
+  };
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(flash).catch(() => legacyCopyText(text, flash));
+  } else {
+    legacyCopyText(text, flash);
+  }
+}
+
+function legacyCopyText(text, cb) {
+  try {
+    const ta = document.createElement('textarea');
+    ta.value = text; ta.style.position = 'fixed'; ta.style.top = '-1000px'; ta.style.opacity = '0';
+    document.body.appendChild(ta); ta.focus(); ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    cb && cb();
+  } catch (e) { console.warn('장소 복사 실패', e); }
+}
+
 /* =========================================================================
    3) 월 헤더 — "N월 이벤트" + 신청기간 + D-N 마감 배지
    ========================================================================= */
@@ -228,21 +284,37 @@ function displayCurrentPage(currentUser) {
     const userStatus = hasApplied
       ? event.appliedParticipants.find(p => p.userId.toString() === currentUser.id)?.status
       : null;
+    // 본인 신청 엔트리 (취소 요청 여부 확인용)
+    const myEntry = hasApplied
+      ? event.appliedParticipants.find(p => p.userId.toString() === currentUser.id)
+      : null;
+    const cancelRequested = !!(myEntry && myEntry.cancellationRequested);
 
-    // 상태 배지
+    // 상태 배지 (본인 상태 우선 → 그다음 마감)
     let statusBadge = '';
-    if (isFull) {
+    if (userStatus === 'approved') {
+      statusBadge = '<span class="badge badge-floating badge-success">참가확정</span>';
+    } else if (userStatus === 'pending') {
+      statusBadge = '<span class="badge badge-floating badge-warning">승인대기</span>';
+    } else if (userStatus === 'rejected') {
+      statusBadge = '<span class="badge badge-floating badge-danger">신청거절</span>';
+    } else if (isFull) {
       statusBadge = '<span class="badge badge-floating badge-danger">마감</span>';
-    } else if (hasApplied) {
-      statusBadge = userStatus === 'approved'
-        ? '<span class="badge badge-floating badge-success">참가확정</span>'
-        : '<span class="badge badge-floating badge-warning">승인대기</span>';
     }
+    // cancelled → 배지 없음 (다시 신청 가능 상태)
 
     // 신청 버튼
     let applyButton = '';
-    if (hasApplied) {
+    if (userStatus === 'approved') {
+      // 참가확정 → 직접 취소 대신 담당 운영진에게 '취소 요청'
+      applyButton = cancelRequested
+        ? '<button class="btn btn-ghost btn-sm" disabled>취소 요청됨</button>'
+        : `<button class="btn btn-ghost btn-sm" onclick="requestCancellation('${event._id}')">취소 요청</button>`;
+    } else if (userStatus === 'pending') {
+      // 승인 전에는 본인이 직접 취소 가능
       applyButton = `<button class="btn btn-ghost btn-sm" onclick="cancelApplication('${event._id}')">신청취소</button>`;
+    } else if (userStatus === 'rejected') {
+      applyButton = '<button class="btn btn-ghost btn-sm" disabled>신청거절됨</button>';
     } else if (!isActive) {
       applyButton = '<button class="btn btn-primary btn-sm" disabled>신청불가</button>';
     } else if (event.isSelective && event.additionalQuestions?.length > 0) {
@@ -294,7 +366,7 @@ function displayCurrentPage(currentUser) {
         <div class="card-meta">
           <div class="meta-item">${ICONS.cal}<span>${formatEventDate(event.date)}</span></div>
           <div class="meta-item">${ICONS.clock}<span>${escapeAttr(event.startTime)} ~ ${escapeAttr(event.endTime)}</span></div>
-          <div class="meta-item full">${ICONS.pin}<span>${escapeAttr(event.place)}</span></div>
+          <div class="meta-item full">${ICONS.pin}<span class="place-text">${escapeAttr(event.place)}</span>${placeActions(event.place)}</div>
           <div class="meta-item">${ICONS.users}<span>${approvedCount}/${event.participants}명</span></div>
           <div class="meta-item">${ICONS.won}<span>${formatFee(event)}</span></div>
         </div>
@@ -349,8 +421,7 @@ function getEventPeriodStatus(event) {
       overlayHtml: '',
       bodyCountdownHtml: `
         <div class="card-period-countdown">
-          <span class="cpc-icon">⏰</span>
-          <span class="cpc-label">신청자 확정까지</span>
+          <span class="cpc-label">참가자 확정까지</span>
           <span class="period-countdown cpc-time" data-deadline="${confTs}" data-type="conf">${formatHMS(confTs - now)}</span>
         </div>`
     };
@@ -361,9 +432,13 @@ function getEventPeriodStatus(event) {
 }
 
 // D-N HH:MM 포맷 (e.g. 48시간 → D-2 00:00, 5시간 30분 → D-0 05:30)
+// 1분 미만(기존엔 D-0 00:00으로 멈춰 보이던 구간)은 초 단위 카운트("59초")로 표시
 function formatHMS(diffMs) {
   if (diffMs <= 0) return 'D-0 00:00';
   const totalSec = Math.floor(diffMs / 1000);
+  if (totalSec < 60) {
+    return `${totalSec}초`;
+  }
   const days = Math.floor(totalSec / 86400);
   const remainingSec = totalSec % 86400;
   const hours = Math.floor(remainingSec / 3600);
@@ -470,6 +545,22 @@ async function cancelApplication(eventId) {
   } catch (error) {
     console.error('Error canceling application:', error);
     alert('신청 취소 중 문제가 발생했습니다.');
+  }
+}
+
+// 참가확정자: 직접 취소하지 않고 담당 운영진에게 취소를 요청
+async function requestCancellation(eventId) {
+  const ok = confirm('참가가 확정된 신청입니다.\n담당 운영진에게 취소를 요청하시겠습니까?\n\n• 환불/경고 정책은 담당 운영진 안내를 따릅니다.\n• 요청 후 담당자가 취소를 처리합니다.');
+  if (!ok) return;
+
+  try {
+    const response = await fetch(`/events/${eventId}/request-cancellation`, { method: 'POST' });
+    const result = await response.json();
+    alert(result.message || (response.ok ? '취소 요청을 보냈습니다.' : '취소 요청에 실패했습니다.'));
+    if (response.ok) fetchEvents();
+  } catch (error) {
+    console.error('Error requesting cancellation:', error);
+    alert('취소 요청 중 문제가 발생했습니다.');
   }
 }
 

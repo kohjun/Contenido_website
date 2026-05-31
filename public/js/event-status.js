@@ -92,26 +92,48 @@ async function fetchEventStatus() {
     return;
   }
 
-  // 첫 접근 시 접근 코드 확인
+  // 첫 접근 시 접근 코드 확인 (admin 은 모든 이벤트 접근 가능 → 코드 생략)
   if (!eventAccessMap.has(eventId)) {
-    const hasAccess = await verifyEventAccess(eventId);
-    if (!hasAccess) {
-      window.location.href = 'event-staff.html';
-      return;
+    let isAdmin = false;
+    try {
+      const me = await fetch('/user/info', { credentials: 'include' }).then(r => (r.ok ? r.json() : null));
+      isAdmin = !!(me && me.role === 'admin');
+    } catch (_) {}
+    if (!isAdmin) {
+      const hasAccess = await verifyEventAccess(eventId);
+      if (!hasAccess) {
+        window.location.href = 'event-staff.html';
+        return;
+      }
     }
     eventAccessMap.set(eventId, true);
   }
 
   try {
-    const [eventRes, participantsRes] = await Promise.all([
+    const [eventRes, partResp] = await Promise.all([
       fetch(`/events/${eventId}`).then(r => r.json()),
-      fetch(`/events/${eventId}/participants`).then(r => r.json())
+      fetch(`/events/${eventId}/participants`)
     ]);
 
     _currentEvent = eventRes;
+    renderEventSummary(_currentEvent);
+
+    // 신청자 조회 실패(403 권한없음 / 401 미로그인 등)를 '신청자 없음'으로 오인하지 않도록 명확히 처리
+    if (!partResp.ok) {
+      const err = await partResp.json().catch(() => ({}));
+      _currentParticipants = [];
+      const reason = partResp.status === 403 ? '이 이벤트의 신청자를 볼 권한이 없습니다. (운영진/관리자 계정으로 로그인했는지 확인하세요)'
+                   : partResp.status === 401 ? '로그인이 필요합니다. 다시 로그인해 주세요.'
+                   : (err.message || '신청자 목록을 불러오지 못했습니다.');
+      const list = document.getElementById('participant-list');
+      if (list) list.innerHTML = `<div class="empty">⚠️ ${escapeHtml(reason)} (HTTP ${partResp.status})</div>`;
+      console.warn('[event-status] 신청자 조회 실패:', partResp.status, err.message || '');
+      return;
+    }
+
+    const participantsRes = await partResp.json();
     _currentParticipants = (participantsRes && participantsRes.participants) || [];
 
-    renderEventSummary(_currentEvent);
     renderStatsGrid(_currentEvent, _currentParticipants);
     renderDistributions(_currentParticipants);
     renderFilterCounts(_currentParticipants);
@@ -135,12 +157,12 @@ function renderEventSummary(event) {
       year: 'numeric', month: 'long', day: 'numeric'
     });
     const parts = [
-      `<span>📅 ${escapeHtml(dateStr)}</span>`,
-      `<span>🕐 ${escapeHtml(event.startTime || '')} ~ ${escapeHtml(event.endTime || '')}</span>`,
-      `<span>📍 ${escapeHtml(event.place || '')}</span>`,
+      `<span>날짜: ${escapeHtml(dateStr)}</span>`,
+      `<span>시간: ${escapeHtml(event.startTime || '')} ~ ${escapeHtml(event.endTime || '')}</span>`,
+      `<span>장소: ${escapeHtml(event.place || '')}</span>`,
     ];
     if (event.isSelective) {
-      parts.push('<span class="selective-tag">📝 선발 이벤트</span>');
+      parts.push('<span class="selective-tag">선발 이벤트</span>');
     }
     metaEl.innerHTML = parts.join('');
   }
@@ -454,19 +476,28 @@ function renderParticipantList() {
     const status = p.status || 'pending';
     const statusClass = `is-${status}`;
     const statusPill =
-      status === 'approved'  ? '<span class="status-pill approved">✓ 참가확정</span>' :
+      status === 'approved'  ? `<span class="status-pill approved">✓ 참가확정</span>${p.cancellationRequested ? ' <span class="status-pill cancelled">🚪 취소 요청</span>' : ''}` :
       status === 'rejected'  ? '<span class="status-pill rejected">✕ 거절됨</span>' :
       status === 'cancelled' ? '<span class="status-pill cancelled">↩ 본인 취소</span>' :
                                '<span class="status-pill pending">⏳ 승인 대기</span>';
 
     let buttonsHtml = '';
     if (status === 'cancelled') {
-      // 취소된 신청자는 이력만 볼 수 있음 (운영진이 되돌릴 수도 있음)
+      // 본인 취소: 운영진이 되돌릴 수 없고 이력만 확인 가능 (재신청은 본인만)
       buttonsHtml = `
+        <button onclick="showStatusHistory('${event._id}', '${p.userId}', '${escapeHtml(p.name)}')" class="history-btn">이력</button>
+      `;
+    } else if (status === 'approved') {
+      // 취소 요청이 들어온 확정자는 '취소 처리' 버튼 노출
+      const cancelBtn = p.cancellationRequested
+        ? `<button onclick="processCancellation('${event._id}', '${p.userId}', '${escapeHtml(p.name)}')" class="reject-btn">취소 처리</button>`
+        : '';
+      buttonsHtml = `
+        ${cancelBtn}
         <button onclick="resetParticipantStatus('${event._id}', '${p.userId}', '${escapeHtml(p.name)}')" class="reset-btn">대기로 되돌리기</button>
         <button onclick="showStatusHistory('${event._id}', '${p.userId}', '${escapeHtml(p.name)}')" class="history-btn">이력</button>
       `;
-    } else if (status === 'approved' || status === 'rejected') {
+    } else if (status === 'rejected') {
       buttonsHtml = `
         <button onclick="resetParticipantStatus('${event._id}', '${p.userId}', '${escapeHtml(p.name)}')" class="reset-btn">대기로 되돌리기</button>
         <button onclick="showStatusHistory('${event._id}', '${p.userId}', '${escapeHtml(p.name)}')" class="history-btn">이력</button>
@@ -625,25 +656,72 @@ async function resetParticipantStatus(eventId, userId, participantName) {
   }
 }
 
+// 담당 운영진: 참가확정자의 취소 요청을 처리 (→ cancelled)
+async function processCancellation(eventId, userId, participantName) {
+  if (!confirm(`${participantName}님의 참가 취소 요청을 처리하시겠습니까?\n참가가 '취소' 상태로 변경됩니다.`)) return;
+  try {
+    const response = await fetch(`/events/${eventId}/participants/${userId}/process-cancellation`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' }
+    });
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({}));
+      if (response.status === 403) {
+        const hasAccess = await verifyEventAccess(eventId);
+        if (hasAccess) return await processCancellation(eventId, userId, participantName);
+        window.location.href = 'event-staff.html';
+        return;
+      }
+      throw new Error(error.message || '취소 처리에 실패했습니다.');
+    }
+    const result = await response.json();
+    alert(`${participantName}님의 참가가 취소 처리되었습니다.\n처리자: ${result.processedBy}`);
+    await fetchEventStatus();
+  } catch (error) {
+    console.error('Error:', error);
+    alert(error.message || '취소 처리 중 오류가 발생했습니다.');
+  }
+}
+
 async function showStatusHistory(eventId, userId, participantName) {
   try {
     const response = await fetch(`/events/${eventId}/participants/${userId}/status-history`);
     if (!response.ok) throw new Error('상태 이력을 가져올 수 없습니다.');
     const data = await response.json();
-    const history = data.statusHistory || [];
+    const current = data.statusHistory || [];
+    const past = data.previousAttempts || [];
 
-    if (history.length === 0) {
+    if (current.length === 0 && past.length === 0) {
       alert(`${participantName}님의 상태 변경 이력이 없습니다.`);
       return;
     }
 
-    history.sort((a, b) => new Date(b.changedAt) - new Date(a.changedAt));
-    let txt = `${participantName}님의 상태 변경 이력:\n\n`;
-    history.forEach((r, i) => {
-      const date = new Date(r.changedAt).toLocaleString('ko-KR');
-      const action = r.isReset ? '되돌림' : '변경';
-      txt += `${i + 1}. ${date}\n   ${r.previousStatus} → ${r.newStatus} (${action})\n   처리자: ${r.changerName}\n\n`;
+    const fmtEntries = (entries) => entries
+      .slice()
+      .sort((a, b) => new Date(a.changedAt) - new Date(b.changedAt)) // 오래된 → 최근
+      .map((r, i) => {
+        const date = new Date(r.changedAt).toLocaleString('ko-KR');
+        const action = r.isReset ? '되돌림' : '변경';
+        return `   ${i + 1}. ${date}\n      ${r.previousStatus} → ${r.newStatus} (${action}) / 처리자: ${r.changerName}`;
+      })
+      .join('\n');
+
+    let txt = `${participantName}님의 신청 이력\n`;
+
+    // 이전 신청(취소 후 재신청) — 시도별로 분리 표시
+    past.forEach((att, idx) => {
+      const applied = att.appliedAt ? new Date(att.appliedAt).toLocaleString('ko-KR') : '-';
+      const finalLabel = att.finalStatus === 'cancelled' ? '본인 취소'
+                       : att.finalStatus === 'rejected' ? '거절됨'
+                       : (att.finalStatus || '종료');
+      txt += `\n━━ 이전 신청 ${idx + 1}차 (${finalLabel}) ━━\n   신청: ${applied}\n`;
+      txt += (att.statusHistory && att.statusHistory.length) ? fmtEntries(att.statusHistory) + '\n' : '   (상태 변경 없음)\n';
     });
+
+    // 현재(활성) 신청
+    txt += `\n━━ 현재 신청${past.length ? ` (${past.length + 1}차)` : ''} ━━\n`;
+    txt += current.length ? fmtEntries(current) + '\n' : '   (상태 변경 없음 — 신청 후 대기 중)\n';
+
     alert(txt);
   } catch (error) {
     console.error('Error fetching status history:', error);

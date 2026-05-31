@@ -1,3 +1,6 @@
+// 서버 타임존을 KST로 고정 (월간 신청 1~5일 경계 등 날짜 계산이 서버 로컬시간에 의존)
+process.env.TZ = 'Asia/Seoul';
+
 const dns = require('dns');
 dns.setServers(['8.8.8.8', '1.1.1.1']);
 require('dotenv').config();
@@ -101,11 +104,9 @@ app.use('/auth', require('./routes/auth'));
 app.use('/events', require('./routes/events'));
 app.use('/user', require('./routes/user'));
 app.use('/reviews', require('./routes/reviews'));
-app.use('/application', require('./routes/application'));
 app.use('/savedPlaces', require('./routes/savedPlaces'));
-app.use('/application-result', require('./routes/applicationResult'));
 app.use('/announcement', require('./routes/announcement'));
-app.use('/api/bingo', require('./routes/bingo'));
+app.use('/notifications', require('./routes/notifications'));
 app.use('/archives', require('./routes/archives'));
 
 
@@ -124,12 +125,6 @@ app.get('/admin/*', (req, res, next) => {
 });
 
 
-app.get('/applications', (req, res, next) => {
-    if (!req.isAuthenticated() || !['officer', 'admin'].includes(req.user.role)) {
-      return res.status(403).json({ message: '접근 권한이 없습니다' });
-    }
-    res.sendFile(path.join(__dirname, 'public/applications.html'));
-  });
 
 
 
@@ -178,8 +173,8 @@ if (fs.existsSync(reactBuildPath)) {
             req.path.startsWith('/user') || 
             req.path.startsWith('/reviews') ||
             req.path.startsWith('/savedPlaces') ||  // 추가
-            req.path.startsWith('/application') ||
             req.path.startsWith('/announcement') ||
+            req.path.startsWith('/notifications') ||
             req.path.startsWith('/api/') ||
             req.path.startsWith('/office') ||
             req.path.startsWith('/uploads')) {
@@ -226,7 +221,17 @@ app.use((err, req, res, next) => {
 // 몽고DB 연결
 mongoose
   .connect(process.env.MONGO_URI)
-  .then(() => console.log('MongoDB connected successfully'))
+  .then(async () => {
+    console.log('MongoDB connected successfully');
+    // 레거시 유니크 인덱스 정리: kakaoId_1 (non-sparse unique)는 로컬 가입자의
+    // kakaoId=null 끼리 충돌시킴 → 드롭 (Kakao 유니크는 콜백 email 조회로 보장)
+    try {
+      await mongoose.connection.collection('users').dropIndex('kakaoId_1');
+      console.log('[fix] 레거시 kakaoId_1 인덱스 드롭 완료');
+    } catch (e) {
+      // 인덱스가 이미 없으면 무시
+    }
+  })
   .catch((error) => {
     console.error('MongoDB connection error:', error.message);
     process.exit(1); // 치명적인 데이터베이스 연결 오류시 프로세스 종료

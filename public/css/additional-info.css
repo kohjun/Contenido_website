@@ -273,11 +273,14 @@ img.info-icon,
    ========================================================================= */
 
 #application-section {
-  margin: 24px 0 16px;
+  flex-basis: 100%;   /* button-group 안에서 한 줄 전체 차지 → 목록으로 버튼이 아래로 */
+  width: 100%;
+  margin: 0;
   display: flex;
   flex-direction: column;
   gap: 10px;
 }
+#application-section:empty { display: none; }   /* 내용 없을 때 빈 줄/간격 방지 */
 .status-text {
   text-align: center;
   font-size: 0.92rem;
@@ -413,7 +416,7 @@ img.info-icon,
   margin-top: 20px;
   justify-content: center;
 }
-.button-group button {
+.button-group > button {
   flex: 1;
   min-width: 120px;
   padding: 12px 18px;
@@ -430,7 +433,7 @@ img.info-icon,
               box-shadow var(--t-base) var(--ease),
               border-color var(--t-base) var(--ease);
 }
-.button-group button:hover {
+.button-group > button:hover {
   background: var(--c-surface-2);
   border-color: var(--c-border-strong);
   transform: translateY(-1px);

@@ -811,3 +811,62 @@ body {
 .archive-complete-badge::before {
   content: '✓';  /* 체크 마크 자동 추가 */
 }
+/* ============================================================
+   캐주얼·모던 리디자인 오버라이드 (ArchiveDetail + ArchiveNew 공용)
+   ============================================================ */
+.archive-detail-container {
+  background: radial-gradient(1100px 560px at 50% -10%, #DCEBFF 0%, #EEF4FF 42%, #F7FAFF 100%) !important;
+  font-family: 'GmarketSansMedium', system-ui, sans-serif;
+}
+.archive-detail-container * { font-family: inherit; }
+
+/* 상단 헤더 바 — 반투명 블러 */
+.detail-header {
+  background: rgba(255,255,255,0.82);
+  backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid #E6ECF5;
+}
+.breadcrumb::before { content: '📦 '; }
+
+/* 버튼 */
+.btn-primary {
+  background: linear-gradient(135deg,#3B9BFF,#0A84FE) !important;
+  border: none !important; border-radius: 12px !important;
+  box-shadow: 0 8px 18px rgba(10,132,254,.26);
+  transition: transform .15s ease, box-shadow .15s ease, opacity .15s ease;
+}
+.btn-primary:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 12px 24px rgba(10,132,254,.32); opacity: 1; }
+.btn-back, .btn-secondary { border-radius: 12px !important; border: 1.5px solid #E6ECF5 !important; transition: all .15s ease; }
+.btn-back:hover, .btn-secondary:hover { border-color: #BFDBFF !important; background: #F2F8FF !important; color: #0A84FE !important; }
+.btn-add-item { border-radius: 12px !important; border: 1.5px dashed #BFDBFF !important; color: #0A84FE; transition: all .15s ease; }
+.btn-add-item:hover { background: #F2F8FF !important; }
+
+/* 카드/표면 — 라운드 + 소프트 섀도 */
+.document-paper, .viewer-sidebar, .editor-content, .archive-form {
+  border-radius: 22px !important;
+  box-shadow: 0 10px 30px rgba(15,23,42,.07) !important;
+  border: 1px solid #EEF2F8;
+}
+.sidebar-section, .info-card, .rating-box, .review-item, .staff-card, .game-card,
+.feedback-card, .strategy-card, .list-item, .media-preview-item, .highlight-box, .success-box {
+  border-radius: 16px !important;
+}
+.editor-header-card {
+  border-radius: 22px !important;
+  background: linear-gradient(135deg,#0A84FE 0%, #3B9BFF 60%, #5EB0FF 100%) !important;
+  box-shadow: 0 18px 40px rgba(10,132,254,.28);
+}
+
+/* 입력 — 라운드 + 포커스 글로우 */
+.form-group input[type="text"], .form-group input[type="number"], .form-group input[type="url"],
+.form-group textarea, .form-group select {
+  border-radius: 12px !important; border: 1.5px solid #E6ECF5 !important; background: #FBFCFE !important;
+  transition: border-color .15s ease, box-shadow .15s ease, background .15s ease;
+}
+.form-group input:focus, .form-group textarea:focus, .form-group select:focus {
+  border-color: #0A84FE !important; background: #fff !important; box-shadow: 0 0 0 4px #E8F2FF !important; outline: none !important;
+}
+
+/* 업로드 영역 */
+.upload-area { border-radius: 16px !important; border: 2px dashed #C7D9F2 !important; background: #F2F8FF !important; }
+.upload-area:hover { border-color: #0A84FE !important; background: #E8F2FF !important; }

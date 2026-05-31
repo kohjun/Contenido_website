@@ -31,7 +31,7 @@
       }
       .ac-overlay.is-open { opacity: 1; pointer-events: auto; }
       .ac-modal {
-        background: #fff;
+        background: #E8F7FF;
         border-radius: 22px;
         width: 100%;
         max-width: 460px;
@@ -51,26 +51,27 @@
       .ac-head h3 {
         margin: 0 0 4px;
         font-size: 1.1rem;
-        color: #1F2937;
+        color: #000;
         display: flex;
         align-items: center;
         gap: 8px;
       }
-      .ac-head h3::before { content: "📌"; }
+      
       .ac-head p {
         margin: 0;
         font-size: 0.82rem;
-        color: #5A6B7C;
+        color: #000;
       }
 
       .ac-body {
         padding: 16px 24px;
         overflow-y: auto;
         flex: 1;
+        color: #000;
       }
       .ac-terms {
-        background: #FEF3C7;
-        border-left: 4px solid #F59E0B;
+        background: #D6F1FF;
+        border-left: 4px solid #0A84FE;
         border-radius: 12px;
         padding: 14px 16px;
         margin-bottom: 16px;
@@ -78,23 +79,27 @@
       .ac-terms h4 {
         margin: 0 0 8px;
         font-size: 0.92rem;
-        color: #92400E;
+        color: #000;
         display: flex;
         align-items: center;
         gap: 6px;
       }
-      .ac-terms h4::before { content: "⚠️"; }
+      
       .ac-terms ul {
         margin: 0; padding-left: 20px;
         font-size: 0.86rem;
-        color: #5A4A1A;
+        color: #000;
         line-height: 1.6;
       }
       .ac-terms ul li { margin-bottom: 4px; }
       .ac-terms ul li:last-child { margin-bottom: 0; }
       .ac-terms ul li strong {
-        color: #92400E;
+        color: #000;
         font-weight: 700;
+      }
+      .ac-terms a {
+        color: #0A84FE;
+        text-decoration: underline;
       }
 
       .ac-agree {
@@ -126,7 +131,7 @@
       .ac-agree label {
         flex: 1;
         font-size: 0.88rem;
-        color: #1F2937;
+        color: #000;
         cursor: pointer;
         line-height: 1.5;
         font-weight: 600;

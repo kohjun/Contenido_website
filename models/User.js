@@ -1,35 +1,5 @@
 const mongoose = require('mongoose');
 
-const applicationSchema = new mongoose.Schema({
-  school: {
-    type: String,
-    required: true
-  },
-  address: {
-    type: String,
-    required: true
-  },
-  wantOfficer: {
-    type: Boolean,
-    default: false
-  },
-  motivation: {
-    type: String,
-    required: true
-  },
-  planningContent: String,
-  status: {
-    type: String,
-    enum: ['pending', 'accepted', 'rejected'],
-    default: 'pending'
-  },
-  appliedAt: {
-    type: Date,
-    default: Date.now
-  },
-  processedAt: Date
-});
-
 // 경고 내역 스키마 추가
 const warningHistorySchema = new mongoose.Schema({
   reason: {
@@ -52,8 +22,12 @@ const warningHistorySchema = new mongoose.Schema({
   },
   category: {
     type: String,
-    enum: ['정기모임', '스태프활동', '운영진활동', '번개활동', '조별활동', '기타'],
-    default: '기타'
+    default: '기타'   // enum 제거: UI 옵션(태도/규칙위반/결석/지각/월간미신청/기타)이 저장 실패하던 버그 수정
+  },
+  // 특정 '대상 월'에 대한 경고(예: 월간 미신청)일 때 기록 ("2026-06"). 같은 달 중복 경고 방지에 사용.
+  targetMonth: {
+    type: String,
+    default: null
   },
   isActive: {
     type: Boolean,
@@ -87,6 +61,12 @@ const userSchema = new mongoose.Schema({
   displayName: { type: String, required: true },
   profileImage: { type: String },
   kakaoId: { type: String },
+  // ── 로컬 로그인 자격증명 (Mongo-only) ──────────────────────────
+  // 로컬 로그인 가능 여부 = passwordHash 존재 여부. 카카오 가능 여부 = kakaoId 존재 여부.
+  // 둘 다 있으면 같은 계정으로 양쪽 로그인(계정 연동).
+  passwordHash: { type: String, select: false },                    // bcrypt
+  failedLoginAttempts: { type: Number, default: 0, select: false }, // 브루트포스 방어
+  lockedUntil: { type: Date, default: null, select: false },
   isVerified: { type: Boolean, default: true },
   university:{type:String, required:false},
   role: { 
@@ -154,7 +134,6 @@ const userSchema = new mongoose.Schema({
   createdEvents: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Event' }],
   participatedEvents: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Event' }],
   reviews: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Review' }],
-  application: applicationSchema,
 
   // staffTeam 세부 구분 필드 추가
   staffSubteam: {
@@ -295,38 +274,6 @@ userSchema.pre('save', function (next) {
   }
   next();
 });
-
-// 지원서 제출 메서드
-userSchema.methods.submitApplication = async function(applicationData) {
-  this.role = 'applicant';
-  this.application = {
-    status: 'pending',
-    school: applicationData.school,
-    address: applicationData.address,
-    wantOfficer: applicationData.wantOfficer,
-    motivation: applicationData.motivation,
-    planningContent: applicationData.planningContent,
-    appliedAt: new Date()
-  };
-  return this.save();
-};
-
-// 지원 상태 업데이트 메서드
-userSchema.methods.updateApplicationStatus = async function(status) {
-  if (!this.application) {
-    throw new Error('지원서가 존재하지 않습니다');
-  }
-  
-  this.application.status = status;
-  this.application.processedAt = new Date();
-  
-  if (status === 'accepted') {
-    this.role = this.application.wantOfficer ? 'starter' : 'participant';
-    this.active = true;
-  }
-    
-  return this.save();
-};
 
 // 리프레시 토큰 검증 메서드
 userSchema.methods.verifyRefreshToken = function() {

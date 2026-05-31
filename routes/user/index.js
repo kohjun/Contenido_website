@@ -4,7 +4,7 @@
 // 라우트 분포:
 //   profile.js        — GET /info, /info_database, /user-role, POST /update-profile, PATCH /officers/:userId/work-memo
 //   warnings.js       — GET /warning-history/:userId, POST /issue-warning/:userId, /remove-warning/:userId/:warningId
-//   participation.js  — GET /participants/users, /participants/bingo, POST /toggle-active/:userId,
+//   participation.js  — GET /participants/users, POST /toggle-active/:userId,
 //                       /update-participation/:userId, /bulk-update
 //   roles.js          — POST /update-role/:userId, /update-team/:userId, /update-staffsubteam/:userId,
 //                       /update-team-leader/:userId

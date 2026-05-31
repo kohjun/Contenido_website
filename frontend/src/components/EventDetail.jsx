@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom';
 import { Star, Heart, ArrowLeft, Upload, Camera } from 'lucide-react';
 import { useEvent } from '../hooks/useEvent';
 import { useEventReviews } from '../hooks/useEventReview';
+import '../css/EventDetail.css';
 
 const EventDetail = () => {
   const { id } = useParams();
@@ -79,9 +80,9 @@ const EventDetail = () => {
                 value={newReview.comment}
                 onChange={(e) => setNewReview(prev => ({ ...prev, comment: e.target.value }))}
               />
-              <button 
+              <button
                 type="submit"
-                className="bg-[#0A84FE]-500 text-white px-4 py-2 rounded-lg"
+                className="ed-primary px-4 py-2"
               >
                 리뷰 작성
               </button>
@@ -125,7 +126,8 @@ const EventDetail = () => {
   };
 
   return (
-    <div className="w-full max-w-[85%] md:max-w-2xl mx-auto bg-white min-h-screen px-2 md:px-4 py-4 md:py-6 rounded-xl shadow-sm">
+    <div className="event-detail-page">
+      <div className="ed-card w-full max-w-[85%] md:max-w-2xl mx-auto px-2 md:px-4 py-4 md:py-6">
       {/* Header */}
       <div className="flex items-center p-4 border-b sticky top-0 bg-white z-10 rounded-t-xl">
         <button className="mr-4" onClick={() => window.history.back()}>
@@ -193,6 +195,7 @@ const EventDetail = () => {
         <div className="min-h-[350px] max-h-[550px] overflow-y-auto px-1 md:px-2 pb-6">
           {renderContent()}
         </div>
+      </div>
       </div>
     </div>
   );

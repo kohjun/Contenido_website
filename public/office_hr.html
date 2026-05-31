@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>인사팀 관리 · Contenido</title>
-    <link rel="stylesheet" href="/css/hr.css?v=20260539">
+    <link rel="stylesheet" href="/css/hr.css?v=20260608">
 </head>
 <body>
     <div class="container">
@@ -12,10 +12,40 @@
         <header class="hr-header">
             <h1>인사팀 관리</h1>
             <p>경고 초기화 날짜는 매년 1·7월 1일입니다. 회원 검색, 필터, 일괄 처리를 한 곳에서 관리하세요.</p>
-            <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:8px;">
-                <button class="modal-btn primary" type="button" onclick="location.href='applications.html'">동아리 지원서 관리</button>
-            </div>
         </header>
+
+        <!-- 월간 신청 현황 (이번 달 이벤트 · 1~5일 신청) 드롭다운 -->
+        <section class="monthly-apply" id="monthly-apply">
+            <button type="button" class="monthly-apply-toggle" id="monthly-apply-toggle">
+                <span class="mat-label">이번 달 신청 현황 <small>(1~5일 신청 기준)</small></span>
+                <span class="mat-chev" id="monthly-apply-chev">▾</span>
+            </button>
+            <div class="monthly-apply-panel" id="monthly-apply-panel" hidden>
+                <div class="ma-summary" id="ma-summary">불러오는 중…</div>
+                <div class="ma-cols" id="ma-cols" hidden>
+                    <div class="ma-col ma-col-ok">
+                        <h4>신청 완료 <small>(5일까지)</small> <span class="ma-badge" id="ma-applied-count">0</span></h4>
+                        <ul class="ma-list" id="ma-applied-list"></ul>
+                    </div>
+                    <div class="ma-col ma-col-late">
+                        <h4>지각 신청 <small>(6일~)</small> <span class="ma-badge" id="ma-late-count">0</span>
+                            <label class="ma-selectall-label"><input type="checkbox" class="ma-selectall" onclick="maToggleAll('ma-late-list', this.checked)"> 전체</label>
+                        </h4>
+                        <ul class="ma-list" id="ma-late-list"></ul>
+                    </div>
+                    <div class="ma-col ma-col-warn">
+                        <h4>미신청 <span class="ma-badge" id="ma-notapplied-count">0</span>
+                            <label class="ma-selectall-label"><input type="checkbox" class="ma-selectall" onclick="maToggleAll('ma-notapplied-list', this.checked)"> 전체</label>
+                        </h4>
+                        <ul class="ma-list" id="ma-notapplied-list"></ul>
+                    </div>
+                </div>
+                <div class="ma-bulk-bar" id="ma-bulk-bar" style="display:none;">
+                    <span>선택 <b id="ma-bulk-count">0</b>명 <span id="ma-warn-note" style="color:#92610A;font-weight:500;font-size:.8rem;"></span></span>
+                    <button type="button" class="ma-warn-btn" id="ma-warn-btn" onclick="openMonthlyWarning()">경고 부여</button>
+                </div>
+            </div>
+        </section>
 
         <!-- 통계 -->
         <section class="hr-stats" id="hr-stats">
@@ -276,6 +306,7 @@
                 <div class="field">
                     <label for="warning-category">카테고리</label>
                     <select id="warning-category">
+                        <option value="월간미신청">월간 미신청</option>
                         <option value="태도">태도 / 매너</option>
                         <option value="규칙위반">규칙 위반</option>
                         <option value="결석">무단 결석</option>
@@ -324,6 +355,7 @@
                 <div class="field" id="bulk-category-field" style="display:none;">
                     <label for="bulk-category">카테고리</label>
                     <select id="bulk-category">
+                        <option value="월간미신청">월간 미신청</option>
                         <option value="태도">태도 / 매너</option>
                         <option value="규칙위반">규칙 위반</option>
                         <option value="결석">무단 결석</option>
@@ -346,6 +378,6 @@
     <!-- Toast -->
     <div id="toast" class="toast"></div>
 
-    <script src="/js/office/hr.js?v=20260539"></script>
+    <script src="/js/office/hr.js?v=20260608"></script>
 </body>
 </html>

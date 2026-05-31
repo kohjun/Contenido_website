@@ -5,8 +5,9 @@
 const express = require('express');
 const router = express.Router();
 const authenticateToken = require('../../middleware/authMiddleware');
-const { authorizeRoles, requireHRPermission } = require('../../middleware/roleMiddleware');
+const { requireHRPermission } = require('../../middleware/roleMiddleware');
 const User = require('../../models/User');
+const Event = require('../../models/Event');
 
 //여러 참가자 데이터 조회
 router.get('/participants/users', async (req, res) => {
@@ -42,68 +43,6 @@ router.get('/participants/users', async (req, res) => {
     res.status(500).json({ message: 'Error fetching users', error: error.message });
   }
 });
-
-// ============== 빙고 시스템용 API 추가 ==============
-
-// 기존 /participants/users 엔드포인트를 빙고 시스템에 맞게 수정 또는 새로 추가
-router.get('/participants/bingo',
-  authenticateToken,
-  authorizeRoles('admin', 'officer'),
-  async (req, res) => {
-    try {
-      // 활성 사용자 중 participant, starter, officer만 조회
-      const users = await User.find({
-        active: true,
-        role: { $in: ['participant', 'starter', 'officer'] }
-      }).select('name role birthDate gender department team');
-
-      // 빙고 시스템에 맞는 형태로 데이터 가공
-      const userData = users.map(user => {
-        // 나이 계산 (한국식 나이)
-        const age = user.birthDate ?
-          new Date().getFullYear() - new Date(user.birthDate).getFullYear() + 1 : null;
-
-        // 역할 한글 변환
-        const roleMap = {
-          'participant': '일반회원',
-          'starter': '스타터',
-          'officer': '운영진'
-        };
-
-        // 성별 한글 변환
-        const genderMap = {
-          'male': '남성',
-          'female': '여성',
-          'other': '기타'
-        };
-
-        return {
-          id: user._id,
-          name: user.name || '이름 없음',
-          role: roleMap[user.role] || user.role,
-          age: age,
-          gender: genderMap[user.gender] || '미설정',
-          department: user.department || '',
-          team: user.team || ''
-        };
-      });
-
-      res.json({
-        success: true,
-        count: userData.length,
-        data: userData
-      });
-
-    } catch (error) {
-      console.error('빙고 시스템 사용자 정보 조회 에러:', error);
-      res.status(500).json({
-        success: false,
-        message: '서버 오류가 발생했습니다.',
-        error: error.message
-      });
-    }
-  }
-);
 
 // POST
 // 유저 활성 상태 토글
@@ -162,7 +101,7 @@ router.post('/update-participation/:userId', authenticateToken, requireHRPermiss
 // 일괄 업데이트 (참여횟수 / 경고)
 router.post('/bulk-update', authenticateToken, requireHRPermission, async (req, res) => {
   try {
-    const { userIds, action, amount, reason, category } = req.body;
+    const { userIds, action, amount, reason, category, targetMonth } = req.body;
     const issuedBy = req.user.id;
     const issuedByName = req.user.name;
 
@@ -180,6 +119,7 @@ router.post('/bulk-update', authenticateToken, requireHRPermission, async (req, 
     }
 
     let processed = 0;
+    let skipped = 0;
     const errors = [];
 
     for (const user of users) {
@@ -205,16 +145,21 @@ router.post('/bulk-update', authenticateToken, requireHRPermission, async (req, 
             errors.push({ userId: user._id, message: '경고 사유 누락' });
             continue;
           }
+          // 같은 대상 월(月)에 이미 활성 경고가 있으면 중복 부여 방지
+          if (targetMonth && (user.warningHistory || []).some(w => w.isActive && w.targetMonth === targetMonth)) {
+            skipped++;
+            continue;
+          }
           const newWarning = {
             reason: reason.trim(),
             issuedBy,
             issuedByName,
             category: category || '기타',
-            issuedAt: new Date()
+            issuedAt: new Date(),
+            targetMonth: targetMonth || null
           };
           user.warningHistory.push(newWarning);
-          user.warningCount = (user.warningCount || 0) + 1;
-          await user.save();
+          await user.save(); // warningCount는 pre-save 훅에서 활성 경고 수로 재계산됨
           processed++;
         }
       } catch (err) {
@@ -223,17 +168,114 @@ router.post('/bulk-update', authenticateToken, requireHRPermission, async (req, 
       }
     }
 
-    console.log(`일괄 업데이트 완료: ${action}, 처리됨 ${processed}/${users.length}`);
+    console.log(`일괄 업데이트 완료: ${action}, 처리됨 ${processed}/${users.length}, 중복제외 ${skipped}`);
 
+    const msg = skipped > 0
+      ? `${processed}명에게 적용 (이미 ${targetMonth} 경고가 있어 ${skipped}명 제외)`
+      : `${processed}명에게 작업이 적용되었습니다.`;
     res.status(200).json({
-      message: `${processed}명에게 작업이 적용되었습니다.`,
+      message: msg,
       processed,
+      skipped,
       total: users.length,
       errors
     });
   } catch (error) {
     console.error('일괄 업데이트 중 오류:', error);
     res.status(500).json({ message: '일괄 업데이트 중 오류가 발생했습니다.' });
+  }
+});
+
+// 이번 달 이벤트에 1~5일 사이 신청했는지로 회원 분류 (인사팀 월간 신청 현황)
+//  - 대상: 활동 중(active)인 참가자/스타터 (월간 신청 의무 대상)
+//  - 기준: 그 달에 진행되는 이벤트(event.date in month)에, 그 달 1일~5일 사이 appliedAt(취소 제외)
+router.get('/monthly-application-status', authenticateToken, requireHRPermission, async (req, res) => {
+  try {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = now.getMonth(); // 0-indexed
+    const monthStart = new Date(year, month, 1, 0, 0, 0, 0);
+    const nextMonthStart = new Date(year, month + 1, 1, 0, 0, 0, 0);
+    const windowStart = monthStart;                         // 그 달 1일 00:00
+    const windowEnd = new Date(year, month, 6, 0, 0, 0, 0);  // 6일 00:00 (= 1~5일 신청 기간)
+
+    // 이번 달에 진행되는 이벤트
+    const events = await Event.find({ date: { $gte: monthStart, $lt: nextMonthStart } })
+      .select('appliedParticipants').lean();
+
+    // 신청 시점 분류 (취소 제외):
+    //  - 신청 완료: 마감(6일 0시) 전에 신청 = appliedAt < windowEnd (일찍 낸 사람도 포함)
+    //  - 지각: 6일 0시 이후 신청
+    const onTimeSet = new Set();  // appliedAt < windowEnd (마감 전)
+    const lateMap = new Map();    // userId -> 가장 이른 지각(>= windowEnd) appliedAt — 6일 이후
+    for (const ev of events) {
+      for (const p of (ev.appliedParticipants || [])) {
+        if (!p.userId || p.status === 'cancelled') continue; // 취소건은 집계 제외
+        const at = p.appliedAt ? new Date(p.appliedAt) : null;
+        if (!at) continue;
+        const uid = p.userId.toString();
+        if (at < windowEnd) {
+          onTimeSet.add(uid);
+        } else if (at < nextMonthStart) {
+          const prev = lateMap.get(uid);
+          if (!prev || at < prev) lateMap.set(uid, at);
+        }
+      }
+    }
+
+    // 월간 신청 의무 대상: 활동 중인 참가자/스타터
+    const members = await User.find({ active: true, role: { $in: ['participant', 'starter'] } })
+      .select('name displayName role team university phonenumber createdAt').lean();
+
+    const fmt = (m, lateAt) => {
+      const digits = String(m.phonenumber || '').replace(/[^0-9]/g, '');
+      return {
+        id: m._id,
+        name: m.name || m.displayName || '이름없음',
+        role: m.role,
+        team: m.team || null,
+        university: m.university || null,
+        phoneTail: digits.length >= 4 ? digits.slice(-4) : digits, // 뒷 4자리만 (전체번호 미반환)
+        lateAt: lateAt ? new Date(lateAt).toISOString() : null
+      };
+    };
+
+    // 그달 5일 이후(>= 5일 0시) 가입자는 면제 — 신청 기간을 온전히 누리지 못함
+    const exemptThreshold = new Date(year, month, 5, 0, 0, 0, 0);
+    let exemptCount = 0;
+    const applied = [];      // 정시 (~5일)
+    const lateApplied = [];  // 지각 (6일 이후)
+    const notApplied = [];   // 전혀 신청 안 함
+    for (const m of members) {
+      if (m.createdAt && new Date(m.createdAt) >= exemptThreshold) { exemptCount++; continue; }
+      const uid = m._id.toString();
+      if (onTimeSet.has(uid)) applied.push(fmt(m));
+      else if (lateMap.has(uid)) lateApplied.push(fmt(m, lateMap.get(uid)));
+      else notApplied.push(fmt(m));
+    }
+    const byName = (a, b) => String(a.name).localeCompare(String(b.name), 'ko');
+    applied.sort(byName);
+    lateApplied.sort(byName);
+    notApplied.sort(byName);
+
+    res.json({
+      year,
+      month: month + 1,
+      windowStart,
+      windowEnd,
+      windowClosed: now >= windowEnd, // 6일 자정 지났는지
+      eventCount: events.length,
+      exemptCount,
+      appliedCount: applied.length,
+      lateCount: lateApplied.length,
+      notAppliedCount: notApplied.length,
+      applied,
+      lateApplied,
+      notApplied
+    });
+  } catch (error) {
+    console.error('월간 신청 현황 조회 오류:', error);
+    res.status(500).json({ message: '월간 신청 현황 조회 중 오류가 발생했습니다.' });
   }
 });
 

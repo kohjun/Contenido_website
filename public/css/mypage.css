@@ -494,6 +494,57 @@ button { font-family: inherit; }
   margin-top: var(--sp-5);
 }
 
+/* ========= 계정/로그인 연동 카드 ========= */
+#account-link-info p {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: var(--sp-3);
+}
+.link-badge {
+  font-size: 0.76rem; font-weight: 700;
+  padding: 3px 11px; border-radius: 999px; white-space: nowrap;
+}
+.link-badge.is-on  { background: rgba(16,185,129,0.13); color: #047857; }
+.link-badge.is-off { background: var(--c-surface-3); color: var(--c-text-muted); }
+
+#link-actions { margin-top: var(--sp-4); }
+.link-btn {
+  appearance: none; border: 1px solid transparent;
+  padding: 11px 18px; border-radius: var(--r-md);
+  font-family: var(--ff-base); font-size: 0.9rem; font-weight: 600;
+  cursor: pointer; display: inline-flex; align-items: center; gap: 6px;
+  transition: transform var(--t-fast) var(--ease), box-shadow var(--t-fast) var(--ease), background var(--t-fast) var(--ease);
+}
+.link-btn:active { transform: translateY(1px); }
+.link-btn--kakao   { background: #FEE500; color: #181600; }
+.link-btn--kakao:hover { box-shadow: 0 4px 12px rgba(254,229,0,0.4); }
+.link-btn--primary { background: var(--c-brand); color: #fff; box-shadow: var(--sh-brand); }
+.link-btn--primary:hover { background: var(--c-brand-strong); }
+.link-btn--ghost   { background: var(--c-surface); color: var(--c-brand-strong); border-color: var(--c-border-strong); }
+.link-btn--ghost:hover { background: var(--c-brand-tint); }
+
+#link-password-form {
+  background: var(--c-surface-2);
+  border: 1px solid var(--c-border);
+  border-radius: var(--r-md);
+  padding: var(--sp-4);
+}
+#link-password-form input {
+  width: 100%; box-sizing: border-box;
+  padding: 11px 14px; margin-bottom: var(--sp-2);
+  border: 1px solid var(--c-border-strong); border-radius: var(--r-sm);
+  font-family: var(--ff-base); font-size: 0.9rem; color: var(--c-text);
+  transition: border-color var(--t-fast) var(--ease), box-shadow var(--t-fast) var(--ease);
+}
+#link-password-form input:focus {
+  outline: none; border-color: var(--c-brand);
+  box-shadow: 0 0 0 4px var(--c-brand-soft);
+}
+@media (max-width: 480px) {
+  #link-actions { flex-direction: column; }
+  .link-btn { width: 100%; justify-content: center; }
+  #link-password-form input { font-size: 16px; } /* iOS 줌 방지 */
+}
+
 /* ========= 11) 모바일 친화 ========= */
 
 @media (max-width: 768px) {

@@ -69,7 +69,13 @@ async function loadEventContent(eventId) {
 
 
     if (titleElem) titleElem.textContent = currentEvent.title;
-    if (placeElem) placeElem.textContent = currentEvent.place;
+    if (placeElem) {
+      placeElem.textContent = currentEvent.place;
+      // 장소 옆 복사 / 네이버지도 버튼 (중복 주입 방지)
+      if (currentEvent.place && placeElem.parentElement && !placeElem.parentElement.querySelector('.place-action')) {
+        placeElem.insertAdjacentHTML('afterend', placeActions(currentEvent.place));
+      }
+    }
     if (dateElem) dateElem.textContent = new Date(currentEvent.date)
       .toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' });
     if (participantsElem) participantsElem.textContent = currentEvent.participants + '명';
@@ -172,15 +178,20 @@ async function loadEventContent(eventId) {
     const isActive = user.active;
     const approvedCount = currentEvent.appliedParticipants.filter(p => p.status === 'approved').length;
     const isFull = approvedCount >= currentEvent.participants;
+    const myEntry = currentEvent.appliedParticipants.find(p => p.userId === user.id);
+    const myStatus = myEntry ? myEntry.status : null;
+    // 활성 신청 = 승인대기/참가확정 (취소·거절은 비활성 → 취소 시 다시 신청 가능)
+    const isActiveApplication = myStatus === 'pending' || myStatus === 'approved';
 
-    console.log(`신청 상태: 신청여부=${hasApplied}, 활성상태=${isActive}, 승인인원=${approvedCount}/${currentEvent.participants}, 마감여부=${isFull}`);
+    console.log(`신청 상태: status=${myStatus}, 활성신청=${isActiveApplication}, 활성회원=${isActive}, 승인인원=${approvedCount}/${currentEvent.participants}, 마감여부=${isFull}`);
 
     if (applicationSection) {
       if (currentEvent.isSelective) {
         // 선별적 이벤트
-        if (hasApplied) {
+        if (isActiveApplication) {
+          const headLine = myStatus === 'approved' ? '참가가 확정되었습니다' : '지원이 완료되었습니다 (승인 대기중)';
           applicationSection.innerHTML = `
-            <p class="status-text">지원이 완료되었습니다</p>
+            <p class="status-text">${headLine}</p>
             <div class="application-form" style="pointer-events: none; opacity: 0.7;">
               <h3>지원서 양식</h3>
               <form id="application-form">
@@ -190,9 +201,14 @@ async function loadEventContent(eventId) {
                     <textarea class="answer-textarea" disabled></textarea>
                   </div>
                 `).join('')}
-                <button type="submit" class="submit-button" disabled>지원완료</button>
               </form>
             </div>
+            <button type="button" class="submit-button" disabled>${myStatus === 'approved' ? '참가확정' : '지원완료'}</button>
+          `;
+        } else if (myStatus === 'rejected') {
+          applicationSection.innerHTML = `
+            <p class="status-text">아쉽지만 이번 지원은 받아들여지지 않았습니다.</p>
+            <button class="submit-button" disabled>지원 마감</button>
           `;
         } else if (!isActive) {
           applicationSection.innerHTML = `
@@ -212,17 +228,23 @@ async function loadEventContent(eventId) {
                     <textarea class="answer-textarea" name="answer_${index}" required></textarea>
                   </div>
                 `).join('')}
-                <button type="submit" class="submit-button">${applyBtnText}</button>
               </form>
             </div>
+            <button type="submit" form="application-form" class="submit-button">${applyBtnText}</button>
           `;
         }
       } else {
         // 일반 이벤트
-        if (hasApplied) {
+        if (isActiveApplication) {
+          const headLine = myStatus === 'approved' ? '참가가 확정되었습니다' : '신청이 완료되었습니다 (승인 대기중)';
           applicationSection.innerHTML = `
-            <p class="status-text">신청이 완료되었습니다</p>
-            <button class="submit-button" disabled>신청완료</button>
+            <p class="status-text">${headLine}</p>
+            <button class="submit-button" disabled>${myStatus === 'approved' ? '참가확정' : '신청완료'}</button>
+          `;
+        } else if (myStatus === 'rejected') {
+          applicationSection.innerHTML = `
+            <p class="status-text">아쉽지만 신청이 거절되었습니다.</p>
+            <button class="submit-button" disabled>신청 거절됨</button>
           `;
         } else if (!isActive) {
           applicationSection.innerHTML = `
@@ -466,6 +488,62 @@ function _escA(s) {
 }
 function _escT(s) {
   return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+// 장소 복사 / 네이버지도 검색 버튼 (웹·모바일 겸용 칩)
+function ensurePlaceActionStyles() {
+  if (document.getElementById('place-action-styles')) return;
+  const style = document.createElement('style');
+  style.id = 'place-action-styles';
+  style.textContent =
+    '.place-actions{display:inline-flex;align-items:center;gap:4px;margin-left:6px;vertical-align:middle;}' +
+    '.place-action{box-sizing:border-box;display:inline-flex;align-items:center;justify-content:center;height:22px;padding:0 7px;margin:0;border-radius:6px;font-size:.66rem;font-weight:700;line-height:1;cursor:pointer;text-decoration:none;border:1px solid transparent;white-space:nowrap;font-family:inherit;vertical-align:middle;-webkit-tap-highlight-color:transparent;transition:transform .1s ease,background .12s ease;}' +
+    '.place-action:active{transform:scale(.92);}' +
+    '.place-copy{background:#E8F2FF;color:#0A84FE;border-color:#CFE3FF;}' +
+    '.place-copy:hover{background:#D8EAFF;}' +
+    '.place-map{background:#E7F8EE;color:#06A34A;border-color:#BBEBCF;}' +
+    '.place-map:hover{background:#D6F2E2;}' +
+    '.place-action.copied{background:#0A84FE;color:#fff;border-color:transparent;}' +
+    '@media (max-width:480px){.place-action{height:24px;padding:0 8px;font-size:.68rem;}}';
+  document.head.appendChild(style);
+}
+
+function placeActions(place) {
+  if (!place) return '';
+  ensurePlaceActionStyles();
+  const esc = _escA(place);
+  const q = encodeURIComponent(place);
+  return `<span class="place-actions">` +
+    `<button type="button" class="place-action place-copy" data-place="${esc}" onclick="copyPlace(event, this)" title="장소 복사" aria-label="장소 복사">복사</button>` +
+    `<a class="place-action place-map" href="https://map.naver.com/p/search/${q}" target="_blank" rel="noopener" title="네이버지도에서 검색" aria-label="네이버지도에서 검색" onclick="event.stopPropagation()">지도</a>` +
+    `</span>`;
+}
+
+function copyPlace(ev, btn) {
+  if (ev) { ev.stopPropagation(); ev.preventDefault(); }
+  const text = btn && btn.getAttribute('data-place');
+  if (!text) return;
+  const flash = () => {
+    btn.textContent = '복사됨';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = '복사'; btn.classList.remove('copied'); }, 1200);
+  };
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(flash).catch(() => legacyCopyText(text, flash));
+  } else {
+    legacyCopyText(text, flash);
+  }
+}
+
+function legacyCopyText(text, cb) {
+  try {
+    const ta = document.createElement('textarea');
+    ta.value = text; ta.style.position = 'fixed'; ta.style.top = '-1000px'; ta.style.opacity = '0';
+    document.body.appendChild(ta); ta.focus(); ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    cb && cb();
+  } catch (e) { console.warn('장소 복사 실패', e); }
 }
 
 // (스타일은 /css/additional-info.css 로 분리됨)
