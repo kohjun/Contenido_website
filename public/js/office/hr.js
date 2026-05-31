@@ -273,8 +273,14 @@ if (document.readyState === 'loading') {
 /* ───────── 1. 데이터 로딩 ───────── */
 async function loadUsers() {
   try {
-    const res = await fetch('/user/participants/users', { credentials: 'include' });
-    if (!res.ok) throw new Error('회원 정보를 불러오지 못했습니다');
+    const res = await fetch('/user/participants/hr-members', { credentials: 'include' });
+    if (!res.ok) {
+      if (res.status === 403 || res.status === 401) {
+        toast('회원 목록은 인사팀 운영진 또는 관리자만 볼 수 있습니다', 'warn');
+        return;
+      }
+      throw new Error('회원 정보를 불러오지 못했습니다');
+    }
     const users = await res.json();
     state.allUsers = users.map(u => ({
       ...u,

@@ -9,8 +9,17 @@ const { requireHRPermission } = require('../../middleware/roleMiddleware');
 const User = require('../../models/User');
 const Event = require('../../models/Event');
 
-//여러 참가자 데이터 조회
-router.get('/participants/users', async (req, res) => {
+// 운영진/관리자만 (멤버 목록은 여러 오피스 페이지가 공용으로 사용 → 최소한 비공개화)
+const requireStaff = (req, res, next) => {
+  if (!req.user) return res.status(401).json({ message: '로그인이 필요합니다.' });
+  if (req.user.role !== 'officer' && req.user.role !== 'admin') {
+    return res.status(403).json({ message: '운영진 또는 관리자만 조회할 수 있습니다.' });
+  }
+  next();
+};
+
+// 멤버 목록 조회 핸들러 (공유 — 이름/전화번호 등 PII 포함)
+async function fetchMemberList(req, res) {
   try {
     const users = await User.find({ isVerified: true })
       .select('displayName name participationCount profileImage status active role gender phonenumber warningCount team department preferredActivity birthDate isTeamLeader university createdAt staffSubteam workMemo');
@@ -32,8 +41,8 @@ router.get('/participants/users', async (req, res) => {
       preferredActivity: user.preferredActivity || '-',
       birthDate: user.birthDate,
       isTeamLeader: user.isTeamLeader,
-      createdAt: user.createdAt,  // createdAt 추가
-      staffSubteam: user.staffSubteam, // staffSubteam 추가
+      createdAt: user.createdAt,
+      staffSubteam: user.staffSubteam,
       workMemo: user.workMemo || ''
     }));
 
@@ -42,7 +51,12 @@ router.get('/participants/users', async (req, res) => {
     console.error('사용자 목록 조회 중 오류 발생:', error.message);
     res.status(500).json({ message: 'Error fetching users', error: error.message });
   }
-});
+}
+
+// 공용 멤버 목록 — 운영진/관리자 로그인 필수 (event-staff·finance·organization 등에서 사용). 기존 '비로그인 공개' 취약점 차단.
+router.get('/participants/users', authenticateToken, requireStaff, fetchMemberList);
+// 인사팀 회원관리 전용 — 인사팀 운영진 또는 관리자만 (hr.js)
+router.get('/participants/hr-members', authenticateToken, requireHRPermission, fetchMemberList);
 
 // POST
 // 유저 활성 상태 토글
