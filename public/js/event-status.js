@@ -311,11 +311,9 @@ function renderAgeDist(participants) {
 
   // 5살 단위 그룹
   const groups = [
-    { label: '20세 미만', min: 0,   max: 19 },
     { label: '20–24세',  min: 20,  max: 24 },
     { label: '25–29세',  min: 25,  max: 29 },
     { label: '30–34세',  min: 30,  max: 34 },
-    { label: '35세 이상', min: 35,  max: 200 },
   ];
 
   const counts = groups.map(g => {
