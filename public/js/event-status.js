@@ -257,9 +257,7 @@ function calcAge(birthDate) {
   const bd = new Date(birthDate);
   if (isNaN(bd.getTime())) return null;
   const now = new Date();
-  let age = now.getFullYear() - bd.getFullYear();
-  const m = now.getMonth() - bd.getMonth();
-  if (m < 0 || (m === 0 && now.getDate() < bd.getDate())) age--;
+  let age = now.getFullYear() - bd.getFullYear() + 1;
   return age;
 }
 
