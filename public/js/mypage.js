@@ -242,7 +242,8 @@ async function saveEdit(id) {
     });
 
     if (!response.ok) {
-      throw new Error('프로필 업데이트에 실패했습니다.');
+      const errData = await response.json().catch(() => ({}));
+      throw new Error(errData.message || '프로필 업데이트에 실패했습니다.');
     }
 
     console.log(`프로필 정보 업데이트 성공: ${field}=${value}`);
@@ -251,7 +252,7 @@ async function saveEdit(id) {
     cancelEdit(id);
   } catch (error) {
     console.error('Error updating profile:', error);
-    alert('프로필 업데이트 중 오류가 발생했습니다.');
+    alert(error.message || '프로필 업데이트 중 오류가 발생했습니다.');
   }
 }
 

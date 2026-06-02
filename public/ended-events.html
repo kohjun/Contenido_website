@@ -41,13 +41,16 @@
 
   <script>
     let allEvents = [];
+    let fetchFailed = false;
     let currentYear = new Date().getFullYear();
     let currentMonth = new Date().getMonth() + 1; // 1-12
 
     document.addEventListener('DOMContentLoaded', async () => {
       await fetchEndedEvents();
       updateMonthDisplay();
-      displayEventsForCurrentMonth();
+      if (!fetchFailed) {
+        displayEventsForCurrentMonth();
+      }
 
       // 네비게이션 버튼 이벤트 리스너
       document.getElementById('prev-month').addEventListener('click', navigateToPreviousMonth);
@@ -59,12 +62,14 @@
         const response = await fetch('/events/ended');
         if (!response.ok) throw new Error('Failed to fetch ended events');
         allEvents = await response.json();
+        fetchFailed = false;
       } catch (error) {
         console.error('Error fetching ended events:', error);
+        fetchFailed = true;
         document.getElementById('ended-events-list').innerHTML = `
-          <div class="error-state">
-            <p>종료된 이벤트를 불러오는 중 문제가 발생했습니다.</p>
-            <p>로그인 후 다시 시도해주세요.</p>
+          <div class="error-state" style="background-color: var(--c-brand-soft); color: var(--c-brand-strong); border: 1px solid var(--c-border-soft); display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 30px 16px;">
+            <p style="font-weight: 700; font-size: 0.95rem; margin-bottom: 12px;">종료된 이벤트는 로그인 후에 조회 가능합니다.</p>
+            <button onclick="window.location.href='/login.html'" style="padding: 8px 18px; background-color: var(--c-brand); color: white; border: none; border-radius: var(--r-pill); cursor: pointer; font-family: inherit; font-weight: 700; box-shadow: var(--sh-brand); font-size: 0.85rem; transition: background-color 0.2s;">로그인하러 가기</button>
           </div>
         `;
       }
@@ -73,6 +78,12 @@
     function updateMonthDisplay() {
       const display = document.getElementById('current-year-month');
       display.textContent = `${currentYear}년 ${currentMonth}월`;
+
+      if (fetchFailed) {
+        document.getElementById('next-month').disabled = true;
+        document.getElementById('prev-month').disabled = true;
+        return;
+      }
 
       // 버튼 활성화/비활성화
       const now = new Date();
@@ -88,6 +99,7 @@
     }
 
     function displayEventsForCurrentMonth() {
+      if (fetchFailed) return;
       const eventsList = document.getElementById('ended-events-list');
 
       // 현재 선택된 연도/월에 해당하는 이벤트 필터링

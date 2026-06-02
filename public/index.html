@@ -10,18 +10,14 @@
   <script src="/js/utils/nav-injector.js?v=20260602" defer></script>
 </head>
 
-<body>
+<body class="home-page">
   <div class="container">
-    <!-- Hero -->
-    <div class="title-container">
-      <p class="subtitle"><strong><dot>리얼</dot> 버라이어티<br>연합 동아리</strong></p>
-      <img src="./images/Conteindo_Image.png" class="floating-image" alt="Contenido Logo" />
-    </div>
+    <!-- Hero (Removed as it is now part of the background image) -->
 
     <!-- 액션 버튼 그리드 -->
     <div class="action-buttons">
       
-      <button type="button" onclick="window.location.href='/ranking'">
+      <button type="button" onclick="OnRanking()">
         👑 활동 랭킹
       </button>
       <button type="button" onclick="OnEvents()">
@@ -78,6 +74,14 @@
   </footer>
 
   <script>
+    async function OnRanking() {
+      const isLoggedIn = await AuthModule.verifyToken();
+      if (isLoggedIn) {
+        window.location.href = '/ranking';
+      } else {
+        AuthModule.redirectToLogin(false);
+      }
+    }
     function OnEvents() {
       window.location.href = '/events.html';
     }

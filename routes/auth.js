@@ -124,6 +124,16 @@ router.post('/additional-info', authenticateToken, async (req, res) => {
       });
     }
 
+    // 전화번호 중복 검증 (본인 제외) 및 형식 검증
+    const { phonenumber } = req.body;
+    if (!/^[0-9]{10,11}$/.test(phonenumber)) {
+      return res.status(400).json({ message: '유효하지 않은 전화번호 형식입니다.' });
+    }
+    const existingUser = await User.findOne({ phonenumber: phonenumber.trim(), _id: { $ne: user._id } });
+    if (existingUser) {
+      return res.status(409).json({ message: '이미 등록된 전화번호입니다.' });
+    }
+
     // 정보 업데이트
     Object.assign(user, {
       ...req.body,

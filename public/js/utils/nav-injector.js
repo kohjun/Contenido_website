@@ -1129,8 +1129,15 @@ const AuthModule = {
   }
   
   // ===== 알림 =====
-  function handleNotifications(e) {
+  async function handleNotifications(e) {
       if (e) e.stopPropagation();
+      
+      const isLoggedIn = await AuthModule.verifyToken();
+      if (!isLoggedIn) {
+          AuthModule.redirectToLogin(false);
+          return;
+      }
+
       const panel = document.getElementById('notif-panel');
       if (!panel) return;
       const willOpen = !panel.classList.contains('show');

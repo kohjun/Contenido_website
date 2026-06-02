@@ -112,7 +112,11 @@ router.post('/update-profile', authenticateToken, async (req, res) => {
       if (!/^[0-9]{11}$/.test(phonenumber)) {
         return res.status(400).json({ message: '유효하지 않은 전화번호 형식입니다.' });
       }
-      updateFields.phonenumber = phonenumber;
+      const existingUser = await User.findOne({ phonenumber: phonenumber.trim(), _id: { $ne: req.user.id } });
+      if (existingUser) {
+        return res.status(409).json({ message: '이미 등록된 전화번호입니다.' });
+      }
+      updateFields.phonenumber = phonenumber.trim();
     }
 
     if (preferredActivity !== undefined) {

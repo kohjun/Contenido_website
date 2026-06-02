@@ -308,6 +308,99 @@
       .row-2 { grid-template-columns: 1fr; gap: 0; }
       .row-2 > .form-section { margin-bottom: 18px; }
     }
+
+    /* ───────── kakao link modal ───────── */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.6);
+      backdrop-filter: blur(4px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1200;
+      opacity: 0;
+      transition: opacity var(--t-base);
+    }
+    .modal-overlay.is-open {
+      opacity: 1;
+    }
+    .modal-card {
+      background: var(--c-surface);
+      border-radius: var(--r-xl);
+      padding: 36px 28px;
+      width: 90%;
+      max-width: 440px;
+      text-align: center;
+      box-shadow: var(--sh-lg);
+      transform: translateY(20px);
+      transition: transform var(--t-base);
+    }
+    .modal-overlay.is-open .modal-card {
+      transform: translateY(0);
+    }
+    .modal-icon {
+      font-size: 2.2rem;
+      margin-bottom: 16px;
+    }
+    .modal-card h2 {
+      margin: 0 0 10px;
+      font-size: 1.4rem;
+      color: var(--c-text);
+      font-weight: 700;
+    }
+    .modal-card p {
+      margin: 0 0 24px;
+      font-size: 0.9rem;
+      color: var(--c-text-muted);
+      line-height: 1.6;
+      word-break: keep-all;
+    }
+    .modal-buttons {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .kakao-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      background: #FEE500;
+      color: #191919;
+      border: none;
+      padding: 14px;
+      border-radius: var(--r-md);
+      font-weight: 700;
+      font-size: 0.95rem;
+      transition: background-color var(--t-base);
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+      font-family: inherit;
+      cursor: pointer;
+    }
+    .kakao-btn:hover {
+      background: #FADA0A;
+    }
+    .kakao-logo {
+      width: 18px;
+      height: 18px;
+    }
+    .later-btn {
+      background: var(--c-surface-2);
+      color: var(--c-text-muted);
+      border: 1px solid var(--c-border);
+      padding: 14px;
+      border-radius: var(--r-md);
+      font-weight: 600;
+      font-size: 0.95rem;
+      transition: background-color var(--t-base), color var(--t-base);
+      font-family: inherit;
+      cursor: pointer;
+    }
+    .later-btn:hover {
+      background: #E2E8F0;
+      color: var(--c-text);
+    }
   </style>
 </head>
 <body>
@@ -405,6 +498,23 @@
 
   <div id="toast" class="toast"></div>
 
+  <!-- 카카오 연동 유도 모달 -->
+  <div id="kakao-link-modal" class="modal-overlay" style="display: none;">
+    <div class="modal-card">
+      <div class="modal-icon">💛</div>
+      <h2>카카오 계정 연동</h2>
+      <p>카카오 계정을 연동하면 다음 로그인부터 비밀번호 입력 없이 1초 만에 편리하게 로그인할 수 있고, 모임 안내 알림톡을 받아보실 수 있어요!</p>
+      <div class="modal-buttons">
+        <button type="button" class="kakao-btn" onclick="window.location.href='/auth/link-kakao'">
+          <img src="/images/kakao-icon.png" alt="" class="kakao-logo"> 카카오 계정 연동하기
+        </button>
+        <button type="button" class="later-btn" onclick="window.location.href='/events.html'">
+          다음에 하기 (홈으로)
+        </button>
+      </div>
+    </div>
+  </div>
+
   <script>
     /* ───────── edit mode 감지 ───────── */
     const isEditMode = new URLSearchParams(window.location.search).get('edit') === '1';
@@ -501,6 +611,17 @@
       document.getElementById('cancel-btn').style.display = '';
     }
 
+    /* ───────── 카카오 연동 유도 모달 노출 ───────── */
+    function showKakaoLinkModal() {
+      const modal = document.getElementById('kakao-link-modal');
+      if (modal) {
+        modal.style.display = 'flex';
+        // 강제 리플로우
+        modal.offsetHeight;
+        modal.classList.add('is-open');
+      }
+    }
+
     document.addEventListener('DOMContentLoaded', () => {
       checkUserAuth();
 
@@ -548,10 +669,12 @@
           if (response.ok) {
             toast(isEditMode ? '수정되었습니다' : (result.message || '저장되었습니다!'), 'success');
             setTimeout(() => {
-              // edit 모드면 무조건 mypage로, 신규 입력은 result.redirectUrl 우선
-              window.location.href = isEditMode
-                ? '/mypage.html'
-                : (result.redirectUrl || '/events.html');
+              if (isEditMode) {
+                window.location.href = '/mypage.html';
+              } else {
+                // 신규 회원가입 추가정보 입력 완료 시, 카카오 연동 모달을 열어 연동 유도
+                showKakaoLinkModal();
+              }
             }, 800);
           } else {
             toast(result.message || '저장에 실패했습니다', 'error');
