@@ -175,8 +175,8 @@ async function submitEvent() {
     // 이미지 파일이 있는 경우 추가
     const images = document.getElementById('event-images')?.files || [];
     for (const image of Array.from(images)) {
-      if (image.size > 2 * 1024 * 1024) {
-        alert('이미지 크기는 2MB를 초과할 수 없습니다.');
+      if (image.size > 10 * 1024 * 1024) {
+        alert('이미지 크기는 10MB를 초과할 수 없습니다.');
         return;
       }
       formData.append('images', image);
