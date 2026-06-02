@@ -636,7 +636,7 @@ function buildEditForm() {
         <input type="datetime-local" id="edit-application-deadline" class="input" value="${toDatetimeLocal(e.applicationDeadlineAt)}">
       </div>
       <div class="field">
-        <label class="field-label" for="edit-confirmation-deadline">참가자 확정 마감 <span class="opt">(선택)</span></label>
+        <label class="field-label" for="edit-confirmation-deadline">참가자 확정 마감 (필수)</label>
         <input type="datetime-local" id="edit-confirmation-deadline" class="input" value="${toDatetimeLocal(e.confirmationDeadlineAt)}">
         <span class="field-hint">시간 도래 시 시스템이 자동 확정 (성비 1:1, 어린 사람 우선)</span>
       </div>
@@ -936,17 +936,57 @@ async function submitEdit() {
     const participationFeeValue = parseInt(document.getElementById('edit-event-fee').value, 10);
 
     // 필수값 체크
-    if (
-      !document.getElementById('edit-event-title')?.value ||
-      !document.getElementById('edit-event-place')?.value ||
-      !document.getElementById('edit-event-date')?.value ||
-      isNaN(participantsValue) ||
-      !document.getElementById('edit-event-start-time')?.value ||
-      !document.getElementById('edit-event-end-time')?.value ||
-      isNaN(participationFeeValue) ||
-      !document.getElementById('edit-event-contents')?.value
-    ) {
-      alert('모든 필수 항목을 입력해주세요.');
+    const editTitle = document.getElementById('edit-event-title')?.value;
+    const editPlace = document.getElementById('edit-event-place')?.value;
+    const editDate = document.getElementById('edit-event-date')?.value;
+    const editStartTime = document.getElementById('edit-event-start-time')?.value;
+    const editEndTime = document.getElementById('edit-event-end-time')?.value;
+    const editContents = document.getElementById('edit-event-contents')?.value;
+    const editConDeadline = document.getElementById('edit-confirmation-deadline')?.value;
+
+    if (!editTitle || !editTitle.trim()) {
+      alert('이벤트 제목을 입력해주세요.');
+      document.getElementById('edit-event-title')?.focus();
+      return;
+    }
+    if (!editPlace || !editPlace.trim()) {
+      alert('장소를 입력해주세요.');
+      document.getElementById('edit-event-place')?.focus();
+      return;
+    }
+    if (isNaN(participantsValue)) {
+      alert('정원을 입력해주세요.');
+      document.getElementById('edit-event-participants')?.focus();
+      return;
+    }
+    if (!editDate) {
+      alert('행사 날짜를 입력해주세요.');
+      document.getElementById('edit-event-date')?.focus();
+      return;
+    }
+    if (!editStartTime) {
+      alert('시작 시간을 입력해주세요.');
+      document.getElementById('edit-event-start-time')?.focus();
+      return;
+    }
+    if (!editEndTime) {
+      alert('종료 시간을 입력해주세요.');
+      document.getElementById('edit-event-end-time')?.focus();
+      return;
+    }
+    if (!editConDeadline) {
+      alert('참가자 확정 마감 시간을 입력해주세요.');
+      document.getElementById('edit-confirmation-deadline')?.focus();
+      return;
+    }
+    if (isNaN(participationFeeValue)) {
+      alert('참가비를 입력해주세요.');
+      document.getElementById('edit-event-fee')?.focus();
+      return;
+    }
+    if (!editContents || !editContents.trim()) {
+      alert('이벤트 내용을 입력해주세요.');
+      document.getElementById('edit-event-contents')?.focus();
       return;
     }
     
@@ -964,7 +1004,6 @@ async function submitEdit() {
     const editFeeMax        = document.getElementById('edit-participation-fee-max')?.value;
     const editAppStart      = document.getElementById('edit-application-start')?.value;
     const editAppDeadline   = document.getElementById('edit-application-deadline')?.value;
-    const editConDeadline   = document.getElementById('edit-confirmation-deadline')?.value;
     const editTags = Array.from(
       document.querySelectorAll('#edit-form-section .edit-tag-chip.is-active')
     ).map(el => el.dataset.tag);

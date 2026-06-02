@@ -9,7 +9,7 @@ const Event = require('../../models/Event');
 const Review = require('../../models/Review');
 const authenticateToken = require('../../middleware/authMiddleware');
 const { authorizeRoles } = require('../../middleware/roleMiddleware');
-const { upload, handleMulterError } = require('./_multer');
+const { upload, handleMulterError, processAndSaveImages } = require('./_multer');
 
 const router = express.Router();
 
@@ -154,8 +154,8 @@ router.post('/',
 
       // 입력값 검증
       if (!title || !date || !place || !participants || !startTime ||
-        !endTime || !participation_fee || !contents || !team || !accessCode) {
-        return res.status(400).json({ message: '모든 필수 필드를 입력해주세요.' });
+        !endTime || !participation_fee || !contents || !team || !accessCode || !confirmationDeadlineAt) {
+        return res.status(400).json({ message: '모든 필수 필드를 입력해주세요. (참가자 확정 마감 시간 포함)' });
       }
       if (refundPolicy === 'custom' && !refundCustomDescription?.trim()) {
         return res.status(400).json({
@@ -208,6 +208,9 @@ router.post('/',
         }
       }
 
+      // 이미지 처리 및 압축 저장
+      const savedImages = req.files ? await processAndSaveImages(req.files) : [];
+
       const eventData = {
         title,
         date,
@@ -219,7 +222,7 @@ router.post('/',
         contents,
         team,
         accessCode,
-        images: req.files ? req.files.map(file => `/uploads/events/${file.filename}`) : [],
+        images: savedImages,
         creator: req.user.id,
         isSelective: req.body.isSelective === 'true',
         refundPolicy: refundPolicy || 'standard',
@@ -335,7 +338,12 @@ router.put('/update-content',
       }
       if (applicationStartAt     !== undefined) event.applicationStartAt     = applicationStartAt     ? new Date(applicationStartAt)     : null;
       if (applicationDeadlineAt  !== undefined) event.applicationDeadlineAt  = applicationDeadlineAt  ? new Date(applicationDeadlineAt)  : null;
-      if (confirmationDeadlineAt !== undefined) event.confirmationDeadlineAt = confirmationDeadlineAt ? new Date(confirmationDeadlineAt) : null;
+      if (confirmationDeadlineAt !== undefined) {
+        if (!confirmationDeadlineAt) {
+          return res.status(400).json({ message: '참가자 확정 마감 시간을 입력해주세요.' });
+        }
+        event.confirmationDeadlineAt = new Date(confirmationDeadlineAt);
+      }
       if (maxApplicants !== undefined) {
         event.maxApplicants = maxApplicants ? parseInt(maxApplicants) : null;
       }

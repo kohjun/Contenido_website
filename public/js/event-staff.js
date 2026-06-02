@@ -48,9 +48,59 @@ async function submitEvent() {
     const tags = collectTags();
 
     // 입력값 검증
-    if (!title || !place || !participants || !date || !startTime ||
-        !endTime || !participation_fee || !contents || !team || !accessCode) {
-      alert('모든 필수 필드를 입력해주세요.');
+    if (!title.trim()) {
+      alert('이벤트 제목을 입력해주세요.');
+      document.getElementById('event-title')?.focus();
+      return;
+    }
+    if (!place.trim()) {
+      alert('장소를 입력해주세요.');
+      document.getElementById('event-place')?.focus();
+      return;
+    }
+    if (!participants) {
+      alert('참가 인원을 입력해주세요.');
+      document.getElementById('event-participants')?.focus();
+      return;
+    }
+    if (!date) {
+      alert('행사 날짜를 입력해주세요.');
+      document.getElementById('event-date')?.focus();
+      return;
+    }
+    if (!startTime) {
+      alert('시작 시간을 입력해주세요.');
+      document.getElementById('event-start-time')?.focus();
+      return;
+    }
+    if (!endTime) {
+      alert('종료 시간을 입력해주세요.');
+      document.getElementById('event-end-time')?.focus();
+      return;
+    }
+    if (!confirmationDeadlineAt) {
+      alert('참가자 확정 마감 시간을 입력해주세요.');
+      document.getElementById('confirmation-deadline-date')?.focus();
+      return;
+    }
+    if (participation_fee === '') {
+      alert('참가비를 입력해주세요.');
+      document.getElementById('event-participation-fee')?.focus();
+      return;
+    }
+    if (!team) {
+      alert('담당 팀을 선택해주세요.');
+      document.getElementById('event-team')?.focus();
+      return;
+    }
+    if (!contents.trim()) {
+      alert('이벤트 내용을 입력해주세요.');
+      document.getElementById('event-contents')?.focus();
+      return;
+    }
+    if (!accessCode) {
+      alert('접근 코드를 입력해주세요.');
+      document.getElementById('event-access-code')?.focus();
       return;
     }
     if (refundPolicy === 'custom' && !refundCustomDescription.trim()) {
@@ -147,7 +197,7 @@ async function submitEvent() {
     window.location.href = 'events.html';
   } catch (error) {
     console.error('Error submitting event:', error);
-    alert('이미지 업로드 중 오류가 발생했습니다. 이미지 크기와 형식을 확인해주세요.');
+    alert(error.message || '이벤트 등록 중 오류가 발생했습니다.');
   }
 }
 

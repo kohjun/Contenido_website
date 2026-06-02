@@ -7,7 +7,7 @@ const Event = require('../../models/Event');
 const User = require('../../models/User');
 const authenticateToken = require('../../middleware/authMiddleware');
 const { authorizeRoles } = require('../../middleware/roleMiddleware');
-const { upload } = require('./_multer');
+const { upload, handleMulterError, processAndSaveImages } = require('./_multer');
 
 const router = express.Router();
 
@@ -19,6 +19,7 @@ router.post('/upload-images',
   authenticateToken,
   authorizeRoles('officer', 'admin'),
   upload.array('images', 3),
+  handleMulterError,
   async (req, res) => {
     try {
       if (!req.files || req.files.length === 0) {
@@ -39,7 +40,7 @@ router.post('/upload-images',
         });
       }
 
-      const newImages = req.files.map(file => `/uploads/events/${file.filename}`);
+      const newImages = await processAndSaveImages(req.files);
 
       res.json({
         message: '이미지가 성공적으로 업로드되었습니다.',
@@ -47,7 +48,7 @@ router.post('/upload-images',
       });
     } catch (error) {
       console.error('Error uploading images:', error);
-      res.status(500).json({ message: '이미지 업로드 중 오류가 발생했습니다.' });
+      res.status(500).json({ message: error.message || '이미지 업로드 중 오류가 발생했습니다.' });
     }
   });
 
