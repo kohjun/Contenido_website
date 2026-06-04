@@ -432,7 +432,7 @@ const Sidebar = (function() {
       
 
       //10.스태프팀
-      if (pageId === 'staffTeam'||'regularTeam'||'starterTeam') {
+      if (['staffTeam', 'regularTeam', 'starterTeam'].includes(pageId)) {
         window.calendarInitialized = false;
 
         // TOAST UI Calendar CSS 로드
@@ -531,12 +531,19 @@ const Sidebar = (function() {
     window.addEventListener('resize', checkMobile);
     checkMobile(); // 초기 실행
 
-    // 기존의 팀 메뉴 클릭 이벤트에 모바일 사이드바 닫기 추가
+    // 기존의 팀 메뉴 클릭 이벤트에 모바일 사이드바 닫기 및 활성화 표시 추가
     container.addEventListener('click', async (e) => {
       const teamLink = e.target.closest('[data-team]');
       if (teamLink) {
         e.preventDefault();
         const teamId = teamLink.dataset.team;
+        
+        // active 클래스 갱신
+        container.querySelectorAll('[data-team]').forEach(link => {
+          link.classList.remove('active');
+        });
+        teamLink.classList.add('active');
+
         if (window.innerWidth <= 768) {
           sidebar.classList.remove('show');
         }

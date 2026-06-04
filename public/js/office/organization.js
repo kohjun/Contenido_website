@@ -3,6 +3,11 @@ class OrganizationChart {
     static dragData = null;
     static pendingChanges = [];
 
+    static getProfileImageHtml(user) {
+        const secureProfileImage = user.profileImage?.replace('http://', 'https://') || '/images/basic_Image.png';
+        return `<img src="${secureProfileImage}" class="member-avatar" alt="${user.name}" onerror="this.src='/images/basic_Image.png'">`;
+    }
+
     static async init() {
         await this.loadData();
         await this.setupEditModeButton();
@@ -295,9 +300,16 @@ class OrganizationChart {
                 adminUsers.forEach(user => {
                     const memberDiv = document.createElement('div');
                     memberDiv.className = 'member';
+                    const avatarHtml = OrganizationChart.getProfileImageHtml(user);
+                    const formattedPhone = user.phonenumber ? user.phonenumber.replace(/(\d{3})(\d{4})(\d{4})/, '$1-$2-$3') : '-';
                     memberDiv.innerHTML = `
-                        <span class="name">${user.name}</span>
-                        <span class="contact">${user.phonenumber ? user.phonenumber.replace(/(\d{3})(\d{4})(\d{4})/, '$1-$2-$3') : '-'}</span>
+                        <div class="member-header">
+                            ${avatarHtml}
+                            <div class="member-info-text">
+                                <span class="name">${user.name}</span>
+                                <span class="contact">${formattedPhone}</span>
+                            </div>
+                        </div>
                     `;
                     adminContainer.appendChild(memberDiv);
                 });
@@ -326,10 +338,18 @@ class OrganizationChart {
                     const memberDiv = document.createElement('div');
                     memberDiv.className = `member${user.isTeamLeader ? ' team-leader' : ''}`;
                     memberDiv.dataset.userId = user.id;
+                    const avatarHtml = OrganizationChart.getProfileImageHtml(user);
+                    const formattedPhone = user.phonenumber ? user.phonenumber.replace(/(\d{3})(\d{4})(\d{4})/, '$1-$2-$3') : '-';
                     memberDiv.innerHTML = `
                         <div class="member-header">
-                            <span class="name">${user.name}</span>
-                            <span class="contact">${user.phonenumber ? user.phonenumber.replace(/(\d{3})(\d{4})(\d{4})/, '$1-$2-$3') : '-'}</span>
+                            ${avatarHtml}
+                            <div class="member-info-text">
+                                <span class="name">
+                                    ${user.name}
+                                    ${user.isTeamLeader ? '<span class="leader-badge">팀장</span>' : ''}
+                                </span>
+                                <span class="contact">${formattedPhone}</span>
+                            </div>
                         </div>
                         
                         <!-- 업무 메모 섹션 -->
@@ -416,9 +436,19 @@ class OrganizationChart {
                         const memberDiv = document.createElement('div');
                         memberDiv.className = `member${user.isTeamLeader ? ' team-leader' : ''}`;
                         memberDiv.dataset.userId = user.id;
+                        const avatarHtml = OrganizationChart.getProfileImageHtml(user);
+                        const formattedPhone = user.phonenumber ? user.phonenumber.replace(/(\d{3})(\d{4})(\d{4})/, '$1-$2-$3') : '-';
                         memberDiv.innerHTML = `
-                            <span class="name">${user.name}</span>
-                            <span class="contact">${user.phonenumber ? user.phonenumber.replace(/(\d{3})(\d{4})(\d{4})/, '$1-$2-$3') : '-'}</span>
+                            <div class="member-header">
+                                ${avatarHtml}
+                                <div class="member-info-text">
+                                    <span class="name">
+                                        ${user.name}
+                                        ${user.isTeamLeader ? '<span class="leader-badge">팀장</span>' : ''}
+                                    </span>
+                                    <span class="contact">${formattedPhone}</span>
+                                </div>
+                            </div>
                         `;
                         subteamList.appendChild(memberDiv);
                     }
