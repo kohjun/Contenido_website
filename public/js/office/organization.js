@@ -458,7 +458,7 @@ class OrganizationChart {
             // 수정모드일 때 드래그 가능하게 다시 세팅
             if (this.isEditMode) {
                 this.toggleEditMode(true);
-            } else if (await this.isAdmin()) {
+            } else if (await this.canManageLeaders()) {
                 this.setupTeamLeaderEdit();
             }
 
@@ -484,11 +484,12 @@ class OrganizationChart {
         });
     }
 
-    static async isAdmin() {
+    static async canManageLeaders() {
         try {
             const res = await fetch('/user/info');
             const user = await res.json();
-            return user.role === 'admin';
+            // 관리자(admin) 또는 인사팀(HumanResourceTeam) 소속 임원(officer) 권한 체크
+            return user.role === 'admin' || (user.role === 'officer' && user.team === 'HumanResourceTeam');
         } catch (e) {
             return false;
         }
@@ -497,9 +498,12 @@ class OrganizationChart {
     static async setupTeamLeaderEdit() {
         document.querySelectorAll('.member').forEach(member => {
             member.addEventListener('contextmenu', async (e) => {
-                e.preventDefault();
                 const userId = member.dataset.userId;
-                const memberName = member.querySelector('.name').textContent;
+                if (!userId) return; // 회장단(admin) 등 대상이 아니거나 ID가 없으면 동작 제외
+
+                e.preventDefault();
+                const nameEl = member.querySelector('.name');
+                const memberName = nameEl ? nameEl.childNodes[0].textContent.trim() : '';
                 const isCurrentlyLeader = member.classList.contains('team-leader');
 
                 const action = isCurrentlyLeader ? '해제' : '지정';
