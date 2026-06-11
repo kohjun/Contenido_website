@@ -3,6 +3,19 @@ let deletedImages = new Set();
 let currentEvent = null; // 전역 변수로 현재 이벤트 데이터 저장
 let currentUser = null; // 현재 사용자 정보 저장
 
+// HTTP 응답을 JSON 혹은 에러 텍스트로 처리하는 헬퍼 함수
+async function parseResponse(response) {
+  const contentType = response.headers.get('content-type');
+  if (contentType && contentType.includes('application/json')) {
+    return await response.json();
+  }
+  const text = await response.text();
+  if (response.status === 413) {
+    throw new Error('업로드한 이미지 용량이 너무 큽니다. 이미지 용량을 줄여서 다시 시도해주세요. (최대 10MB)');
+  }
+  throw new Error(`서버에서 오류가 발생했습니다. (상태 코드: ${response.status})`);
+}
+
 async function loadEventContent(eventId) {
   try {
     // 인증 상태 확인 (이제 nav-injector에 포함된 AuthModule 사용)
@@ -911,12 +924,17 @@ async function submitEdit() {
         body: formData
       });
 
-      if (!imageResponse.ok) {
-        const errorData = await imageResponse.json();
-        throw new Error(errorData.message);
+      let imageResult;
+      try {
+        imageResult = await parseResponse(imageResponse);
+      } catch (parseError) {
+        throw parseError;
       }
 
-      const imageResult = await imageResponse.json();
+      if (!imageResponse.ok) {
+        throw new Error(imageResult.message || '이미지 업로드 중 오류가 발생했습니다.');
+      }
+
       newImageUrls = imageResult.images;
       console.log(`새 이미지 업로드 성공: ${newImageUrls.length}개`);
     }
@@ -1058,13 +1076,18 @@ async function submitEdit() {
       body: JSON.stringify(requestData)
     });
 
-    if (!response.ok) {
-      const errorData = await response.json();
-      console.error('서버 에러 응답:', errorData);
-      throw new Error(errorData.message || '수정 중 오류가 발생했습니다.');
+    let result;
+    try {
+      result = await parseResponse(response);
+    } catch (parseError) {
+      throw parseError;
     }
 
-    const result = await response.json();
+    if (!response.ok) {
+      console.error('서버 에러 응답:', result);
+      throw new Error(result.message || '수정 중 오류가 발생했습니다.');
+    }
+
     console.log('이벤트 수정 성공:', result);
     alert('이벤트가 성공적으로 수정되었습니다.');
     location.reload();

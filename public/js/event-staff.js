@@ -21,6 +21,19 @@ function collectTags() {
     .map(el => el.dataset.tag);
 }
 
+// HTTP 응답을 JSON 혹은 에러 텍스트로 처리하는 헬퍼 함수
+async function parseResponse(response) {
+  const contentType = response.headers.get('content-type');
+  if (contentType && contentType.includes('application/json')) {
+    return await response.json();
+  }
+  const text = await response.text();
+  if (response.status === 413) {
+    throw new Error('업로드한 이미지 용량이 너무 큽니다. 이미지 용량을 줄여서 다시 시도해주세요. (최대 10MB)');
+  }
+  throw new Error(`서버에서 오류가 발생했습니다. (상태 코드: ${response.status})`);
+}
+
 async function submitEvent() {
   try {
     const title = document.getElementById('event-title').value;
@@ -183,7 +196,13 @@ async function submitEvent() {
     }
 
     const response = await fetch('/events', { method: 'POST', body: formData });
-    const result = await response.json();
+    
+    let result;
+    try {
+      result = await parseResponse(response);
+    } catch (parseError) {
+      throw parseError;
+    }
 
     if (!response.ok) {
       throw new Error(result.message || '서버 에러가 발생했습니다.');

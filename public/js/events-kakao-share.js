@@ -68,6 +68,16 @@
     });
   }
 
+  function isCurrentMonthEvent(event, now) {
+    if (!event || !event.date) return false;
+
+    const eventDate = new Date(event.date);
+    if (Number.isNaN(eventDate.getTime())) return false;
+
+    return eventDate.getFullYear() === now.getFullYear()
+      && eventDate.getMonth() === now.getMonth();
+  }
+
   async function shareEventsListToKakao() {
     const ok = await initializeKakao();
     if (!ok) {
@@ -82,7 +92,8 @@
 
       events = events
         .filter((e) => !e.isEnded)
-        .sort((a, b) => new Date(b.date) - new Date(a.date));
+        .filter((e) => isCurrentMonthEvent(e, new Date()))
+        .sort((a, b) => new Date(a.date) - new Date(b.date));
 
       if (events.length === 0) {
         notify('공유할 진행중인 이벤트가 없습니다.', 'warning');
