@@ -185,7 +185,7 @@ function renderPosts(posts) {
         <div class="post-footer">
           <div class="post-left-footer">
             ${post.isMyPost || ['admin', 'officer'].includes(currentUser.role) ? `
-              <button class="comment-act-btn btn-delete" data-delete-post-id="${post._id}">삭제</button>
+              <button class="post-delete-btn" data-delete-post-id="${post._id}">삭제</button>
             ` : ''}
           </div>
           <div class="post-stats">
@@ -389,15 +389,11 @@ function renderPostDetail(post) {
       <div class="post-detail-stats-row">
         <span class="detail-stat-val liked">👍 ${post.likesCount}</span>
         <span class="detail-stat-val commented">💬 ${post.commentsCount}</span>
-        <span class="detail-stat-val" style="color: #ffb600;">⭐ 0</span>
       </div>
       
       <div class="post-detail-buttons-row">
         <button class="btn-detail-action ${post.hasLiked ? 'liked' : ''}" id="btn-like-post">
           <span>👍 공감</span>
-        </button>
-        <button class="btn-detail-action" id="btn-scrap-post">
-          <span>⭐ 스크랩</span>
         </button>
       </div>
     </div>
@@ -425,12 +421,6 @@ function renderPostDetail(post) {
   if (reportBtn) {
     reportBtn.addEventListener('click', () => {
       showToast('신고가 접수되었습니다.', { type: 'success' });
-    });
-  }
-  const scrapBtn = document.getElementById('btn-scrap-post');
-  if (scrapBtn) {
-    scrapBtn.addEventListener('click', () => {
-      showToast('스크랩 기능은 준비 중입니다.', { type: 'info' });
     });
   }
   document.getElementById('btn-like-post').addEventListener('click', () => togglePostLike(post._id));
