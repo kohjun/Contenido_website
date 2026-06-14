@@ -334,14 +334,12 @@ function renderPostDetail(post) {
       <form id="comment-create-form" class="comment-input-form">
         <input type="hidden" id="current-post-id" value="${post._id}" />
         <div class="comment-input-row">
-          <textarea class="comment-textarea" id="comment-content" placeholder="댓글을 입력하세요..." required></textarea>
-          <label class="check" style="cursor: pointer; display: inline-flex; align-items: center; gap: 4px; font-size: 13px; color: var(--c-text-soft); white-space: nowrap;">
+          <input type="text" class="comment-input-field" id="comment-content" placeholder="댓글을 입력하세요..." required />
+          <label class="comment-anon-label">
             <input type="checkbox" id="comment-anonymous" checked />
             <span>익명</span>
           </label>
-          <button type="submit" class="btn btn-primary btn-sm" style="padding: 10px 16px;">
-            <span>등록</span>
-          </button>
+          <button type="submit" class="comment-submit-btn" aria-label="등록">✏️</button>
         </div>
       </form>
     `;
@@ -358,26 +356,49 @@ function renderPostDetail(post) {
 
   const commentsListHtml = renderCommentsTree(post.comments, post._id);
 
+  const isMyPostOrStaff = post.isMyPost || ['admin', 'officer'].includes(currentUser.role);
+  let rightActionsHtml = '';
+  if (isMyPostOrStaff) {
+    rightActionsHtml += `<button class="post-detail-act-link" id="btn-delete-post">삭제</button>`;
+  } else {
+    rightActionsHtml += `
+      <button class="post-detail-act-link" id="btn-msg-post">쪽지</button>
+      <button class="post-detail-act-link" id="btn-report-post">신고</button>
+    `;
+  }
+
   body.innerHTML = `
     <div class="post-detail-section">
-      <div class="post-detail-meta">
-        <div class="post-detail-author-group">
-          <span class="${authorClass}">${escapeHtml(post.authorName)}</span>
-          <span style="font-size: 12px; color: var(--c-text-muted);">${dateStr}</span>
+      <div class="post-detail-header-row">
+        <div class="post-detail-profile">
+          <div class="post-detail-avatar">👤</div>
+          <div class="post-detail-author-meta">
+            <span class="${authorClass}">${escapeHtml(post.authorName)}</span>
+            <span class="post-detail-time">${dateStr}</span>
+          </div>
         </div>
-        ${post.isMyPost || ['admin', 'officer'].includes(currentUser.role) ? `
-          <button class="comment-act-btn btn-delete" id="btn-delete-post">삭제</button>
-        ` : ''}
+        <div class="post-detail-right-actions">
+          ${rightActionsHtml}
+        </div>
       </div>
+      
       <h2 class="post-detail-title">${escapeHtml(post.title)}</h2>
       <p class="post-detail-content">${escapeHtml(post.content)}</p>
       ${imageSection}
-      <div class="post-detail-actions">
-        <div class="post-detail-left-actions">
-          <button class="btn btn-sm ${post.hasLiked ? 'btn-danger' : 'btn-ghost'}" id="btn-like-post">
-            <span>👍 추천 ${post.likesCount}</span>
-          </button>
-        </div>
+      
+      <div class="post-detail-stats-row">
+        <span class="detail-stat-val liked">👍 ${post.likesCount}</span>
+        <span class="detail-stat-val commented">💬 ${post.commentsCount}</span>
+        <span class="detail-stat-val" style="color: #ffb600;">⭐ 0</span>
+      </div>
+      
+      <div class="post-detail-buttons-row">
+        <button class="btn-detail-action ${post.hasLiked ? 'liked' : ''}" id="btn-like-post">
+          <span>👍 공감</span>
+        </button>
+        <button class="btn-detail-action" id="btn-scrap-post">
+          <span>⭐ 스크랩</span>
+        </button>
       </div>
     </div>
 
@@ -393,6 +414,24 @@ function renderPostDetail(post) {
   const deleteBtn = document.getElementById('btn-delete-post');
   if (deleteBtn) {
     deleteBtn.addEventListener('click', () => deletePost(post._id, true));
+  }
+  const msgBtn = document.getElementById('btn-msg-post');
+  if (msgBtn) {
+    msgBtn.addEventListener('click', () => {
+      showToast('쪽지 기능은 준비 중입니다.', { type: 'info' });
+    });
+  }
+  const reportBtn = document.getElementById('btn-report-post');
+  if (reportBtn) {
+    reportBtn.addEventListener('click', () => {
+      showToast('신고가 접수되었습니다.', { type: 'success' });
+    });
+  }
+  const scrapBtn = document.getElementById('btn-scrap-post');
+  if (scrapBtn) {
+    scrapBtn.addEventListener('click', () => {
+      showToast('스크랩 기능은 준비 중입니다.', { type: 'info' });
+    });
   }
   document.getElementById('btn-like-post').addEventListener('click', () => togglePostLike(post._id));
 
@@ -432,55 +471,63 @@ function renderCommentNode(c, isReply, postId) {
   const isReplyClass = isReply ? 'is-reply' : '';
   const deletedClass = c.isDeleted ? 'deleted-style' : '';
   
-  let authorClass = 'comment-author';
+  let authorClass = 'comment-node-author';
   if (!c.isAnonymous) {
-    authorClass = 'comment-author not-anon';
+    authorClass = 'comment-node-author not-anon';
+  } else if (c.authorName === '익명(글쓴이)') {
+    authorClass = 'comment-node-author is-author-moniker';
   }
 
   let contentHtml = '';
   if (c.isDeleted) {
-    contentHtml = `<p class="comment-content" style="color: var(--c-text-muted); font-style: italic;">삭제된 댓글입니다.</p>`;
+    contentHtml = `<p class="comment-node-content" style="color: var(--c-text-muted); font-style: italic;">삭제된 댓글입니다.</p>`;
   } else {
-    contentHtml = `<p class="comment-content">${escapeHtml(c.content)}</p>`;
+    contentHtml = `<p class="comment-node-content">${escapeHtml(c.content)}</p>`;
   }
 
   let actionButtonsHtml = '';
   if (!c.isDeleted) {
-    const replyButton = !isReply && currentUser.active ? `
-      <button class="comment-act-btn btn-reply" data-comment-id="${c._id}">
-        💬 답글
-      </button>
+    const replyBtn = !isReply && currentUser.active ? `
+      <button class="comment-link-btn btn-reply" data-comment-id="${c._id}">대댓글</button>
     ` : '';
-
-    const likeButton = `
-      <button class="comment-act-btn btn-comment-like ${c.hasLiked ? 'liked' : ''}" data-comment-id="${c._id}">
-        👍 ${c.likesCount || 0}
-      </button>
+    const likeBtn = `
+      <button class="comment-link-btn btn-comment-like ${c.hasLiked ? 'liked' : ''}" data-comment-id="${c._id}">공감</button>
     `;
-
-    const deleteButton = c.isMyComment || ['admin', 'officer'].includes(currentUser.role) ? `
-      <button class="comment-act-btn btn-delete btn-comment-delete" data-comment-id="${c._id}">
-        🗑️ 삭제
-      </button>
+    const messageBtn = !c.isMyComment ? `
+      <button class="comment-link-btn btn-comment-message" data-author-name="${c.authorName}">쪽지</button>
+    ` : '';
+    const reportBtn = !c.isMyComment ? `
+      <button class="comment-link-btn btn-comment-report" data-comment-id="${c._id}">신고</button>
+    ` : '';
+    const deleteBtn = c.isMyComment || ['admin', 'officer'].includes(currentUser.role) ? `
+      <button class="comment-link-btn btn-delete btn-comment-delete" data-comment-id="${c._id}">삭제</button>
     ` : '';
 
     actionButtonsHtml = `
-      <div class="comment-actions">
-        ${replyButton}
-        ${likeButton}
-        ${deleteButton}
+      <div class="comment-header-right-actions">
+        ${replyBtn}
+        ${likeBtn}
+        ${messageBtn}
+        ${reportBtn}
+        ${deleteBtn}
       </div>
     `;
   }
 
   return `
-    <div class="comment-node ${isReplyClass} ${deletedClass}" id="comment-${c._id}">
-      <div class="comment-header">
-        <span class="${authorClass}">${escapeHtml(c.authorName)}</span>
-        <span class="comment-time">${dateStr}</span>
+    <div class="comment-node-item ${isReplyClass} ${deletedClass}" id="comment-${c._id}">
+      <div class="comment-node-header">
+        <div class="comment-node-profile">
+          <div class="comment-node-avatar">👤</div>
+          <span class="${authorClass}">${escapeHtml(c.authorName)}</span>
+        </div>
+        ${actionButtonsHtml}
       </div>
       ${contentHtml}
-      ${actionButtonsHtml}
+      <div style="display: flex; align-items: center; gap: 6px;">
+        <span class="comment-node-time">${dateStr}</span>
+        ${c.likesCount > 0 ? `<span style="color: #f91f1f; font-size: 10px; font-weight: bold; display: inline-flex; align-items: center; gap: 2px;">👍 ${c.likesCount}</span>` : ''}
+      </div>
     </div>
   `;
 }
@@ -505,6 +552,20 @@ function attachCommentActions(postId) {
         console.error(err);
         showToast('댓글 추천 처리 중 오류가 발생했습니다.', { type: 'danger' });
       }
+    });
+  });
+
+  // Comment Message Action
+  document.querySelectorAll('.btn-comment-message').forEach(btn => {
+    btn.addEventListener('click', () => {
+      showToast('쪽지 기능은 준비 중입니다.', { type: 'info' });
+    });
+  });
+
+  // Comment Report Action
+  document.querySelectorAll('.btn-comment-report').forEach(btn => {
+    btn.addEventListener('click', () => {
+      showToast('신고가 접수되었습니다.', { type: 'success' });
     });
   });
 
@@ -561,17 +622,13 @@ function showReplyInput(commentId, postId) {
   replyWrap.innerHTML = `
     <form id="reply-create-form" class="comment-input-form">
       <div class="comment-input-row">
-        <textarea class="comment-textarea" id="reply-content" placeholder="답글을 입력하세요..." required style="min-height: 36px;"></textarea>
-        <label class="check" style="cursor: pointer; display: inline-flex; align-items: center; gap: 4px; font-size: 12px; color: var(--c-text-soft); white-space: nowrap;">
+        <input type="text" class="comment-input-field" id="reply-content" placeholder="답글을 입력하세요..." required />
+        <label class="comment-anon-label">
           <input type="checkbox" id="reply-anonymous" checked />
           <span>익명</span>
         </label>
-        <button type="submit" class="btn btn-primary btn-sm" style="padding: 8px 12px; font-size: 12px;">
-          <span>등록</span>
-        </button>
-        <button type="button" class="btn btn-ghost btn-sm" id="btn-cancel-reply" style="padding: 8px 12px; font-size: 12px;">
-          <span>취소</span>
-        </button>
+        <button type="submit" class="comment-submit-btn" aria-label="등록">✏️</button>
+        <button type="button" class="btn-cancel-reply-x" id="btn-cancel-reply" aria-label="취소">×</button>
       </div>
     </form>
   `;

@@ -333,27 +333,11 @@
     gap: 3px;
 }
 
-.meta-item.liked {
-    color: #f91f1f; /* 에브리타임 공감 레드 */
-    font-weight: 600;
-}
-
-.meta-item.commented {
-    color: #0ca5af; /* 에브리타임 댓글 시안/테알 */
-    font-weight: 600;
-}
-
-.meta-sep {
-    color: #e3e3e3;
-    margin: 0 5px;
-    font-size: 9px;
-}
-
-/* 4) 상세 모달 (콤팩트 다듬기) */
+/* 4) 상세 페이지 모달 리디자인 (에브리타임 스타일) */
 .modal-overlay {
     position: fixed;
     inset: 0;
-    background: rgba(15, 23, 42, 0.3);
+    background: rgba(15, 23, 42, 0.35);
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
     display: flex;
@@ -373,7 +357,7 @@
 
 .detail-modal {
     width: 100%;
-    max-width: 600px;
+    max-width: 680px;
     max-height: 85vh;
     background: var(--c-surface);
     border-radius: 8px;
@@ -400,10 +384,7 @@
 .detail-modal-title {
     font-size: 13.5px;
     font-weight: 700;
-    color: var(--c-brand-strong);
-    display: flex;
-    align-items: center;
-    gap: 4px;
+    color: #292929;
 }
 
 .modal-close-btn {
@@ -429,47 +410,89 @@
 .post-detail-section {
     display: flex;
     flex-direction: column;
-    gap: var(--sp-2);
-    border-bottom: 1px solid #f2f2f2;
-    padding-bottom: 12px;
+    gap: 8px;
+    border-bottom: 1.5px solid #f2f2f2;
+    padding-bottom: 14px;
     margin-bottom: 12px;
 }
 
-.post-detail-meta {
+.post-detail-header-row {
     display: flex;
     justify-content: space-between;
     align-items: center;
 }
 
-.post-detail-author-group {
+.post-detail-profile {
     display: flex;
     align-items: center;
-    gap: 6px;
-    font-size: 12px;
+    gap: 8px;
 }
 
-.post-detail-author-group .post-author {
-    color: #c62917;
+.post-detail-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: #f2f2f2;
+    color: #a6a6a6;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+}
+
+.post-detail-author-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+}
+
+.post-detail-author-meta .post-author {
+    font-size: 13px;
     font-weight: 700;
+    color: #292929;
 }
 
-.post-detail-author-group .post-author.not-anon {
-    color: var(--c-text);
+.post-detail-author-meta .post-author.not-anon {
+    color: var(--c-brand-strong);
+}
+
+.post-detail-author-meta .post-detail-time {
+    font-size: 11px;
+    color: #a6a6a6;
+}
+
+.post-detail-right-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.post-detail-act-link {
+    background: none;
+    border: none;
+    color: #a6a6a6;
+    font-size: 11.5px;
+    cursor: pointer;
+    padding: 0;
+}
+
+.post-detail-act-link:hover {
+    color: var(--c-danger);
 }
 
 .post-detail-title {
-    font-size: 16px;
+    font-size: 18px;
     font-weight: 700;
     color: #292929;
     line-height: 1.35;
-    margin: 4px 0 2px 0;
+    margin: 8px 0 2px 0;
+    letter-spacing: -0.01em;
 }
 
 .post-detail-content {
     font-size: 13.5px;
     color: #333;
     white-space: pre-wrap;
-    line-height: 1.55;
+    line-height: 1.6;
 }
 
 .post-detail-image-wrap {
@@ -477,43 +500,72 @@
     border-radius: 6px;
     overflow: hidden;
     border: 1px solid #eee;
-    max-height: 300px;
+    max-height: 350px;
     background: #fdfdfd;
 }
 
 .post-detail-image {
     width: 100%;
     height: auto;
-    max-height: 300px;
+    max-height: 350px;
     object-fit: contain;
     display: block;
 }
 
-.post-detail-actions {
+.post-detail-stats-row {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
+    gap: 8px;
+    font-size: 11px;
+    color: #a6a6a6;
     margin-top: 4px;
 }
 
-.btn-like-post {
-    border-radius: 4px;
-    font-weight: 700;
-    font-size: 11.5px;
-    padding: 4px 10px;
-    border: 1px solid #e3e3e3;
-    background: var(--c-surface);
-    color: var(--c-text-soft);
-    cursor: pointer;
+.detail-stat-val {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    font-weight: 600;
 }
 
-.btn-like-post.btn-danger {
+.detail-stat-val.liked {
+    color: #f91f1f;
+}
+
+.detail-stat-val.commented {
+    color: #0ca5af;
+}
+
+.post-detail-buttons-row {
+    display: flex;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.btn-detail-action {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: #f4f4f4;
+    border: none;
+    border-radius: 4px;
+    padding: 6px 12px;
+    font-size: 12px;
+    font-weight: 700;
+    color: #737373;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+
+.btn-detail-action:hover {
+    background: #e9e9e9;
+}
+
+.btn-detail-action.liked {
     background: var(--c-danger-soft);
-    border-color: var(--c-danger);
     color: var(--c-danger);
 }
 
-/* 5) 댓글 트리 디자인 (미니멀 라인형) */
+/* 5) 댓글 트리 디자인 (에브리타임 리스트 스타일) */
 .comments-section-title {
     font-size: 13px;
     font-weight: 700;
@@ -527,133 +579,186 @@
     gap: 0;
 }
 
-/* 댓글 노드 */
-.comment-node {
+/* 개별 댓글 노드 아이템 */
+.comment-node-item {
     display: flex;
     flex-direction: column;
     gap: 4px;
     background: none;
     border: none;
-    border-bottom: 1px solid #f6f6f6;
-    border-radius: 0;
-    padding: 8px 0;
-}
-
-.comment-node.is-reply {
-    margin-left: 20px;
-    background: #fbfbfb;
-    padding-left: 8px;
-    border-left: 2px solid #e9e9e9;
     border-bottom: 1px solid #f2f2f2;
+    border-radius: 0;
+    padding: 10px 0;
 }
 
-.comment-header {
+.comment-node-item.is-reply {
+    margin-left: 24px;
+    padding-left: 10px;
+    border-left: 2.5px solid #e9e9e9;
+    background: #fafafa;
+}
+
+.comment-node-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
 }
 
-.comment-author {
-    font-size: 11.5px;
+.comment-node-profile {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.comment-node-avatar {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: #f2f2f2;
+    color: #a6a6a6;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+}
+
+.comment-node-author {
+    font-size: 12px;
     font-weight: 700;
     color: #292929;
 }
 
-.comment-author.comment-author {
-    color: #c62917; /* 에브리타임 익명댓글 레드 계열 */
+.comment-node-author.is-author-moniker {
+    color: #0ca5af; /* 에브리타임 글쓴이 하늘색 */
 }
 
-.comment-author.not-anon {
-    color: var(--c-text);
-}
-
-.comment-time {
-    font-size: 11px;
-    color: var(--c-text-faint);
-}
-
-.comment-content {
-    font-size: 12.5px;
-    color: #444444;
-    margin: 1px 0;
-    line-height: 1.4;
-}
-
-.comment-actions {
-    display: flex;
-    justify-content: flex-end;
-    gap: 12px;
-    font-size: 11px;
-    margin-top: 2px;
-}
-
-.comment-act-btn {
-    background: none;
-    border: none;
-    color: var(--c-text-muted);
-    cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-    gap: 2px;
-    font-weight: 600;
-}
-
-.comment-act-btn:hover {
+.comment-node-author.not-anon {
     color: var(--c-brand-strong);
 }
 
-.comment-act-btn.btn-delete:hover {
+.comment-header-right-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.comment-link-btn {
+    background: none;
+    border: none;
+    color: #a6a6a6;
+    font-size: 11px;
+    cursor: pointer;
+    padding: 0;
+}
+
+.comment-link-btn:hover {
+    color: var(--c-brand-strong);
+}
+
+.comment-link-btn.btn-delete:hover {
     color: var(--c-danger);
 }
 
-.comment-act-btn.liked {
-    color: #f91f1f;
+.comment-node-content {
+    font-size: 13px;
+    color: #333;
+    line-height: 1.45;
+    margin: 2px 0;
 }
 
-/* 대댓글 작성 폼 */
+.comment-node-time {
+    font-size: 10.5px;
+    color: #a6a6a6;
+}
+
+/* 대댓글 작성 폼 포장 */
 .reply-input-wrap {
-    margin-left: 20px;
+    margin-left: 24px;
     margin-top: 0;
     margin-bottom: 4px;
-    padding: 8px;
+    padding: 6px;
     background: #f9f9f9;
     border: 1px solid #eee;
-    border-radius: 4px;
+    border-radius: 6px;
 }
 
-/* 6) 모달 하단 댓글 폼 */
+/* 6) 모달 하단 댓글 입력 바 (에타 스타일 둥근 바 & 우측 빨간 연필 버튼) */
 .detail-modal-footer {
     border-top: 1px solid #f2f2f2;
     padding: 8px 12px;
     background: var(--c-surface);
 }
 
-.comment-textarea {
-    flex: 1;
-    min-height: 32px;
-    max-height: 80px;
-    resize: none;
-    padding: 6px 12px;
-    font-size: 12.5px;
-    border-radius: 16px;
+.comment-input-form {
+    display: flex;
+    flex-direction: column;
+}
+
+.comment-input-row {
+    display: flex;
+    align-items: center;
     border: 1px solid #e3e3e3;
-    background: #fdfdfd;
-    font-family: inherit;
-    box-sizing: border-box;
+    border-radius: 8px;
+    background: #f9f9f9;
+    overflow: hidden;
+    padding-left: 8px;
 }
 
-.comment-textarea:focus {
-    border-color: var(--c-brand);
+.comment-input-field {
+    flex: 1;
+    border: none;
+    background: none;
     outline: none;
+    padding: 8px 12px;
+    font-size: 12.5px;
+    color: #333;
+    font-family: inherit;
 }
 
-.detail-modal-footer .btn-sm {
-    padding: 6px 12px;
-    font-size: 12px;
-    border-radius: 4px;
-    height: 32px;
+.comment-anon-label {
     display: inline-flex;
     align-items: center;
+    gap: 4px;
+    font-size: 12px;
+    color: #777;
+    margin-right: 8px;
+    cursor: pointer;
+    user-select: none;
+}
+
+.comment-anon-label input {
+    cursor: pointer;
+}
+
+.comment-submit-btn {
+    background: #c62917; /* 에타 시그니처 레드 버튼 */
+    color: white;
+    border: none;
+    width: 36px;
+    height: 36px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    flex-shrink: 0;
+    transition: background 0.15s;
+}
+
+.comment-submit-btn:hover {
+    background: #a82012;
+}
+
+.btn-cancel-reply-x {
+    background: none;
+    border: none;
+    color: #777;
+    width: 28px;
+    height: 28px;
+    cursor: pointer;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 /* 7) 활성회원 노티스 */

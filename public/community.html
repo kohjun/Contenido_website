@@ -105,16 +105,12 @@
         <form id="comment-create-form" class="comment-input-form">
           <input type="hidden" id="current-post-id" value="" />
           <div class="comment-input-row">
-            <textarea class="comment-textarea" id="comment-content" placeholder="댓글을 입력하세요..." required></textarea>
-            
-            <label class="check" style="cursor: pointer; display: inline-flex; align-items: center; gap: 4px; font-size: 13px; color: var(--c-text-soft); white-space: nowrap;">
+            <input type="text" class="comment-input-field" id="comment-content" placeholder="댓글을 입력하세요..." required />
+            <label class="comment-anon-label">
               <input type="checkbox" id="comment-anonymous" checked />
               <span>익명</span>
             </label>
-            
-            <button type="submit" class="btn btn-primary btn-sm" style="padding: 10px 16px;">
-              <span>등록</span>
-            </button>
+            <button type="submit" class="comment-submit-btn" aria-label="등록">✏️</button>
           </div>
         </form>
       </div>
