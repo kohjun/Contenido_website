@@ -689,29 +689,22 @@
 
 .comment-link-btn {
     background: none;
-    border: 1px solid #e3e3e3;
-    background: #fbfbfb;
-    color: #888;
+    border: none;
+    color: #a6a6a6;
     font-size: 11px;
-    font-weight: 700;
     cursor: pointer;
-    padding: 2px 8px;
-    border-radius: 12px; /* pill style */
-    transition: all 0.15s;
+    padding: 0;
+    transition: color 0.15s;
     white-space: nowrap;
     flex-shrink: 0;
 }
 
 .comment-link-btn:hover {
     color: var(--c-brand-strong);
-    border-color: var(--c-brand-strong);
-    background: var(--c-brand-soft);
 }
 
 .comment-link-btn.btn-delete:hover {
     color: #f91f1f;
-    border-color: #f91f1f;
-    background: var(--c-danger-soft);
 }
 
 .comment-node-content {
