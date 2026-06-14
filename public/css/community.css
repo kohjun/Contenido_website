@@ -684,7 +684,7 @@
 
 .comment-header-right-actions {
     display: flex;
-    gap: 8px;
+    gap: 4px;
 }
 
 .comment-link-btn {
@@ -694,8 +694,8 @@
     font-size: 11px;
     font-weight: 700;
     cursor: pointer;
-    padding: 3px 6px;
-    border-radius: 4px; /* 사각형 버튼 스타일 */
+    padding: 1px 3px;
+    border-radius: 3px; /* 사각형 버튼 스타일 */
     transition: all 0.15s;
     white-space: nowrap;
     flex-shrink: 0;
