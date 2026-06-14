@@ -214,20 +214,26 @@
 
 .image-preview-cancel {
     position: absolute;
-    top: 4px;
-    right: 4px;
-    width: 20px;
-    height: 20px;
+    top: 6px;
+    right: 6px;
+    width: 26px;
+    height: 26px;
     border-radius: 50%;
-    background: rgba(15, 23, 42, 0.7);
+    background: rgba(15, 23, 42, 0.75);
     border: none;
     color: white;
-    font-size: 12px;
-    line-height: 20px;
+    font-size: 15px;
+    line-height: 26px;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
+    transition: background 0.15s;
+    z-index: 5;
+}
+
+.image-preview-cancel:hover {
+    background: rgba(15, 23, 42, 0.9);
 }
 
 /* 3) 게시글 피드 (에브리타임 스크린샷과 일치하는 미니멀 실속형) */
@@ -859,4 +865,55 @@
     font-size: 12.5px;
     font-weight: 700;
     color: var(--c-text-soft);
+}
+
+/* =========================================================================
+   9) 모바일 반응형 및 X 버튼 터치 친화적 디자인
+   ========================================================================= */
+@media (max-width: 768px) {
+    /* 모달 전체화면 구성 */
+    .detail-modal {
+        max-width: 100%;
+        max-height: 100%;
+        height: 100%;
+        width: 100%;
+        border-radius: 0;
+    }
+    .modal-close-btn {
+        top: 12px;
+        right: 16px;
+        font-size: 26px;
+        width: 36px;
+        height: 36px;
+    }
+    .detail-modal-header {
+        padding: 14px 16px;
+        padding-right: 56px;
+    }
+    .detail-modal-body {
+        padding: 12px;
+    }
+    .comment-node-item.is-reply {
+        margin-left: 12px;
+        padding-left: 8px;
+    }
+    .reply-input-wrap {
+        margin-left: 12px;
+    }
+    /* 모바일 검색바 및 정렬 탭 레이아웃 대응 */
+    .board-header-row {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+    }
+    .board-search-bar {
+        max-width: 100%;
+    }
+    .board-filter-tabs {
+        justify-content: flex-start;
+    }
+    .filter-tab {
+        flex: 1;
+        justify-content: center;
+    }
 }
