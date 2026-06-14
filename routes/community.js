@@ -279,7 +279,7 @@ router.delete('/posts/:postId', authenticateToken, requireActiveUser, async (req
     }
 
     const isAuthor = post.author.toString() === req.user._id.toString();
-    const isAdmin = ['admin', 'officer'].includes(req.user.role);
+    const isAdmin = req.user.role === 'admin';
 
     if (!isAuthor && !isAdmin) {
       return res.status(403).json({ message: '삭제 권한이 없습니다.' });

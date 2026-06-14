@@ -184,7 +184,7 @@ function renderPosts(posts) {
         </div>
         <div class="post-footer">
           <div class="post-left-footer">
-            ${post.isMyPost || ['admin', 'officer'].includes(currentUser.role) ? `
+            ${post.isMyPost || currentUser.role === 'admin' ? `
               <button class="post-delete-btn" data-delete-post-id="${post._id}">삭제</button>
             ` : ''}
           </div>
@@ -356,7 +356,7 @@ function renderPostDetail(post) {
 
   const commentsListHtml = renderCommentsTree(post.comments, post._id);
 
-  const isMyPostOrStaff = post.isMyPost || ['admin', 'officer'].includes(currentUser.role);
+  const isMyPostOrStaff = post.isMyPost || currentUser.role === 'admin';
   let rightActionsHtml = '';
   if (isMyPostOrStaff) {
     rightActionsHtml += `<button class="post-detail-act-link" id="btn-delete-post">삭제</button>`;
