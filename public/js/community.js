@@ -66,15 +66,26 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
   }
 
-  // Search input with debounce
+  // Search trigger on button click or Enter key
   const searchInput = document.getElementById('board-search-input');
+  const searchBtn = document.getElementById('btn-board-search');
+
+  const executeSearch = () => {
+    if (searchInput) {
+      currentSearch = searchInput.value.trim();
+      loadPosts(1);
+    }
+  };
+
+  if (searchBtn) {
+    searchBtn.addEventListener('click', executeSearch);
+  }
+
   if (searchInput) {
-    searchInput.addEventListener('input', (e) => {
-      clearTimeout(searchTimeout);
-      searchTimeout = setTimeout(() => {
-        currentSearch = e.target.value.trim();
-        loadPosts(1);
-      }, 300);
+    searchInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        executeSearch();
+      }
     });
   }
 
@@ -160,8 +171,11 @@ function renderPosts(posts) {
     return `
       <div class="post-card" data-id="${post._id}">
         <div class="post-header">
-          <span class="${authorClass}">${escapeHtml(post.authorName)}</span>
-          <span>${dateStr}</span>
+          <div class="post-header-left">
+            <span class="post-avatar">👤</span>
+            <span class="${authorClass}">${escapeHtml(post.authorName)}</span>
+            <span class="post-time">${dateStr}</span>
+          </div>
         </div>
         <h2 class="post-title">${escapeHtml(post.title)}</h2>
         <div class="post-body-wrap">
@@ -169,6 +183,11 @@ function renderPosts(posts) {
           ${imageTag}
         </div>
         <div class="post-footer">
+          <div class="post-left-footer">
+            ${post.isMyPost || ['admin', 'officer'].includes(currentUser.role) ? `
+              <button class="comment-act-btn btn-delete" data-delete-post-id="${post._id}">삭제</button>
+            ` : ''}
+          </div>
           <div class="post-stats">
             <span class="stat-val ${post.hasLiked ? 'liked' : ''}" data-post-like-id="${post._id}">
               👍 ${post.likesCount}
@@ -177,9 +196,6 @@ function renderPosts(posts) {
               💬 ${post.commentsCount}
             </span>
           </div>
-          ${post.isMyPost || ['admin', 'officer'].includes(currentUser.role) ? `
-            <button class="comment-act-btn btn-delete" data-delete-post-id="${post._id}">삭제</button>
-          ` : ''}
         </div>
       </div>
     `;

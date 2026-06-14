@@ -35,22 +35,20 @@
         </div>
         
         <div class="write-actions">
-          <div class="write-actions-left">
-            <!-- 파일 업로드 라벨 -->
-            <label class="file-upload-btn" for="post-image-file">
-              <span>📷 사진 첨부</span>
-              <input type="file" id="post-image-file" accept="image/*" />
-            </label>
-            <span class="file-name-preview" id="post-file-name">선택된 파일 없음</span>
+          <!-- 파일 업로드 라벨 -->
+          <label class="file-upload-btn" for="post-image-file">
+            <span>📷 사진 첨부</span>
+            <input type="file" id="post-image-file" accept="image/*" />
+          </label>
+          <span class="file-name-preview" id="post-file-name">선택된 파일 없음</span>
 
-            <!-- 익명 체크박스 -->
-            <label class="check" style="margin-left: 8px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; font-size: 13.5px; color: var(--c-text-soft);">
-              <input type="checkbox" id="post-anonymous" checked />
-              <span>익명</span>
-            </label>
-          </div>
+          <!-- 익명 체크박스 -->
+          <label class="check" style="cursor: pointer; display: inline-flex; align-items: center; gap: 6px; font-size: 13.5px; color: var(--c-text-soft);">
+            <input type="checkbox" id="post-anonymous" checked />
+            <span>익명</span>
+          </label>
 
-          <button type="submit" class="btn btn-primary" id="btn-submit-post">
+          <button type="submit" class="btn btn-primary" id="btn-submit-post" style="padding: 10px 24px;">
             <span>글쓰기</span>
           </button>
         </div>
@@ -60,8 +58,8 @@
     <!-- 검색 및 필터 정렬 탭 -->
     <div class="board-header-row">
       <div class="board-search-bar">
-        <span class="board-search-icon">🔍</span>
         <input type="text" id="board-search-input" class="input" placeholder="글 제목, 내용 검색..." />
+        <button type="button" class="board-search-btn" id="btn-board-search" aria-label="검색">🔍</button>
       </div>
       <div class="board-filter-tabs">
         <button type="button" class="filter-tab active" id="tab-recent">최신순</button>
