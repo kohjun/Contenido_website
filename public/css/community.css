@@ -312,6 +312,7 @@
 .post-left-footer {
     display: flex;
     align-items: center;
+    flex-shrink: 0;
 }
 
 .post-delete-btn {
@@ -328,6 +329,8 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    white-space: nowrap;
+    flex-shrink: 0;
 }
 
 .post-delete-btn:hover {
@@ -689,6 +692,8 @@
     padding: 2px 8px;
     border-radius: 12px; /* pill style */
     transition: all 0.15s;
+    white-space: nowrap;
+    flex-shrink: 0;
 }
 
 .comment-link-btn:hover {
