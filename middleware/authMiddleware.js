@@ -21,6 +21,7 @@ const DUMMY_USER = {
   department: 'operation',
   isDepartmentHead: true,
   isActive: true,
+  active: true,
   isAdditionalInfoComplete: true,
   name: '고준',
   phonenumber: '01022458697',
