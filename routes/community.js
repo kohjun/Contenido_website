@@ -112,23 +112,56 @@ function sanitizePost(post, currentUserId) {
 }
 
 /* =========================================================================
-   GET — 게시글 목록 조회 (페이지네이션)
+   GET — 게시글 목록 조회 (페이지네이션, 검색, 정렬)
    ========================================================================= */
 router.get('/posts', authenticateToken, async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
     const skip = (page - 1) * limit;
+    const search = req.query.search || '';
+    const sortBy = req.query.sortBy || 'recent';
 
-    const posts = await CommunityPost.find({ isDeleted: false })
-      .sort({ createdAt: -1 })
-      .skip(skip)
-      .limit(limit)
-      .populate('author', 'name displayName');
+    const match = { isDeleted: false };
+    if (search) {
+      match.$or = [
+        { title: { $regex: search, $options: 'i' } },
+        { content: { $regex: search, $options: 'i' } }
+      ];
+    }
 
-    const total = await CommunityPost.countDocuments({ isDeleted: false });
+    const pipeline = [
+      { $match: match },
+      {
+        $addFields: {
+          likesCount: { $size: { $ifNull: ["$likes", []] } }
+        }
+      }
+    ];
 
-    const sanitizedPosts = posts.map(post => sanitizePost(post, req.user ? req.user._id : null));
+    if (sortBy === 'popular') {
+      pipeline.push({ $sort: { likesCount: -1, createdAt: -1 } });
+    } else {
+      pipeline.push({ $sort: { createdAt: -1 } });
+    }
+
+    pipeline.push({ $skip: skip });
+    pipeline.push({ $limit: limit });
+
+    const posts = await CommunityPost.aggregate(pipeline);
+    
+    // Hydrate aggregates back to Mongoose documents for standard populate & sanitize
+    const hydratedPosts = posts.map(p => {
+      const doc = CommunityPost.hydrate(p);
+      // Ensure we preserve the calculated fields or array lengths
+      return doc;
+    });
+
+    await CommunityPost.populate(hydratedPosts, { path: 'author', select: 'name displayName' });
+
+    const total = await CommunityPost.countDocuments(match);
+
+    const sanitizedPosts = hydratedPosts.map(post => sanitizePost(post, req.user ? req.user._id : null));
 
     res.json({
       posts: sanitizedPosts,

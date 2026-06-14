@@ -28,6 +28,12 @@
           <textarea id="post-content" class="input" placeholder="이곳에 자유롭게 내용을 작성해보세요. (바르고 고운 말을 사용합시다)" required style="min-height: 120px; font-family: inherit; font-size: 14px; resize: vertical;"></textarea>
         </div>
         
+        <!-- 이미지 업로드 미리보기 -->
+        <div class="image-preview-container" id="write-image-preview-container">
+          <img id="write-image-preview" src="#" alt="Preview" />
+          <button type="button" class="image-preview-cancel" id="btn-cancel-write-image" aria-label="취소">×</button>
+        </div>
+        
         <div class="write-actions">
           <div class="write-actions-left">
             <!-- 파일 업로드 라벨 -->
@@ -49,6 +55,18 @@
           </button>
         </div>
       </form>
+    </div>
+
+    <!-- 검색 및 필터 정렬 탭 -->
+    <div class="board-header-row">
+      <div class="board-search-bar">
+        <span class="board-search-icon">🔍</span>
+        <input type="text" id="board-search-input" class="input" placeholder="글 제목, 내용 검색..." />
+      </div>
+      <div class="board-filter-tabs">
+        <button type="button" class="filter-tab active" id="tab-recent">최신순</button>
+        <button type="button" class="filter-tab" id="tab-popular">인기순</button>
+      </div>
     </div>
 
     <!-- 게시글 피드 -->

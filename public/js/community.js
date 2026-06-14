@@ -1,6 +1,9 @@
 let currentPage = 1;
 let totalPages = 1;
 let currentUser = null;
+let currentSort = 'recent';
+let currentSearch = '';
+let searchTimeout = null;
 
 document.addEventListener('DOMContentLoaded', async () => {
   // Verify token/session
@@ -25,16 +28,74 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('post-create-form').addEventListener('submit', handlePostSubmit);
   }
 
-  // File picker handler
+  // File picker handler with preview
   const fileInput = document.getElementById('post-image-file');
+  const previewContainer = document.getElementById('write-image-preview-container');
+  const previewImg = document.getElementById('write-image-preview');
+
   if (fileInput) {
     fileInput.addEventListener('change', (e) => {
       const nameLabel = document.getElementById('post-file-name');
       if (e.target.files.length > 0) {
-        nameLabel.textContent = e.target.files[0].name;
+        const file = e.target.files[0];
+        nameLabel.textContent = file.name;
+
+        // Image Reader & Preview
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          previewImg.src = event.target.result;
+          previewContainer.style.display = 'block';
+        };
+        reader.readAsDataURL(file);
       } else {
         nameLabel.textContent = '선택된 파일 없음';
+        previewContainer.style.display = 'none';
+        previewImg.src = '#';
       }
+    });
+  }
+
+  // Cancel write image button
+  const cancelImgBtn = document.getElementById('btn-cancel-write-image');
+  if (cancelImgBtn) {
+    cancelImgBtn.addEventListener('click', () => {
+      if (fileInput) fileInput.value = '';
+      document.getElementById('post-file-name').textContent = '선택된 파일 없음';
+      previewContainer.style.display = 'none';
+      previewImg.src = '#';
+    });
+  }
+
+  // Search input with debounce
+  const searchInput = document.getElementById('board-search-input');
+  if (searchInput) {
+    searchInput.addEventListener('input', (e) => {
+      clearTimeout(searchTimeout);
+      searchTimeout = setTimeout(() => {
+        currentSearch = e.target.value.trim();
+        loadPosts(1);
+      }, 300);
+    });
+  }
+
+  // Tab filters switching
+  const tabRecent = document.getElementById('tab-recent');
+  const tabPopular = document.getElementById('tab-popular');
+  if (tabRecent && tabPopular) {
+    tabRecent.addEventListener('click', () => {
+      if (currentSort === 'recent') return;
+      currentSort = 'recent';
+      tabRecent.classList.add('active');
+      tabPopular.classList.remove('active');
+      loadPosts(1);
+    });
+
+    tabPopular.addEventListener('click', () => {
+      if (currentSort === 'popular') return;
+      currentSort = 'popular';
+      tabPopular.classList.add('active');
+      tabRecent.classList.remove('active');
+      loadPosts(1);
     });
   }
 
@@ -68,7 +129,8 @@ document.addEventListener('DOMContentLoaded', async () => {
    ========================================================================= */
 async function loadPosts(page = 1) {
   try {
-    const res = await fetch(`/community/posts?page=${page}&limit=10`, { credentials: 'include' });
+    const url = `/community/posts?page=${page}&limit=10&search=${encodeURIComponent(currentSearch)}&sortBy=${currentSort}`;
+    const res = await fetch(url, { credentials: 'include' });
     if (!res.ok) throw new Error('게시글 목록을 가져올 수 없습니다.');
     const data = await res.json();
 
@@ -203,6 +265,10 @@ async function handlePostSubmit(e) {
     document.getElementById('post-content').value = '';
     document.getElementById('post-image-file').value = '';
     document.getElementById('post-file-name').textContent = '선택된 파일 없음';
+    const previewContainer = document.getElementById('write-image-preview-container');
+    const previewImg = document.getElementById('write-image-preview');
+    if (previewContainer) previewContainer.style.display = 'none';
+    if (previewImg) previewImg.src = '#';
 
     loadPosts(1);
   } catch (err) {
