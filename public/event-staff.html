@@ -48,14 +48,14 @@
           </div>
 
           <!-- 장소 -->
-          <div class="field">
+          <div class="field" id="field-place">
             <label class="field-label" for="event-place">장소</label>
             <input type="text" id="event-place" class="input"
                    placeholder="장소 주소를 입력하세요" required>
           </div>
 
           <!-- 참가 인원 & 최대 신청자수 -->
-          <div class="es-row cols-2">
+          <div class="es-row cols-2" id="field-participants-row">
             <div class="field">
               <label class="field-label" for="event-participants">참가 인원 (확정 정원)</label>
               <input type="number" id="event-participants" class="input"
@@ -112,7 +112,7 @@
           </div>
 
           <!-- 참가자 확정 마감 -->
-          <div class="es-fieldset">
+          <div class="es-fieldset" id="field-confirmation-deadline-fieldset">
             <span class="legend">✅ 참가자 확정 마감 (필수)</span>
             <div class="datetime-pair">
               <div class="es-row cols-2">
@@ -124,7 +124,7 @@
           </div>
 
           <!-- 참가비 -->
-          <div class="field">
+          <div class="field" id="field-participation-fee">
             <label class="field-label">참가비</label>
             <div class="es-fieldset">
               <div class="fee-mode-toggle radio-group" role="radiogroup">
@@ -242,7 +242,7 @@
           </div>
 
           <!-- 환불 정책 -->
-          <div class="field">
+          <div class="field" id="field-refund-policy">
             <label class="field-label">환불 정책</label>
             <div class="es-fieldset refund-policy-container">
               <div class="radio-group stack" role="radiogroup">
@@ -281,8 +281,28 @@
             </div>
           </div>
 
+          <!-- 번개주최이벤트 -->
+          <div class="es-lightning-toggle" style="margin-bottom: 15px;">
+            <label class="check checkbox-label">
+              <input type="checkbox" id="is-lightning" onchange="toggleLightningSection()">
+              <div class="check-body">
+                <span>번개주최이벤트 전용</span>
+                <small class="check-hint">장소, 확정마감, 참가비, 환불규정이 선택적/생략되며 행사 기간 동안 부원들의 참여 인증이 필요한 이벤트입니다.</small>
+              </div>
+            </label>
+          </div>
+
+          <!-- 번개 인증 질문 섹션 -->
+          <div id="lightning-question-section" class="question-container es-fieldset" style="display: none; margin-bottom: 20px;">
+            <span class="legend">번개 인증용 질문 (최대 5개)</span>
+            <div id="lightning-questions-container" class="es-question-list"></div>
+            <button type="button" id="add-lightning-question-btn" class="add-question" onclick="addLightningQuestion()">
+              + 질문 추가
+            </button>
+          </div>
+
           <!-- 선별적 이벤트 -->
-          <div class="es-selective-toggle">
+          <div class="es-selective-toggle" id="container-is-selective">
             <label class="check checkbox-label">
               <input type="checkbox" id="is-selective" onchange="toggleQuestionSection()">
               <div class="check-body">

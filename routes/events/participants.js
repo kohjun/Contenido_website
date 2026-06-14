@@ -4,9 +4,11 @@
 
 const express = require('express');
 const Event = require('../../models/Event');
+const User = require('../../models/User');
 const authenticateToken = require('../../middleware/authMiddleware');
 const { authorizeRoles, requireActiveUser } = require('../../middleware/roleMiddleware');
 const { createNotification } = require('../../utils/notify');
+const { upload, handleMulterError, processAndSaveImages } = require('./_multer');
 
 const router = express.Router();
 
@@ -50,6 +52,7 @@ router.get('/:id/participants',
           preferredActivity: u.preferredActivity,
           totalCount,
           regularCount,
+          verification: participant.verification
         };
       });
 
@@ -539,5 +542,218 @@ router.get('/:eventId/participants/:userId/status-history',
       res.status(500).json({ message: '상태 이력 조회 중 오류가 발생했습니다.' });
     }
   });
+
+/* =========================================================================
+   번개주최이벤트 전용 인증 및 관리 (2차 승인 / 경고 부여)
+   ========================================================================= */
+
+// 1) 번개 이벤트 인증 제출 (부원용)
+router.post('/:eventId/verify',
+  authenticateToken,
+  upload.array('photo', 1),
+  handleMulterError,
+  async (req, res) => {
+    try {
+      const { eventId } = req.params;
+      const { textAnswers } = req.body; // textAnswers: [{"question": "...", "answer": "..."}]
+
+      const event = await Event.findById(eventId);
+      if (!event) {
+        return res.status(404).json({ message: '이벤트를 찾을 수 없습니다.' });
+      }
+
+      if (!event.isLightning) {
+        return res.status(400).json({ message: '번개주최이벤트가 아닙니다.' });
+      }
+
+      // 1차 승인 상태인지 확인
+      const participant = event.appliedParticipants.find(
+        p => p.userId.toString() === req.user.id
+      );
+
+      if (!participant || participant.status !== 'approved') {
+        return res.status(403).json({ message: '참가 승인(1차 승인)된 부원만 인증할 수 있습니다.' });
+      }
+
+      // 신청기간 내인지 확인
+      const now = new Date();
+      if (event.applicationStartAt && now < event.applicationStartAt) {
+        return res.status(400).json({ message: '아직 인증 제출 기간이 아닙니다.' });
+      }
+
+      let endLimit = event.applicationDeadlineAt;
+      if (!endLimit) {
+        // applicationDeadlineAt이 없으면 행사 시작 시간 기준
+        const datePart = event.date.toISOString().split('T')[0];
+        endLimit = new Date(`${datePart}T${event.startTime}:00`);
+      }
+
+      if (now > endLimit) {
+        return res.status(400).json({ message: '인증 제출 기간이 만료되었습니다.' });
+      }
+
+      // 이미지 처리
+      const savedImages = req.files ? await processAndSaveImages(req.files) : [];
+      const photoPath = savedImages.length > 0 ? savedImages[0] : null;
+
+      if (!photoPath) {
+        return res.status(400).json({ message: '인증 사진을 업로드해주세요.' });
+      }
+
+      let parsedAnswers = [];
+      if (textAnswers) {
+        try {
+          parsedAnswers = typeof textAnswers === 'string' ? JSON.parse(textAnswers) : textAnswers;
+        } catch (e) {
+          return res.status(400).json({ message: '답변 형식이 올바르지 않습니다.' });
+        }
+      }
+
+      if (!Array.isArray(parsedAnswers) || parsedAnswers.length === 0) {
+        return res.status(400).json({ message: '답변을 입력해주세요.' });
+      }
+
+      // 저장
+      participant.verification = {
+        textAnswers: parsedAnswers,
+        photo: photoPath,
+        submittedAt: now,
+        status: 'pending'
+      };
+
+      await event.save();
+
+      res.status(200).json({ message: '인증이 성공적으로 제출되었습니다. 운영진의 2차 승인을 기다려주세요.' });
+    } catch (error) {
+      console.error('Error submitting verification:', error);
+      res.status(500).json({ message: '인증 제출 중 오류가 발생했습니다.', error: error.message });
+    }
+  }
+);
+
+// 2) 번개 이벤트 2차 승인 (운영진용)
+router.post('/:eventId/participants/:userId/lightning-approve',
+  authenticateToken,
+  authorizeRoles('officer', 'admin'),
+  async (req, res) => {
+    try {
+      const { eventId, userId } = req.params;
+
+      const event = await Event.findById(eventId);
+      if (!event) {
+        return res.status(404).json({ message: '이벤트를 찾을 수 없습니다.' });
+      }
+
+      const participant = event.appliedParticipants.find(
+        p => p.userId.toString() === userId
+      );
+
+      if (!participant) {
+        return res.status(404).json({ message: '참가자를 찾을 수 없습니다.' });
+      }
+
+      if (participant.status !== 'approved') {
+        return res.status(400).json({ message: '1차 승인된 참가자만 2차 승인 처리를 할 수 있습니다.' });
+      }
+
+      if (!participant.verification) {
+        participant.verification = { textAnswers: [], status: 'none' };
+      }
+
+      participant.verification.status = 'approved';
+      participant.verification.reviewedAt = new Date();
+      participant.verification.reviewedBy = req.user.id;
+      participant.verification.reviewedByName = req.user.name;
+
+      await event.save();
+
+      // 알림 전송 (인증 통과)
+      createNotification({
+        userId,
+        type: 'participation_confirmed',
+        title: `[${event.title}] 번개 모임 2차 승인이 완료되었습니다`,
+        body: '번개 인증 통과로 경고가 부과되지 않습니다.',
+        link: '/mypage.html',
+        meta: { eventId: event._id, eventTitle: event.title, actorName: req.user.name, status: 'approved' },
+      });
+
+      res.json({ message: '2차 승인 처리가 완료되었습니다.' });
+    } catch (error) {
+      console.error('Error approving lightning verification:', error);
+      res.status(500).json({ message: '2차 승인 처리 중 오류가 발생했습니다.' });
+    }
+  }
+);
+
+// 3) 번개 이벤트 경고 부여 (운영진용)
+router.post('/:eventId/participants/:userId/lightning-warn',
+  authenticateToken,
+  authorizeRoles('officer', 'admin'),
+  async (req, res) => {
+    try {
+      const { eventId, userId } = req.params;
+      const { reason = '번개주최 미인증' } = req.body;
+
+      const event = await Event.findById(eventId);
+      if (!event) {
+        return res.status(404).json({ message: '이벤트를 찾을 수 없습니다.' });
+      }
+
+      const participant = event.appliedParticipants.find(
+        p => p.userId.toString() === userId
+      );
+
+      if (!participant) {
+        return res.status(404).json({ message: '참가자를 찾을 수 없습니다.' });
+      }
+
+      if (participant.verification && participant.verification.status === 'rejected') {
+        return res.status(400).json({ message: '이미 경고가 부여된 참가자입니다.' });
+      }
+
+      if (!participant.verification) {
+        participant.verification = { textAnswers: [], status: 'none' };
+      }
+
+      participant.verification.status = 'rejected';
+      participant.verification.reviewedAt = new Date();
+      participant.verification.reviewedBy = req.user.id;
+      participant.verification.reviewedByName = req.user.name;
+      participant.verification.rejectReason = reason;
+
+      await event.save();
+
+      // 실제 User의 warningCount 증가 및 history 추가
+      const user = await User.findById(userId);
+      if (user) {
+        const newWarning = {
+          reason: `${reason} ([번개] ${event.title})`,
+          issuedBy: req.user.id,
+          issuedByName: req.user.name,
+          category: '규칙위반',
+          issuedAt: new Date()
+        };
+        user.warningHistory.push(newWarning);
+        user.warningCount += 1;
+        await user.save();
+
+        // 경고 대상에게 알림
+        createNotification({
+          userId,
+          type: 'warning_issued',
+          title: '경고가 부여되었습니다',
+          body: `사유: ${newWarning.reason}`,
+          link: '/mypage.html',
+          meta: { actorName: req.user.name, status: '규칙위반' },
+        });
+      }
+
+      res.json({ message: '경고가 성공적으로 부여되었습니다.' });
+    } catch (error) {
+      console.error('Error issuing lightning warning:', error);
+      res.status(500).json({ message: '경고 부여 중 오류가 발생했습니다.' });
+    }
+  }
+);
 
 module.exports = router;

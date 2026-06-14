@@ -130,6 +130,26 @@
     </div>
     <div id="modalBackdrop" class="modal-backdrop" onclick="closeShareModal()"></div>
 
+    <!-- 번개 인증 모달 -->
+    <div id="lightningVerifyModal" class="share-modal" style="display: none; width: 90%; max-width: 500px; padding: 24px; box-sizing: border-box; z-index: 1001;">
+      <h3 style="margin-top: 0; margin-bottom: 16px; font-size: 1.25rem;">⚡ 번개 모임 인증하기</h3>
+      <form id="lightning-verify-form" onsubmit="submitLightningVerification(event)" style="display: flex; flex-direction: column; gap: 16px; text-align: left;">
+        <div id="lightning-verify-questions" style="display: flex; flex-direction: column; gap: 14px;"></div>
+        
+        <div class="field" style="display: flex; flex-direction: column; gap: 6px;">
+          <label class="field-label" style="font-weight: 600; font-size: 0.9rem;">📷 현장 인증 사진 업로드</label>
+          <input type="file" id="lightning-photo" accept="image/*" required style="font-size: 0.9rem; padding: 8px; border: 1px dashed #cbd5e1; border-radius: 8px;">
+          <small class="field-hint" style="color: #64748b; font-size: 0.8rem;">현장 모임을 입증할 수 있는 사진 한 장을 업로드해주세요 (최대 10MB)</small>
+        </div>
+
+        <div style="display: flex; gap: 8px; margin-top: 8px; justify-content: flex-end;">
+          <button type="button" onclick="closeLightningVerifyModal()" style="padding: 8px 16px; border-radius: 8px; font-size: 0.9rem; cursor: pointer; background: #f1f5f9; border: 1px solid #cbd5e1; color: #475569;">닫기</button>
+          <button type="submit" style="padding: 8px 16px; background: #0A84FE; color: #fff; border: none; border-radius: 8px; font-size: 0.9rem; cursor: pointer;">인증 제출</button>
+        </div>
+      </form>
+    </div>
+    <div id="lightningVerifyBackdrop" class="modal-backdrop" onclick="closeLightningVerifyModal()" style="display: none; z-index: 1000;"></div>
+
     <!-- 약관 동의 모달 유틸 -->
     <script src="/js/utils/apply-confirm.js"></script>
     <!-- 이벤트 관련 스크립트 -->

@@ -149,14 +149,36 @@ router.post('/',
         refundPolicy, refundCustomDescription,
         // 새 필드
         tags, applicationStartAt, applicationDeadlineAt, confirmationDeadlineAt,
-        maxApplicants, feeType, participation_fee_max
+        maxApplicants, feeType, participation_fee_max,
+        // 번개 이벤트 필드
+        isLightning, lightningQuestions
       } = req.body;
 
-      // 입력값 검증
-      if (!title || !date || !place || !participants || !startTime ||
-        !endTime || !participation_fee || !contents || !team || !accessCode || !confirmationDeadlineAt) {
-        return res.status(400).json({ message: '모든 필수 필드를 입력해주세요. (참가자 확정 마감 시간 포함)' });
+      const resolvedIsLightning = isLightning === 'true' || isLightning === true;
+      let parsedLightningQuestions = [];
+      if (lightningQuestions) {
+        try {
+          parsedLightningQuestions = typeof lightningQuestions === 'string'
+            ? JSON.parse(lightningQuestions)
+            : lightningQuestions;
+          if (!Array.isArray(parsedLightningQuestions)) parsedLightningQuestions = [];
+        } catch (e) {
+          parsedLightningQuestions = [];
+        }
       }
+
+      // 입력값 검증
+      if (resolvedIsLightning) {
+        if (!title || !date || !startTime || !endTime || !contents || !team || !accessCode) {
+          return res.status(400).json({ message: '모든 필수 필드를 입력해주세요. (제목, 날짜, 시작/종료시간, 내용, 팀, 접근코드 등)' });
+        }
+      } else {
+        if (!title || !date || !place || !participants || !startTime ||
+          !endTime || !participation_fee || !contents || !team || !accessCode || !confirmationDeadlineAt) {
+          return res.status(400).json({ message: '모든 필수 필드를 입력해주세요. (참가자 확정 마감 시간 포함)' });
+        }
+      }
+
       if (refundPolicy === 'custom' && !refundCustomDescription?.trim()) {
         return res.status(400).json({
           message: '커스텀 환불 정책에 대한 설명을 입력해주세요.'
@@ -194,15 +216,15 @@ router.post('/',
       }
 
       const parsedMaxApplicants = maxApplicants ? parseInt(maxApplicants) : null;
-      const parsedParticipants  = parseInt(participants);
-      if (parsedMaxApplicants !== null && parsedMaxApplicants < parsedParticipants) {
+      const parsedParticipants  = resolvedIsLightning ? (participants ? parseInt(participants) : 999) : parseInt(participants);
+      if (!resolvedIsLightning && parsedMaxApplicants !== null && parsedMaxApplicants < parsedParticipants) {
         return res.status(400).json({ message: '최대 신청자수는 정원보다 작을 수 없습니다.' });
       }
 
       const resolvedFeeType = feeType === 'range' ? 'range' : 'fixed';
-      const parsedFee    = parseInt(participation_fee);
+      const parsedFee    = resolvedIsLightning ? (participation_fee ? parseInt(participation_fee) : 0) : parseInt(participation_fee);
       const parsedFeeMax = participation_fee_max ? parseInt(participation_fee_max) : null;
-      if (resolvedFeeType === 'range') {
+      if (resolvedFeeType === 'range' && !resolvedIsLightning) {
         if (parsedFeeMax === null || parsedFeeMax <= parsedFee) {
           return res.status(400).json({ message: '참가비 범위는 최대값이 최소값보다 커야 합니다.' });
         }
@@ -214,7 +236,7 @@ router.post('/',
       const eventData = {
         title,
         date,
-        place,
+        place: resolvedIsLightning ? (place || '자율 장소') : place,
         participants: parsedParticipants,
         startTime,
         endTime,
@@ -225,8 +247,10 @@ router.post('/',
         images: savedImages,
         creator: req.user.id,
         isSelective: req.body.isSelective === 'true',
-        refundPolicy: refundPolicy || 'standard',
-        refundCustomDescription: refundPolicy === 'custom' ? refundCustomDescription : undefined,
+        isLightning: resolvedIsLightning,
+        lightningQuestions: parsedLightningQuestions,
+        refundPolicy: resolvedIsLightning ? 'none' : (refundPolicy || 'standard'),
+        refundCustomDescription: (!resolvedIsLightning && refundPolicy === 'custom') ? refundCustomDescription : undefined,
         additionalQuestions: req.body.isSelective === 'true' && req.body.additionalQuestions
           ? JSON.parse(req.body.additionalQuestions)
           : [],
@@ -339,10 +363,10 @@ router.put('/update-content',
       if (applicationStartAt     !== undefined) event.applicationStartAt     = applicationStartAt     ? new Date(applicationStartAt)     : null;
       if (applicationDeadlineAt  !== undefined) event.applicationDeadlineAt  = applicationDeadlineAt  ? new Date(applicationDeadlineAt)  : null;
       if (confirmationDeadlineAt !== undefined) {
-        if (!confirmationDeadlineAt) {
+        if (!confirmationDeadlineAt && !event.isLightning) {
           return res.status(400).json({ message: '참가자 확정 마감 시간을 입력해주세요.' });
         }
-        event.confirmationDeadlineAt = new Date(confirmationDeadlineAt);
+        event.confirmationDeadlineAt = confirmationDeadlineAt ? new Date(confirmationDeadlineAt) : null;
       }
       if (maxApplicants !== undefined) {
         event.maxApplicants = maxApplicants ? parseInt(maxApplicants) : null;

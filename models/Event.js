@@ -75,7 +75,25 @@ const appliedParticipantSchema = new mongoose.Schema({
       type: String,
       required: true
     }
-  }]
+  }],
+  // 번개 이벤트 전용 인증 내역
+  verification: {
+    textAnswers: [{
+      question: { type: String, required: true },
+      answer: { type: String, required: true }
+    }],
+    photo: { type: String, default: null },
+    submittedAt: { type: Date, default: null },
+    status: {
+      type: String,
+      enum: ['none', 'pending', 'approved', 'rejected'],
+      default: 'none'
+    },
+    reviewedAt: { type: Date, default: null },
+    reviewedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
+    reviewedByName: { type: String, default: null },
+    rejectReason: { type: String, default: null }
+  }
 });
 
 const eventSchema = new mongoose.Schema({
@@ -93,11 +111,11 @@ const eventSchema = new mongoose.Schema({
   },
   place: {
     type: String,
-    required: true,
+    required: function() { return !this.isLightning; },
   },
   participants: {
     type: Number,
-    required: true,
+    required: function() { return !this.isLightning; },
   },
   appliedParticipants: [appliedParticipantSchema],
   finalParticipants: {
@@ -114,7 +132,8 @@ const eventSchema = new mongoose.Schema({
   },
   participation_fee: {
     type: Number,
-    required: true,
+    required: function() { return !this.isLightning; },
+    default: 0
   },
   contents: {
     type: String,
@@ -155,6 +174,14 @@ const eventSchema = new mongoose.Schema({
   isSelective: {
     type: Boolean,
     default: false
+  },
+  isLightning: {
+    type: Boolean,
+    default: false
+  },
+  lightningQuestions: {
+    type: [String],
+    default: []
   },
   hasParticipantRules: {
     type: Boolean,

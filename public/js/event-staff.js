@@ -59,6 +59,7 @@ async function submitEvent() {
     const applicationDeadlineAt  = combineDateTime('application-deadline-date',  'application-deadline-time');
     const confirmationDeadlineAt = combineDateTime('confirmation-deadline-date', 'confirmation-deadline-time');
     const tags = collectTags();
+    const isLightning = document.getElementById('is-lightning')?.checked || false;
 
     // 입력값 검증
     if (!title.trim()) {
@@ -66,12 +67,12 @@ async function submitEvent() {
       document.getElementById('event-title')?.focus();
       return;
     }
-    if (!place.trim()) {
+    if (!isLightning && !place.trim()) {
       alert('장소를 입력해주세요.');
       document.getElementById('event-place')?.focus();
       return;
     }
-    if (!participants) {
+    if (!isLightning && !participants) {
       alert('참가 인원을 입력해주세요.');
       document.getElementById('event-participants')?.focus();
       return;
@@ -91,12 +92,12 @@ async function submitEvent() {
       document.getElementById('event-end-time')?.focus();
       return;
     }
-    if (!confirmationDeadlineAt) {
+    if (!isLightning && !confirmationDeadlineAt) {
       alert('참가자 확정 마감 시간을 입력해주세요.');
       document.getElementById('confirmation-deadline-date')?.focus();
       return;
     }
-    if (participation_fee === '') {
+    if (!isLightning && participation_fee === '') {
       alert('참가비를 입력해주세요.');
       document.getElementById('event-participation-fee')?.focus();
       return;
@@ -116,7 +117,7 @@ async function submitEvent() {
       document.getElementById('event-access-code')?.focus();
       return;
     }
-    if (refundPolicy === 'custom' && !refundCustomDescription.trim()) {
+    if (!isLightning && refundPolicy === 'custom' && !refundCustomDescription.trim()) {
       alert('특수한 상황에 대한 환불 정책 설명을 입력해주세요.');
       return;
     }
@@ -124,11 +125,11 @@ async function submitEvent() {
       alert('접근 코드는 4자리 숫자여야 합니다.');
       return;
     }
-    if (maxApplicants && parseInt(maxApplicants) < parseInt(participants)) {
+    if (!isLightning && maxApplicants && parseInt(maxApplicants) < parseInt(participants)) {
       alert('최대 신청자수는 정원보다 작을 수 없습니다.');
       return;
     }
-    if (feeType === 'range') {
+    if (!isLightning && feeType === 'range') {
       if (!participation_fee_max || parseInt(participation_fee_max) <= parseInt(participation_fee)) {
         alert('참가비 범위는 최대값이 최소값보다 커야 합니다.');
         return;
@@ -144,19 +145,20 @@ async function submitEvent() {
 
     const formData = new FormData();
     formData.append('title', title);
-    formData.append('place', place);
-    formData.append('participants', participants);
+    formData.append('place', isLightning ? (place || '자율 장소') : place);
+    formData.append('participants', isLightning ? (participants || 999) : participants);
     formData.append('date', date);
     formData.append('startTime', startTime);
     formData.append('endTime', endTime);
-    formData.append('participation_fee', participation_fee);
+    formData.append('participation_fee', isLightning ? (participation_fee || 0) : participation_fee);
     formData.append('contents', contents);
     formData.append('team', team);
     formData.append('accessCode', accessCode);
     formData.append('isSelective', isSelective);
+    formData.append('isLightning', isLightning);
     formData.append('hasParticipantRules', hasParticipantRules);
-    formData.append('refundPolicy', refundPolicy);
-    if (refundPolicy === 'custom') {
+    formData.append('refundPolicy', isLightning ? 'none' : refundPolicy);
+    if (!isLightning && refundPolicy === 'custom') {
       formData.append('refundCustomDescription', refundCustomDescription);
     }
 
@@ -164,12 +166,12 @@ async function submitEvent() {
     formData.append('tags', JSON.stringify(tags));
     if (applicationStartAt)     formData.append('applicationStartAt',     applicationStartAt);
     if (applicationDeadlineAt)  formData.append('applicationDeadlineAt',  applicationDeadlineAt);
-    if (confirmationDeadlineAt) formData.append('confirmationDeadlineAt', confirmationDeadlineAt);
-    if (maxApplicants) formData.append('maxApplicants', maxApplicants);
-    formData.append('feeType', feeType);
-    if (feeType === 'range') formData.append('participation_fee_max', participation_fee_max);
+    if (!isLightning && confirmationDeadlineAt) formData.append('confirmationDeadlineAt', confirmationDeadlineAt);
+    if (!isLightning && maxApplicants) formData.append('maxApplicants', maxApplicants);
+    formData.append('feeType', isLightning ? 'fixed' : feeType);
+    if (!isLightning && feeType === 'range') formData.append('participation_fee_max', participation_fee_max);
 
-    if (isSelective) {
+    if (isSelective && !isLightning) {
       const questions = Array.from(document.querySelectorAll('.question-item')).map(item => ({
         questionText: item.querySelector('.question-text').value
       }));
@@ -183,6 +185,21 @@ async function submitEvent() {
         return;
       }
       formData.append('additionalQuestions', JSON.stringify(questions));
+    }
+
+    if (isLightning) {
+      const questions = Array.from(document.querySelectorAll('#lightning-questions-container .question-item')).map(item => 
+        item.querySelector('.lightning-question-text').value
+      );
+      if (questions.length === 0) {
+        alert('번개 인증용 질문이 최소 1개 필요합니다.');
+        return;
+      }
+      if (questions.some(q => !q.trim())) {
+        alert('모든 인증 질문을 입력해주세요.');
+        return;
+      }
+      formData.append('lightningQuestions', JSON.stringify(questions));
     }
 
     // 이미지 파일이 있는 경우 추가
@@ -221,7 +238,136 @@ async function submitEvent() {
 }
 
 /* =========================================================================
-   2) 선별적 이벤트 - 추가 질문 관리
+   2) 번개주최이벤트 - 질문 및 필드 토글 관리
+   ========================================================================= */
+
+let lightningQuestionCount = 0;
+
+function toggleLightningSection() {
+  const isLightning = document.getElementById('is-lightning').checked;
+  
+  // 번개용 질문 세션 표시/숨김
+  const lightningSection = document.getElementById('lightning-question-section');
+  if (lightningSection) {
+    lightningSection.style.display = isLightning ? 'block' : 'none';
+  }
+
+  // 선발 이벤트 토글 비활성화/숨김
+  const selectiveContainer = document.getElementById('container-is-selective');
+  if (selectiveContainer) {
+    selectiveContainer.style.display = isLightning ? 'none' : 'block';
+  }
+  
+  // 번개 체크 시, 선발 체크 해제 및 관련 질문 초기화
+  if (isLightning) {
+    const isSelEl = document.getElementById('is-selective');
+    if (isSelEl) {
+      isSelEl.checked = false;
+      toggleQuestionSection();
+    }
+  }
+
+  // 필드 필수 속성 및 표시 토글
+  const placeField = document.getElementById('field-place');
+  const placeInput = document.getElementById('event-place');
+  const participantsRow = document.getElementById('field-participants-row');
+  const participantsInput = document.getElementById('event-participants');
+  const confDeadlineFieldset = document.getElementById('field-confirmation-deadline-fieldset');
+  const confDeadlineDate = document.getElementById('confirmation-deadline-date');
+  const confDeadlineTime = document.getElementById('confirmation-deadline-time');
+  const feeField = document.getElementById('field-participation-fee');
+  const feeInput = document.getElementById('event-participation-fee');
+  const refundPolicyField = document.getElementById('field-refund-policy');
+
+  if (isLightning) {
+    // 필수 속성 해제
+    if (placeInput) placeInput.removeAttribute('required');
+    if (participantsInput) participantsInput.removeAttribute('required');
+    if (confDeadlineDate) confDeadlineDate.removeAttribute('required');
+    if (confDeadlineTime) confDeadlineTime.removeAttribute('required');
+    if (feeInput) feeInput.removeAttribute('required');
+
+    // 숨김 처리
+    if (placeField) placeField.style.display = 'none';
+    if (participantsRow) participantsRow.style.display = 'none';
+    if (confDeadlineFieldset) confDeadlineFieldset.style.display = 'none';
+    if (feeField) feeField.style.display = 'none';
+    if (refundPolicyField) refundPolicyField.style.display = 'none';
+
+    // 기본 인증 질문 2개 자동 생성
+    if (lightningQuestionCount === 0) {
+      addLightningQuestionWithText("오늘 진행한 번개 모임의 활동 내용을 자세히 공유해주세요.");
+      addLightningQuestionWithText("오늘 함께 번개에 참여한 부원들의 이름(전화번호 뒷자리)를 모두 적어주세요.");
+    }
+  } else {
+    // 필수 속성 재부여
+    if (placeInput) placeInput.setAttribute('required', 'true');
+    if (participantsInput) participantsInput.setAttribute('required', 'true');
+    if (confDeadlineDate) confDeadlineDate.setAttribute('required', 'true');
+    if (confDeadlineTime) confDeadlineTime.setAttribute('required', 'true');
+    if (feeInput) feeInput.setAttribute('required', 'true');
+
+    // 노출 처리
+    if (placeField) placeField.style.display = 'block';
+    if (participantsRow) participantsRow.style.display = 'block';
+    if (confDeadlineFieldset) confDeadlineFieldset.style.display = 'block';
+    if (feeField) feeField.style.display = 'block';
+    if (refundPolicyField) refundPolicyField.style.display = 'block';
+
+    // 번개용 질문 컨테이너 비우기
+    const container = document.getElementById('lightning-questions-container');
+    if (container) container.innerHTML = '';
+    lightningQuestionCount = 0;
+  }
+}
+
+function addLightningQuestion() {
+  addLightningQuestionWithText("");
+}
+
+function addLightningQuestionWithText(defaultText) {
+  if (lightningQuestionCount >= 5) {
+    alert('최대 5개의 질문만 추가할 수 있습니다.');
+    return;
+  }
+
+  const container = document.getElementById('lightning-questions-container');
+  if (!container) return;
+
+  const questionDiv = document.createElement('div');
+  questionDiv.className = 'question-item';
+  questionDiv.innerHTML = `
+    <button type="button" class="delete-question" onclick="deleteLightningQuestion(this)">×</button>
+    <div class="form-group">
+      <label>인증 질문 ${lightningQuestionCount + 1}</label>
+      <textarea class="lightning-question-text"
+                placeholder="인증 시 대답할 질문을 입력하세요"
+                required>${defaultText}</textarea>
+    </div>
+  `;
+
+  container.appendChild(questionDiv);
+  lightningQuestionCount++;
+
+  const addBtn = document.getElementById('add-lightning-question-btn');
+  if (addBtn) addBtn.disabled = lightningQuestionCount >= 5;
+}
+
+function deleteLightningQuestion(button) {
+  button.closest('.question-item').remove();
+  lightningQuestionCount--;
+
+  document.querySelectorAll('#lightning-questions-container .question-item').forEach((item, index) => {
+    const label = item.querySelector('label');
+    if (label) label.textContent = `인증 질문 ${index + 1}`;
+  });
+
+  const addBtn = document.getElementById('add-lightning-question-btn');
+  if (addBtn) addBtn.disabled = false;
+}
+
+/* =========================================================================
+   3) 선별적 이벤트 - 추가 질문 관리
    ========================================================================= */
 
 let questionCount = 0;

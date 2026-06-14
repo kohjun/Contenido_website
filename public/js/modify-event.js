@@ -83,24 +83,30 @@ async function loadEventContent(eventId) {
 
     if (titleElem) titleElem.textContent = currentEvent.title;
     if (placeElem) {
-      placeElem.textContent = currentEvent.place;
-      // 장소 옆 복사 / 네이버지도 버튼 (중복 주입 방지)
-      if (currentEvent.place && placeElem.parentElement && !placeElem.parentElement.querySelector('.place-action')) {
+      placeElem.textContent = currentEvent.isLightning ? (currentEvent.place || '자율 장소') : currentEvent.place;
+      // 장소 옆 복사 / 네이버지도 버튼 (중복 주입 방지, 번개주최이벤트고 자율장소이면 비표시)
+      if (currentEvent.place && currentEvent.place !== '자율 장소' && placeElem.parentElement && !placeElem.parentElement.querySelector('.place-action')) {
         placeElem.insertAdjacentHTML('afterend', placeActions(currentEvent.place));
       }
     }
     if (dateElem) dateElem.textContent = new Date(currentEvent.date)
       .toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' });
-    if (participantsElem) participantsElem.textContent = currentEvent.participants + '명';
+    if (participantsElem) {
+      participantsElem.textContent = currentEvent.isLightning ? '제한 없음' : (currentEvent.participants + '명');
+    }
     if (startTimeElem) startTimeElem.textContent = currentEvent.startTime;
     if (endTimeElem) endTimeElem.textContent = currentEvent.endTime;
     if (feeElem) {
-      // 참가비: feeType이 range면 '최소 ~ 최대' 형식
-      const minStr = (currentEvent.participation_fee || 0).toLocaleString();
-      if (currentEvent.feeType === 'range' && currentEvent.participation_fee_max) {
-        feeElem.textContent = `${minStr} ~ ${currentEvent.participation_fee_max.toLocaleString()}원`;
+      if (currentEvent.isLightning) {
+        feeElem.textContent = '없음 (0원)';
       } else {
-        feeElem.textContent = minStr + '원';
+        // 참가비: feeType이 range면 '최소 ~ 최대' 형식
+        const minStr = (currentEvent.participation_fee || 0).toLocaleString();
+        if (currentEvent.feeType === 'range' && currentEvent.participation_fee_max) {
+          feeElem.textContent = `${minStr} ~ ${currentEvent.participation_fee_max.toLocaleString()}원`;
+        } else {
+          feeElem.textContent = minStr + '원';
+        }
       }
     }
     if (contentsElem) contentsElem.innerHTML = currentEvent.contents.replace(/\n/g, "<br>");
@@ -121,11 +127,15 @@ async function loadEventContent(eventId) {
     // 참가자 확정 마감
     const conRow = document.getElementById('event-confirmation-deadline-row');
     const conElem = document.getElementById('event-confirmation-deadline');
-    if (conRow && conElem && currentEvent.confirmationDeadlineAt) {
-      conElem.textContent = new Date(currentEvent.confirmationDeadlineAt).toLocaleString('ko-KR', {
-        month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit'
-      });
-      conRow.style.display = '';
+    if (conRow && conElem) {
+      if (currentEvent.confirmationDeadlineAt) {
+        conElem.textContent = new Date(currentEvent.confirmationDeadlineAt).toLocaleString('ko-KR', {
+          month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit'
+        });
+        conRow.style.display = '';
+      } else {
+        conRow.style.display = 'none';
+      }
     }
     // 태그 (#형식)
     const tagsRow = document.getElementById('event-tags-row');
@@ -199,7 +209,87 @@ async function loadEventContent(eventId) {
     console.log(`신청 상태: status=${myStatus}, 활성신청=${isActiveApplication}, 활성회원=${isActive}, 승인인원=${approvedCount}/${currentEvent.participants}, 마감여부=${isFull}`);
 
     if (applicationSection) {
-      if (currentEvent.isSelective) {
+      if (currentEvent.isLightning) {
+        // 번개주최이벤트
+        if (isActiveApplication) {
+          if (myStatus === 'approved') {
+            // 참가가 확정된 상태 -> 인증 진행 체크
+            const now = new Date();
+            const appStart = currentEvent.applicationStartAt ? new Date(currentEvent.applicationStartAt) : null;
+            let appEnd = currentEvent.applicationDeadlineAt ? new Date(currentEvent.applicationDeadlineAt) : null;
+            if (!appEnd) {
+              const datePart = new Date(currentEvent.date).toISOString().split('T')[0];
+              appEnd = new Date(`${datePart}T${currentEvent.startTime}:00`);
+            }
+
+            const isAppPeriod = (!appStart || now >= appStart) && now <= appEnd;
+            const isBeforeApp = appStart && now < appStart;
+            
+            const verifyStatus = (myEntry && myEntry.verification) ? myEntry.verification.status : 'none';
+            const rejectReason = (myEntry && myEntry.verification) ? (myEntry.verification.rejectReason || '') : '';
+
+            if (verifyStatus === 'none') {
+              if (isAppPeriod) {
+                applicationSection.innerHTML = `
+                  <p class="status-text">신청 기간 동안 인증 제출이 가능합니다. 현장 인증을 완료해주세요.</p>
+                  <button onclick="openLightningVerifyModal()" class="submit-button" style="background-color: #0A84FE; display: block; width: 100%; margin-top: 10px;">인증하기 (⚡)</button>
+                `;
+              } else if (isBeforeApp) {
+                applicationSection.innerHTML = `
+                  <p class="status-text">참가 확정되었습니다. 신청 시작 시간부터 인증하실 수 있습니다.</p>
+                  <button class="submit-button" disabled style="background-color: #cbd5e1; color: #64748b; display: block; width: 100%; margin-top: 10px;">인증 대기 (신청 기간 전)</button>
+                `;
+              } else {
+                applicationSection.innerHTML = `
+                  <p class="status-text" style="color: #ef4444;">⚠️ 참가 확정되었으나 신청 기간 내에 인증을 제출하지 않았습니다. (인증 미제출)</p>
+                  <button class="submit-button" disabled style="background-color: #fca5a5; color: #b91c1c; display: block; width: 100%; margin-top: 10px;">인증 마감됨</button>
+                `;
+              }
+            } else if (verifyStatus === 'pending') {
+              applicationSection.innerHTML = `
+                <p class="status-text">인증이 성공적으로 제출되었습니다. 운영진의 2차 승인을 기다려주세요.</p>
+                <button class="submit-button" disabled style="background-color: #e2e8f0; color: #64748b; display: block; width: 100%; margin-top: 10px;">인증 제출 완료 (2차 승인 대기)</button>
+              `;
+            } else if (verifyStatus === 'approved') {
+              applicationSection.innerHTML = `
+                <p class="status-text" style="color: #059669;">✨ 2차 승인이 완료되어 정상 참여 처리되었습니다. (경고 면제)</p>
+                <button class="submit-button" disabled style="background-color: #a7f3d0; color: #065f46; display: block; width: 100%; margin-top: 10px;">2차 승인 완료 (인증 성공)</button>
+              `;
+            } else if (verifyStatus === 'rejected') {
+              if (isAppPeriod) {
+                applicationSection.innerHTML = `
+                  <p class="status-text" style="color: #dc2626;">⚠️ 인증이 반려되었습니다. (사유: ${escapeHtml(rejectReason)})</p>
+                  <button onclick="openLightningVerifyModal()" class="submit-button" style="background-color: #dc2626; display: block; width: 100%; margin-top: 10px;">다시 인증하기</button>
+                `;
+              } else {
+                applicationSection.innerHTML = `
+                  <p class="status-text" style="color: #dc2626;">⚠️ 인증이 반려되었습니다. (사유: ${escapeHtml(rejectReason)})</p>
+                  <button class="submit-button" disabled style="background-color: #fca5a5; color: #b91c1c; display: block; width: 100%; margin-top: 10px;">인증 반려됨 (경고 부여 대상)</button>
+                `;
+              }
+            }
+          } else {
+            applicationSection.innerHTML = `
+              <p class="status-text">신청이 완료되었습니다 (승인 대기중)</p>
+              <button class="submit-button" disabled style="display: block; width: 100%; margin-top: 10px;">신청완료</button>
+            `;
+          }
+        } else if (myStatus === 'rejected') {
+          applicationSection.innerHTML = `
+            <p class="status-text">아쉽지만 신청이 거절되었습니다.</p>
+            <button class="submit-button" disabled style="display: block; width: 100%; margin-top: 10px;">신청 거절됨</button>
+          `;
+        } else if (!isActive) {
+          applicationSection.innerHTML = `
+            <p class="status-text">로그인 후 다시 시도해주세요. 활동부원이 아니므로 지원이 불가능합니다</p>
+            <button class="submit-button" disabled style="display: block; width: 100%; margin-top: 10px;">신청불가</button>
+          `;
+        } else {
+          applicationSection.innerHTML = `
+            <button onclick="applyForEvent('${currentEvent._id}')" class="submit-button" style="display: block; width: 100%; margin-top: 10px;">신청하기</button>
+          `;
+        }
+      } else if (currentEvent.isSelective) {
         // 선별적 이벤트
         if (isActiveApplication) {
           const headLine = myStatus === 'approved' ? '참가가 확정되었습니다' : '지원이 완료되었습니다 (승인 대기중)';
@@ -1132,7 +1222,97 @@ function copyLink() {
   }
 }
 
+/* =========================================================================
+   번개주최이벤트 인증 모달 및 제출 처리
+   ========================================================================= */
 
+function openLightningVerifyModal() {
+  const modal = document.getElementById('lightningVerifyModal');
+  const backdrop = document.getElementById('lightningVerifyBackdrop');
+  const questionsContainer = document.getElementById('lightning-verify-questions');
+  
+  if (!modal || !backdrop || !questionsContainer || !currentEvent) return;
+
+  // 인증 질문 렌더링
+  questionsContainer.innerHTML = (currentEvent.lightningQuestions || []).map((q, idx) => `
+    <div class="question-section" style="display: flex; flex-direction: column; gap: 6px;">
+      <p class="question-text" style="font-weight: 600; font-size: 0.9rem; margin: 0; color: #1e293b;">Q${idx + 1}. ${escapeHtml(q)}</p>
+      <textarea class="answer-textarea" name="answer_${idx}" required style="width: 100%; min-height: 80px; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-family: inherit; font-size: 0.9rem; resize: vertical; box-sizing: border-box;" placeholder="답변을 입력하세요"></textarea>
+    </div>
+  `).join('');
+
+  modal.style.display = 'block';
+  backdrop.style.display = 'block';
+}
+
+function closeLightningVerifyModal() {
+  const modal = document.getElementById('lightningVerifyModal');
+  const backdrop = document.getElementById('lightningVerifyBackdrop');
+  if (modal) modal.style.display = 'none';
+  if (backdrop) backdrop.style.display = 'none';
+}
+
+async function submitLightningVerification(e) {
+  e.preventDefault();
+
+  if (!currentEvent) return;
+
+  const answers = (currentEvent.lightningQuestions || []).map((q, idx) => {
+    const textarea = document.querySelector(`#lightning-verify-form textarea[name="answer_${idx}"]`);
+    return {
+      question: q,
+      answer: textarea ? textarea.value : ''
+    };
+  });
+
+  const photoInput = document.getElementById('lightning-photo');
+  if (!photoInput || !photoInput.files || photoInput.files.length === 0) {
+    alert('인증용 사진을 업로드해주세요.');
+    return;
+  }
+
+  const formData = new FormData();
+  formData.append('textAnswers', JSON.stringify(answers));
+  formData.append('photo', photoInput.files[0]);
+
+  try {
+    const submitBtn = document.querySelector('#lightning-verify-form button[type="submit"]');
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.textContent = '제출 중...';
+    }
+
+    const response = await fetch(`/events/${currentEvent._id}/verify`, {
+      method: 'POST',
+      body: formData
+    });
+
+    const result = await parseResponse(response);
+
+    if (response.ok) {
+      alert(result.message || '인증이 성공적으로 제출되었습니다.');
+      closeLightningVerifyModal();
+      loadEventContent(currentEvent._id);
+    } else {
+      alert(`인증 제출 실패: ${result.message}`);
+    }
+  } catch (err) {
+    console.error('Error submitting verification:', err);
+    alert(err.message || '인증 제출 중 오류가 발생했습니다.');
+  } finally {
+    const submitBtn = document.querySelector('#lightning-verify-form button[type="submit"]');
+    if (submitBtn) {
+      submitBtn.disabled = false;
+      submitBtn.textContent = '인증 제출';
+    }
+  }
+}
+
+function escapeHtml(s) {
+  return String(s == null ? '' : s)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+}
 
 document.addEventListener('DOMContentLoaded', () => {
   console.log('이벤트 상세 페이지 로드');

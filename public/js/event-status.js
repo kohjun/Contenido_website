@@ -472,45 +472,94 @@ function renderParticipantList() {
   list.innerHTML = sorted.map(p => {
     const status = p.status || 'pending';
     const statusClass = `is-${status}`;
-    const statusPill =
-      status === 'approved'  ? `<span class="status-pill approved">✓ 참가확정</span>${p.cancellationRequested ? ' <span class="status-pill cancelled">🚪 취소 요청</span>' : ''}` :
-      status === 'rejected'  ? '<span class="status-pill rejected">✕ 거절됨</span>' :
-      status === 'cancelled' ? '<span class="status-pill cancelled">↩ 본인 취소</span>' :
-                               '<span class="status-pill pending">⏳ 승인 대기</span>';
-
+    
+    let statusPill = '';
     let buttonsHtml = '';
-    if (status === 'cancelled') {
-      // 본인 취소: 운영진이 되돌릴 수 없고 이력만 확인 가능 (재신청은 본인만)
-      buttonsHtml = `
-        <button onclick="showStatusHistory('${event._id}', '${p.userId}', '${escapeHtml(p.name)}')" class="history-btn">이력</button>
-      `;
-    } else if (status === 'approved') {
-      // 취소 요청이 들어온 확정자는 '취소 처리' 버튼 노출
+
+    if (event.isLightning && status === 'approved') {
+      const verifyStatus = (p.verification && p.verification.status) ? p.verification.status : 'none';
       const cancelBtn = p.cancellationRequested
         ? `<button onclick="processCancellation('${event._id}', '${p.userId}', '${escapeHtml(p.name)}')" class="reject-btn">취소 처리</button>`
         : '';
-      buttonsHtml = `
-        ${cancelBtn}
-        <button onclick="resetParticipantStatus('${event._id}', '${p.userId}', '${escapeHtml(p.name)}')" class="reset-btn">대기로 되돌리기</button>
-        <button onclick="showStatusHistory('${event._id}', '${p.userId}', '${escapeHtml(p.name)}')" class="history-btn">이력</button>
-      `;
-    } else if (status === 'rejected') {
-      buttonsHtml = `
-        <button onclick="resetParticipantStatus('${event._id}', '${p.userId}', '${escapeHtml(p.name)}')" class="reset-btn">대기로 되돌리기</button>
-        <button onclick="showStatusHistory('${event._id}', '${p.userId}', '${escapeHtml(p.name)}')" class="history-btn">이력</button>
-      `;
+
+      if (verifyStatus === 'approved') {
+        statusPill = `<span class="status-pill approved" style="background-color: #a7f3d0; color: #065f46;">✓ 2차 승인 완료</span>`;
+        buttonsHtml = `
+          ${cancelBtn}
+          <button onclick="resetParticipantStatus('${event._id}', '${p.userId}', '${escapeHtml(p.name)}')" class="reset-btn">대기로 되돌리기</button>
+          <button onclick="showStatusHistory('${event._id}', '${p.userId}', '${escapeHtml(p.name)}')" class="history-btn">이력</button>
+        `;
+      } else if (verifyStatus === 'rejected') {
+        statusPill = `<span class="status-pill rejected" style="background-color: #fca5a5; color: #b91c1c;">✕ 경고 부여 완료</span>`;
+        buttonsHtml = `
+          ${cancelBtn}
+          <button onclick="resetParticipantStatus('${event._id}', '${p.userId}', '${escapeHtml(p.name)}')" class="reset-btn">대기로 되돌리기</button>
+          <button onclick="showStatusHistory('${event._id}', '${p.userId}', '${escapeHtml(p.name)}')" class="history-btn">이력</button>
+        `;
+      } else if (verifyStatus === 'pending') {
+        statusPill = `<span class="status-pill pending" style="background-color: #bae6fd; color: #0369a1;">⏳ 인증 대기 중</span>`;
+        buttonsHtml = `
+          ${cancelBtn}
+          <button onclick="approveLightning('${event._id}', '${p.userId}', '${escapeHtml(p.name)}')" class="approve-btn" style="background-color: #10b981; color: white;">2차 승인</button>
+          <button onclick="warnLightning('${event._id}', '${p.userId}', '${escapeHtml(p.name)}')" class="reject-btn" style="background-color: #ef4444; color: white;">경고 부여</button>
+          <button onclick="resetParticipantStatus('${event._id}', '${p.userId}', '${escapeHtml(p.name)}')" class="reset-btn">대기로 되돌리기</button>
+          <button onclick="showStatusHistory('${event._id}', '${p.userId}', '${escapeHtml(p.name)}')" class="history-btn">이력</button>
+        `;
+      } else {
+        // verifyStatus === 'none'
+        statusPill = `<span class="status-pill" style="background-color: #e2e8f0; color: #475569;">❔ 인증 미제출</span>`;
+        buttonsHtml = `
+          ${cancelBtn}
+          <button onclick="approveLightning('${event._id}', '${p.userId}', '${escapeHtml(p.name)}')" class="approve-btn" style="background-color: #10b981; color: white;">2차 승인</button>
+          <button onclick="warnLightning('${event._id}', '${p.userId}', '${escapeHtml(p.name)}')" class="reject-btn" style="background-color: #ef4444; color: white;">경고 부여</button>
+          <button onclick="resetParticipantStatus('${event._id}', '${p.userId}', '${escapeHtml(p.name)}')" class="reset-btn">대기로 되돌리기</button>
+          <button onclick="showStatusHistory('${event._id}', '${p.userId}', '${escapeHtml(p.name)}')" class="history-btn">이력</button>
+        `;
+      }
     } else {
-      const approveAttrs = canApprove ? '' : 'disabled title="정원 마감"';
-      buttonsHtml = `
-        <button onclick="updateParticipantStatus('${event._id}', '${p.userId}', 'approved')" class="approve-btn" ${approveAttrs}>승인</button>
-        <button onclick="updateParticipantStatus('${event._id}', '${p.userId}', 'rejected')" class="reject-btn">거절</button>
-      `;
+      statusPill =
+        status === 'approved'  ? `<span class="status-pill approved">✓ 참가확정</span>${p.cancellationRequested ? ' <span class="status-pill cancelled">🚪 취소 요청</span>' : ''}` :
+        status === 'rejected'  ? '<span class="status-pill rejected">✕ 거절됨</span>' :
+        status === 'cancelled' ? '<span class="status-pill cancelled">↩ 본인 취소</span>' :
+                                 '<span class="status-pill pending">⏳ 승인 대기</span>';
+
+      if (status === 'cancelled') {
+        buttonsHtml = `
+          <button onclick="showStatusHistory('${event._id}', '${p.userId}', '${escapeHtml(p.name)}')" class="history-btn">이력</button>
+        `;
+      } else if (status === 'approved') {
+        const cancelBtn = p.cancellationRequested
+          ? `<button onclick="processCancellation('${event._id}', '${p.userId}', '${escapeHtml(p.name)}')" class="reject-btn">취소 처리</button>`
+          : '';
+        buttonsHtml = `
+          ${cancelBtn}
+          <button onclick="resetParticipantStatus('${event._id}', '${p.userId}', '${escapeHtml(p.name)}')" class="reset-btn">대기로 되돌리기</button>
+          <button onclick="showStatusHistory('${event._id}', '${p.userId}', '${escapeHtml(p.name)}')" class="history-btn">이력</button>
+        `;
+      } else if (status === 'rejected') {
+        buttonsHtml = `
+          <button onclick="resetParticipantStatus('${event._id}', '${p.userId}', '${escapeHtml(p.name)}')" class="reset-btn">대기로 되돌리기</button>
+          <button onclick="showStatusHistory('${event._id}', '${p.userId}', '${escapeHtml(p.name)}')" class="history-btn">이력</button>
+        `;
+      } else {
+        const approveAttrs = (event.isLightning || canApprove) ? '' : 'disabled title="정원 마감"';
+        buttonsHtml = `
+          <button onclick="updateParticipantStatus('${event._id}', '${p.userId}', 'approved')" class="approve-btn" ${approveAttrs}>승인</button>
+          <button onclick="updateParticipantStatus('${event._id}', '${p.userId}', 'rejected')" class="reject-btn">거절</button>
+        `;
+      }
     }
 
     // 지원서가 있으면 펼치기 버튼
     const hasAnswers = Array.isArray(p.answers) && p.answers.length > 0;
     const answersBtn = hasAnswers
       ? `<button onclick="toggleAnswers('${p.userId}')" class="answers-btn" type="button">📝 지원서</button>`
+      : '';
+
+    // 번개 인증 자료가 있으면 펼치기 버튼
+    const hasLightningVerification = p.verification && (verifyStatus => verifyStatus !== 'none') && p.verification.photo;
+    const lightningVerifyBtn = hasLightningVerification
+      ? `<button onclick="toggleLightningVerification('${p.userId}')" class="answers-btn" type="button" style="background-color: #0d9488; color: #fff;">인증 보기</button>`
       : '';
 
     // 답변 섹션 HTML
@@ -529,6 +578,28 @@ function renderParticipantList() {
               </div>
             `;
           }).join('')}
+        </div>
+      `;
+    }
+
+    // 번개 인증 HTML
+    let lightningVerifyHtml = '';
+    if (hasLightningVerification) {
+      lightningVerifyHtml = `
+        <div class="pc-answers" id="lightning-verify-${p.userId}" style="border-top: 1px dashed #cbd5e1; padding-top: 10px; margin-top: 10px;">
+          <h4 style="margin: 0 0 8px 0; font-size: 0.9rem; color: #0f766e;">⚡ 번개 모임 현장 인증 내역</h4>
+          ${(p.verification.textAnswers || []).map((a, idx) => `
+            <div class="answer-section" style="margin-bottom: 8px;">
+              <p class="question-text" style="font-weight: 600; font-size: 0.8rem; margin: 0; color: #334155;">Q${idx + 1}. ${escapeHtml(a.question)}</p>
+              <div class="answer-text" style="font-size: 0.85rem; color: #475569; background: #f8fafc; padding: 6px 10px; border-radius: 6px; margin-top: 2px;">${escapeHtml(a.answer || '')}</div>
+            </div>
+          `).join('')}
+          <div style="margin-top: 10px;">
+            <p style="font-weight: 600; font-size: 0.8rem; margin: 0 0 4px 0; color: #334155;">📷 현장 인증 사진</p>
+            <a href="${escapeHtml(p.verification.photo)}" target="_blank" style="display: inline-block;">
+              <img src="${escapeHtml(p.verification.photo)}" style="max-width: 150px; border-radius: 8px; border: 1px solid #cbd5e1; cursor: pointer; transition: transform 0.2s;" alt="인증사진" onerror="this.remove()">
+            </a>
+          </div>
         </div>
       `;
     }
@@ -563,8 +634,10 @@ function renderParticipantList() {
         <div class="pc-actions">
           ${buttonsHtml}
           ${answersBtn}
+          ${lightningVerifyBtn}
         </div>
         ${answersHtml}
+        ${lightningVerifyHtml}
       </article>
     `;
   }).join('');
@@ -575,6 +648,57 @@ function renderParticipantList() {
 function toggleAnswers(userId) {
   const el = document.getElementById(`answers-${userId}`);
   if (el) el.classList.toggle('is-open');
+}
+
+function toggleLightningVerification(userId) {
+  const el = document.getElementById(`lightning-verify-${userId}`);
+  if (el) el.classList.toggle('is-open');
+}
+
+async function approveLightning(eventId, userId, name) {
+  if (!confirm(`정말로 ${name} 부원의 번개 모임 2차 승인을 완료하시겠습니까?\n이 승인은 철회할 수 없으며 경고 면제 처리가 됩니다.`)) return;
+
+  try {
+    const response = await fetch(`/events/${eventId}/participants/${userId}/lightning-approve`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' }
+    });
+
+    if (response.ok) {
+      alert(`${name} 부원의 2차 승인이 완료되었습니다.`);
+      fetchEventStatus();
+    } else {
+      const err = await response.json();
+      alert(`2차 승인 실패: ${err.message}`);
+    }
+  } catch (error) {
+    console.error('Error in approveLightning:', error);
+    alert('승인 처리 중 오류가 발생했습니다.');
+  }
+}
+
+async function warnLightning(eventId, userId, name) {
+  const reason = prompt(`정말로 ${name} 부원에게 경고를 부여하시겠습니까?\n경고 사유를 입력하세요 (기본값: 번개주최 미인증):`, '번개주최 미인증');
+  if (reason === null) return; // 취소 클릭 시 중단
+
+  try {
+    const response = await fetch(`/events/${eventId}/participants/${userId}/lightning-warn`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ reason: reason.trim() || '번개주최 미인증' })
+    });
+
+    if (response.ok) {
+      alert(`${name} 부원에게 경고가 성공적으로 부여되었습니다.`);
+      fetchEventStatus();
+    } else {
+      const err = await response.json();
+      alert(`경고 부여 실패: ${err.message}`);
+    }
+  } catch (error) {
+    console.error('Error in warnLightning:', error);
+    alert('경고 부여 중 오류가 발생했습니다.');
+  }
 }
 
 async function verifyEventAccess(eventId) {
@@ -759,7 +883,7 @@ function downloadExcel() {
     csv += row + '\n';
   });
 
-  const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' });
+  const blob = new Blob([ + csv], { type: 'text/csv;charset=utf-8;' });
   const link = document.createElement('a');
   link.href = URL.createObjectURL(blob);
   link.download = `${_currentEvent.title}_참가자명단.csv`;
