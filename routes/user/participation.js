@@ -8,6 +8,7 @@ const authenticateToken = require('../../middleware/authMiddleware');
 const { requireHRPermission } = require('../../middleware/roleMiddleware');
 const User = require('../../models/User');
 const Event = require('../../models/Event');
+const GlobalSetting = require('../../models/GlobalSetting');
 
 // 운영진/관리자만 (멤버 목록은 여러 오피스 페이지가 공용으로 사용 → 최소한 비공개화)
 const requireStaff = (req, res, next) => {
@@ -200,28 +201,79 @@ router.post('/bulk-update', authenticateToken, requireHRPermission, async (req, 
   }
 });
 
-// 이번 달 이벤트에 1~5일 사이 신청했는지로 회원 분류 (인사팀 월간 신청 현황)
+// 월간 신청 의무 기간 조회 헬퍼
+async function getMonthlyPeriod() {
+  const setting = await GlobalSetting.findOne({ key: 'monthlyApplicationPeriod' });
+  if (setting && setting.value) {
+    return {
+      startDay: setting.value.startDay || 1,
+      endDay: setting.value.endDay || 5
+    };
+  }
+  return { startDay: 1, endDay: 5 };
+}
+
+// 1) 월간 신청 기간 설정 조회 API (일반 부원도 events.html에서 보여줘야 하므로 인증만 통과하면 가능)
+router.get('/monthly-application-period', authenticateToken, async (req, res) => {
+  try {
+    const period = await getMonthlyPeriod();
+    res.json(period);
+  } catch (error) {
+    console.error('Error fetching monthly application period:', error);
+    res.status(500).json({ message: '설정 조회 중 오류가 발생했습니다.' });
+  }
+});
+
+// 2) 월간 신청 기간 설정 저장 API (인사팀/관리자만)
+router.post('/monthly-application-period', authenticateToken, requireHRPermission, async (req, res) => {
+  try {
+    const { startDay, endDay } = req.body;
+    const start = parseInt(startDay);
+    const end = parseInt(endDay);
+
+    if (isNaN(start) || isNaN(end) || start < 1 || start > 31 || end < 1 || end > 31 || start > end) {
+      return res.status(400).json({ message: '올바른 시작일과 마감일을 입력해주세요. (1~31일, 시작일 <= 마감일)' });
+    }
+
+    await GlobalSetting.findOneAndUpdate(
+      { key: 'monthlyApplicationPeriod' },
+      { value: { startDay: start, endDay: end } },
+      { upsert: true, new: true }
+    );
+
+    res.json({ message: '신청 기간 설정이 성공적으로 저장되었습니다.' });
+  } catch (error) {
+    console.error('Error saving monthly application period:', error);
+    res.status(500).json({ message: '설정 저장 중 오류가 발생했습니다.' });
+  }
+});
+
+// 이번 달 이벤트에 설정된 기간 내에 신청했는지로 회원 분류 (인사팀 월간 신청 현황)
 //  - 대상: 활동 중(active)인 참가자/스타터 (월간 신청 의무 대상)
-//  - 기준: 그 달에 진행되는 이벤트(event.date in month)에, 그 달 1일~5일 사이 appliedAt(취소 제외)
+//  - 기준: 그 달에 진행되는 이벤트(event.date in month)에, 설정된 시작일~마감일 사이 appliedAt(취소 제외)
 router.get('/monthly-application-status', authenticateToken, requireHRPermission, async (req, res) => {
   try {
+    const period = await getMonthlyPeriod();
+    const startDay = period.startDay;
+    const endDay = period.endDay;
+
     const now = new Date();
     const year = now.getFullYear();
     const month = now.getMonth(); // 0-indexed
     const monthStart = new Date(year, month, 1, 0, 0, 0, 0);
     const nextMonthStart = new Date(year, month + 1, 1, 0, 0, 0, 0);
-    const windowStart = monthStart;                         // 그 달 1일 00:00
-    const windowEnd = new Date(year, month, 6, 0, 0, 0, 0);  // 6일 00:00 (= 1~5일 신청 기간)
+    const windowStart = new Date(year, month, startDay, 0, 0, 0, 0);
+    const windowEnd = new Date(year, month, endDay + 1, 0, 0, 0, 0); // 마감 다음 날 00:00
 
     // 이번 달에 진행되는 이벤트
     const events = await Event.find({ date: { $gte: monthStart, $lt: nextMonthStart } })
       .select('appliedParticipants').lean();
 
     // 신청 시점 분류 (취소 제외):
-    //  - 신청 완료: 마감(6일 0시) 전에 신청 = appliedAt < windowEnd (일찍 낸 사람도 포함)
-    //  - 지각: 6일 0시 이후 신청
+    //  - 신청 완료: 마감 전에 신청 = appliedAt < windowEnd
+    //  - 지각: 마감 이후 신청
     const onTimeSet = new Set();  // appliedAt < windowEnd (마감 전)
-    const lateMap = new Map();    // userId -> 가장 이른 지각(>= windowEnd) appliedAt — 6일 이후
+    const lateMap = new Map();    // userId -> 가장 이른 지각(>= windowEnd) appliedAt
     for (const ev of events) {
       for (const p of (ev.appliedParticipants || [])) {
         if (!p.userId || p.status === 'cancelled') continue; // 취소건은 집계 제외
@@ -254,8 +306,8 @@ router.get('/monthly-application-status', authenticateToken, requireHRPermission
       };
     };
 
-    // 그달 5일 이후(>= 5일 0시) 가입자는 면제 — 신청 기간을 온전히 누리지 못함
-    const exemptThreshold = new Date(year, month, 5, 0, 0, 0, 0);
+    // 그달 마감일 이후(>= 마감일 0시) 가입자는 면제 — 신청 기간을 온전히 누리지 못함
+    const exemptThreshold = new Date(year, month, endDay, 0, 0, 0, 0);
     let exemptCount = 0;
     const applied = [];      // 정시 (~5일)
     const lateApplied = [];  // 지각 (6일 이후)

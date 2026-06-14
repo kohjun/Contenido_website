@@ -164,6 +164,35 @@ async function loadMonthlyApply() {
   const summary = document.getElementById('ma-summary');
   const cols = document.getElementById('ma-cols');
   try {
+    let startDay = 1;
+    let endDay = 5;
+    try {
+      const periodRes = await fetch('/user/monthly-application-period', { credentials: 'include' });
+      if (periodRes.ok) {
+        const period = await periodRes.json();
+        startDay = period.startDay || 1;
+        endDay = period.endDay || 5;
+
+        const sInput = document.getElementById('period-start-day');
+        const eInput = document.getElementById('period-end-day');
+        if (sInput) sInput.value = startDay;
+        if (eInput) eInput.value = endDay;
+
+        const labelPeriod = document.getElementById('mat-label-period');
+        if (labelPeriod) {
+          labelPeriod.textContent = `(${startDay}~${endDay}일 신청 기준)`;
+        }
+
+        const maAppliedSub = document.querySelector('.ma-col-ok h4 small');
+        if (maAppliedSub) maAppliedSub.textContent = `(${endDay}일까지)`;
+
+        const maLateSub = document.querySelector('.ma-col-late h4 small');
+        if (maLateSub) maLateSub.textContent = `(${endDay + 1}일~)`;
+      }
+    } catch (err) {
+      console.error('[monthly-apply] 신청 기간 로드 실패:', err);
+    }
+
     const res = await fetch('/user/monthly-application-status', { credentials: 'include' });
     if (!res.ok) {
       let msg;
@@ -180,15 +209,16 @@ async function loadMonthlyApply() {
     state.maMonth = `${d.year}-${String(d.month).padStart(2, '0')}`;
     state.maCanWarn = !!d.windowClosed && (d.eventCount || 0) > 0;
     state.maWarnReason = (d.eventCount || 0) === 0 ? '이번 달 이벤트가 없어 경고를 부여할 수 없습니다.'
-                       : !d.windowClosed ? '신청 기간 진행 중 — 6일 이후 경고할 수 있습니다.'
+                       : !d.windowClosed ? `신청 기간 진행 중 — ${endDay + 1}일 이후 경고할 수 있습니다.`
                        : '';
-    const note = d.windowClosed ? '' : ' · 신청 기간 진행 중 (6일 확정)';
+    const note = d.windowClosed ? '' : ` · 신청 기간 진행 중 (${endDay + 1}일 확정)`;
     const exemptNote = d.exemptCount ? ` · 신규가입 면제 ${d.exemptCount}명` : '';
     if (summary) summary.innerHTML =
       `${d.year}년 ${d.month}월 · 이벤트 ${d.eventCount}개 · ` +
       `신청 <b style="color:#0A84FE">${d.appliedCount}</b> / ` +
       `지각 <b style="color:#D97706">${d.lateCount || 0}</b> / ` +
       `미신청 <b style="color:#EF4444">${d.notAppliedCount}</b>${exemptNote}${note}`;
+
     const lateBadge = (iso) => {
       if (!iso) return '';
       const dt = new Date(iso);
@@ -217,6 +247,35 @@ async function loadMonthlyApply() {
   } catch (e) {
     console.error('월간 신청 현황 로드 실패:', e);
     if (summary) summary.textContent = '오류가 발생했습니다.';
+  }
+}
+
+async function savePeriodSettings() {
+  const startDay = parseInt(document.getElementById('period-start-day').value);
+  const endDay = parseInt(document.getElementById('period-end-day').value);
+
+  if (isNaN(startDay) || isNaN(endDay) || startDay < 1 || startDay > 31 || endDay < 1 || endDay > 31 || startDay > endDay) {
+    alert('올바른 시작일과 마감일을 입력해주세요. (1~31일, 시작일 <= 마감일)');
+    return;
+  }
+
+  try {
+    const res = await fetch('/user/monthly-application-period', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ startDay, endDay })
+    });
+
+    const result = await res.json();
+    alert(result.message);
+    if (res.ok) {
+      loadMonthlyApply();
+    }
+  } catch (err) {
+    console.error('Error saving monthly period:', err);
+    alert('설정 저장 중 오류가 발생했습니다.');
   }
 }
 
@@ -1326,5 +1385,6 @@ window.bootHR = bootHR;
 window.maToggleOne = maToggleOne;
 window.maToggleAll = maToggleAll;
 window.openMonthlyWarning = openMonthlyWarning;
+window.savePeriodSettings = savePeriodSettings;
 
 })();

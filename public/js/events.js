@@ -20,7 +20,7 @@ async function fetchEvents() {
     const userResponse = await fetch('/user/info');
     const currentUser = await userResponse.json();
 
-    updateMonthHeader(allEvents, currentUser);
+    await updateMonthHeader(allEvents, currentUser);
     renderFanPreview(allEvents);
     displayCurrentPage(currentUser);
   } catch (error) {
@@ -132,7 +132,7 @@ function legacyCopyText(text, cb) {
    3) 월 헤더 — "N월 이벤트" + 신청기간 + D-N 마감 배지
    ========================================================================= */
 
-function updateMonthHeader(events, currentUser) {
+async function updateMonthHeader(events, currentUser) {
   const titleEl = document.getElementById('page-month-title');
   const metaEl  = document.getElementById('month-meta');
   if (!titleEl) return;
@@ -147,9 +147,22 @@ function updateMonthHeader(events, currentUser) {
 
   if (!metaEl) return;
 
-  // 신청기간: 매월 1일 ~ 5일 (고정)
-  const periodText = `${monthNum}월 1일 ~ ${monthNum}월 5일`;
-  const isClosed = day > 5;
+  let startDay = 1;
+  let endDay = 5;
+  try {
+    const res = await fetch('/user/monthly-application-period');
+    if (res.ok) {
+      const period = await res.json();
+      startDay = period.startDay || 1;
+      endDay = period.endDay || 5;
+    }
+  } catch (err) {
+    console.error('Error loading monthly period:', err);
+  }
+
+  // 신청기간: 매월 startDay일 ~ endDay일
+  const periodText = `${monthNum}월 ${startDay}일 ~ ${monthNum}월 ${endDay}일`;
+  const isClosed = day > endDay;
 
   // 이번 달 이벤트 신청 여부 (항상 계산해서 사용자 상태 pill 표시)
   const year = now.getFullYear();
@@ -170,7 +183,7 @@ function updateMonthHeader(events, currentUser) {
     ? `<span class="pill pill-success">${monthNum}월 이벤트 신청 완료</span>`
     : `<span class="pill pill-warning">미신청 상태, 경고 1회 부여 가능</span>`;
 
-  // 6일 이후엔 신청 마감 pill을 사용자 pill 위에 추가
+  // 마감일 이후엔 신청 마감 pill을 사용자 pill 위에 추가
   const closedPillHtml = isClosed
     ? `<span class="pill pill-closed">신청 마감</span>`
     : '';
