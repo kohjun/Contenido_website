@@ -177,7 +177,7 @@ function renderPosts(posts) {
             <span class="post-time">${dateStr}</span>
           </div>
         </div>
-        <h2 class="post-title">${escapeHtml(post.title)}</h2>
+        <h3 class="post-title">${escapeHtml(post.title)}</h3>
         <div class="post-body-wrap">
           <p class="post-summary">${escapeHtml(post.content)}</p>
           ${imageTag}
@@ -360,11 +360,6 @@ function renderPostDetail(post) {
   let rightActionsHtml = '';
   if (isMyPostOrStaff) {
     rightActionsHtml += `<button class="post-detail-act-link" id="btn-delete-post">삭제</button>`;
-  } else {
-    rightActionsHtml += `
-      <button class="post-detail-act-link" id="btn-msg-post">쪽지</button>
-      <button class="post-detail-act-link" id="btn-report-post">신고</button>
-    `;
   }
 
   body.innerHTML = `
@@ -410,18 +405,6 @@ function renderPostDetail(post) {
   const deleteBtn = document.getElementById('btn-delete-post');
   if (deleteBtn) {
     deleteBtn.addEventListener('click', () => deletePost(post._id, true));
-  }
-  const msgBtn = document.getElementById('btn-msg-post');
-  if (msgBtn) {
-    msgBtn.addEventListener('click', () => {
-      showToast('쪽지 기능은 준비 중입니다.', { type: 'info' });
-    });
-  }
-  const reportBtn = document.getElementById('btn-report-post');
-  if (reportBtn) {
-    reportBtn.addEventListener('click', () => {
-      showToast('신고가 접수되었습니다.', { type: 'success' });
-    });
   }
   document.getElementById('btn-like-post').addEventListener('click', () => togglePostLike(post._id));
 
@@ -483,12 +466,7 @@ function renderCommentNode(c, isReply, postId) {
     const likeBtn = `
       <button class="comment-link-btn btn-comment-like ${c.hasLiked ? 'liked' : ''}" data-comment-id="${c._id}">공감</button>
     `;
-    const messageBtn = !c.isMyComment ? `
-      <button class="comment-link-btn btn-comment-message" data-author-name="${c.authorName}">쪽지</button>
-    ` : '';
-    const reportBtn = !c.isMyComment ? `
-      <button class="comment-link-btn btn-comment-report" data-comment-id="${c._id}">신고</button>
-    ` : '';
+    const messageBtn = '';
     const deleteBtn = c.isMyComment || ['admin', 'officer'].includes(currentUser.role) ? `
       <button class="comment-link-btn btn-delete btn-comment-delete" data-comment-id="${c._id}">삭제</button>
     ` : '';
@@ -498,7 +476,6 @@ function renderCommentNode(c, isReply, postId) {
         ${replyBtn}
         ${likeBtn}
         ${messageBtn}
-        ${reportBtn}
         ${deleteBtn}
       </div>
     `;
@@ -546,18 +523,7 @@ function attachCommentActions(postId) {
   });
 
   // Comment Message Action
-  document.querySelectorAll('.btn-comment-message').forEach(btn => {
-    btn.addEventListener('click', () => {
-      showToast('쪽지 기능은 준비 중입니다.', { type: 'info' });
-    });
-  });
-
-  // Comment Report Action
-  document.querySelectorAll('.btn-comment-report').forEach(btn => {
-    btn.addEventListener('click', () => {
-      showToast('신고가 접수되었습니다.', { type: 'success' });
-    });
-  });
+  // (쪽지 기능 비활성화됨)
 
   // Comment Delete Action
   document.querySelectorAll('.btn-comment-delete').forEach(btn => {

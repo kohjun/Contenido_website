@@ -954,7 +954,7 @@ const AuthModule = {
                   <li><a href="/calendar.html">이벤트 캘린더</a></li>
                   <li><a href="/ranking">활동 랭킹</a></li>
                   <li><a href="/event-staff.html" id="staffPageLink">이벤트 관리(운영진 전용)</a></li>
-                  <li><a href="community.html">커뮤니티 자유게시판</a></li>
+                  <li><a href="community.html">커뮤니티</a></li>
               </ul>
               <a href="/rules.html"><h3>동아리회칙 및  메뉴얼</h3></a>
               <a href="/partnerships"><h3>협찬 및 제휴</h3></a>
