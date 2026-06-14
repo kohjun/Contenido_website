@@ -189,12 +189,15 @@ function renderPosts(posts) {
             ` : ''}
           </div>
           <div class="post-stats">
-            <span class="stat-val ${post.hasLiked ? 'liked' : ''}" data-post-like-id="${post._id}">
-              👍 ${post.likesCount}
-            </span>
-            <span class="stat-val commented">
-              💬 ${post.commentsCount}
-            </span>
+            ${post.likesCount > 0 ? `
+              <span class="meta-item liked" data-post-like-id="${post._id}">👍 ${post.likesCount}</span>
+              <span class="meta-sep">|</span>
+            ` : ''}
+            <span class="meta-item commented">💬 ${post.commentsCount}</span>
+            <span class="meta-sep">|</span>
+            <span class="meta-item">${dateStr}</span>
+            <span class="meta-sep">|</span>
+            <span class="meta-item">${escapeHtml(post.authorName)}</span>
           </div>
         </div>
       </div>

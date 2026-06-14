@@ -35,20 +35,22 @@
         </div>
         
         <div class="write-actions">
-          <!-- 파일 업로드 라벨 -->
-          <label class="file-upload-btn" for="post-image-file">
-            <span>📷 사진 첨부</span>
-            <input type="file" id="post-image-file" accept="image/*" />
-          </label>
-          <span class="file-name-preview" id="post-file-name">선택된 파일 없음</span>
+          <div class="write-actions-left">
+            <!-- 파일 업로드 라벨 -->
+            <label class="file-upload-btn" for="post-image-file">
+              <span>📷 사진 첨부</span>
+              <input type="file" id="post-image-file" accept="image/*" />
+            </label>
+            <span class="file-name-preview" id="post-file-name">선택된 파일 없음</span>
 
-          <!-- 익명 체크박스 -->
-          <label class="check" style="cursor: pointer; display: inline-flex; align-items: center; gap: 6px; font-size: 13.5px; color: var(--c-text-soft);">
-            <input type="checkbox" id="post-anonymous" checked />
-            <span>익명</span>
-          </label>
+            <!-- 익명 체크박스 -->
+            <label class="check" style="cursor: pointer; display: inline-flex; align-items: center; gap: 6px; font-size: 13.5px; color: var(--c-text-soft);">
+              <input type="checkbox" id="post-anonymous" checked />
+              <span>익명</span>
+            </label>
+          </div>
 
-          <button type="submit" class="btn btn-primary" id="btn-submit-post" style="padding: 10px 24px;">
+          <button type="submit" class="btn btn-primary" id="btn-submit-post">
             <span>글쓰기</span>
           </button>
         </div>
