@@ -383,6 +383,7 @@ function renderPostDetail(post) {
       
       <div class="post-detail-stats-row">
         <span class="detail-stat-val liked">👍 ${post.likesCount}</span>
+        <span class="meta-sep">|</span>
         <span class="detail-stat-val commented">💬 ${post.commentsCount}</span>
       </div>
       

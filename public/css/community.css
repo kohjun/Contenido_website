@@ -15,15 +15,16 @@
 .board-search-bar {
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 0;
     flex: 1;
     min-width: 200px;
     max-width: 300px;
+    position: relative;
 }
 
 .board-search-bar .input {
     width: 100%;
-    padding: 6px 12px;
+    padding: 6px 38px 6px 12px;
     border-radius: 16px;
     border: 1px solid var(--c-border);
     background: var(--c-surface);
@@ -38,19 +39,24 @@
 }
 
 .board-search-btn {
+    position: absolute;
+    right: 4px;
+    top: 50%;
+    transform: translateY(-50%);
     background: var(--c-brand);
     color: white;
     border: none;
-    border-radius: 14px;
-    width: 28px;
-    height: 28px;
-    font-size: 12px;
+    border-radius: 12px;
+    width: 26px;
+    height: 26px;
+    font-size: 11px;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
     transition: background 0.15s;
+    z-index: 1;
 }
 
 .board-search-btn:hover {
@@ -180,17 +186,23 @@
 .write-actions button[type="submit"] {
     background: var(--c-brand);
     color: white;
-    border: none;
-    padding: 6px 16px;
+    border: 1px solid var(--c-brand);
+    padding: 4px 14px;
     font-size: 12px;
     font-weight: 700;
-    border-radius: 16px;
+    border-radius: 12px;
+    height: 28px;
     cursor: pointer;
-    transition: background 0.15s;
+    transition: all 0.15s;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    white-space: nowrap;
 }
 
 .write-actions button[type="submit"]:hover {
     background: var(--c-brand-strong);
+    border-color: var(--c-brand-strong);
 }
 
 /* 이미지 업로드 미디어 미리보기 */
@@ -324,27 +336,28 @@
 }
 
 .post-delete-btn {
-    background: none;
-    border: 1px solid #e3e3e3;
     background: #fbfbfb;
-    color: #777;
-    font-size: 11px;
+    border: 1px solid #e3e3e3;
+    color: #888;
+    font-size: 10.5px;
     font-weight: 700;
     cursor: pointer;
-    padding: 3px 8px;
+    padding: 2px 9px;
     border-radius: 12px;
+    height: 22px;
     transition: all 0.15s;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     white-space: nowrap;
     flex-shrink: 0;
+    letter-spacing: 0.01em;
 }
 
 .post-delete-btn:hover {
-    color: var(--c-brand-strong);
-    border-color: var(--c-brand-strong);
-    background: var(--c-brand-soft);
+    color: #e53535;
+    border-color: #f4a0a0;
+    background: #fff5f5;
 }
 
 .post-stats {
@@ -356,15 +369,17 @@
 }
 
 .meta-sep {
-    margin: 0 6px;
-    color: #e9e9e9;
+    margin: 0 5px;
+    color: #d0d0d0;
     user-select: none;
+    font-weight: 300;
 }
 
 .meta-item {
     display: inline-flex;
     align-items: center;
     gap: 3px;
+    padding: 0 1px;
 }
 
 /* 4) 상세 페이지 모달 리디자인 (에브리타임 스타일) */
@@ -559,10 +574,17 @@
 
 .post-detail-stats-row {
     display: flex;
-    gap: 8px;
+    align-items: center;
+    gap: 0;
     font-size: 11px;
     color: #a6a6a6;
     margin-top: 4px;
+}
+
+.post-detail-stats-row .meta-sep {
+    margin: 0 6px;
+    color: #d0d0d0;
+    font-weight: 300;
 }
 
 .detail-stat-val {
@@ -570,6 +592,7 @@
     align-items: center;
     gap: 2px;
     font-weight: 600;
+    padding: 0 1px;
 }
 
 .detail-stat-val.liked {
@@ -1046,22 +1069,27 @@
     .board-search-bar {
         width: 100%;
         max-width: none;
-        gap: 7px;
+        gap: 0;
+        position: relative;
     }
 
     .board-search-bar .input {
         height: 42px;
-        padding: 9px 14px;
+        padding: 9px 48px 9px 14px;
         border-radius: 8px;
         background: #fff;
         font-size: 14px;
     }
 
     .board-search-btn {
-        width: 42px;
-        height: 42px;
-        border-radius: 8px;
-        font-size: 15px;
+        position: absolute;
+        right: 6px;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 34px;
+        height: 34px;
+        border-radius: 7px;
+        font-size: 14px;
     }
 
     .board-filter-tabs {
