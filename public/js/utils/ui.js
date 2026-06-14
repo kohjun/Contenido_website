@@ -52,9 +52,6 @@
       dialog.innerHTML =
         '<div class="modal-header">' +
           '<h3 class="modal-title">' + escapeHtml(title) + '</h3>' +
-          '<button type="button" class="modal-close" aria-label="닫기">' +
-            '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>' +
-          '</button>' +
         '</div>' +
         '<div class="modal-body">' + escapeHtml(message).replace(/\n/g, '<br>') + '</div>' +
         '<div class="modal-actions">' +
@@ -86,7 +83,6 @@
       }
 
       backdrop.addEventListener('click', function () { close(false); });
-      dialog.querySelector('.modal-close').addEventListener('click', function () { close(false); });
       dialog.querySelector('[data-action="cancel"]').addEventListener('click', function () { close(false); });
       dialog.querySelector('[data-action="ok"]').addEventListener('click', function () { close(true); });
       document.addEventListener('keydown', onKey);
