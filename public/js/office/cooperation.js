@@ -210,6 +210,52 @@ window.CooperationMap = {
             }
 
             this.displaySavedPlaces(data);
+
+            // 지도 위에 제휴처 마커 그리기 및 영역 줌인/줌아웃 조절
+            if (this.map) {
+                this.removeMarkers();
+                const bounds = new kakao.maps.LatLngBounds();
+                let hasValidPlaces = false;
+
+                data.forEach(place => {
+                    if (!place.location?.coordinates || 
+                        !Array.isArray(place.location.coordinates) || 
+                        place.location.coordinates.length !== 2) {
+                        return;
+                    }
+
+                    const [longitude, latitude] = place.location.coordinates;
+                    const position = new kakao.maps.LatLng(latitude, longitude);
+                    const marker = this.addMarker(position);
+                    bounds.extend(position);
+                    hasValidPlaces = true;
+
+                    kakao.maps.event.addListener(marker, 'click', () => {
+                        if (this.currentInfoWindow) {
+                            this.currentInfoWindow.close();
+                        }
+
+                        const infowindow = new kakao.maps.InfoWindow({
+                            content: `
+                                <div class="info-window">
+                                    <h3>${place.placeName || '이름 없음'}</h3>
+                                    <p>${place.addressName || '주소 없음'}</p>
+                                    ${place.phoneNumber ? `<p>📞 ${place.phoneNumber}</p>` : ''}
+                                    ${place.category ? `<p>🏷️ ${place.category}</p>` : ''}
+                                </div>
+                            `,
+                            removable: true
+                        });
+
+                        infowindow.open(this.map, marker);
+                        this.currentInfoWindow = infowindow;
+                    });
+                });
+
+                if (hasValidPlaces) {
+                    this.map.setBounds(bounds);
+                }
+            }
         } catch (error) {
             console.error('Error loading saved places:', error);
             this.showError('저장된 장소를 불러오는데 실패했습니다: ' + error.message);

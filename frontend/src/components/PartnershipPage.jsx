@@ -1148,7 +1148,7 @@ const PartnershipCard = ({ partner, onDelete, hasPermission }) => {
     }
   };
 
-  const mapUrl = `https://map.naver.com/p/search/${encodeURIComponent(partner.addressName)}`;
+  const mapUrl = `https://map.naver.com/p/search/${encodeURIComponent(partner.placeName + ' ' + partner.addressName)}`;
   const partnershipDate = partner.partnershipDate 
     ? new Date(partner.partnershipDate).toLocaleDateString('ko-KR', {year: 'numeric', month: 'long', day: 'numeric'})
     : partner.createdAt 

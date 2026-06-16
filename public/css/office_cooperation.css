@@ -1,19 +1,19 @@
-/* 대외협력팀 지도/리스트 스타일 정의 */
+/* 대외협력팀 지도/리스트 스타일 정의 (Premium Light Theme) */
 
 :root {
     --c-brand: #0A84FE;
     --c-brand-hover: #0066cc;
-    --c-bg-dark: #121214;
-    --c-panel-bg: rgba(30, 30, 35, 0.6);
-    --c-card-bg: rgba(255, 255, 255, 0.03);
-    --c-card-hover: rgba(255, 255, 255, 0.08);
-    --c-border: rgba(255, 255, 255, 0.08);
-    --c-border-hover: rgba(10, 132, 254, 0.4);
-    --c-text-main: #ffffff;
-    --c-text-sub: #a0a0ab;
-    --c-text-muted: #6f6f78;
-    --c-danger: #ff453a;
-    --c-danger-hover: #ff3b30;
+    --c-bg-light: #f5f5f7;
+    --c-panel-bg: rgba(255, 255, 255, 0.9);
+    --c-card-bg: #ffffff;
+    --c-card-hover: #fafafa;
+    --c-border: rgba(0, 0, 0, 0.08);
+    --c-border-hover: rgba(10, 132, 254, 0.5);
+    --c-text-main: #1d1d1f;
+    --c-text-sub: #515154;
+    --c-text-muted: #86868b;
+    --c-danger: #ff3b30;
+    --c-danger-hover: #d12c22;
     --font-sans: 'Outfit', 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 }
 
@@ -23,7 +23,7 @@ body, html {
     width: 100%;
     height: 100%;
     font-family: var(--font-sans);
-    background-color: var(--c-bg-dark);
+    background-color: var(--c-bg-light);
     color: var(--c-text-main);
     overflow: hidden;
 }
@@ -47,7 +47,7 @@ body, html {
     display: flex;
     flex-direction: column;
     z-index: 10;
-    box-shadow: 10px 0 30px rgba(0, 0, 0, 0.3);
+    box-shadow: 5px 0 20px rgba(0, 0, 0, 0.05);
 }
 
 .panel-header {
@@ -63,6 +63,7 @@ body, html {
     display: flex;
     align-items: center;
     gap: 8px;
+    color: var(--c-text-main);
 }
 
 .panel-subtitle {
@@ -76,7 +77,7 @@ body, html {
 .search-box-wrapper {
     display: flex;
     gap: 8px;
-    background: rgba(255, 255, 255, 0.05);
+    background: rgba(0, 0, 0, 0.03);
     border: 1px solid var(--c-border);
     border-radius: 10px;
     padding: 4px 6px;
@@ -86,7 +87,7 @@ body, html {
 .search-box-wrapper:focus-within {
     border-color: var(--c-brand);
     box-shadow: 0 0 0 3px rgba(10, 132, 254, 0.15);
-    background: rgba(255, 255, 255, 0.08);
+    background: #ffffff;
 }
 
 .search-box-wrapper input {
@@ -125,7 +126,7 @@ body, html {
 .tab-nav {
     display: flex;
     border-bottom: 1px solid var(--c-border);
-    background: rgba(0, 0, 0, 0.15);
+    background: rgba(0, 0, 0, 0.02);
 }
 
 .tab-nav .tab {
@@ -149,6 +150,7 @@ body, html {
 
 .tab-nav .tab.active {
     color: var(--c-brand);
+    background: rgba(255, 255, 255, 0.5);
 }
 
 .tab-nav .tab.active::after {
@@ -165,7 +167,7 @@ body, html {
 .tab-content {
     flex: 1;
     overflow-y: auto;
-    background: rgba(0, 0, 0, 0.05);
+    background: rgba(0, 0, 0, 0.01);
 }
 
 .content-section {
@@ -194,13 +196,14 @@ body, html {
     flex-direction: column;
     gap: 12px;
     transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
 }
 
 .place-item:hover {
     background: var(--c-card-hover);
     border-color: var(--c-border-hover);
     transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.08);
 }
 
 .place-info {
@@ -234,9 +237,9 @@ body, html {
 }
 
 .facility-tag {
-    background: rgba(10, 132, 254, 0.1);
+    background: rgba(10, 132, 254, 0.08);
     color: var(--c-brand);
-    border: 1px solid rgba(10, 132, 254, 0.2);
+    border: 1px solid rgba(10, 132, 254, 0.15);
     font-size: 0.72rem;
     padding: 2px 8px;
     border-radius: 20px;
@@ -252,8 +255,8 @@ body, html {
 
 .action-button {
     flex: 1;
-    background: rgba(255, 255, 255, 0.05);
-    color: var(--c-text-main);
+    background: #ffffff;
+    color: var(--c-text-sub);
     border: 1px solid var(--c-border);
     padding: 8px 0;
     border-radius: 6px;
@@ -265,7 +268,9 @@ body, html {
 }
 
 .action-button:hover {
-    background: rgba(255, 255, 255, 0.1);
+    background: #f5f5f7;
+    color: var(--c-text-main);
+    border-color: rgba(0, 0, 0, 0.15);
 }
 
 .action-button.save-button {
@@ -280,8 +285,8 @@ body, html {
 
 .action-button.delete-button {
     color: var(--c-danger);
-    border-color: rgba(255, 69, 58, 0.2);
-    background: rgba(255, 69, 58, 0.05);
+    border-color: rgba(255, 59, 48, 0.15);
+    background: rgba(255, 59, 48, 0.03);
 }
 
 .action-button.delete-button:hover {
@@ -299,12 +304,12 @@ body, html {
 }
 
 .tab-content::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.1);
+    background: rgba(0, 0, 0, 0.1);
     border-radius: 4px;
 }
 
 .tab-content::-webkit-scrollbar-thumb:hover {
-    background: rgba(255, 255, 255, 0.25);
+    background: rgba(0, 0, 0, 0.2);
 }
 
 /* 플레이스홀더 */
@@ -335,13 +340,13 @@ body, html {
     right: 20px;
     z-index: 10;
     display: flex;
-    background: rgba(30, 30, 35, 0.85);
+    background: rgba(255, 255, 255, 0.9);
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
     border: 1px solid var(--c-border);
     border-radius: 8px;
     overflow: hidden;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.25);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
 }
 
 .custom-mapcontrol button {
@@ -357,7 +362,7 @@ body, html {
 
 .custom-mapcontrol button:hover {
     color: var(--c-text-main);
-    background: rgba(255, 255, 255, 0.05);
+    background: #f5f5f7;
 }
 
 .custom-mapcontrol button.selected {
@@ -372,7 +377,7 @@ body, html {
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(18, 18, 20, 0.8);
+    background: rgba(255, 255, 255, 0.8);
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -409,7 +414,7 @@ body, html {
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0, 0, 0, 0.75);
+    background: rgba(0, 0, 0, 0.4);
     backdrop-filter: blur(5px);
     -webkit-backdrop-filter: blur(5px);
     display: flex;
@@ -425,12 +430,12 @@ body, html {
 }
 
 .modal-container {
-    background: #1e1e22;
+    background: #ffffff;
     border: 1px solid var(--c-border);
     border-radius: 16px;
     width: 480px;
     max-width: 90%;
-    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
     display: flex;
     flex-direction: column;
     overflow: hidden;
@@ -454,6 +459,7 @@ body, html {
     margin: 0;
     font-size: 1.15rem;
     font-weight: 700;
+    color: var(--c-text-main);
 }
 
 .modal-close {
@@ -510,7 +516,7 @@ body, html {
 }
 
 .capacity-button, .facility-button {
-    background: rgba(255, 255, 255, 0.03);
+    background: #f5f5f7;
     border: 1px solid var(--c-border);
     color: var(--c-text-sub);
     padding: 10px 0;
@@ -523,13 +529,12 @@ body, html {
 }
 
 .capacity-button:hover, .facility-button:hover {
-    background: rgba(255, 255, 255, 0.08);
+    background: #e8e8ed;
     color: var(--c-text-main);
-    border-color: rgba(255, 255, 255, 0.2);
 }
 
 .capacity-button.selected, .facility-button.selected {
-    background: rgba(10, 132, 254, 0.15);
+    background: rgba(10, 132, 254, 0.1);
     color: var(--c-brand);
     border-color: var(--c-brand);
 }
@@ -540,11 +545,11 @@ body, html {
     display: flex;
     justify-content: flex-end;
     gap: 10px;
-    background: rgba(0, 0, 0, 0.15);
+    background: #f5f5f7;
 }
 
 .modal-cancel-btn, .modal-close-btn {
-    background: rgba(255, 255, 255, 0.05);
+    background: #ffffff;
     border: 1px solid var(--c-border);
     color: var(--c-text-sub);
     padding: 10px 20px;
@@ -556,7 +561,7 @@ body, html {
 }
 
 .modal-cancel-btn:hover, .modal-close-btn:hover {
-    background: rgba(255, 255, 255, 0.1);
+    background: #f5f5f7;
     color: var(--c-text-main);
 }
 
@@ -592,10 +597,10 @@ body, html {
 /* 지도 마커 상세 창 */
 .info-window {
     padding: 10px;
-    background: #1e1e22;
+    background: #ffffff;
     border: 1px solid var(--c-border);
     border-radius: 8px;
-    color: #fff;
+    color: var(--c-text-main);
     font-family: var(--font-sans);
     min-width: 180px;
 }
@@ -603,13 +608,13 @@ body, html {
 .info-window h3 {
     margin: 0 0 6px 0;
     font-size: 0.95rem;
-    color: #fff;
+    color: var(--c-text-main);
 }
 
 .info-window p {
     margin: 0 0 4px 0;
     font-size: 0.78rem;
-    color: #a0a0ab;
+    color: var(--c-text-sub);
 }
 
 /* 카카오 지도 팝업 오버레이 기본 스타일 재정의 */
@@ -627,10 +632,9 @@ body, html {
     line-height: 1.5;
 }
 
-/* 카카오 지도 인포윈도우 테마 맞춤 보정 (기본 흰 바탕을 어두운 테마로 변경) */
 .info-window-outer {
-    background-color: #1e1e22 !important;
-    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    background-color: #ffffff !important;
+    border: 1px solid rgba(0, 0, 0, 0.1) !important;
     border-radius: 8px !important;
 }
 

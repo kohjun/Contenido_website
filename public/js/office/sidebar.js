@@ -273,7 +273,7 @@ const Sidebar = (function() {
             
             const kakaoScript = document.createElement('script');
             kakaoScript.type = 'text/javascript';
-            kakaoScript.src = `//dapi.kakao.com/v2/maps/sdk.js?appkey=${kakaoKey}&libraries=services&autoload=false`;
+            kakaoScript.src = `https://dapi.kakao.com/v2/maps/sdk.js?appkey=${kakaoKey}&libraries=services&autoload=false`;
             
             kakaoScript.onload = () => {
               if (typeof kakao !== 'undefined' && kakao.maps) {
