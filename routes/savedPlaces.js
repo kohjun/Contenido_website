@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const SavedPlace = require('../models/SavedPlace');
 const User = require('../models/User');
+const Event = require('../models/Event');
 const authenticateToken = require('../middleware/authMiddleware');
 const multer = require('multer');
 const path = require('path');
@@ -143,7 +144,8 @@ router.post('/', authenticateToken, checkPartnershipPermission, upload.single('i
       facilities,
       memo,
       discountRate,
-      partnershipDate
+      partnershipDate,
+      eventId
     } = req.body;
 
     // 필수 필드 검증
@@ -176,7 +178,8 @@ router.post('/', authenticateToken, checkPartnershipPermission, upload.single('i
       discountRate: discountRate || '',
       partnershipDate: partnershipDate || new Date(),
       imageUrl,
-      creator: req.user.id
+      creator: req.user.id,
+      eventId: eventId || null
     });
 
     await savedPlace.save();
@@ -190,6 +193,46 @@ router.post('/', authenticateToken, checkPartnershipPermission, upload.single('i
       message: '장소 저장 중 오류가 발생했습니다.',
       error: error.message 
     });
+  }
+});
+
+// ========== 종료된 이벤트 조회 ==========
+router.get('/ended-events', authenticateToken, async (req, res) => {
+  try {
+    const endedEvents = await Event.find({ isEnded: true }).sort('-date');
+    
+    // 각 이벤트에 대해 연동된 SavedPlace가 있는지 확인합니다.
+    const mappedPlaces = await SavedPlace.find({ eventId: { $ne: null } });
+    
+    // 이벤트 ID를 키로 하는 매핑 테이블 구성
+    const mappedMap = {};
+    mappedPlaces.forEach(place => {
+      if (place.eventId) {
+        mappedMap[place.eventId.toString()] = place;
+      }
+    });
+
+    const result = endedEvents.map(event => {
+      const savedPlace = mappedMap[event._id.toString()];
+      return {
+        _id: event._id,
+        title: event.title,
+        place: event.place,
+        date: event.date,
+        isMapped: !!savedPlace,
+        savedPlace: savedPlace ? {
+          _id: savedPlace._id,
+          placeName: savedPlace.placeName,
+          addressName: savedPlace.addressName,
+          location: savedPlace.location
+        } : null
+      };
+    });
+
+    res.json(result);
+  } catch (error) {
+    console.error('Error fetching ended events:', error);
+    res.status(500).json({ message: '종료된 이벤트를 불러오는 중 오류가 발생했습니다.', error: error.message });
   }
 });
 

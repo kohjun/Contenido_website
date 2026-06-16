@@ -650,3 +650,75 @@ body, html {
         height: 50vh;
     }
 }
+
+/* 이벤트 연동 모드 배너 */
+.mapping-status-banner {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(74, 144, 226, 0.1);
+    border: 1px solid rgba(74, 144, 226, 0.2);
+    border-radius: 8px;
+    padding: 10px 14px;
+    margin: 12px 16px 4px 16px;
+    font-size: 0.85rem;
+    animation: fadeIn 0.3s ease;
+}
+
+.mapping-banner-text {
+    color: var(--c-brand);
+    font-weight: 500;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 80%;
+}
+
+.mapping-cancel-btn {
+    background: #e74c3c;
+    color: #ffffff;
+    border: none;
+    border-radius: 4px;
+    padding: 4px 8px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.mapping-cancel-btn:hover {
+    background: #c0392b;
+}
+
+/* 연동 상태 뱃지 */
+.badge {
+    padding: 3px 8px;
+    border-radius: 20px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.badge-mapped {
+    background: rgba(46, 204, 113, 0.1);
+    color: #27ae60;
+    border: 1px solid rgba(46, 204, 113, 0.3);
+}
+
+.badge-unmapped {
+    background: rgba(230, 126, 34, 0.1);
+    color: #d35400;
+    border: 1px solid rgba(230, 126, 34, 0.3);
+}
+
+/* 이벤트 카드 부속 정보 */
+.event-meta-info {
+    font-size: 0.8rem;
+    color: var(--c-text-sub);
+    margin-top: 2px;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-5px); }
+    to { opacity: 1; transform: translateY(0); }
+}

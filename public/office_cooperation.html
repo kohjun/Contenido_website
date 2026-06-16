@@ -21,9 +21,16 @@
                 </div>
             </header>
 
+            <!-- 이벤트 연동 진행 배너 -->
+            <div id="mapping-status-banner" class="mapping-status-banner" style="display: none;">
+                <span class="mapping-banner-text">📌 <strong>이벤트 연동 중:</strong> <span id="mapping-event-title"></span></span>
+                <button type="button" class="mapping-cancel-btn" onclick="window.CooperationMap.cancelMappingMode()">취소</button>
+            </div>
+
             <!-- 탭 네비게이션 -->
             <nav class="tab-nav">
                 <button class="tab active" data-tab="saved">제휴 목록</button>
+                <button class="tab" data-tab="ended-events">이벤트 연동</button>
                 <button class="tab" data-tab="search">신규 추가</button>
                 <button class="tab" data-tab="route" style="display: none;">경로 보기</button> <!-- cooperation.js 내부 탭 변경 대응용으로 숨김 유지 -->
             </nav>
@@ -34,6 +41,13 @@
                 <section id="saved-section" class="content-section active">
                     <div id="saved-places-list" class="places-list">
                         <div class="loading-placeholder">저장된 제휴처를 불러오는 중...</div>
+                    </div>
+                </section>
+
+                <!-- 종료된 이벤트 연동 섹션 -->
+                <section id="ended-events-section" class="content-section">
+                    <div id="ended-events-list" class="places-list">
+                        <div class="loading-placeholder">종료된 이벤트를 불러오는 중...</div>
                     </div>
                 </section>
 

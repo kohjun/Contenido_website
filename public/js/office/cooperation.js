@@ -9,6 +9,8 @@ window.CooperationMap = {
     selectedPlace: null,
     selectedCapacity: null,
     selectedFacilities: new Set(),
+    mappingEventId: null,
+    mappingEventTitle: null,
 
     showPlaceInfoModal(place) {
         this.selectedPlace = place;
@@ -70,6 +72,7 @@ window.CooperationMap = {
     removeMarkers() {
         this.markers.forEach(marker => marker.setMap(null));
         this.markers = [];
+        this.placeMarkers = {};
     },
 
     // 장소 검색 관련 메서드 (서버 사이드 프록시 API 활용)
@@ -199,6 +202,11 @@ window.CooperationMap = {
                 capacity: this.selectedCapacity,
                 facilities: Array.from(this.selectedFacilities)
             };
+            
+            if (this.mappingEventId) {
+                placeData.eventId = this.mappingEventId;
+            }
+
             const response = await fetch('/savedPlaces', {
                 method: 'POST',
                 headers: {
@@ -211,7 +219,12 @@ window.CooperationMap = {
             const result = await this.handleApiResponse(response);
             this.showSuccess(result.message || '장소가 저장되었습니다');
             this.closePlaceInfoModal();
-            await this.loadSavedPlaces();
+            
+            if (this.mappingEventId) {
+                this.cancelMappingMode();
+            } else {
+                await this.loadSavedPlaces();
+            }
         } catch (error) {
             console.error('Error saving place:', error);
             this.showError('장소 저장에 실패했습니다: ' + error.message);
@@ -232,6 +245,7 @@ window.CooperationMap = {
             // 지도 위에 제휴처 마커 그리기 및 영역 줌인/줌아웃 조절
             if (this.map) {
                 this.removeMarkers();
+                this.placeMarkers = {}; // placeId별 마커 매핑 초기화
                 const bounds = new naver.maps.LatLngBounds();
                 let hasValidPlaces = false;
 
@@ -245,28 +259,17 @@ window.CooperationMap = {
                     const [longitude, latitude] = place.location.coordinates;
                     const position = new naver.maps.LatLng(latitude, longitude);
                     const marker = this.addMarker(position);
+                    
+                    if (place._id) {
+                        this.placeMarkers[place._id.toString()] = marker;
+                    }
+                    
                     bounds.extend(position);
                     hasValidPlaces = true;
 
                     if (marker) {
                         naver.maps.Event.addListener(marker, 'click', () => {
-                            if (this.currentInfoWindow) {
-                                this.currentInfoWindow.close();
-                            }
-
-                            const infowindow = new naver.maps.InfoWindow({
-                                content: `
-                                    <div class="info-window">
-                                        <h3>${place.placeName || '이름 없음'}</h3>
-                                        <p>${place.addressName || '주소 없음'}</p>
-                                        ${place.phoneNumber ? `<p>📞 ${place.phoneNumber}</p>` : ''}
-                                        ${place.category ? `<p>🏷️ ${place.category}</p>` : ''}
-                                    </div>
-                                `
-                            });
-
-                            infowindow.open(this.map, marker);
-                            this.currentInfoWindow = infowindow;
+                            this.openPlaceInfoWindow(place, marker);
                         });
                     }
                 });
@@ -279,6 +282,27 @@ window.CooperationMap = {
             console.error('Error loading saved places:', error);
             this.showError('저장된 장소를 불러오는데 실패했습니다: ' + error.message);
         }
+    },
+
+    openPlaceInfoWindow(place, marker) {
+        if (this.currentInfoWindow) {
+            this.currentInfoWindow.close();
+        }
+
+        const infowindow = new naver.maps.InfoWindow({
+            content: `
+                <div class="info-window">
+                    <h3>${place.placeName || '이름 없음'}</h3>
+                    <p class="road-address">${place.roadAddressName || place.addressName || '주소 없음'}</p>
+                    ${place.phoneNumber ? `<p class="phone">📞 ${place.phoneNumber}</p>` : ''}
+                    ${place.discountRate ? `<p class="discount">🏷️ 혜택: ${place.discountRate}</p>` : ''}
+                    ${place.memo ? `<p class="memo">${place.memo}</p>` : ''}
+                </div>
+            `
+        });
+
+        infowindow.open(this.map, marker);
+        this.currentInfoWindow = infowindow;
     },
 
     displaySavedPlaces(places) {
@@ -419,6 +443,8 @@ window.CooperationMap = {
 
         if (tabId === 'saved') {
             this.loadSavedPlaces();
+        } else if (tabId === 'ended-events') {
+            this.loadEndedEvents();
         }
     },
 
@@ -570,6 +596,171 @@ window.CooperationMap = {
                 loadingElement.style.display = 'none';
             }
             this.showError('지도 초기화 중 오류가 발생했습니다: ' + error.message);
+        }
+    },
+
+    // 종료된 이벤트 로드
+    async loadEndedEvents() {
+        const listContainer = document.getElementById('ended-events-list');
+        if (!listContainer) return;
+        listContainer.innerHTML = '<div class="loading-placeholder">종료된 이벤트를 불러오는 중...</div>';
+
+        try {
+            const response = await fetch('/savedPlaces/ended-events');
+            const data = await this.handleApiResponse(response);
+
+            if (!Array.isArray(data)) {
+                throw new Error('올바르지 않은 데이터 형식입니다.');
+            }
+
+            this.displayEndedEvents(data);
+        } catch (error) {
+            console.error('Error loading ended events:', error);
+            listContainer.innerHTML = `<div class="error-message">종료된 이벤트를 불러오는데 실패했습니다: ${error.message}</div>`;
+        }
+    },
+
+    // 종료된 이벤트 목록 표시
+    displayEndedEvents(events) {
+        const listContainer = document.getElementById('ended-events-list');
+        if (!listContainer) return;
+
+        if (events.length === 0) {
+            listContainer.innerHTML = '<div class="empty-placeholder">종료된 이벤트가 존재하지 않습니다.</div>';
+            return;
+        }
+
+        listContainer.innerHTML = '';
+        events.forEach(event => {
+            const card = document.createElement('div');
+            card.className = 'place-item';
+            
+            const eventTitleSafe = event.title.replace(/'/g, "\\'");
+            const eventPlaceSafe = event.place ? event.place.replace(/'/g, "\\'") : '';
+            const dateStr = event.date ? new Date(event.date).toISOString().substring(0, 10) : '-';
+
+            let actionHtml = '';
+            let mappingInfoHtml = '';
+
+            if (event.isMapped && event.savedPlace) {
+                mappingInfoHtml = `<div class="event-meta-info" style="color: var(--c-brand); font-weight: 600;">🔗 연동된 제휴처: ${event.savedPlace.placeName}</div>`;
+                actionHtml = `<button class="action-btn map-btn" style="flex: 1;" onclick="window.CooperationMap.focusMappedPlace('${event.savedPlace._id}')">위치 보기</button>`;
+            } else {
+                actionHtml = `<button class="action-btn link-btn" style="flex: 1;" onclick="window.CooperationMap.startMappingMode('${event._id}', '${eventTitleSafe}', '${eventPlaceSafe}')">지도에서 연동</button>`;
+            }
+
+            card.innerHTML = `
+                <div class="place-info">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 8px;">
+                        <div class="place-name">${event.title}</div>
+                        <span class="badge ${event.isMapped ? 'badge-mapped' : 'badge-unmapped'}">
+                            ${event.isMapped ? '연동 완료' : '미연동'}
+                        </span>
+                    </div>
+                    <div class="event-meta-info">📅 일시: ${dateStr}</div>
+                    <div class="event-meta-info">📍 등록 장소: ${event.place || '없음'}</div>
+                    ${mappingInfoHtml}
+                </div>
+                <div class="place-actions" style="margin-top: 8px; display: flex; gap: 8px;">
+                    ${actionHtml}
+                </div>
+            `;
+            listContainer.appendChild(card);
+        });
+    },
+
+    // 연동 모드 시작
+    startMappingMode(eventId, eventTitle, eventPlace) {
+        this.mappingEventId = eventId;
+        this.mappingEventTitle = eventTitle;
+
+        // 배너 설정 및 표시
+        const banner = document.getElementById('mapping-status-banner');
+        const titleSpan = document.getElementById('mapping-event-title');
+        if (banner && titleSpan) {
+            titleSpan.textContent = eventTitle;
+            banner.style.display = 'flex';
+        }
+
+        // '신규 추가' 탭으로 전환
+        this.switchTab('search');
+
+        // 장소 검색어 입력 및 자동 검색
+        const keywordInput = document.getElementById('keyword');
+        if (keywordInput) {
+            keywordInput.value = eventPlace || '';
+            this.searchPlaces();
+        }
+    },
+
+    // 연동 모드 해제
+    cancelMappingMode() {
+        this.mappingEventId = null;
+        this.mappingEventTitle = null;
+
+        const banner = document.getElementById('mapping-status-banner');
+        if (banner) {
+            banner.style.display = 'none';
+        }
+
+        // 이벤트 연동 탭으로 복귀하고 다시 로드
+        this.switchTab('ended-events');
+    },
+
+    // 연동된 제휴처 지도상에 포커싱
+    async focusMappedPlace(savedPlaceId) {
+        try {
+            const marker = this.placeMarkers ? this.placeMarkers[savedPlaceId] : null;
+            if (!marker) {
+                // 혹시 제휴처 목록이 아직 다 로딩되지 않은 경우를 대비해 savedPlaces API 호출하여 확인
+                const response = await fetch(`/savedPlaces/${savedPlaceId}`);
+                if (!response.ok) {
+                    throw new Error('장소 정보를 불러오는데 실패했습니다.');
+                }
+                const place = await response.json();
+                
+                // 마커가 없으므로 지도만 포커싱하고 일반 InfoWindow 오픈
+                if (!place.location?.coordinates || place.location.coordinates.length !== 2) {
+                    throw new Error('좌표 정보가 올바르지 않습니다.');
+                }
+                const [longitude, latitude] = place.location.coordinates;
+                const position = new naver.maps.LatLng(latitude, longitude);
+                
+                if (this.currentInfoWindow) {
+                    this.currentInfoWindow.close();
+                }
+                const infowindow = new naver.maps.InfoWindow({
+                    content: `
+                        <div class="info-window">
+                            <h3>${place.placeName || '이름 없음'}</h3>
+                            <p class="road-address">${place.roadAddressName || place.addressName || '주소 없음'}</p>
+                            ${place.phoneNumber ? `<p class="phone">📞 ${place.phoneNumber}</p>` : ''}
+                            ${place.discountRate ? `<p class="discount">🏷️ 혜택: ${place.discountRate}</p>` : ''}
+                            ${place.memo ? `<p class="memo">${place.memo}</p>` : ''}
+                        </div>
+                    `
+                });
+                infowindow.open(this.map, position);
+                this.currentInfoWindow = infowindow;
+                this.map.setCenter(position);
+                this.map.setZoom(16);
+                return;
+            }
+
+            // 마커가 있는 경우 마커를 타겟으로 정보창 열기
+            // savedPlaces 조회해서 상세 정보 채우기
+            const response = await fetch(`/savedPlaces/${savedPlaceId}`);
+            if (!response.ok) {
+                throw new Error('장소 정보를 불러오는데 실패했습니다.');
+            }
+            const place = await response.json();
+
+            this.openPlaceInfoWindow(place, marker);
+            this.map.setCenter(marker.getPosition());
+            this.map.setZoom(16);
+        } catch (error) {
+            console.error('Error focusing mapped place:', error);
+            this.showError(error.message);
         }
     }
 };

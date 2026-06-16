@@ -77,6 +77,11 @@ const savedPlaceSchema = new mongoose.Schema({
     ref: 'User',
     required: false
   },
+  eventId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Event',
+    required: false
+  },
   createdAt: {
     type: Date,
     default: Date.now
