@@ -61,6 +61,38 @@ const checkPartnershipPermission = async (req, res, next) => {
   }
 };
 
+// ========== 카카오 로컬 API 검색 프록시 ==========
+router.get('/search', authenticateToken, async (req, res) => {
+  try {
+    const { keyword } = req.query;
+    if (!keyword) {
+      return res.status(400).json({ message: '검색어를 입력해주세요.' });
+    }
+
+    const kakaoRestKey = process.env.KAKAO_CLIENT_ID;
+    if (!kakaoRestKey) {
+      return res.status(500).json({ message: 'Kakao REST API Key가 설정되지 않았습니다.' });
+    }
+
+    const response = await fetch(`https://dapi.kakao.com/v2/local/search/keyword.json?query=${encodeURIComponent(keyword)}`, {
+      headers: {
+        'Authorization': `KakaoAK ${kakaoRestKey}`
+      }
+    });
+
+    if (!response.ok) {
+      const errText = await response.text();
+      throw new Error(`Kakao API error: ${errText}`);
+    }
+
+    const data = await response.json();
+    res.json(data.documents || []);
+  } catch (error) {
+    console.error('Error searching places on server:', error);
+    res.status(500).json({ message: '장소 검색에 실패했습니다.', error: error.message });
+  }
+});
+
 // ========== 모든 저장된 장소 조회 ==========
 router.get('/', authenticateToken, async (req, res) => {
   try {

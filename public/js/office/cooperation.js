@@ -72,8 +72,8 @@ window.CooperationMap = {
         this.markers = [];
     },
 
-    // 장소 검색 관련 메서드 (Kakao Local API 활용)
-    searchPlaces() {
+    // 장소 검색 관련 메서드 (서버 사이드 프록시 API 활용)
+    async searchPlaces() {
         if (!this.isMapInitialized) {
             this.showError('지도가 아직 초기화되지 않았습니다.');
             return;
@@ -85,18 +85,22 @@ window.CooperationMap = {
             return;
         }
 
-        if (this.places && typeof this.places.keywordSearch === 'function') {
-            this.places.keywordSearch(keyword, (data, status) => this.placesSearchCallback(data, status));
-        } else {
-            this.showError('검색 서비스가 로드되지 않았습니다.');
-        }
-    },
-
-    placesSearchCallback(data, status) {
-        if (typeof kakao !== 'undefined' && status === kakao.maps.services.Status.OK) {
-            this.displayPlaces(data);
-        } else {
-            this.showError('검색 결과가 존재하지 않거나 에러가 발생했습니다.');
+        try {
+            const response = await fetch(`/savedPlaces/search?keyword=${encodeURIComponent(keyword)}`);
+            if (!response.ok) {
+                const errData = await response.json();
+                throw new Error(errData.message || '검색에 실패했습니다.');
+            }
+            const data = await response.json();
+            
+            if (data && data.length > 0) {
+                this.displayPlaces(data);
+            } else {
+                this.showError('검색 결과가 존재하지 않습니다.');
+            }
+        } catch (error) {
+            console.error('Error searching places:', error);
+            this.showError(error.message);
         }
     },
 
@@ -548,10 +552,8 @@ window.CooperationMap = {
             };
 
             this.map = new naver.maps.Map(container, options);
-            
-            if (typeof kakao !== 'undefined' && kakao.maps && kakao.maps.services) {
-                this.places = new kakao.maps.services.Places();
-            }
+            // 카카오 SDK 대신 서버 프록시 검색 방식을 사용합니다.
+            this.places = null;
 
             this.isMapInitialized = true;
             this.setupEventListeners();
