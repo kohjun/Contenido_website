@@ -662,7 +662,8 @@ function downloadCertificatePDF() {
       useCORS: true, 
       logging: false 
     },
-    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+    pagebreak: { mode: 'avoid-all' }
   };
   
   // PDF 변환 시 박스 섀도우를 임시로 지웠다 복원
