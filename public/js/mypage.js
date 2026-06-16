@@ -646,7 +646,25 @@ function closeCertificateModal() {
 }
 
 function printCertificate() {
+  const prevTitle = document.title;
+  const prevUrl = window.location.pathname + window.location.search;
+  
+  document.title = 'CONTENIDO';
+  try {
+    history.replaceState(null, '', '/'); // Change URL to root path (so that footer prints as host only e.g. contenido.kr)
+  } catch (e) {
+    console.error('URL replaceState failed:', e);
+  }
+  
   window.print();
+  
+  // Restore immediately
+  document.title = prevTitle;
+  try {
+    history.replaceState(null, '', prevUrl);
+  } catch (e) {
+    console.error('URL restore failed:', e);
+  }
 }
 
 function downloadCertificatePDF() {
