@@ -837,6 +837,7 @@ button { font-family: inherit; }
   position: relative;
   z-index: 1;
   letter-spacing: 0.5px;
+  line-height: 1.4;
 }
 
 .cert-sub-title {
