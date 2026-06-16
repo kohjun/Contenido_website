@@ -68,6 +68,10 @@ router.post('/certificate/issue', authenticateToken, async (req, res) => {
       });
 
       await certificate.save();
+    } else {
+      // 기존 발급 내역이 있다면 일련번호는 유지하되 발급일(issuedAt)을 현재 갱신 시점 날짜로 업데이트
+      certificate.issuedAt = now;
+      await certificate.save();
     }
 
     // 6. 결과 반환 (활동증명서 기입에 필요한 모든 정보 포함)
