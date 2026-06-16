@@ -6,6 +6,8 @@
   <title>마이 페이지</title>
   <link rel="stylesheet" href="/css/mypage.css?v=20260601" />
   <script src="/js/utils/nav-injector.js?v=20260602" defer></script>
+  <!-- html2pdf.js 라이브러리 추가 -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 </head>
 
 <body>
@@ -34,7 +36,10 @@
         <p id="user-team"></p>
         <p id="user-createdAt"></p>
       </div>
-      <button id="additional-info">추가정보 입력</button>
+      <div class="profile-actions-row">
+        <button id="additional-info">추가정보 입력</button>
+        <button id="issue-certificate-btn" style="display: none;">활동증명서 발급</button>
+      </div>
     </div>
 
     <!-- 개인정보 카드 -->
@@ -100,6 +105,110 @@
       <!-- 버튼 내용 추가 -->
     </div>
     <br>
+  </div> <!-- Close container div, wait, container is closed? Yes, it was closed around here, or did we need it inside? Let's check: the container was closed by </div>, but let's verify if there is an unmatched </div>. Let's look at lines 95-107. Yes, </div> closes the container. -->
+
+  <!-- 활동증명서 발급 모달 -->
+  <div id="certificate-modal" class="cert-modal-overlay" style="display: none;">
+    <div class="cert-modal-card">
+      <div class="cert-modal-header">
+        <h4>활동증명서 발급</h4>
+        <div class="cert-modal-actions">
+          <button id="cert-btn-print" class="cert-action-btn print-btn">인쇄(출력)</button>
+          <button id="cert-btn-pdf" class="cert-action-btn pdf-btn">PDF 저장</button>
+          <button id="cert-btn-close" class="cert-action-btn close-btn">닫기</button>
+        </div>
+      </div>
+      <div class="cert-modal-body">
+        <div id="certificate-print-area">
+          <!-- 모서리 장식 -->
+          <div class="corner-tl"></div>
+          <div class="corner-tr"></div>
+          <div class="corner-bl"></div>
+          <div class="corner-br"></div>
+          
+          <div class="cert-inner-content">
+            <!-- 워터마크 배경 로고 -->
+            <img src="/images/Contenido_Logo.png" class="cert-watermark" alt="Contenido Watermark">
+            
+            <!-- 일련번호 -->
+            <div class="cert-serial-row">
+              일련번호 &nbsp;<span id="cert-serial-number">CND-2026-OP-000001</span>
+            </div>
+            
+            <!-- 타이틀 -->
+            <h1 class="cert-main-title">콘테니도(Contenido) 동아리 활동 증명서</h1>
+            <div class="cert-sub-title">CERTIFICATION OF PARTICIPATION</div>
+            
+            <!-- 개요 섹션 -->
+            <div class="cert-section-title">
+              <span class="diamond">◆</span> 개요
+            </div>
+            <table class="cert-info-table">
+              <tr>
+                <th class="blue-th">동아리명</th>
+                <td>콘테니도(Contenido)</td>
+                <th class="blue-th">성명</th>
+                <td><span id="cert-user-name">-</span></td>
+              </tr>
+              <tr>
+                <th class="blue-th">직위</th>
+                <td><span id="cert-user-role">-</span></td>
+                <th class="blue-th">직책</th>
+                <td><span id="cert-user-position">-</span></td>
+              </tr>
+              <tr>
+                <th class="blue-th">활동목적</th>
+                <td colspan="3">창의적인 기획력을 강화하고, 리더십과 문제 해결 능력을 향상</td>
+              </tr>
+              <tr>
+                <th class="blue-th">활동기간</th>
+                <td colspan="3"><span id="cert-activity-period">-</span></td>
+              </tr>
+            </table>
+            
+            <!-- 활동 내용 섹션 -->
+            <div class="cert-section-title">
+              <span class="diamond">◆</span> 활동 내용
+            </div>
+            <div class="cert-content-box">
+              <p id="cert-activity-content">
+                귀하는 콘테니도 동아리에서 운영진으로서<br>
+                창의적이고 주도적인 기획 역량을 발휘하여<br>
+                성공적인 이벤트 운영에 기여하였기에 이를 인증합니다.
+              </p>
+              <div class="cert-diamond-divider">◆</div>
+              <p class="cert-final-certify">위와 같은 동아리 활동 내용을 증명합니다.</p>
+            </div>
+            
+            <!-- 발급 날짜 -->
+            <div class="cert-date-row">
+              <span id="cert-issue-date">2026년 06월 16일</span>
+            </div>
+            
+            <!-- 서명 영역 -->
+            <div class="cert-signature-row">
+              <div class="sig-col">
+                <span class="sig-label">운영부장 :</span>
+                <span class="sig-name">고준</span>
+                <img src="/images/sign_go.png" class="sig-img" alt="운영부장 서명">
+              </div>
+              <div class="sig-col">
+                <span class="sig-label">홍보부장 :</span>
+                <span class="sig-name">허은서</span>
+                <img src="/images/sign_heo_eun.png" class="sig-img" alt="홍보부장 서명">
+              </div>
+              <div class="sig-col">
+                <span class="sig-label">기획부장 :</span>
+                <span class="sig-name">허종현</span>
+                <img src="/images/sign_heo_jong.png" class="sig-img" alt="기획부장 서명">
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Script -->
   <script src="/js/mypage.js?v=20260601"></script>
 </body>

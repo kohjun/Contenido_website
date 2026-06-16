@@ -16,5 +16,6 @@ router.use('/', require('./profile'));
 router.use('/', require('./warnings'));
 router.use('/', require('./participation'));
 router.use('/', require('./roles'));
+router.use('/', require('./certificate'));
 
 module.exports = router;

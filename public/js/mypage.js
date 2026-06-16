@@ -127,6 +127,28 @@ async function fetchUserInfo() {
       additionalBtn.dataset.mode = isAdditionalComplete ? 'edit' : 'create';
     }
 
+    // 활동증명서 발급 버튼 노출 및 자격 체크
+    const issueCertBtn = document.getElementById('issue-certificate-btn');
+    if (issueCertBtn) {
+      issueCertBtn.style.display = 'inline-flex';
+      
+      const now = new Date();
+      const joinDate = new Date(data.createdAt);
+      let monthsDiff = (now.getFullYear() - joinDate.getFullYear()) * 12 + (now.getMonth() - joinDate.getMonth());
+      if (now.getDate() < joinDate.getDate()) {
+        monthsDiff--;
+      }
+      
+      const isOfficerOrAdmin = ['officer', 'admin'].includes(data.role);
+      const requiredMonths = isOfficerOrAdmin ? 6 : 12;
+      
+      issueCertBtn.dataset.eligible = (data.active && monthsDiff >= requiredMonths) ? "true" : "false";
+      issueCertBtn.dataset.reason = !data.active 
+        ? "비활성 상태의 부원은 활동증명서를 발급받을 수 없습니다." 
+        : `활동 기간이 부족합니다. ${isOfficerOrAdmin ? '운영진/관리자' : '일반부원/스타터'}은 최소 ${isOfficerOrAdmin ? '6개월' : '1년'} 이상 활동해야 발급이 가능합니다. (현재: ${monthsDiff}개월 활동 중)`;
+    }
+
+
     // 활동 정보 업데이트
     updateElement('user-active', `활성상태 : ${data.active ? '✅활동 , * CONTENIDO 동아리 부원임을 인증하는 마크.*'  : '❌비활동 , *비활동부원 또는 게스트*'}`);
     updateElement('user-warningcount', `경고 횟수 : ${data.warningCount || 0}`);
@@ -506,4 +528,148 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('link-password-cancel').addEventListener('click', () => {
     document.getElementById('link-password-form').style.display = 'none';
   });
+
+  // 활동증명서 이벤트 바인딩
+  const issueCertBtn = document.getElementById('issue-certificate-btn');
+  if (issueCertBtn) {
+    issueCertBtn.addEventListener('click', handleCertificateClick);
+  }
+  document.getElementById('cert-btn-close').addEventListener('click', closeCertificateModal);
+  document.getElementById('cert-btn-print').addEventListener('click', printCertificate);
+  document.getElementById('cert-btn-pdf').addEventListener('click', downloadCertificatePDF);
 });
+
+// ── 활동증명서 관련 함수 정의 ──
+async function handleCertificateClick() {
+  const issueCertBtn = document.getElementById('issue-certificate-btn');
+  if (issueCertBtn.dataset.eligible !== "true") {
+    alert(issueCertBtn.dataset.reason);
+    return;
+  }
+
+  try {
+    const res = await fetch('/user/certificate/issue', { method: 'POST' });
+    if (!res.ok) {
+      const err = await res.json();
+      alert(err.message || '활동증명서 발급에 실패했습니다.');
+      return;
+    }
+
+    const responseData = await res.json();
+    const data = responseData.data;
+    
+    // 모달 데이터 기입
+    document.getElementById('cert-serial-number').textContent = data.serialNumber;
+    document.getElementById('cert-user-name').textContent = data.name || '-';
+    
+    // 직위 표시 매핑
+    const roleMap = {
+      'admin': '관리자',
+      'officer': '운영진',
+      'starter': '스타터',
+      'participant': '참가자'
+    };
+    document.getElementById('cert-user-role').textContent = roleMap[data.role] || data.role || '부원';
+    
+    // 직책 표시 계산
+    let positionText = '-';
+    if (data.role === 'officer' || data.role === 'admin') {
+      const deptMap = {
+        'planning': '기획부',
+        'operation': '운영부',
+        'promotion': '홍보부',
+        'marketing': '홍보부'
+      };
+      
+      const teamMap = {
+        'operationTeam': '운영팀',
+        'cooperationTeam': '대외협력팀',
+        'HumanResourceTeam': '인사팀',
+        'financeTeam': '재무팀',
+        'marketingTeam': '홍보팀',
+        'designTeam': '디자인팀',
+        'videoTeam': '영상제작팀',
+        'PlanningTeam': '기획팀',
+        'regularTeam': '정기모임', // '팀' 생략하여 정기모임(팀장)으로 표기
+        'staffTeam': '스태프팀',
+        'starterTeam': '스타터팀'
+      };
+      
+      const deptStr = deptMap[data.department] || '';
+      
+      if (data.isDepartmentHead) {
+        positionText = `${deptStr}(부장)`;
+      } else {
+        const teamStr = teamMap[data.team] || data.team || '';
+        const titleStr = data.isTeamLeader ? '팀장' : '팀원';
+        positionText = teamStr ? `${deptStr} ${teamStr}(${titleStr})` : `${deptStr}(${titleStr})`;
+      }
+    }
+    document.getElementById('cert-user-position').textContent = positionText;
+    
+    // 날짜 포맷팅 함수
+    const formatDate = (dateStr) => {
+      const d = new Date(dateStr);
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      return `${y}년 ${m}월 ${day}일`;
+    };
+    
+    const startStr = formatDate(data.joinDate);
+    const endStr = formatDate(data.issueDate);
+    document.getElementById('cert-activity-period').textContent = `${startStr} - ${endStr}`;
+    
+    // 활동 내용 텍스트 설정
+    const contentText = (data.role === 'officer' || data.role === 'admin')
+      ? '귀하는 콘테니도 동아리에서 운영진으로서<br>창의적이고 주도적인 기획 역량을 발휘하여<br>성공적인 이벤트 운영에 기여하였기에 이를 인증합니다.'
+      : '귀하는 콘테니도 동아리에서 참가자로서<br>성실하고 모범적인 언행과 높은 사회성을 발휘하여<br>성공적인 이벤트 운영에 기여하였기에 이를 인증합니다.';
+    document.getElementById('cert-activity-content').innerHTML = contentText;
+    
+    // 발급 날짜 기입
+    document.getElementById('cert-issue-date').textContent = endStr;
+    
+    // 모달 활성화 및 배경 스크롤 차단
+    const modal = document.getElementById('certificate-modal');
+    modal.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+    
+  } catch (error) {
+    console.error('활동증명서 모달 처리 오류:', error);
+    alert('활동증명서를 처리하는 중 오류가 발생했습니다.');
+  }
+}
+
+function closeCertificateModal() {
+  document.getElementById('certificate-modal').style.display = 'none';
+  document.body.style.overflow = '';
+}
+
+function printCertificate() {
+  window.print();
+}
+
+function downloadCertificatePDF() {
+  const element = document.getElementById('certificate-print-area');
+  const name = document.getElementById('cert-user-name').textContent.trim() || '부원';
+  
+  const opt = {
+    margin: 0,
+    filename: `활동증명서_${name}.pdf`,
+    image: { type: 'jpeg', quality: 0.98 },
+    html2canvas: { 
+      scale: 2.5, 
+      useCORS: true, 
+      logging: false 
+    },
+    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+  };
+  
+  // PDF 변환 시 박스 섀도우를 임시로 지웠다 복원
+  const prevBoxShadow = element.style.boxShadow;
+  element.style.boxShadow = 'none';
+  
+  html2pdf().set(opt).from(element).save().then(() => {
+    element.style.boxShadow = prevBoxShadow;
+  });
+}

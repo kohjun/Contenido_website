@@ -633,3 +633,448 @@ button { font-family: inherit; }
     justify-content: space-between;
   }
 }
+
+/* =========================================================================
+   활동증명서 발급 모달 및 증명서 양식 스타일링
+   ========================================================================= */
+
+/* 버튼 레이아웃 */
+.profile-actions-row {
+  display: flex;
+  gap: var(--sp-2);
+  margin-top: var(--sp-4);
+  flex-wrap: wrap;
+}
+
+#issue-certificate-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 18px;
+  background: var(--c-surface);
+  color: var(--c-brand);
+  border: 1px solid var(--c-brand-soft);
+  border-radius: var(--r-md);
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: var(--sh-1);
+  transition: transform var(--t-fast) var(--ease),
+              background-color var(--t-base) var(--ease),
+              border-color var(--t-base) var(--ease);
+}
+#issue-certificate-btn:hover {
+  background: var(--c-brand-soft);
+  border-color: var(--c-brand);
+  transform: translateY(-1px);
+}
+
+/* 모달 오버레이 */
+.cert-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+/* 모달 카드 */
+.cert-modal-card {
+  background: var(--c-surface-2);
+  border-radius: var(--r-lg);
+  box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04);
+  width: 100%;
+  max-width: 800px;
+  max-height: 95vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* 모달 헤더 */
+.cert-modal-header {
+  padding: 16px 24px;
+  background: var(--c-surface);
+  border-bottom: 1px solid var(--c-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.cert-modal-header h4 {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--c-text);
+  margin: 0;
+}
+.cert-modal-actions {
+  display: flex;
+  gap: 8px;
+}
+.cert-action-btn {
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid var(--c-border-strong);
+  background: #FFF;
+  color: var(--c-text-soft);
+  transition: all var(--t-fast) var(--ease);
+}
+.cert-action-btn:hover {
+  background: var(--c-surface-3);
+}
+.cert-action-btn.print-btn {
+  background: var(--c-brand);
+  color: #FFF;
+  border-color: var(--c-brand);
+}
+.cert-action-btn.print-btn:hover {
+  background: var(--c-brand-strong);
+}
+.cert-action-btn.pdf-btn {
+  background: #10B981;
+  color: #FFF;
+  border-color: #10B981;
+}
+.cert-action-btn.pdf-btn:hover {
+  background: #059669;
+}
+.cert-action-btn.close-btn:hover {
+  background: #F3F4F6;
+  color: #EF4444;
+}
+
+/* 모달 바디 */
+.cert-modal-body {
+  padding: 24px;
+  overflow-y: auto;
+  flex: 1;
+  background: #374151; /* 어두운 배경 위에 흰색 증명서가 뜨도록 설정 */
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+}
+
+/* 활동증명서 인쇄/출력 영역 (A4 비율) */
+#certificate-print-area {
+  position: relative;
+  width: 100%;
+  max-width: 700px;
+  background: #FFF;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+  box-sizing: border-box;
+  padding: 55px 45px;
+  overflow: hidden;
+  font-family: 'GmarketSansMedium', sans-serif;
+}
+
+/* 모서리 브래킷 데코 */
+.corner-tl, .corner-tr, .corner-bl, .corner-br {
+  position: absolute;
+  width: 45px;
+  height: 45px;
+  box-sizing: border-box;
+}
+.corner-tl { top: 20px; left: 20px; border-top: 6px solid #0A84FE; border-left: 6px solid #0A84FE; }
+.corner-tr { top: 20px; right: 20px; border-top: 6px solid #0A84FE; border-right: 6px solid #0A84FE; }
+.corner-bl { bottom: 20px; left: 20px; border-bottom: 6px solid #0A84FE; border-left: 6px solid #0A84FE; }
+.corner-br { bottom: 20px; right: 20px; border-bottom: 6px solid #0A84FE; border-right: 6px solid #0A84FE; }
+
+/* 이중 실선 테두리 */
+.cert-inner-content {
+  border: 4px double #0A84FE;
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+  padding: 40px 30px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+/* 배경 워터마크 로고 */
+.cert-watermark {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 300px;
+  height: 300px;
+  object-fit: contain;
+  opacity: 0.045;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* 일련번호 행 */
+.cert-serial-row {
+  text-align: right;
+  font-size: 0.82rem;
+  font-weight: bold;
+  color: #374151;
+  margin-bottom: 25px;
+  position: relative;
+  z-index: 1;
+}
+
+/* 메인 타이틀 */
+.cert-main-title {
+  text-align: center;
+  font-size: 1.8rem;
+  font-weight: bold;
+  color: #111827;
+  margin: 0 0 8px 0;
+  position: relative;
+  z-index: 1;
+  letter-spacing: 0.5px;
+}
+
+.cert-sub-title {
+  text-align: center;
+  font-size: 0.88rem;
+  font-weight: bold;
+  color: #0A84FE;
+  letter-spacing: 2.5px;
+  margin-bottom: 35px;
+  position: relative;
+  z-index: 1;
+  text-transform: uppercase;
+}
+
+/* 타이틀 구분선 스타일 */
+.cert-section-title {
+  display: flex;
+  align-items: center;
+  font-size: 1.05rem;
+  font-weight: bold;
+  color: #111827;
+  margin-top: 25px;
+  margin-bottom: 12px;
+  position: relative;
+  z-index: 1;
+  padding-bottom: 4px;
+}
+.cert-section-title .diamond {
+  color: #0A84FE;
+  margin-right: 6px;
+  font-size: 0.95rem;
+}
+.cert-section-title::after {
+  content: '';
+  flex-grow: 1;
+  height: 1.5px;
+  background: #A5C4F7;
+  margin-left: 10px;
+}
+
+/* 개요 테이블 */
+.cert-info-table {
+  width: 100%;
+  border-collapse: collapse;
+  position: relative;
+  z-index: 1;
+  margin-bottom: 25px;
+  border: 1px solid #A5C4F7;
+}
+.cert-info-table th, .cert-info-table td {
+  border: 1px solid #A5C4F7;
+  padding: 10px 12px;
+  font-size: 0.85rem;
+  line-height: 1.4;
+  vertical-align: middle;
+}
+.cert-info-table th.blue-th {
+  background: #0A84FE;
+  color: #FFF;
+  font-weight: bold;
+  text-align: center;
+  width: 16%;
+}
+.cert-info-table td {
+  background: #FFF;
+  color: #1F2937;
+  text-align: left;
+  font-weight: bold;
+}
+
+/* 활동 내용 박스 */
+.cert-content-box {
+  position: relative;
+  z-index: 1;
+  border: 1px solid #A5C4F7;
+  outline: 2px solid #A5C4F7;
+  outline-offset: -6px;
+  padding: 40px 24px;
+  text-align: center;
+  background: #FFF;
+  margin-bottom: 30px;
+}
+.cert-content-box p {
+  margin: 0;
+  color: #111827;
+}
+#cert-activity-content {
+  font-size: 1.05rem;
+  line-height: 1.8;
+  font-weight: bold;
+  word-break: keep-all;
+}
+.cert-diamond-divider {
+  color: #0A84FE;
+  font-size: 0.85rem;
+  margin: 18px 0;
+}
+.cert-final-certify {
+  font-size: 1.02rem;
+  font-weight: bold;
+  letter-spacing: 0.5px;
+}
+
+/* 발급 날짜 행 */
+.cert-date-row {
+  text-align: center;
+  font-size: 1.15rem;
+  font-weight: bold;
+  color: #111827;
+  margin-top: 25px;
+  margin-bottom: 35px;
+  position: relative;
+  z-index: 1;
+  padding-bottom: 12px;
+  width: 220px;
+  margin-left: auto;
+  margin-right: auto;
+  border-bottom: 1.5px solid #A5C4F7;
+}
+
+/* 서명 영역 행 */
+.cert-signature-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: relative;
+  z-index: 1;
+  margin-top: auto; /* 하단 밀착 */
+  padding-top: 15px;
+}
+.sig-col {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  font-size: 0.95rem;
+  font-weight: bold;
+  color: #111827;
+  height: 48px;
+}
+.sig-col:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  top: 10%;
+  height: 80%;
+  width: 1px;
+  background: #D1D5DB;
+}
+.sig-label {
+  margin-right: 8px;
+}
+.sig-name {
+  position: relative;
+  z-index: 2;
+}
+.sig-img {
+  position: absolute;
+  left: 55%;
+  top: 50%;
+  transform: translateY(-50%);
+  height: 38px;
+  object-fit: contain;
+  z-index: 1;
+  pointer-events: none;
+}
+
+/* =========================================================================
+   프린트 레이아웃 전용 스타일 (@media print)
+   ========================================================================= */
+@media print {
+  /* 브라우저 크롬 요소 숨기기 */
+  body * {
+    visibility: hidden;
+  }
+  
+  /* 오버레이를 화면 전체로 강제 */
+  .cert-modal-overlay {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: auto;
+    background: transparent !important;
+    backdrop-filter: none !important;
+    display: block !important;
+    padding: 0;
+    margin: 0;
+    overflow: visible;
+  }
+  
+  .cert-modal-card {
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    max-width: none !important;
+    max-height: none !important;
+    overflow: visible !important;
+    background: transparent !important;
+  }
+  
+  .cert-modal-header {
+    display: none !important;
+  }
+  
+  .cert-modal-body {
+    padding: 0 !important;
+    margin: 0 !important;
+    background: transparent !important;
+    overflow: visible !important;
+  }
+  
+  /* A4 용지 규격에 딱 맞추기 */
+  #certificate-print-area {
+    visibility: visible !important;
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 210mm;
+    height: 297mm;
+    margin: 0;
+    padding: 20mm; /* 인쇄 여백 */
+    box-sizing: border-box;
+    box-shadow: none !important;
+    background: #FFF !important;
+    page-break-after: avoid !important;
+    page-break-before: avoid !important;
+  }
+  
+  #certificate-print-area * {
+    visibility: visible !important;
+  }
+  
+  /* 배경 그래픽 인쇄 강제 */
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+}
+
