@@ -299,8 +299,8 @@ const Sidebar = (function() {
 
             document.head.appendChild(naverScript);
           } else {
-            console.error('Map API keys not found on server.', { kakaoKey, naverKey });
-            alert('지도 인증 키가 서버 설정에 누락되었습니다. (.env 파일에 KAKAO_JAVASCRIPT_KEY 및 NAVER_MAPS_CLIENT_ID 설정 필요)');
+            console.error('Naver Map API key not found on server.', { naverKey });
+            alert('지도 인증 키가 서버 설정에 누락되었습니다. (.env 파일에 NAVER_MAPS_CLIENT_ID 설정 필요)');
           }
         } catch (error) {
           console.error('Error loading cooperation page:', error);
