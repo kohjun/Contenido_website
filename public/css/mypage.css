@@ -893,8 +893,8 @@ button { font-family: inherit; }
   vertical-align: middle;
 }
 .cert-info-table th.blue-th {
-  background: #0A84FE;
-  color: #FFF;
+  background: #E8F2FF;
+  color: #000;
   font-weight: bold;
   text-align: center;
   width: 16%;
