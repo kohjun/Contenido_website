@@ -181,7 +181,7 @@ window.CooperationMap = {
                 capacity: this.selectedCapacity,
                 facilities: Array.from(this.selectedFacilities)
             };
-            const response = await fetch('/saved-places', {
+            const response = await fetch('/savedPlaces', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -202,7 +202,7 @@ window.CooperationMap = {
 
     async loadSavedPlaces() {
         try {
-            const response = await fetch('/saved-places');
+            const response = await fetch('/savedPlaces');
             const data = await this.handleApiResponse(response);
 
             if (!Array.isArray(data)) {
@@ -273,7 +273,7 @@ window.CooperationMap = {
         }
 
         try {
-            const response = await fetch(`/saved-places/${placeId}`, {
+            const response = await fetch(`/savedPlaces/${placeId}`, {
                 method: 'DELETE'
             });
 
@@ -288,7 +288,7 @@ window.CooperationMap = {
 
     async showOnMap(placeId) {
         try {
-            const response = await fetch(`/saved-places/${placeId}`);
+            const response = await fetch(`/savedPlaces/${placeId}`);
             const place = await this.handleApiResponse(response);
 
             if (!place.location?.coordinates) {
@@ -616,7 +616,7 @@ window.savePlace = function(place) {
 // 저장된 장소 불러오기
 async function loadSavedPlaces() {
     try {
-        const response = await fetch('/saved-places', {
+        const response = await fetch('/savedPlaces', {
             headers: {
                 'Accept': 'application/json'
             }

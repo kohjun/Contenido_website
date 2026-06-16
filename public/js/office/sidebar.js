@@ -242,8 +242,62 @@ const Sidebar = (function() {
       
 
       if (pageId === 'cooperationTeam') {
-        // React 앱으로 리다이렉트
-        window.location.href = '/partnerships';
+        try {
+          // CSS — 항상 fresh 보장
+          document.querySelectorAll('link[href^="/css/office_cooperation.css"]').forEach(l => l.remove());
+          const cssLink = document.createElement('link');
+          cssLink.rel = 'stylesheet';
+          cssLink.href = '/css/office_cooperation.css?t=' + Date.now();
+          document.head.appendChild(cssLink);
+
+          // 기존 cooperation.js 모두 제거 (버전 query 포함)
+          document.querySelectorAll('script[src^="/js/office/cooperation.js"]').forEach(s => s.remove());
+
+          // cooperation.js — fresh fetch
+          await new Promise((resolve, reject) => {
+            const s = document.createElement('script');
+            s.src = '/js/office/cooperation.js?t=' + Date.now();
+            s.onload = resolve;
+            s.onerror = reject;
+            document.body.appendChild(s);
+          });
+
+          // Kakao Maps API Key 동적 조회 및 SDK 로드
+          const keyResponse = await fetch('/events/kakao-key');
+          const keyData = await keyResponse.json();
+          const kakaoKey = keyData.kakaoKey;
+
+          if (kakaoKey) {
+            // 기존에 로드된 Kakao Maps SDK 제거
+            document.querySelectorAll('script[src*="dapi.kakao.com"]').forEach(s => s.remove());
+            
+            const kakaoScript = document.createElement('script');
+            kakaoScript.type = 'text/javascript';
+            kakaoScript.src = `//dapi.kakao.com/v2/maps/sdk.js?appkey=${kakaoKey}&libraries=services&autoload=false`;
+            
+            kakaoScript.onload = () => {
+              if (typeof kakao !== 'undefined' && kakao.maps) {
+                kakao.maps.load(() => {
+                  if (window.CooperationMap) {
+                    window.CooperationMap.initialize();
+                  }
+                });
+              }
+            };
+            document.head.appendChild(kakaoScript);
+          } else {
+            console.error('Kakao Javascript key not found on server.');
+          }
+        } catch (error) {
+          console.error('Error loading cooperation page:', error);
+          const mainContent = document.getElementById('main-content');
+          mainContent.innerHTML = `
+            <div class="error-message">
+              <h3>페이지 로드 중 오류가 발생했습니다</h3>
+              <p>${error.message}</p>
+            </div>
+          `;
+        }
         return;
       }
 

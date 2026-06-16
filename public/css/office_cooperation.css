@@ -1,0 +1,648 @@
+/* 대외협력팀 지도/리스트 스타일 정의 */
+
+:root {
+    --c-brand: #0A84FE;
+    --c-brand-hover: #0066cc;
+    --c-bg-dark: #121214;
+    --c-panel-bg: rgba(30, 30, 35, 0.6);
+    --c-card-bg: rgba(255, 255, 255, 0.03);
+    --c-card-hover: rgba(255, 255, 255, 0.08);
+    --c-border: rgba(255, 255, 255, 0.08);
+    --c-border-hover: rgba(10, 132, 254, 0.4);
+    --c-text-main: #ffffff;
+    --c-text-sub: #a0a0ab;
+    --c-text-muted: #6f6f78;
+    --c-danger: #ff453a;
+    --c-danger-hover: #ff3b30;
+    --font-sans: 'Outfit', 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+body, html {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    font-family: var(--font-sans);
+    background-color: var(--c-bg-dark);
+    color: var(--c-text-main);
+    overflow: hidden;
+}
+
+.cooperation-container {
+    display: flex;
+    width: 100%;
+    height: 100vh;
+    box-sizing: border-box;
+}
+
+/* 왼쪽 사이드바 패널 */
+.sidebar-panel {
+    width: 420px;
+    min-width: 380px;
+    height: 100%;
+    background: var(--c-panel-bg);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-right: 1px solid var(--c-border);
+    display: flex;
+    flex-direction: column;
+    z-index: 10;
+    box-shadow: 10px 0 30px rgba(0, 0, 0, 0.3);
+}
+
+.panel-header {
+    padding: 24px 20px 16px 20px;
+    border-bottom: 1px solid var(--c-border);
+}
+
+.panel-header h2 {
+    margin: 0 0 6px 0;
+    font-size: 1.45rem;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.panel-subtitle {
+    margin: 0 0 16px 0;
+    font-size: 0.85rem;
+    color: var(--c-text-sub);
+    line-height: 1.4;
+}
+
+/* 검색 박스 */
+.search-box-wrapper {
+    display: flex;
+    gap: 8px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--c-border);
+    border-radius: 10px;
+    padding: 4px 6px;
+    transition: all 0.25s ease;
+}
+
+.search-box-wrapper:focus-within {
+    border-color: var(--c-brand);
+    box-shadow: 0 0 0 3px rgba(10, 132, 254, 0.15);
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.search-box-wrapper input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: var(--c-text-main);
+    font-size: 0.9rem;
+    padding: 8px;
+    font-family: inherit;
+}
+
+.search-box-wrapper input::placeholder {
+    color: var(--c-text-muted);
+}
+
+.search-box-wrapper button {
+    background: var(--c-brand);
+    color: white;
+    border: none;
+    outline: none;
+    border-radius: 8px;
+    padding: 0 16px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.search-box-wrapper button:hover {
+    background: var(--c-brand-hover);
+}
+
+/* 탭 바 */
+.tab-nav {
+    display: flex;
+    border-bottom: 1px solid var(--c-border);
+    background: rgba(0, 0, 0, 0.15);
+}
+
+.tab-nav .tab {
+    flex: 1;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: var(--c-text-sub);
+    padding: 14px 0;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    position: relative;
+    transition: all 0.2s;
+    text-align: center;
+}
+
+.tab-nav .tab:hover {
+    color: var(--c-text-main);
+}
+
+.tab-nav .tab.active {
+    color: var(--c-brand);
+}
+
+.tab-nav .tab.active::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background-color: var(--c-brand);
+}
+
+/* 탭 컨텐츠 */
+.tab-content {
+    flex: 1;
+    overflow-y: auto;
+    background: rgba(0, 0, 0, 0.05);
+}
+
+.content-section {
+    display: none;
+    height: 100%;
+}
+
+.content-section.active {
+    display: block;
+}
+
+.places-list {
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+/* 카드 디자인 */
+.place-item {
+    background: var(--c-card-bg);
+    border: 1px solid var(--c-border);
+    border-radius: 12px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.place-item:hover {
+    background: var(--c-card-hover);
+    border-color: var(--c-border-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+}
+
+.place-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.place-name {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--c-text-main);
+}
+
+.place-address {
+    font-size: 0.82rem;
+    color: var(--c-text-sub);
+    line-height: 1.4;
+}
+
+.place-phone, .place-category, .place-capacity {
+    font-size: 0.78rem;
+    color: var(--c-text-muted);
+}
+
+.facility-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-top: 4px;
+}
+
+.facility-tag {
+    background: rgba(10, 132, 254, 0.1);
+    color: var(--c-brand);
+    border: 1px solid rgba(10, 132, 254, 0.2);
+    font-size: 0.72rem;
+    padding: 2px 8px;
+    border-radius: 20px;
+    font-weight: 500;
+}
+
+/* 카드 액션 버튼 */
+.action-buttons {
+    display: flex;
+    gap: 8px;
+    margin-top: 4px;
+}
+
+.action-button {
+    flex: 1;
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--c-text-main);
+    border: 1px solid var(--c-border);
+    padding: 8px 0;
+    border-radius: 6px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: center;
+}
+
+.action-button:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.action-button.save-button {
+    background: var(--c-brand);
+    border-color: var(--c-brand);
+    color: white;
+}
+
+.action-button.save-button:hover {
+    background: var(--c-brand-hover);
+}
+
+.action-button.delete-button {
+    color: var(--c-danger);
+    border-color: rgba(255, 69, 58, 0.2);
+    background: rgba(255, 69, 58, 0.05);
+}
+
+.action-button.delete-button:hover {
+    background: var(--c-danger);
+    color: white;
+}
+
+/* 스크롤바 커스텀 */
+.tab-content::-webkit-scrollbar {
+    width: 6px;
+}
+
+.tab-content::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.tab-content::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+}
+
+.tab-content::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.25);
+}
+
+/* 플레이스홀더 */
+.loading-placeholder, .empty-placeholder, .no-places {
+    padding: 40px 20px;
+    text-align: center;
+    color: var(--c-text-muted);
+    font-size: 0.85rem;
+    line-height: 1.5;
+}
+
+/* 오른쪽 지도 영역 */
+.map-panel {
+    flex: 1;
+    height: 100%;
+    position: relative;
+}
+
+#map {
+    width: 100%;
+    height: 100%;
+}
+
+/* 지도 확대/축소 컨트롤러 커스텀 스타일링을 위한 오버레이 */
+.custom-mapcontrol {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    z-index: 10;
+    display: flex;
+    background: rgba(30, 30, 35, 0.85);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid var(--c-border);
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.25);
+}
+
+.custom-mapcontrol button {
+    background: transparent;
+    border: none;
+    color: var(--c-text-sub);
+    padding: 10px 16px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.custom-mapcontrol button:hover {
+    color: var(--c-text-main);
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.custom-mapcontrol button.selected {
+    color: white;
+    background: var(--c-brand);
+}
+
+/* 지도 로딩 스피너 */
+.map-loading-spinner {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(18, 18, 20, 0.8);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 20;
+    backdrop-filter: blur(5px);
+}
+
+.spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid rgba(10, 132, 254, 0.1);
+    border-radius: 50%;
+    border-top-color: var(--c-brand);
+    animation: spin 1s linear infinite;
+    margin-bottom: 16px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.map-loading-spinner p {
+    color: var(--c-text-main);
+    font-size: 0.9rem;
+    margin: 0;
+}
+
+/* 모달 공통 레이아웃 */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.75);
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 100;
+    animation: fadeIn 0.2s ease-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.modal-container {
+    background: #1e1e22;
+    border: 1px solid var(--c-border);
+    border-radius: 16px;
+    width: 480px;
+    max-width: 90%;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    animation: slideUp 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes slideUp {
+    from { transform: translateY(30px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+.modal-header {
+    padding: 20px;
+    border-bottom: 1px solid var(--c-border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-header h3 {
+    margin: 0;
+    font-size: 1.15rem;
+    font-weight: 700;
+}
+
+.modal-close {
+    background: transparent;
+    border: none;
+    color: var(--c-text-sub);
+    font-size: 1.5rem;
+    cursor: pointer;
+    outline: none;
+    transition: color 0.2s;
+    line-height: 1;
+}
+
+.modal-close:hover {
+    color: var(--c-text-main);
+}
+
+.modal-body {
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.form-label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--c-text-sub);
+}
+
+.form-label .required {
+    color: var(--c-danger);
+    margin-left: 2px;
+}
+
+/* 수용인원 및 편의시설 그리드형 버튼 선택 */
+.capacity-buttons-grid, .facility-buttons-grid {
+    display: grid;
+    gap: 8px;
+}
+
+.capacity-buttons-grid {
+    grid-template-columns: repeat(4, 1fr);
+}
+
+.facility-buttons-grid {
+    grid-template-columns: repeat(2, 1fr);
+}
+
+.capacity-button, .facility-button {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--c-border);
+    color: var(--c-text-sub);
+    padding: 10px 0;
+    border-radius: 8px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: inherit;
+}
+
+.capacity-button:hover, .facility-button:hover {
+    background: rgba(255, 255, 255, 0.08);
+    color: var(--c-text-main);
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+.capacity-button.selected, .facility-button.selected {
+    background: rgba(10, 132, 254, 0.15);
+    color: var(--c-brand);
+    border-color: var(--c-brand);
+}
+
+.modal-footer {
+    padding: 16px 20px;
+    border-top: 1px solid var(--c-border);
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    background: rgba(0, 0, 0, 0.15);
+}
+
+.modal-cancel-btn, .modal-close-btn {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--c-border);
+    color: var(--c-text-sub);
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.modal-cancel-btn:hover, .modal-close-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--c-text-main);
+}
+
+.modal-save-btn {
+    background: var(--c-brand);
+    border: none;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.modal-save-btn:hover {
+    background: var(--c-brand-hover);
+}
+
+/* 에러 모달 커스텀 */
+.error-modal-container {
+    width: 380px;
+}
+
+.error-msg-content {
+    font-size: 0.9rem;
+    line-height: 1.6;
+    color: var(--c-text-sub);
+    margin: 0;
+    text-align: center;
+}
+
+/* 지도 마커 상세 창 */
+.info-window {
+    padding: 10px;
+    background: #1e1e22;
+    border: 1px solid var(--c-border);
+    border-radius: 8px;
+    color: #fff;
+    font-family: var(--font-sans);
+    min-width: 180px;
+}
+
+.info-window h3 {
+    margin: 0 0 6px 0;
+    font-size: 0.95rem;
+    color: #fff;
+}
+
+.info-window p {
+    margin: 0 0 4px 0;
+    font-size: 0.78rem;
+    color: #a0a0ab;
+}
+
+/* 카카오 지도 팝업 오버레이 기본 스타일 재정의 */
+.wrap {
+    position: absolute;
+    left: 0;
+    bottom: 40px;
+    width: 280px;
+    height: 130px;
+    margin-left: -140px;
+    text-align: left;
+    overflow: hidden;
+    font-size: 12px;
+    font-family: 'Malgun Gothic', dotum, sans-serif;
+    line-height: 1.5;
+}
+
+/* 카카오 지도 인포윈도우 테마 맞춤 보정 (기본 흰 바탕을 어두운 테마로 변경) */
+.info-window-outer {
+    background-color: #1e1e22 !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    border-radius: 8px !important;
+}
+
+@media (max-width: 768px) {
+    .cooperation-container {
+        flex-direction: column;
+    }
+    .sidebar-panel {
+        width: 100%;
+        height: 50vh;
+    }
+    .map-panel {
+        height: 50vh;
+    }
+}
