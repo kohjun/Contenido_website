@@ -32,6 +32,11 @@ router.get('/kakao-key', (req, res) => {
   res.json({ kakaoKey: process.env.KAKAO_JAVASCRIPT_KEY });
 });
 
+// 네이버 지도 클라이언트 ID
+router.get('/naver-key', (req, res) => {
+  res.json({ naverKey: process.env.NAVER_MAPS_CLIENT_ID });
+});
+
 // 캘린더용 이벤트 포맷
 router.get('/calendar', async (req, res) => {
   try {

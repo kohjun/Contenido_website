@@ -262,31 +262,60 @@ const Sidebar = (function() {
             document.body.appendChild(s);
           });
 
-          // Kakao Maps API Key 동적 조회 및 SDK 로드
-          const keyResponse = await fetch('/events/kakao-key');
-          const keyData = await keyResponse.json();
-          const kakaoKey = keyData.kakaoKey;
+          // API Key 동적 조회
+          const kakaoResponse = await fetch('/events/kakao-key');
+          const kakaoData = await kakaoResponse.json();
+          const kakaoKey = kakaoData.kakaoKey;
 
-          if (kakaoKey) {
-            // 기존에 로드된 Kakao Maps SDK 제거
+          const naverResponse = await fetch('/events/naver-key');
+          const naverData = await naverResponse.json();
+          const naverKey = naverData.naverKey;
+
+          if (kakaoKey && naverKey) {
+            // 기존 스크립트 제거
             document.querySelectorAll('script[src*="dapi.kakao.com"]').forEach(s => s.remove());
-            
+            document.querySelectorAll('script[src*="openapi.map.naver.com"]').forEach(s => s.remove());
+
+            // 1. Kakao SDK 로드
             const kakaoScript = document.createElement('script');
             kakaoScript.type = 'text/javascript';
             kakaoScript.src = `https://dapi.kakao.com/v2/maps/sdk.js?appkey=${kakaoKey}&libraries=services&autoload=false`;
             
-            kakaoScript.onload = () => {
-              if (typeof kakao !== 'undefined' && kakao.maps) {
-                kakao.maps.load(() => {
-                  if (window.CooperationMap) {
-                    window.CooperationMap.initialize();
-                  }
-                });
+            // 2. Naver SDK 로드
+            const naverScript = document.createElement('script');
+            naverScript.type = 'text/javascript';
+            naverScript.src = `https://openapi.map.naver.com/openapi/v3/maps.js?ncpClientId=${naverKey}`;
+
+            // 둘 다 로드된 후 초기화
+            let kakaoLoaded = false;
+            let naverLoaded = false;
+
+            const checkAndInit = () => {
+              if (kakaoLoaded && naverLoaded) {
+                if (typeof kakao !== 'undefined' && kakao.maps && typeof naver !== 'undefined' && naver.maps) {
+                  kakao.maps.load(() => {
+                    if (window.CooperationMap) {
+                      window.CooperationMap.initialize();
+                    }
+                  });
+                }
               }
             };
+
+            kakaoScript.onload = () => {
+              kakaoLoaded = true;
+              checkAndInit();
+            };
+            naverScript.onload = () => {
+              naverLoaded = true;
+              checkAndInit();
+            };
+
             document.head.appendChild(kakaoScript);
+            document.head.appendChild(naverScript);
           } else {
-            console.error('Kakao Javascript key not found on server.');
+            console.error('Map API keys not found on server.', { kakaoKey, naverKey });
+            alert('지도 인증 키가 서버 설정에 누락되었습니다. (.env 파일에 KAKAO_JAVASCRIPT_KEY 및 NAVER_MAPS_CLIENT_ID 설정 필요)');
           }
         } catch (error) {
           console.error('Error loading cooperation page:', error);
