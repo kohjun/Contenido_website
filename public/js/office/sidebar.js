@@ -284,7 +284,7 @@ const Sidebar = (function() {
             // 2. Naver SDK 로드
             const naverScript = document.createElement('script');
             naverScript.type = 'text/javascript';
-            naverScript.src = `https://openapi.map.naver.com/openapi/v3/maps.js?ncpClientId=${naverKey}`;
+            naverScript.src = `https://oapi.map.naver.com/openapi/v3/maps.js?ncpClientId=${naverKey}`;
 
             // 둘 다 로드된 후 초기화
             let kakaoLoaded = false;
