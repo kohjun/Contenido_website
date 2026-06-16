@@ -127,25 +127,10 @@ async function fetchUserInfo() {
       additionalBtn.dataset.mode = isAdditionalComplete ? 'edit' : 'create';
     }
 
-    // 활동증명서 발급 버튼 노출 및 자격 체크
+    // 활동증명서 발급 버튼 노출
     const issueCertBtn = document.getElementById('issue-certificate-btn');
     if (issueCertBtn) {
       issueCertBtn.style.display = 'inline-flex';
-      
-      const now = new Date();
-      const joinDate = new Date(data.createdAt);
-      let monthsDiff = (now.getFullYear() - joinDate.getFullYear()) * 12 + (now.getMonth() - joinDate.getMonth());
-      if (now.getDate() < joinDate.getDate()) {
-        monthsDiff--;
-      }
-      
-      const isOfficerOrAdmin = ['officer', 'admin'].includes(data.role);
-      const requiredMonths = isOfficerOrAdmin ? 6 : 12;
-      
-      issueCertBtn.dataset.eligible = (data.active && monthsDiff >= requiredMonths) ? "true" : "false";
-      issueCertBtn.dataset.reason = !data.active 
-        ? "비활성 상태의 부원은 활동증명서를 발급받을 수 없습니다." 
-        : `활동 기간이 부족합니다. ${isOfficerOrAdmin ? '운영진/관리자' : '일반부원/스타터'}은 최소 ${isOfficerOrAdmin ? '6개월' : '1년'} 이상 활동해야 발급이 가능합니다. (현재: ${monthsDiff}개월 활동 중)`;
     }
 
 
@@ -541,12 +526,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // ── 활동증명서 관련 함수 정의 ──
 async function handleCertificateClick() {
-  const issueCertBtn = document.getElementById('issue-certificate-btn');
-  if (issueCertBtn.dataset.eligible !== "true") {
-    alert(issueCertBtn.dataset.reason);
-    return;
-  }
-
   try {
     const res = await fetch('/user/certificate/issue', { method: 'POST' });
     if (!res.ok) {
