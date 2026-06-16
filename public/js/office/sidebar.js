@@ -263,6 +263,7 @@ const Sidebar = (function() {
           });
 
           // API Key 동적 조회
+          console.log('[MapDebug] Fetching keys from server...');
           const kakaoResponse = await fetch('/events/kakao-key');
           const kakaoData = await kakaoResponse.json();
           const kakaoKey = kakaoData.kakaoKey;
@@ -271,10 +272,16 @@ const Sidebar = (function() {
           const naverData = await naverResponse.json();
           const naverKey = naverData.naverKey;
 
+          console.log('[MapDebug] Retrieved keys:', { 
+            hasKakaoKey: !!kakaoKey, 
+            hasNaverKey: !!naverKey 
+          });
+
           if (kakaoKey && naverKey) {
             // 기존 스크립트 제거
             document.querySelectorAll('script[src*="dapi.kakao.com"]').forEach(s => s.remove());
             document.querySelectorAll('script[src*="openapi.map.naver.com"]').forEach(s => s.remove());
+            document.querySelectorAll('script[src*="oapi.map.naver.com"]').forEach(s => s.remove());
 
             // 1. Kakao SDK 로드
             const kakaoScript = document.createElement('script');
@@ -291,24 +298,44 @@ const Sidebar = (function() {
             let naverLoaded = false;
 
             const checkAndInit = () => {
+              console.log('[MapDebug] checkAndInit status:', { 
+                kakaoLoaded, 
+                naverLoaded, 
+                kakaoAvailable: typeof kakao !== 'undefined',
+                naverAvailable: typeof naver !== 'undefined'
+              });
               if (kakaoLoaded && naverLoaded) {
                 if (typeof kakao !== 'undefined' && kakao.maps && typeof naver !== 'undefined' && naver.maps) {
+                  console.log('[MapDebug] Invoking kakao.maps.load and CooperationMap.initialize');
                   kakao.maps.load(() => {
                     if (window.CooperationMap) {
                       window.CooperationMap.initialize();
+                    } else {
+                      console.error('[MapDebug] window.CooperationMap is undefined!');
                     }
                   });
+                } else {
+                  console.warn('[MapDebug] kakao.maps or naver.maps objects are missing.');
                 }
               }
             };
 
             kakaoScript.onload = () => {
+              console.log('[MapDebug] kakaoScript loaded successfully');
               kakaoLoaded = true;
               checkAndInit();
             };
+            kakaoScript.onerror = (e) => {
+              console.error('[MapDebug] kakaoScript load failed:', e);
+            };
+
             naverScript.onload = () => {
+              console.log('[MapDebug] naverScript loaded successfully');
               naverLoaded = true;
               checkAndInit();
+            };
+            naverScript.onerror = (e) => {
+              console.error('[MapDebug] naverScript load failed:', e);
             };
 
             document.head.appendChild(kakaoScript);
