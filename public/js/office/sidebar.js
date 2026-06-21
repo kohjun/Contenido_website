@@ -278,7 +278,7 @@ const Sidebar = (function() {
             // Naver SDK 로드
             const naverScript = document.createElement('script');
             naverScript.type = 'text/javascript';
-            naverScript.src = `https://oapi.map.naver.com/openapi/v3/maps.js?ncpClientId=${naverKey}`;
+            naverScript.src = `https://oapi.map.naver.com/openapi/v3/maps.js?ncpKeyId=${naverKey}`;
 
             naverScript.onload = () => {
               console.log('[MapDebug] naverScript loaded successfully');
