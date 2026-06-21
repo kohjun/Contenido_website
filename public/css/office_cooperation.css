@@ -708,7 +708,7 @@ body, html {
         justify-content: center;
         gap: 8px;
         position: absolute;
-        bottom: 24px;
+        bottom: 36px; /* 하단 소프트키 간섭 차단 */
         left: 50%;
         transform: translateX(-50%);
         background: #1c1c1e;
@@ -752,7 +752,10 @@ body, html {
     }
     
     .search-box-wrapper {
-        margin: 10px 10px 10px 64px; /* 햄버거 버튼 우측 빈공간 확보 */
+        position: absolute;
+        top: 10px;
+        left: 64px; /* 햄버거 버튼 우측 빈공간 확보 */
+        right: 16px; /* 우측 마진 확보하여 잘림 방지 */
         background: #ffffff;
         border-radius: 12px;
         box-shadow: 0 4px 15px rgba(0, 0, 0, 0.12);
@@ -835,6 +838,8 @@ body, html {
         background: transparent !important; /* 투명 배경 */
         transform: none !important; /* 트랜스폼 제거 */
         pointer-events: none; /* 터치 이벤트가 지도로 통과되도록 */
+        backdrop-filter: none !important; /* 모바일 블러 제거 */
+        -webkit-backdrop-filter: none !important; /* 모바일 블러 제거 */
     }
     
     /* 바텀시트 실물 카드 (탭 컨텐츠 영역) - 모바일에서 실제 올라오고 내려가는 카드 역할을 합니다. */
