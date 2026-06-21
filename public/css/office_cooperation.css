@@ -638,6 +638,11 @@ body, html {
     border-radius: 8px !important;
 }
 
+/* 모바일 전용 플로팅 리스트 버튼 (데스크톱에서는 숨김) */
+.mobile-list-toggle-btn {
+    display: none;
+}
+
 /* 모바일 전용 핸들 */
 .bottom-sheet-handle {
     display: none;
@@ -650,15 +655,23 @@ body, html {
 }
 
 @media (max-width: 768px) {
-    .bottom-sheet-handle {
-        display: block;
+    /* 부모 컨테이너의 패딩/마진 제거하여 모바일 풀스크린 구현 */
+    body .main-content {
+        margin-left: 0 !important;
+        padding: 0 !important;
+        margin-top: 0 !important;
+        height: 100vh !important;
+        width: 100vw !important;
+        position: relative;
+        overflow: hidden;
     }
-    
+
     .cooperation-container {
         position: relative;
         flex-direction: column;
         overflow: hidden;
         height: 100vh;
+        width: 100vw;
     }
     
     .map-panel {
@@ -669,23 +682,158 @@ body, html {
         height: 100%;
         z-index: 1;
     }
+
+    /* 햄버거 토글 버튼의 크기/위치를 고정 검색바와 동일 라인으로 오버라이드 */
+    body .mobile-toggle-btn {
+        top: 10px !important;
+        left: 10px !important;
+        width: 44px !important;
+        height: 44px !important;
+        padding: 0 !important;
+        line-height: 44px !important;
+        font-size: 1.3rem !important;
+        border-radius: 12px !important;
+        border: 1px solid rgba(0, 0, 0, 0.08) !important;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
+        display: flex !important;
+        align-items: center;
+        justify-content: center;
+        z-index: 1005 !important;
+    }
     
+    /* 모바일 플로팅 리스트 토글 버튼 */
+    .mobile-list-toggle-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        position: absolute;
+        bottom: 24px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: #1c1c1e;
+        color: #ffffff;
+        border: none;
+        border-radius: 30px;
+        padding: 12px 24px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+        cursor: pointer;
+        z-index: 1004; /* 바텀시트 위에 노출 */
+        transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        white-space: nowrap;
+    }
+    
+    .mobile-list-toggle-btn.map-mode {
+        background: var(--c-brand);
+    }
+    
+    .mobile-list-toggle-btn:active {
+        transform: translateX(-50%) scale(0.95);
+    }
+    
+    /* 항상 지도 최상단에 고정되는 플로팅 검색 헤더 */
+    .panel-header {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        padding: 0;
+        border-bottom: none;
+        background: transparent;
+        pointer-events: none; /* 지도 터치 이벤트 통과 */
+        z-index: 1002;
+    }
+    
+    .panel-header h2,
+    .panel-subtitle {
+        display: none !important; /* 타이틀 제거 */
+    }
+    
+    .search-box-wrapper {
+        margin: 10px 10px 10px 64px; /* 햄버거 버튼 우측 빈공간 확보 */
+        background: #ffffff;
+        border-radius: 12px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.12);
+        border: 1px solid rgba(0, 0, 0, 0.06);
+        padding: 4px 8px;
+        pointer-events: auto; /* 검색어 입력 클릭 허용 */
+        height: 44px;
+        display: flex;
+        align-items: center;
+    }
+    
+    .search-box-wrapper input {
+        padding: 4px 8px;
+        font-size: 0.9rem;
+    }
+    
+    .search-box-wrapper button {
+        height: 32px;
+        padding: 0 12px;
+        font-size: 0.8rem;
+        flex-shrink: 0;
+    }
+    
+    /* 필터 칩 스타일의 탭 네비게이션 */
+    .tab-nav {
+        position: fixed;
+        top: 64px;
+        left: 10px;
+        right: 10px;
+        z-index: 1002;
+        display: flex;
+        gap: 8px;
+        overflow-x: auto;
+        border-bottom: none;
+        background: transparent;
+        padding: 4px 0;
+        scrollbar-width: none;
+        pointer-events: auto;
+    }
+    
+    .tab-nav::-webkit-scrollbar {
+        display: none;
+    }
+    
+    .tab-nav .tab {
+        flex: none;
+        background: #ffffff;
+        border: 1px solid rgba(0, 0, 0, 0.08);
+        border-radius: 20px;
+        padding: 6px 14px;
+        font-size: 0.8rem;
+        color: var(--c-text-sub);
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+        white-space: nowrap;
+    }
+    
+    .tab-nav .tab.active {
+        background: var(--c-brand);
+        color: #ffffff;
+        border-color: var(--c-brand);
+    }
+    
+    .tab-nav .tab.active::after {
+        display: none; /* 밑줄 제거 */
+    }
+    
+    /* 바텀 시트 패널 (리스트 컨테이너) */
     .sidebar-panel {
         position: absolute;
         bottom: 0;
         left: 0;
         width: 100%;
         min-width: 100%;
-        height: 75vh;
-        z-index: 10;
+        height: 100vh;
+        z-index: 1001;
         border-right: none;
-        border-top: 1px solid var(--c-border);
-        border-radius: 20px 20px 0 0;
-        box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.12);
-        background: var(--c-panel-bg);
-        backdrop-filter: blur(25px);
-        -webkit-backdrop-filter: blur(25px);
-        transform: translateY(calc(75vh - 165px)); /* 접었을 때: 핸들, 헤더, 검색창, 탭바 노출 */
+        border-top: none;
+        border-radius: 0;
+        box-shadow: none;
+        background: #ffffff;
+        transform: translateY(100%); /* 기본 상태: 아래로 숨김 */
         transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
     }
     
@@ -693,27 +841,21 @@ body, html {
         transform: translateY(0);
     }
     
-    .panel-header {
-        padding: 12px 20px 14px 20px;
-    }
-    
-    .panel-header h2 {
-        font-size: 1.2rem;
-        margin-bottom: 2px;
-    }
-    
-    .panel-subtitle {
-        display: none; /* 모바일에서 불필요한 설명 제거 */
-    }
-    
-    .tab-nav .tab {
-        padding: 10px 0;
-        font-size: 0.85rem;
+    /* 바텀시트 컨텐츠 영역 마진 조정 (헤더가 고정되어 있으므로) */
+    .tab-content {
+        margin-top: 120px;
+        padding-bottom: 90px; /* 하단 플로팅 버튼 터치 영역 확보 */
+        background: #ffffff;
+        overflow-y: auto;
+        height: calc(100vh - 120px);
     }
     
     .place-item {
-        padding: 12px;
-        gap: 8px;
+        padding: 14px;
+        border-radius: 12px;
+        border: 1px solid rgba(0, 0, 0, 0.05);
+        background: #fafafa;
+        margin: 0 12px 12px 12px;
     }
     
     .capacity-buttons-grid, .facility-buttons-grid {
@@ -731,10 +873,10 @@ body, html {
         max-height: 85vh;
     }
     
-    /* 모바일에서 지도 컨트롤러 위치 조정 */
+    /* 모바일 지도 컨트롤러 위치 조정 (칩바 아래) */
     .custom-mapcontrol {
-        top: 15px;
-        right: 15px;
+        top: 120px;
+        right: 10px;
         z-index: 2;
     }
 }
