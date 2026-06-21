@@ -92,6 +92,7 @@ body, html {
 
 .search-box-wrapper input {
     flex: 1;
+    min-width: 0; /* flex 컨테이너 안에서 가로 너비 유연하게 축소 허용 */
     background: transparent;
     border: none;
     outline: none;
@@ -708,7 +709,7 @@ body, html {
         justify-content: center;
         gap: 8px;
         position: absolute;
-        bottom: 36px; /* 하단 소프트키 간섭 차단 */
+        bottom: 64px; /* 브라우저 및 기기별 네비게이션 소프트키 간섭 원천 차단 */
         left: 50%;
         transform: translateX(-50%);
         background: #1c1c1e;
@@ -859,7 +860,7 @@ body, html {
         pointer-events: auto; /* 터치 이벤트 차단 및 활성화 */
         overflow-y: auto;
         padding-top: 16px;
-        padding-bottom: 90px; /* 하단 플로팅 버튼 터치 영역 확보 */
+        padding-bottom: 120px; /* 플로팅 리스트 버튼 영역(bottom: 64px)을 넘어서 정상 스크롤 되도록 확보 */
     }
     
     .sidebar-panel.expanded .tab-content {
