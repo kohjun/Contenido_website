@@ -511,15 +511,30 @@ window.CooperationMap = {
     // 모바일 바텀시트 토글/접기 메서드
     toggleBottomSheet() {
         const sidebarPanel = document.querySelector('.sidebar-panel');
+        const toggleBtn = document.getElementById('mobile-list-toggle-btn');
         if (sidebarPanel) {
-            sidebarPanel.classList.toggle('expanded');
+            const isExpanded = sidebarPanel.classList.toggle('expanded');
+            if (toggleBtn) {
+                if (isExpanded) {
+                    toggleBtn.innerHTML = '<span class="icon">🗺️</span> <span class="text">지도 보기</span>';
+                    toggleBtn.classList.add('map-mode');
+                } else {
+                    toggleBtn.innerHTML = '<span class="icon">☰</span> <span class="text">리스트로 보기</span>';
+                    toggleBtn.classList.remove('map-mode');
+                }
+            }
         }
     },
 
     collapseBottomSheet() {
         const sidebarPanel = document.querySelector('.sidebar-panel');
+        const toggleBtn = document.getElementById('mobile-list-toggle-btn');
         if (sidebarPanel) {
             sidebarPanel.classList.remove('expanded');
+            if (toggleBtn) {
+                toggleBtn.innerHTML = '<span class="icon">☰</span> <span class="text">리스트로 보기</span>';
+                toggleBtn.classList.remove('map-mode');
+            }
         }
     },
 
@@ -578,17 +593,6 @@ window.CooperationMap = {
             tab.addEventListener('click', () => this.switchTab(tab.dataset.tab));
         });
 
-        // 모바일 바텀시트 헤더 클릭 이벤트
-        const panelHeader = document.querySelector('.panel-header');
-        if (panelHeader) {
-            panelHeader.addEventListener('click', (e) => {
-                if (window.innerWidth <= 768) {
-                    if (!e.target.closest('#keyword') && !e.target.closest('.search-button') && !e.target.closest('.tab-nav')) {
-                        this.toggleBottomSheet();
-                    }
-                }
-            });
-        }
     },
 
     // 지도 타입 변경 메서드
