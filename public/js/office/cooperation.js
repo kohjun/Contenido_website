@@ -11,6 +11,9 @@ window.CooperationMap = {
     selectedFacilities: new Set(),
     mappingEventId: null,
     mappingEventTitle: null,
+    activeTab: 'saved', // 기본 활성 탭
+    allSavedPlaces: [],
+    allEndedEvents: [],
 
     showPlaceInfoModal(place) {
         this.selectedPlace = place;
@@ -75,35 +78,71 @@ window.CooperationMap = {
         this.placeMarkers = {};
     },
 
-    // 장소 검색 관련 메서드 (서버 사이드 프록시 API 활용)
+    // 장소 검색 관련 메서드 (서버 사이드 프록시 API 활용 및 탭별 필터링 기능)
     async searchPlaces() {
         if (!this.isMapInitialized) {
             this.showError('지도가 아직 초기화되지 않았습니다.');
             return;
         }
 
-        const keyword = document.getElementById('keyword').value;
-        if (!keyword.replace(/^\s+|\s+$/g, '')) {
-            this.showError('검색어를 입력해주세요.');
+        const keyword = document.getElementById('keyword').value.trim();
+        if (!keyword) {
+            // 만약 검색어가 비어 있으면 전체 목록을 다시 보여줍니다.
+            if (this.activeTab === 'saved') {
+                this.renderSavedPlacesAndMarkers(this.allSavedPlaces || []);
+            } else if (this.activeTab === 'ended-events') {
+                this.displayEndedEvents(this.allEndedEvents || []);
+            } else {
+                this.showError('검색어를 입력해주세요.');
+            }
             return;
         }
 
-        try {
-            const response = await fetch(`/savedPlaces/search?keyword=${encodeURIComponent(keyword)}`);
-            if (!response.ok) {
-                const errData = await response.json();
-                throw new Error(errData.message || '검색에 실패했습니다.');
+        if (this.activeTab === 'saved') {
+            // 1. 이벤트 장소 목록 탭: 로컬 저장된 목록에서만 검색 (필터링)
+            const filtered = (this.allSavedPlaces || []).filter(place => {
+                const name = place.placeName || '';
+                const address = place.addressName || '';
+                const roadAddress = place.roadAddressName || '';
+                const memo = place.memo || '';
+                const category = place.category || '';
+                return name.toLowerCase().includes(keyword.toLowerCase()) || 
+                       address.toLowerCase().includes(keyword.toLowerCase()) || 
+                       roadAddress.toLowerCase().includes(keyword.toLowerCase()) ||
+                       memo.toLowerCase().includes(keyword.toLowerCase()) ||
+                       category.toLowerCase().includes(keyword.toLowerCase());
+            });
+            this.renderSavedPlacesAndMarkers(filtered);
+        } else if (this.activeTab === 'ended-events') {
+            // 2. 이벤트 연동 탭: 로컬 연동된 이벤트 목록에서 검색 (필터링)
+            const filtered = (this.allEndedEvents || []).filter(event => {
+                const title = event.title || '';
+                const place = event.place || '';
+                const mappedPlaceName = (event.isMapped && event.savedPlace && event.savedPlace.placeName) ? event.savedPlace.placeName : '';
+                return title.toLowerCase().includes(keyword.toLowerCase()) || 
+                       place.toLowerCase().includes(keyword.toLowerCase()) ||
+                       mappedPlaceName.toLowerCase().includes(keyword.toLowerCase());
+            });
+            this.displayEndedEvents(filtered);
+        } else {
+            // 3. 신규 추가 탭: 카카오 지도 검색 (API 활용)
+            try {
+                const response = await fetch(`/savedPlaces/search?keyword=${encodeURIComponent(keyword)}`);
+                if (!response.ok) {
+                    const errData = await response.json();
+                    throw new Error(errData.message || '검색에 실패했습니다.');
+                }
+                const data = await response.json();
+                
+                if (data && data.length > 0) {
+                    this.displayPlaces(data);
+                } else {
+                    this.showError('검색 결과가 존재하지 않습니다.');
+                }
+            } catch (error) {
+                console.error('Error searching places:', error);
+                this.showError(error.message);
             }
-            const data = await response.json();
-            
-            if (data && data.length > 0) {
-                this.displayPlaces(data);
-            } else {
-                this.showError('검색 결과가 존재하지 않습니다.');
-            }
-        } catch (error) {
-            console.error('Error searching places:', error);
-            this.showError(error.message);
         }
     },
 
@@ -241,47 +280,52 @@ window.CooperationMap = {
                 throw new Error('올바르지 않은 데이터 형식입니다');
             }
 
-            this.displaySavedPlaces(data);
-
-            // 지도 위에 제휴처 마커 그리기 및 영역 줌인/줌아웃 조절
-            if (this.map) {
-                this.removeMarkers();
-                this.placeMarkers = {}; // placeId별 마커 매핑 초기화
-                const bounds = new naver.maps.LatLngBounds();
-                let hasValidPlaces = false;
-
-                data.forEach(place => {
-                    if (!place.location?.coordinates || 
-                        !Array.isArray(place.location.coordinates) || 
-                        place.location.coordinates.length !== 2) {
-                        return;
-                    }
-
-                    const [longitude, latitude] = place.location.coordinates;
-                    const position = new naver.maps.LatLng(latitude, longitude);
-                    const marker = this.addMarker(position);
-                    
-                    if (place._id) {
-                        this.placeMarkers[place._id.toString()] = marker;
-                    }
-                    
-                    bounds.extend(position);
-                    hasValidPlaces = true;
-
-                    if (marker) {
-                        naver.maps.Event.addListener(marker, 'click', () => {
-                            this.openPlaceInfoWindow(place, marker);
-                        });
-                    }
-                });
-
-                if (hasValidPlaces) {
-                    this.map.fitBounds(bounds);
-                }
-            }
+            this.allSavedPlaces = data;
+            this.renderSavedPlacesAndMarkers(data);
         } catch (error) {
             console.error('Error loading saved places:', error);
             this.showError('저장된 장소를 불러오는데 실패했습니다: ' + error.message);
+        }
+    },
+
+    renderSavedPlacesAndMarkers(data) {
+        this.displaySavedPlaces(data);
+
+        // 지도 위에 제휴처 마커 그리기 및 영역 줌인/줌아웃 조절
+        if (this.map) {
+            this.removeMarkers();
+            this.placeMarkers = {}; // placeId별 마커 매핑 초기화
+            const bounds = new naver.maps.LatLngBounds();
+            let hasValidPlaces = false;
+
+            data.forEach(place => {
+                if (!place.location?.coordinates || 
+                    !Array.isArray(place.location.coordinates) || 
+                    place.location.coordinates.length !== 2) {
+                    return;
+                }
+
+                const [longitude, latitude] = place.location.coordinates;
+                const position = new naver.maps.LatLng(latitude, longitude);
+                const marker = this.addMarker(position);
+                
+                if (place._id) {
+                    this.placeMarkers[place._id.toString()] = marker;
+                }
+                
+                bounds.extend(position);
+                hasValidPlaces = true;
+
+                if (marker) {
+                    naver.maps.Event.addListener(marker, 'click', () => {
+                        this.openPlaceInfoWindow(place, marker);
+                    });
+                }
+            });
+
+            if (hasValidPlaces) {
+                this.map.fitBounds(bounds);
+            }
         }
     },
 
@@ -442,10 +486,23 @@ window.CooperationMap = {
             this.map.refresh();
         }
 
+        this.activeTab = tabId;
+
+        // 탭 전환 시 검색 인풋 초기화
+        const keywordInput = document.getElementById('keyword');
+        if (keywordInput) {
+            keywordInput.value = '';
+        }
+
         if (tabId === 'saved') {
             this.loadSavedPlaces();
         } else if (tabId === 'ended-events') {
             this.loadEndedEvents();
+        } else if (tabId === 'search') {
+            const searchList = document.getElementById('places-list');
+            if (searchList) {
+                searchList.innerHTML = '<div class="empty-placeholder">검색어를 입력하고 검색 버튼을 눌러주세요.</div>';
+            }
         }
     },
 
@@ -614,6 +671,7 @@ window.CooperationMap = {
                 throw new Error('올바르지 않은 데이터 형식입니다.');
             }
 
+            this.allEndedEvents = data;
             this.displayEndedEvents(data);
         } catch (error) {
             console.error('Error loading ended events:', error);
