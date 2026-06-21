@@ -348,6 +348,7 @@ window.CooperationMap = {
 
         infowindow.open(this.map, marker);
         this.currentInfoWindow = infowindow;
+        this.collapseBottomSheet();
     },
 
     displaySavedPlaces(places) {
@@ -460,6 +461,7 @@ window.CooperationMap = {
             this.map.setCenter(position);
             this.map.setZoom(16);
             this.switchTab('saved');
+            this.collapseBottomSheet();
         } catch (error) {
             console.error('Error showing place on map:', error);
             this.showError('장소 정보를 불러오는데 실패했습니다: ' + error.message);
@@ -503,6 +505,21 @@ window.CooperationMap = {
             if (searchList) {
                 searchList.innerHTML = '<div class="empty-placeholder">검색어를 입력하고 검색 버튼을 눌러주세요.</div>';
             }
+        }
+    },
+
+    // 모바일 바텀시트 토글/접기 메서드
+    toggleBottomSheet() {
+        const sidebarPanel = document.querySelector('.sidebar-panel');
+        if (sidebarPanel) {
+            sidebarPanel.classList.toggle('expanded');
+        }
+    },
+
+    collapseBottomSheet() {
+        const sidebarPanel = document.querySelector('.sidebar-panel');
+        if (sidebarPanel) {
+            sidebarPanel.classList.remove('expanded');
         }
     },
 
@@ -560,6 +577,18 @@ window.CooperationMap = {
         document.querySelectorAll('.tab').forEach(tab => {
             tab.addEventListener('click', () => this.switchTab(tab.dataset.tab));
         });
+
+        // 모바일 바텀시트 헤더 클릭 이벤트
+        const panelHeader = document.querySelector('.panel-header');
+        if (panelHeader) {
+            panelHeader.addEventListener('click', (e) => {
+                if (window.innerWidth <= 768) {
+                    if (!e.target.closest('#keyword') && !e.target.closest('.search-button') && !e.target.closest('.tab-nav')) {
+                        this.toggleBottomSheet();
+                    }
+                }
+            });
+        }
     },
 
     // 지도 타입 변경 메서드
@@ -803,6 +832,7 @@ window.CooperationMap = {
                 this.currentInfoWindow = infowindow;
                 this.map.setCenter(position);
                 this.map.setZoom(16);
+                this.collapseBottomSheet();
                 return;
             }
 
@@ -817,6 +847,7 @@ window.CooperationMap = {
             this.openPlaceInfoWindow(place, marker);
             this.map.setCenter(marker.getPosition());
             this.map.setZoom(16);
+            this.collapseBottomSheet();
         } catch (error) {
             console.error('Error focusing mapped place:', error);
             this.showError(error.message);
