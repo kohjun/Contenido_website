@@ -98,7 +98,23 @@ router.get('/search', authenticateToken, async (req, res) => {
 router.get('/', authenticateToken, async (req, res) => {
   try {
     res.setHeader('Content-Type', 'application/json');
-    const places = await SavedPlace.find().sort('-createdAt');
+    const { placeType } = req.query;
+    let filter = {};
+    if (placeType === 'event') {
+      filter = { placeType: 'event' };
+    } else if (placeType === 'all') {
+      filter = {};
+    } else {
+      // Default to partnership (includes existing documents without placeType)
+      filter = {
+        $or: [
+          { placeType: 'partnership' },
+          { placeType: { $exists: false } },
+          { placeType: null }
+        ]
+      };
+    }
+    const places = await SavedPlace.find(filter).sort('-createdAt');
     res.json(places);
   } catch (error) {
     console.error('Error fetching saved places:', error);
@@ -145,7 +161,8 @@ router.post('/', authenticateToken, checkPartnershipPermission, upload.single('i
       memo,
       discountRate,
       partnershipDate,
-      eventId
+      eventId,
+      placeType
     } = req.body;
 
     // 필수 필드 검증
@@ -179,7 +196,8 @@ router.post('/', authenticateToken, checkPartnershipPermission, upload.single('i
       partnershipDate: partnershipDate || new Date(),
       imageUrl,
       creator: req.user.id,
-      eventId: eventId || null
+      eventId: eventId || null,
+      placeType: placeType || 'partnership'
     });
 
     await savedPlace.save();

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>대외협력팀 제휴처 관리</title>
+    <title>대외협력팀 이벤트 장소 관리</title>
     <link rel="stylesheet" href="/css/office_cooperation.css">
 </head>
 <body>
@@ -11,8 +11,8 @@
         <!-- 왼쪽 패널: 검색 및 리스트 -->
         <aside class="sidebar-panel">
             <header class="panel-header">
-                <h2>제휴 지도 관리 🤝</h2>
-                <p class="panel-subtitle">동아리 제휴처 장소들을 지도에서 탐색하고 관리합니다.</p>
+                <h2>이벤트 장소 관리 📍</h2>
+                <p class="panel-subtitle">이벤트에 적합한 장소들을 지도에서 검색하고 관리합니다.</p>
                 
                 <!-- 검색창 -->
                 <div class="search-box-wrapper">
@@ -29,7 +29,7 @@
 
             <!-- 탭 네비게이션 -->
             <nav class="tab-nav">
-                <button class="tab active" data-tab="saved">제휴 목록</button>
+                <button class="tab active" data-tab="saved">이벤트 장소 목록</button>
                 <button class="tab" data-tab="ended-events">이벤트 연동</button>
                 <button class="tab" data-tab="search">신규 추가</button>
                 <button class="tab" data-tab="route" style="display: none;">경로 보기</button> <!-- cooperation.js 내부 탭 변경 대응용으로 숨김 유지 -->
@@ -40,7 +40,7 @@
                 <!-- 제휴 목록 섹션 -->
                 <section id="saved-section" class="content-section active">
                     <div id="saved-places-list" class="places-list">
-                        <div class="loading-placeholder">저장된 제휴처를 불러오는 중...</div>
+                        <div class="loading-placeholder">저장된 이벤트 장소를 불러오는 중...</div>
                     </div>
                 </section>
 
@@ -87,7 +87,7 @@
     <div id="place-info-modal" class="modal-overlay" style="display: none;">
         <div class="modal-container">
             <header class="modal-header">
-                <h3>제휴 장소 상세 설정</h3>
+                <h3>이벤트 장소 상세 설정</h3>
                 <button class="modal-close" onclick="window.CooperationMap.closePlaceInfoModal()">×</button>
             </header>
             
@@ -123,7 +123,7 @@
 
             <footer class="modal-footer">
                 <button type="button" class="modal-cancel-btn" onclick="window.CooperationMap.closePlaceInfoModal()">취소</button>
-                <button type="button" class="modal-save-btn" onclick="window.CooperationMap.savePlaceWithInfo()">제휴처로 저장</button>
+                <button type="button" class="modal-save-btn" onclick="window.CooperationMap.savePlaceWithInfo()">이벤트 장소로 저장</button>
             </footer>
         </div>
     </div>

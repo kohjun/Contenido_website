@@ -200,7 +200,8 @@ window.CooperationMap = {
                 longitude: parseFloat(this.selectedPlace.x),
                 latitude: parseFloat(this.selectedPlace.y),
                 capacity: this.selectedCapacity,
-                facilities: Array.from(this.selectedFacilities)
+                facilities: Array.from(this.selectedFacilities),
+                placeType: 'event'
             };
             
             if (this.mappingEventId) {
@@ -233,7 +234,7 @@ window.CooperationMap = {
 
     async loadSavedPlaces() {
         try {
-            const response = await fetch('/savedPlaces');
+            const response = await fetch('/savedPlaces?placeType=event');
             const data = await this.handleApiResponse(response);
 
             if (!Array.isArray(data)) {

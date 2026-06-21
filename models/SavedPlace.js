@@ -82,6 +82,11 @@ const savedPlaceSchema = new mongoose.Schema({
     ref: 'Event',
     required: false
   },
+  placeType: {
+    type: String,
+    enum: ['partnership', 'event'],
+    default: 'partnership'
+  },
   createdAt: {
     type: Date,
     default: Date.now
