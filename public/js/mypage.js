@@ -286,9 +286,9 @@ async function fetchUserEvents() {
     const endedEvents = await endedEventsResponse.json();
     console.log(`종료된 이벤트 ${endedEvents.length}개 로드 완료`);
 
-    // 신청한 이벤트 필터링 (진행 중인 이벤트 중에서)
+    // 신청한 이벤트 필터링 (진행 중인 이벤트 중에서, 취소된 신청은 제외)
     const appliedEvents = events.filter(event => 
-      event.appliedParticipants.some(p => p.userId === user.id)
+      event.appliedParticipants.some(p => p.userId === user.id && p.status !== 'cancelled')
     );
     console.log(`신청한 이벤트 ${appliedEvents.length}개 필터링 완료`);
 
@@ -350,6 +350,8 @@ function getStatusClass(event, containerId) {
   
   const participant = event.appliedParticipants.find(p => p.userId === userData.id);
   if (!participant) return 'status-pending';
+  if (participant.status === 'cancelled') return 'status-cancelled';
+  if (participant.status === 'rejected') return 'status-rejected';
   return participant.status === 'approved' ? 'status-approved' : 'status-pending';
 }
 
@@ -362,6 +364,8 @@ function getEventStatus(event, containerId) {
   // 신청한 이벤트의 경우
   const participant = event.appliedParticipants.find(p => p.userId === userData.id);
   if (!participant) return '상태 확인 불가';
+  if (participant.status === 'cancelled') return '신청 취소됨';
+  if (participant.status === 'rejected') return '반려됨';
   return participant.status === 'approved' ? '참가 확정' : '승인 대기중';
 }
 
