@@ -30,6 +30,12 @@ window.CooperationMap = {
         capacityButtons.forEach(button => button.classList.remove('selected'));
         facilityButtons.forEach(button => button.classList.remove('selected'));
 
+        // 대관료 및 메모 초기화
+        const discountInput = document.getElementById('modal-discount-rate');
+        const memoTextarea = document.getElementById('modal-memo');
+        if (discountInput) discountInput.value = '';
+        if (memoTextarea) memoTextarea.value = '';
+
         modal.style.display = 'block';
     },
 
@@ -229,6 +235,11 @@ window.CooperationMap = {
         }
 
         try {
+            const discountInput = document.getElementById('modal-discount-rate');
+            const memoTextarea = document.getElementById('modal-memo');
+            const discountRate = discountInput ? discountInput.value.trim() : '';
+            const memo = memoTextarea ? memoTextarea.value.trim() : '';
+
             const placeData = {
                 placeId: this.selectedPlace.id,
                 placeName: this.selectedPlace.place_name,
@@ -240,6 +251,8 @@ window.CooperationMap = {
                 latitude: parseFloat(this.selectedPlace.y),
                 capacity: this.selectedCapacity,
                 facilities: Array.from(this.selectedFacilities),
+                discountRate: discountRate,
+                memo: memo,
                 placeType: 'event'
             };
             
@@ -378,7 +391,9 @@ window.CooperationMap = {
                     ${place.phoneNumber ? `<div class="place-phone">📞 ${place.phoneNumber}</div>` : ''}
                     ${place.category ? `<div class="place-category">🏷️ ${place.category}</div>` : ''}
                     <div class="place-capacity">👥 ${this.formatCapacity(place.capacity)}</div>
-                    <div class="facility-tags">${facilityTags}</div>
+                    ${place.discountRate ? `<div class="place-discount">🏷️ 혜택/대관료: ${place.discountRate}</div>` : ''}
+                    ${place.memo ? `<div class="place-memo">📝 ${place.memo}</div>` : ''}
+                    <div class="facility-tags" style="margin-top: 8px;">${facilityTags}</div>
                 </div>
                 <div class="action-buttons">
                     <button onclick="window.CooperationMap.showOnMap('${place._id}')" class="action-button">지도에서 보기</button>
@@ -393,9 +408,13 @@ window.CooperationMap = {
     formatCapacity(capacity) {
         switch(capacity) {
             case '~10': return '~10명';
+            case '~20': return '~20명';
             case '~30': return '~30명';
+            case '~40': return '~40명';
             case '~50': return '~50명';
+            case '~80': return '~80명';
             case '~100': return '~100명';
+            case '100+': return '100명 이상';
             default: return capacity;
         }
     },
@@ -444,9 +463,10 @@ window.CooperationMap = {
                 content: `
                     <div class="info-window">
                         <h3>${place.placeName || '이름 없음'}</h3>
-                        <p>${place.addressName || '주소 없음'}</p>
-                        ${place.phoneNumber ? `<p>📞 ${place.phoneNumber}</p>` : ''}
-                        ${place.roadAddressName ? `<p>🚗 ${place.roadAddressName}</p>` : ''}
+                        <p class="road-address">${place.roadAddressName || place.addressName || '주소 없음'}</p>
+                        ${place.phoneNumber ? `<p class="phone">📞 ${place.phoneNumber}</p>` : ''}
+                        ${place.discountRate ? `<p class="discount">🏷️ 혜택: ${place.discountRate}</p>` : ''}
+                        ${place.memo ? `<p class="memo">${place.memo}</p>` : ''}
                     </div>
                 `
             });

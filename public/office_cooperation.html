@@ -104,9 +104,13 @@
                     <label class="form-label">👥 수용 인원 선택 <span class="required">*</span></label>
                     <div class="capacity-buttons-grid">
                         <button type="button" class="capacity-button" data-capacity="~10">~10명</button>
+                        <button type="button" class="capacity-button" data-capacity="~20">~20명</button>
                         <button type="button" class="capacity-button" data-capacity="~30">~30명</button>
+                        <button type="button" class="capacity-button" data-capacity="~40">~40명</button>
                         <button type="button" class="capacity-button" data-capacity="~50">~50명</button>
+                        <button type="button" class="capacity-button" data-capacity="~80">~80명</button>
                         <button type="button" class="capacity-button" data-capacity="~100">~100명</button>
+                        <button type="button" class="capacity-button" data-capacity="100+">100명+</button>
                     </div>
                 </div>
 
@@ -114,6 +118,7 @@
                 <div class="form-group">
                     <label class="form-label">🔌 지원 편의시설 (다중 선택)</label>
                     <div class="facility-buttons-grid">
+                        <!-- 기본 편의시설 -->
                         <button type="button" class="facility-button" data-facility="인터넷/WIFI">📶 와이파이</button>
                         <button type="button" class="facility-button" data-facility="콘센트">🔌 콘센트</button>
                         <button type="button" class="facility-button" data-facility="주차">🚗 주차</button>
@@ -124,7 +129,36 @@
                         <button type="button" class="facility-button" data-facility="음식물반입가능">🍕 음식물 반입</button>
                         <button type="button" class="facility-button" data-facility="의자/테이블">🪑 테이블/의자</button>
                         <button type="button" class="facility-button" data-facility="내부화장실">🚽 내부 화장실</button>
+                        <button type="button" class="facility-button" data-facility="복사/인쇄기">🖨️ 복사/인쇄기</button>
+                        <button type="button" class="facility-button" data-facility="취사시설">🍳 취사시설</button>
+                        <button type="button" class="facility-button" data-facility="PC/노트북">💻 PC/노트북</button>
+                        <button type="button" class="facility-button" data-facility="연중무휴">📅 연중무휴</button>
+                        <button type="button" class="facility-button" data-facility="간단한 다과/음료">☕ 다과/음료</button>
+                        <button type="button" class="facility-button" data-facility="마트/편의점">🏪 마트/편의점</button>
+                        <button type="button" class="facility-button" data-facility="남/여화장실 구분">🚻 화장실 구분</button>
+                        
+                        <!-- 이벤트 전용 편의시설 -->
+                        <button type="button" class="facility-button" data-facility="무대/강단">🎭 무대/강단</button>
+                        <button type="button" class="facility-button" data-facility="대형 스크린/LED">📺 대형 스크린/LED</button>
+                        <button type="button" class="facility-button" data-facility="외부 케이터링 가능">🍱 외부 케이터링</button>
+                        <button type="button" class="facility-button" data-facility="피팅룸/대기실">🚪 피팅룸/대기실</button>
+                        <button type="button" class="facility-button" data-facility="음향 장비">🔊 전문 음향 장비</button>
+                        <button type="button" class="facility-button" data-facility="현수막 설치 가능">🚩 현수막 설치</button>
+                        <button type="button" class="facility-button" data-facility="엘리베이터">🛗 엘리베이터</button>
+                        <button type="button" class="facility-button" data-facility="주말 운영">🏖️ 주말 운영</button>
                     </div>
+                </div>
+
+                <!-- 혜택 및 대관료 정보 -->
+                <div class="form-group">
+                    <label class="form-label" for="modal-discount-rate">🏷️ 혜택 및 대관료 정보</label>
+                    <input type="text" id="modal-discount-rate" class="form-input" placeholder="예: 평일 20% 할인, 시간당 5만원 등">
+                </div>
+
+                <!-- 상세 메모 -->
+                <div class="form-group">
+                    <label class="form-label" for="modal-memo">📝 상세 메모</label>
+                    <textarea id="modal-memo" class="form-textarea" placeholder="예: 담당자 연락처, 특이사항, 장소 예약 팁 등" rows="3"></textarea>
                 </div>
             </div>
 

@@ -47,7 +47,7 @@ const savedPlaceSchema = new mongoose.Schema({
   },
   capacity: {
     type: String,
-    enum: ['~10', '~30', '~50','~100'],
+    enum: ['~10', '~20', '~30', '~40', '~50', '~80', '~100', '100+'],
     required: true
   },
   facilities: [{
@@ -69,7 +69,15 @@ const savedPlaceSchema = new mongoose.Schema({
       '간단한 다과/음료',
       '내부화장실',
       '마트/편의점',
-      '남/여화장실 구분'
+      '남/여화장실 구분',
+      '무대/강단',
+      '대형 스크린/LED',
+      '외부 케이터링 가능',
+      '피팅룸/대기실',
+      '음향 장비',
+      '현수막 설치 가능',
+      '엘리베이터',
+      '주말 운영'
     ]
   }],
   creator: {
