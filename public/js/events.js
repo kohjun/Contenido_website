@@ -179,18 +179,24 @@ async function updateMonthHeader(events, currentUser) {
     })
   );
 
-  const userPillHtml = hasApplied
-    ? `<span class="pill pill-success">${monthNum}월 이벤트 신청 완료</span>`
-    : `<span class="pill pill-warning">미신청 상태, 경고 1회 부여 가능</span>`;
+  const userPillHtml = uid
+    ? (hasApplied
+        ? `<span class="pill pill-success">${monthNum}월 이벤트 신청 완료</span>`
+        : `<span class="pill pill-warning">미신청 상태, 경고 1회 부여 가능</span>`)
+    : '';
 
   // 마감일 이후엔 신청 마감 pill을 사용자 pill 위에 추가
   const closedPillHtml = isClosed
     ? `<span class="pill pill-closed">신청 마감</span>`
     : '';
 
+  const statusLineHtml = userPillHtml
+    ? `<span class="meta-line meta-line-status">${userPillHtml}</span>`
+    : '';
+
   metaEl.innerHTML =
     `<span class="meta-line">신청기간 <b>${periodText}</b> · 최소 1개 이상 신청 ${closedPillHtml}</span>` +
-    `<span class="meta-line meta-line-status">${userPillHtml}</span>`;
+    statusLineHtml;
   metaEl.classList.remove('is-hidden');
 }
 
