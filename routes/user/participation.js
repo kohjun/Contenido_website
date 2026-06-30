@@ -213,8 +213,8 @@ async function getMonthlyPeriod() {
   return { startDay: 1, endDay: 5 };
 }
 
-// 1) 월간 신청 기간 설정 조회 API (일반 부원도 events.html에서 보여줘야 하므로 인증만 통과하면 가능)
-router.get('/monthly-application-period', authenticateToken, async (req, res) => {
+// 1) 월간 신청 기간 설정 조회 API (로그인하지 않은 방문자도 events.html에서 봐야 하므로 전체 공개)
+router.get('/monthly-application-period', async (req, res) => {
   try {
     const period = await getMonthlyPeriod();
     res.json(period);

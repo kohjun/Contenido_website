@@ -41,8 +41,32 @@ const resetWarningCounts = schedule.scheduleJob('0 1 1 1,7 *', async () => {
   }
 });
 
-// (제거됨) 격월(1,4,7,10월) regularCount 초기화 및 regularCount<2 게스트 자동 강등 스케줄러
-//  — 정기 참여 횟수 분기 초기화 / 게스트 자동 강등 정책 폐지
+// 매분기(1, 4, 7, 10월) 1일 정각(00:00)에 실행되는 정기 참가 횟수(regularCount) 초기화 스케줄러
+const resetRegularCounts = schedule.scheduleJob('0 0 1 1,4,7,10 *', async () => {
+  try {
+    console.log(`[${new Date()}] 분기별 정기 참가 횟수(regularCount) 리셋 및 totalCount 이관 시작.`);
+    
+    const users = await User.find({});
+    let updatedCount = 0;
+    
+    for (const user of users) {
+      if (!user.participationCount) {
+        user.participationCount = { totalCount: 0, regularCount: 0 };
+      }
+      
+      const regular = user.participationCount.regularCount || 0;
+      user.participationCount.totalCount = (user.participationCount.totalCount || 0) + regular;
+      user.participationCount.regularCount = 0;
+      
+      await user.save();
+      updatedCount++;
+    }
+    
+    console.log(`[${new Date()}] 분기별 정기 참가 횟수 리셋 완료. 총 ${updatedCount}명 처리됨.`);
+  } catch (error) {
+    console.error('Error resetting regular counts:', error);
+  }
+});
 
 // ============== 새로 추가: 이벤트 자동 참가자 확정 스케줄러 ==============
 // 매 5분마다 실행 — confirmationDeadlineAt이 지난 이벤트의 pending 신청자를
@@ -176,6 +200,12 @@ const getSchedulerStatus = () => {
         nextRun: resetWarningCounts.nextInvocation()
       },
       {
+        name: 'resetRegularCounts',
+        description: '분기별 정기 참가 횟수(regularCount) 초기화 및 totalCount 이관 (매년 1·4·7·10월 1일 00:00)',
+        schedule: '0 0 1 1,4,7,10 *',
+        nextRun: resetRegularCounts.nextInvocation()
+      },
+      {
         name: 'processEventAutoConfirmations',
         description: '이벤트 자동 참가자 확정 (성비 1:1, 어린 순)',
         schedule: '*/5 * * * *',
@@ -190,6 +220,7 @@ const getSchedulerStatus = () => {
 module.exports = {
   // 기존 스케줄러들
   resetWarningCounts,
+  resetRegularCounts,
 
   getSchedulerStatus,
 
