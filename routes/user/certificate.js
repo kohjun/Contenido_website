@@ -22,17 +22,19 @@ router.post('/certificate/issue', authenticateToken, async (req, res) => {
     }
 
     // 2. 권한별 자격 요건 체크
-    // 운영진(officer) 및 관리자(admin)는 6개월 경과 & 6회 참여, 그 외는 12개월 경과 & 12회 참여
+    // 운영진은 6개월 경과 & 6회 참여, 그 외는 12개월 경과 & 12회 참여
     const isOfficerOrAdmin = ['officer', 'admin'].includes(user.role);
     const requiredMonths = isOfficerOrAdmin ? 6 : 12;
     const requiredParticipations = isOfficerOrAdmin ? 6 : 12;
     
-    const userRegularCount = (user.participationCount && user.participationCount.regularCount) || 0;
+    const totalCount = (user.participationCount && user.participationCount.totalCount) || 0;
+    const regularCount = (user.participationCount && user.participationCount.regularCount) || 0;
+    const userTotalCount = totalCount + regularCount;
 
-    // 현재 발급 자격이 충족되는지 여부 (활성상태 + 가입기간 + 참여횟수 모두 충족)
+    // 현재 발급 자격이 충족되는지 여부 (활성상태 + 가입기간 + 총참여횟수 모두 충족)
     const isCurrentlyEligible = user.active && 
                                 (monthsDiff >= requiredMonths) && 
-                                (userRegularCount >= requiredParticipations);
+                                (userTotalCount >= requiredParticipations);
 
     // 3. 기존 발급 내역이 있는지 조회
     let certificate = await Certificate.findOne({ user: user._id });
@@ -64,8 +66,8 @@ router.post('/certificate/issue', authenticateToken, async (req, res) => {
           failReason = '비활성 상태의 부원은 활동증명서를 발급받을 수 없습니다.';
         } else if (monthsDiff < requiredMonths) {
           failReason = `활동 기간이 부족합니다. ${roleText}은 가입일 기준 최소 ${termText} 이상 활동해야 발급이 가능합니다. (현재 가입 후: ${monthsDiff}개월 경과)`;
-        } else if (userRegularCount < requiredParticipations) {
-          failReason = `이벤트 참여 횟수가 부족합니다. ${roleText}은 최소 ${requiredParticipations}회 이상 정기 이벤트에 참여해야 발급이 가능합니다. (현재 참여: ${userRegularCount}회)`;
+        } else if (userTotalCount < requiredParticipations) {
+          failReason = `이벤트 참여 횟수가 부족합니다. ${roleText}은 최소 ${requiredParticipations}회 이상 이벤트에 참여해야 발급이 가능합니다. (현재 총 참여: ${userTotalCount}회)`;
         } else {
           failReason = '활동증명서 발급 요건을 충족하지 못했습니다.';
         }
