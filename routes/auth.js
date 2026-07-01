@@ -311,15 +311,22 @@ router.post('/register', async (req, res) => {
 router.post('/login', async (req, res) => {
   const { email, password } = req.body;
   if (!email || !password) {
+    console.warn(`[Login Fail] Empty email or password requested.`);
     return res.status(400).json({ message: '이메일과 비밀번호를 입력해주세요.' });
   }
 
   try {
     const user = await User.findOne({ email }).select('+passwordHash +failedLoginAttempts +lockedUntil');
-    if (!user || !user.passwordHash) {
+    if (!user) {
+      console.warn(`[Login Fail] User not found for email: ${email}`);
+      return res.status(401).json({ message: '이메일 또는 비밀번호가 올바르지 않습니다.' });
+    }
+    if (!user.passwordHash) {
+      console.warn(`[Login Fail] Kakao-only user (no password hash) tried password login. Email: ${email}`);
       return res.status(401).json({ message: '이메일 또는 비밀번호가 올바르지 않습니다.' });
     }
     if (user.lockedUntil && user.lockedUntil > new Date()) {
+      console.warn(`[Login Fail] Account currently locked for email: ${email}. Locked until: ${user.lockedUntil}`);
       return res.status(423).json({ message: '로그인 시도가 많아 잠시 잠겼습니다. 잠시 후 다시 시도해주세요.' });
     }
 
@@ -327,8 +334,17 @@ router.post('/login', async (req, res) => {
     if (!ok) {
       const attempts = (user.failedLoginAttempts || 0) + 1;
       const update = { failedLoginAttempts: attempts };
-      if (attempts >= LOCK_THRESHOLD) update.lockedUntil = new Date(Date.now() + LOCK_MINUTES * 60 * 1000);
+      const isLocking = attempts >= LOCK_THRESHOLD;
+      if (isLocking) {
+        update.lockedUntil = new Date(Date.now() + LOCK_MINUTES * 60 * 1000);
+      }
       await User.updateOne({ _id: user._id }, { $set: update });
+      
+      if (isLocking) {
+        console.warn(`[Login Lock] Account locked for email: ${email} due to max attempts (${attempts}/${LOCK_THRESHOLD}). Locked until: ${update.lockedUntil}`);
+      } else {
+        console.warn(`[Login Fail] Incorrect password for email: ${email}. Attempt: ${attempts}/${LOCK_THRESHOLD}`);
+      }
       return res.status(401).json({ message: '이메일 또는 비밀번호가 올바르지 않습니다.' });
     }
 
@@ -340,6 +356,8 @@ router.post('/login', async (req, res) => {
     res.cookie('jwt', accessToken, jwtCookieOpts(ACCESS_MS));
     res.cookie('refreshToken', refreshToken, jwtCookieOpts(REFRESH_MS));
     req.session.userId = user._id.toString();
+
+    console.log(`[Login Success] User logged in successfully. Email: ${email}`);
 
     res.json({
       success: true,
