@@ -143,7 +143,7 @@ router.post('/update-staffsubteam/:userId', authenticateToken, requireHRPermissi
       if (user.role !== 'officer' || user.team !== 'staffTeam') {
           return res.status(400).json({ message: '스태프팀 소속 운영진만 소그룹을 변경할 수 있습니다.' });
       }
-      if (!staffSubteam) {
+      if (staffSubteam === undefined) {
           return res.status(400).json({ message: '스태프 소그룹 값이 필요합니다.' });
       }
 

@@ -48,7 +48,7 @@ const TEAM_KOR = {
   PlanningTeam: '기획팀',
   regularTeam: '정기모임팀',
   staffTeam: '스태프팀',
-  starterTeam: '스타터팀',
+  projectTeam: '프로젝트팀',
   noTeam: '없음'
 };
 
@@ -63,7 +63,7 @@ const TEAM_CODE = {
   PlanningTeam: 'P',
   regularTeam: 'R',
   staffTeam: 'S',
-  starterTeam: 'St'
+  projectTeam: 'Pj'
 };
 
 const ROLE_KOR = {
@@ -598,7 +598,13 @@ function userRowHTML(u) {
       <td>
         ${teamKor === '없음'
           ? `<span class="no-team" data-id="${u.id}" data-action="team">없음</span>`
-          : `<span class="team-pill" data-team="${teamCode}" data-id="${u.id}" data-action="team">${teamKor}</span>`}
+          : (u.team === 'staffTeam'
+              ? `<div style="display:flex; flex-direction:column; align-items:center; gap:2px;">
+                   <span class="team-pill" data-team="${teamCode}" data-id="${u.id}" data-action="team">${teamKor}</span>
+                   <span class="subteam-badge" data-id="${u.id}" data-action="staff-subteam" style="font-size:0.75rem; color:var(--c-brand); cursor:pointer; font-weight:600; text-decoration:underline;">소그룹: ${u.staffSubteam || '미지정'}</span>
+                 </div>`
+              : `<span class="team-pill" data-team="${teamCode}" data-id="${u.id}" data-action="team">${teamKor}</span>`
+            )}
       </td>
       <td><span class="gender-chip">${gender}</span></td>
       <td>${escapeHTML(u.university || '-')}</td>
@@ -660,7 +666,11 @@ function userCardHTML(u) {
         </span>
         ${teamKor === '없음'
           ? `<span class="no-team" data-id="${u.id}" data-action="team">팀없음</span>`
-          : `<span class="team-pill" data-team="${teamCode}" data-id="${u.id}" data-action="team">${teamKor}</span>`}
+          : (u.team === 'staffTeam'
+              ? `<span class="team-pill" data-team="${teamCode}" data-id="${u.id}" data-action="team">${teamKor}</span>
+                 <span class="subteam-badge" data-id="${u.id}" data-action="staff-subteam" style="font-size:0.75rem; color:var(--c-brand); cursor:pointer; font-weight:600; margin-left:4px; text-decoration:underline;">소그룹: ${u.staffSubteam || '미지정'}</span>`
+              : `<span class="team-pill" data-team="${teamCode}" data-id="${u.id}" data-action="team">${teamKor}</span>`
+            )}
         <span class="mini-stat ${hasWarn ? 'warn' : ''}" data-id="${u.id}" data-action="warning-list" title="경고 내역">
           ⚠ ${u.warningCount || 0}
         </span>
@@ -694,6 +704,10 @@ function bindRowEvents() {
 
   tbody.querySelectorAll('[data-action="team"]').forEach(el => {
     el.addEventListener('click', () => openTeamDialog(el.dataset.id));
+  });
+
+  tbody.querySelectorAll('[data-action="staff-subteam"]').forEach(el => {
+    el.addEventListener('click', () => openStaffSubteamDialog(el.dataset.id));
   });
 
   tbody.querySelectorAll('[data-action="warning-add"]').forEach(el => {
@@ -751,6 +765,9 @@ function bindCardEvents() {
   });
   wrap.querySelectorAll('[data-action="team"]').forEach(el => {
     el.addEventListener('click', () => openTeamDialog(el.dataset.id));
+  });
+  wrap.querySelectorAll('[data-action="staff-subteam"]').forEach(el => {
+    el.addEventListener('click', () => openStaffSubteamDialog(el.dataset.id));
   });
   wrap.querySelectorAll('[data-action="warning-add"]').forEach(el => {
     el.addEventListener('click', () => openWarningModal(el.dataset.id));
@@ -1059,11 +1076,29 @@ function bindStaffOptionGrid() {
   });
 }
 
+function openStaffSubteamDialog(userId) {
+  if (!state.canManage) {
+    toast('관리자 또는 인사팀 운영진만 사용할 수 있습니다', 'warn');
+    return;
+  }
+  state.contextUserId = userId;
+  const u = state.allUsers.find(x => x.id === userId);
+  const cur = (u && u.staffSubteam) || '';
+  const grid = document.getElementById('staff-option-grid');
+  if (grid) {
+    grid.querySelectorAll('button').forEach(b => {
+      b.classList.toggle('is-active', b.dataset.value === cur);
+    });
+  }
+  document.getElementById('staffSubteamModalSelect').value = cur;
+  openDialog('staffSubteamDialog');
+}
+
 async function confirmStaffSubteamOnly() {
   const userId = state.contextUserId;
   if (!userId) return;
   const sub = document.getElementById('staffSubteamModalSelect').value;
-  if (!sub) {
+  if (sub === undefined) {
     toast('소그룹을 선택해주세요', 'warn');
     return;
   }
@@ -1075,8 +1110,15 @@ async function confirmStaffSubteamOnly() {
       body: JSON.stringify({ staffSubteam: sub })
     });
     if (!res.ok) throw new Error('소그룹 변경 실패');
+    
+    // 메모리 내 정보 갱신 및 화면 리렌더링
+    const u = state.allUsers.find(x => x.id === userId);
+    if (u) {
+      u.staffSubteam = sub;
+    }
     closeDialog('staffSubteamDialog');
-    toast(`스태프 소그룹: ${sub}로 변경됨`, 'success');
+    applyFiltersAndRender();
+    toast(`스태프 소그룹: ${sub || '미지정'}로 변경됨`, 'success');
   } catch (e) {
     console.error(e);
     toast('소그룹 변경 실패', 'error');
@@ -1365,6 +1407,7 @@ window.resetAllFilters = resetAllFilters;
 window.changePage = changePage;
 window.openRoleDialog = openRoleDialog;
 window.openTeamDialog = openTeamDialog;
+window.openStaffSubteamDialog = openStaffSubteamDialog;
 window.openWarningModal = openWarningModal;
 window.openWarningHistory = openWarningHistory;
 window.closeWarningModal = closeWarningModal;

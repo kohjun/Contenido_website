@@ -33,7 +33,7 @@ function formatTeam(team) {
     case 'PlanningTeam': return '기획팀';
     case 'regularTeam': return '정기모임팀';
     case 'staffTeam': return '스태프팀';
-    case 'starterTeam': return '스타터팀';
+    case 'projectTeam': return '프로젝트팀';
     default: return team || '-';
   }
 }

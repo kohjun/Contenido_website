@@ -13,7 +13,7 @@ const TEAM_TO_DEPARTMENT = {
   PlanningTeam:      'planning',
   regularTeam:       'planning',
   staffTeam:         'planning',
-  starterTeam:       'planning'
+  projectTeam:       'planning'
 };
 
 module.exports = { TEAM_TO_DEPARTMENT };

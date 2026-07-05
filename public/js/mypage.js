@@ -69,7 +69,7 @@ async function fetchUserInfo() {
       'PlanningTeam': '기획팀',
       'regularTeam': '정기모임팀',
       'staffTeam': '스태프팀',
-      'starterTeam' :'스타터팀'
+      'projectTeam' :'프로젝트팀'
     };
 
     // 뱃지 이미지 매핑
@@ -575,7 +575,7 @@ async function handleCertificateClick() {
         'PlanningTeam': '기획팀',
         'regularTeam': '정기모임', // '팀' 생략하여 정기모임(팀장)으로 표기
         'staffTeam': '스태프팀',
-        'starterTeam': '스타터팀'
+        'projectTeam': '프로젝트팀'
       };
       
       const deptStr = deptMap[data.department] || '';

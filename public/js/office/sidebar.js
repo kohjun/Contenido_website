@@ -100,10 +100,10 @@ const Sidebar = (function() {
               <div class="org-menu-item-description">메인 컨텐츠 이벤트 기획</div>
             </div>
           </a>
-          <a href="#" class="org-menu-item" data-team="starterTeam">
+          <a href="#" class="org-menu-item" data-team="projectTeam">
             <div class="org-menu-item-content">
-              <div class="org-menu-item-label"><strong>스타터팀</strong></div>
-              <div class="org-menu-item-description">신입부원 맞충형 관리</div>
+              <div class="org-menu-item-label"><strong>프로젝트팀</strong></div>
+              <div class="org-menu-item-description">신입부원 맞춤형 관리</div>
             </div>
           </a>
         </div>
@@ -123,14 +123,14 @@ const Sidebar = (function() {
     planningTeam: { url: '/office_planning.html' },
     regularTeam: { url: '/calendar.html' },
     staffTeam: { url: '/calendar.html' },
-    starterTeam : {url: '/calendar.html'},
+    projectTeam: { url: '/calendar.html' },
     announcement: { url: '/office_announcement.html' }  // Add this line
   };
 
   const departmentTeams = {
     operation: ['operationTeam', 'cooperationTeam', 'HumanResourceTeam', 'financeTeam'],
     promotion: ['marketingTeam', 'designTeam', 'videoTeam'],
-    planning: ['planningTeam', 'regularTeam', 'staffTeam','starterTeam']
+    planning: ['planningTeam', 'regularTeam', 'staffTeam','projectTeam']
   };
 
   // 현재 사용자의 권한 정보를 가져오는 함수
@@ -500,7 +500,7 @@ const Sidebar = (function() {
       
 
       //10.스태프팀
-      if (['staffTeam', 'regularTeam', 'starterTeam'].includes(pageId)) {
+      if (['staffTeam', 'regularTeam', 'projectTeam'].includes(pageId)) {
         window.calendarInitialized = false;
 
         // TOAST UI Calendar CSS 로드
