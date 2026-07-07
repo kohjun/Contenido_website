@@ -225,7 +225,7 @@ function renderFanPreview(events) {
       return d.getFullYear() === year && d.getMonth() === month;
     })
     .sort((a, b) => new Date(a.date) - new Date(b.date))
-    .slice(0, 5);
+    .slice(0, 10);
 
   if (monthEvents.length === 0) {
     container.innerHTML = '<div class="fan-empty">이번 달에는 등록된 이벤트가 없어요.</div>';
