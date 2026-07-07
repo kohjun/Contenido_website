@@ -147,8 +147,8 @@ async function loadEventContent(eventId) {
       }).join(' ');
       tagsRow.style.display = '';
     }
-    // 참가 인원 표시: maxApplicants가 다르면 '최대 N명 신청' 부기
-    if (participantsElem && currentEvent.maxApplicants && currentEvent.maxApplicants !== currentEvent.participants) {
+    // 참가 인원 표시: maxApplicants가 존재하면 '최대 N명 신청' 부기 (정원과 같아도 제한이 있음을 명시)
+    if (participantsElem && currentEvent.maxApplicants) {
       participantsElem.textContent = `${currentEvent.participants}명 (최대 ${currentEvent.maxApplicants}명 신청)`;
     }
 
