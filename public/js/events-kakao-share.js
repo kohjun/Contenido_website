@@ -83,18 +83,42 @@
       const now = new Date();
       const headerTitle = `콘테니도 ${now.getFullYear()}년 ${now.getMonth() + 1}월 이벤트 🚀`;
 
-      // 텍스트 형태의 이벤트 리스트 빌드 (최대 10개까지 설명란에 노출)
-      const listLimit = 10;
-      const displayedEvents = events.slice(0, listLimit);
-      const eventListText = displayedEvents.map((event, idx) => {
+      // 신청 기간 로드
+      let startDay = 1;
+      let endDay = 5;
+      try {
+        const res = await fetch('/user/monthly-application-period');
+        if (res.ok) {
+          const period = await res.json();
+          startDay = period.startDay || 1;
+          endDay = period.endDay || 5;
+        }
+      } catch (err) {
+        console.error('Error fetching period in kakao share:', err);
+      }
+
+      // 한 행에 다 들어오도록 콤팩트하게 가로 목록 생성
+      const eventListText = events.map((event) => {
         const d = new Date(event.date);
         const m = d.getMonth() + 1;
         const day = d.getDate();
-        return `${idx + 1}. ${event.title} (${m}/${day})`;
-      }).join('\n');
 
-      const extraText = events.length > listLimit ? `\n...외 ${events.length - listLimit}개의 이벤트가 더 있습니다.` : '';
-      const description = `이번 달에 진행되는 이벤트 목록입니다.\n지금 바로 신청하세요!\n\n${eventListText}${extraText}`;
+        // 불필요한 접두사 및 꼬리표 정리
+        let shortTitle = event.title
+          .replace(/^(?:이벤트\s*-\s*|7월\s*|8월\s*)/i, '')
+          .replace(/\s*in\s+contenido.*$/i, '')
+          .replace(/\s*in\s+콘테니도.*$/i, '')
+          .replace(/:.*$/, '')
+          .trim();
+
+        if (shortTitle.length > 10) {
+          shortTitle = shortTitle.slice(0, 9) + '..';
+        }
+
+        return `${m}/${day} ${shortTitle}`;
+      }).join(' | ');
+
+      const description = `신청기간: ${now.getMonth() + 1}월 ${startDay}일 ~ ${endDay}일\n\n${eventListText}`;
 
       // 첫 번째 이벤트 이미지를 대표 이미지로 사용
       const imageUrl = buildImageUrl(events[0], origin);
