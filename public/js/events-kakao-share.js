@@ -37,15 +37,6 @@
     }
   }
 
-  function buildImageUrl(event, origin) {
-    if (event.images && event.images.length > 0) {
-      const p = event.images[0];
-      if (/^https?:\/\//.test(p)) return p;
-      return origin + (p.startsWith('/') ? p : '/' + p);
-    }
-    return origin + '/images/Basic_Event_Image.png';
-  }
-
   function isCurrentMonthEvent(event, now) {
     if (!event || !event.date) return false;
 
@@ -81,7 +72,7 @@
       const origin = window.location.origin;
       const eventsLink = `${origin}/events.html`;
       const now = new Date();
-      const headerTitle = `콘테니도 ${now.getFullYear()}년 ${now.getMonth() + 1}월 이벤트 🚀`;
+      const monthNum = now.getMonth() + 1;
 
       // 신청 기간 로드
       let startDay = 1;
@@ -97,46 +88,31 @@
         console.error('Error fetching period in kakao share:', err);
       }
 
-      // 한 행에 다 들어오도록 콤팩트하게 가로 목록 생성
-      const eventListText = events.map((event) => {
-        const d = new Date(event.date);
-        const m = d.getMonth() + 1;
-        const day = d.getDate();
+      // 한 줄에 한 이벤트씩 텍스트 리스트 구성
+      const headerTitle = `📅 콘테니도 ${now.getFullYear()}년 ${monthNum}월 이벤트 목록\n`;
+      const periodText = `신청기간: ${monthNum}월 ${startDay}일 ~ ${endDay}일\n\n`;
 
-        // 불필요한 접두사 및 꼬리표 정리
-        let shortTitle = event.title
-          .replace(/^(?:이벤트\s*-\s*|7월\s*|8월\s*)/i, '')
-          .replace(/\s*in\s+contenido.*$/i, '')
-          .replace(/\s*in\s+콘테니도.*$/i, '')
-          .replace(/:.*$/, '')
-          .trim();
+      const eventLines = events.map((event) => {
+        const ed = new Date(event.date);
+        const m = ed.getMonth() + 1;
+        const day = ed.getDate();
+        const days = '일월화수목금토';
+        const dateStr = `${m}/${day}(${days[ed.getDay()]})`;
+        return `• ${dateStr} : ${event.title}`;
+      }).join('\n');
 
-        if (shortTitle.length > 10) {
-          shortTitle = shortTitle.slice(0, 9) + '..';
-        }
-
-        return `${m}/${day} ${shortTitle}`;
-      }).join(' | ');
-
-      const description = `신청기간: ${now.getMonth() + 1}월 ${startDay}일 ~ ${endDay}일\n\n${eventListText}`;
-
-      // 첫 번째 이벤트 이미지를 대표 이미지로 사용
-      const imageUrl = buildImageUrl(events[0], origin);
+      const textContent = `${headerTitle}${periodText}${eventLines}\n\n지금 바로 신청해보세요!`;
 
       Kakao.Share.sendDefault({
-        objectType: 'feed',
-        content: {
-          title: headerTitle,
-          description: description,
-          imageUrl: imageUrl,
-          link: {
-            mobileWebUrl: eventsLink,
-            webUrl: eventsLink,
-          },
+        objectType: 'text',
+        text: textContent,
+        link: {
+          mobileWebUrl: eventsLink,
+          webUrl: eventsLink,
         },
         buttons: [
           {
-            title: '이벤트 신청하기',
+            title: '이벤트 신청하러 가기',
             link: {
               mobileWebUrl: eventsLink,
               webUrl: eventsLink,
