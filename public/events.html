@@ -247,6 +247,149 @@
       height: 1px;
       background: var(--c-border);
     }
+
+    /* 카카오 공유 모달 스타일 */
+    .kakao-modal {
+      position: fixed;
+      inset: 0;
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: var(--sp-4);
+    }
+    .kakao-modal-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.6);
+      backdrop-filter: blur(4px);
+    }
+    .kakao-modal-content {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      max-width: 480px;
+      background: var(--c-surface-1);
+      border-radius: var(--r-lg);
+      border: 1px solid var(--c-border);
+      box-shadow: var(--sh-pop);
+      display: flex;
+      flex-direction: column;
+      max-height: 85vh;
+      animation: kakaoModalShow 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    @keyframes kakaoModalShow {
+      from { transform: scale(0.95); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+    .kakao-modal-header {
+      padding: var(--sp-4);
+      border-bottom: 1px solid var(--c-border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .kakao-modal-header h2 {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: var(--c-text);
+      margin: 0;
+    }
+    .kakao-modal-close {
+      background: none;
+      border: none;
+      color: var(--c-text-muted);
+      font-size: 1.5rem;
+      cursor: pointer;
+      padding: 0;
+      line-height: 1;
+    }
+    .kakao-modal-close:hover {
+      color: var(--c-text);
+    }
+    .kakao-modal-body {
+      padding: var(--sp-4);
+      overflow-y: auto;
+      flex: 1;
+    }
+    .kakao-modal-desc {
+      font-size: 0.85rem;
+      color: var(--c-text-muted);
+      margin: 0 0 var(--sp-4);
+      line-height: 1.4;
+    }
+    .kakao-share-list {
+      display: flex;
+      flex-direction: column;
+      gap: var(--sp-2);
+    }
+    .kakao-share-item {
+      display: flex;
+      align-items: center;
+      gap: var(--sp-3);
+      padding: var(--sp-3);
+      background: var(--c-surface-2);
+      border: 1px solid var(--c-border);
+      border-radius: var(--r-md);
+      cursor: pointer;
+      transition: background 0.2s, border-color 0.2s;
+    }
+    .kakao-share-item:hover {
+      background: var(--c-surface-3);
+    }
+    .kakao-share-item.is-selected {
+      border-color: var(--c-brand);
+      background: rgba(99, 102, 241, 0.05);
+    }
+    .kakao-share-item input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      accent-color: var(--c-brand);
+      cursor: pointer;
+    }
+    .kakao-share-item-info {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .kakao-share-item-title {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--c-text);
+    }
+    .kakao-share-item-date {
+      font-size: 0.75rem;
+      color: var(--c-text-muted);
+    }
+    .kakao-modal-footer {
+      padding: var(--sp-4);
+      border-top: 1px solid var(--c-border);
+      display: flex;
+      justify-content: flex-end;
+      gap: var(--sp-2);
+    }
+    .btn-kakao-confirm {
+      background: #FEE500;
+      color: #191919;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border: none;
+      border-radius: var(--r-md);
+      padding: var(--sp-2) var(--sp-4);
+      cursor: pointer;
+      font-size: 0.9rem;
+      transition: opacity 0.2s;
+    }
+    .btn-kakao-confirm:hover {
+      opacity: 0.9;
+    }
+    .btn-kakao-confirm:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
   </style>
 </head>
 <body class="modern">
@@ -330,6 +473,30 @@
       </button>
     </nav>
 
+  </div>
+
+  <!-- 카카오톡 공유 이벤트 선택 모달 -->
+  <div id="kakao-share-modal" class="kakao-modal" style="display: none;">
+    <div class="kakao-modal-overlay" onclick="closeKakaoShareModal()"></div>
+    <div class="kakao-modal-content">
+      <div class="kakao-modal-header">
+        <h2>공유할 이벤트 선택 (최대 3개)</h2>
+        <button type="button" class="kakao-modal-close" onclick="closeKakaoShareModal()">&times;</button>
+      </div>
+      <div class="kakao-modal-body">
+        <p class="kakao-modal-desc">카카오톡 리스트형 공유는 최대 3개의 이벤트만 담아 전송할 수 있습니다. 공유할 이벤트를 선택해 주세요.</p>
+        <div id="kakao-share-events-list" class="kakao-share-list">
+          <!-- JS에서 동적으로 바인딩 -->
+        </div>
+      </div>
+      <div class="kakao-modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="closeKakaoShareModal()">취소</button>
+        <button type="button" class="btn btn-kakao-confirm" id="confirm-kakao-share-btn" onclick="confirmKakaoShare()">
+          <img src="/images/kakao-icon.png" alt="" style="width:16px;height:16px;margin-right:6px;">
+          선택한 이벤트 공유
+        </button>
+      </div>
+    </div>
   </div>
 
   <!-- 토스트 컨테이너 -->
