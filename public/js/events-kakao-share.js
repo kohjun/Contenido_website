@@ -90,7 +90,7 @@
 
       // 한 줄에 한 이벤트씩 텍스트 리스트 구성
       const headerTitle = `📅 콘테니도 ${now.getFullYear()}년 ${monthNum}월 이벤트 목록\n`;
-      const periodText = `신청기간: ${monthNum}월 ${startDay}일 ~ ${endDay}일\n\n`;
+      const periodText = `신청기간: ${monthNum}월 ${startDay}일 ~ ${endDay}일\n(기간 내에 미신청 시 경고 부여)\n\n`;
 
       const eventLines = events.map((event) => {
         const ed = new Date(event.date);
