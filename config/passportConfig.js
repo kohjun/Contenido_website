@@ -32,7 +32,14 @@ const setupPassport = (passport) => {
             const kid = String(profile.id);
             const taken = await User.findOne({ kakaoId: kid });
             if (taken && taken._id.toString() !== linkUserId.toString()) {
-              return done(null, false, { message: '이미 다른 계정에 연동된 카카오입니다.' });
+              // 만약 기존의 카카오 계정이 추가 정보 기입을 완료하지 않은 임시 계정이라면
+              // 그 임시 계정을 삭제하고, 현재 이메일로 로그인된 계정에 이 카카오를 연동(병합)해 줍니다.
+              if (!taken.isAdditionalInfoComplete) {
+                console.log(`[Account Merge] Deleting incomplete Kakao user ${taken._id} to link kakaoId ${kid} with email user ${linkUserId}`);
+                await User.deleteOne({ _id: taken._id });
+              } else {
+                return done(null, false, { message: '이미 다른 완성된 계정에 연동된 카카오입니다.' });
+              }
             }
             const current = await User.findById(linkUserId);
             if (!current) return done(null, false, { message: '연동할 계정을 찾을 수 없습니다.' });
