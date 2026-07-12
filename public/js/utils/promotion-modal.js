@@ -151,9 +151,8 @@
       }
       .promo-entry-footer {
         padding: 16px 20px;
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 12px;
+        display: flex;
+        justify-content: center;
         background: #f8fafc;
         border-bottom: 1px solid #f1f5f9;
       }
@@ -169,19 +168,13 @@
         text-align: center;
       }
       .btn-promo-action.benefit {
-        background-color: #f1f5f9;
-        color: #334155;
-        border: 1px solid #e2e8f0;
-      }
-      .btn-promo-action.benefit:hover {
-        background-color: #e2e8f0;
-      }
-      .btn-promo-action.event {
         background-color: #0A84FE;
         color: white;
         box-shadow: 0 4px 10px rgba(10, 132, 254, 0.25);
+        width: 100%;
       }
-      .btn-promo-action.event:hover {
+      .btn-promo-action.benefit:hover {
+        background-color: #0975e2;
         transform: translateY(-1px);
         box-shadow: 0 6px 14px rgba(10, 132, 254, 0.4);
       }
@@ -320,10 +313,6 @@
     wrapper.className = 'promo-carousel-wrapper';
 
     promos.forEach((promo, idx) => {
-      const targetEventUrl = promo.targetEventId 
-        ? `/additional-info.html?id=${promo.targetEventId._id || promo.targetEventId.id}`
-        : '/events.html';
-
       const slide = document.createElement('div');
       slide.className = 'promo-slide';
       slide.innerHTML = `
@@ -336,7 +325,6 @@
         </div>
         <div class="promo-entry-footer">
           <button type="button" class="btn-promo-action benefit" data-action="benefit" data-id="${promo._id}">혜택 확인하기</button>
-          <button type="button" class="btn-promo-action event" data-action="event" data-url="${targetEventUrl}">이벤트 신청하기</button>
         </div>
       `;
       wrapper.appendChild(slide);
