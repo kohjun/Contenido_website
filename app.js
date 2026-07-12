@@ -210,11 +210,22 @@ app.use((err, req, res, next) => {
         return res.status(400).json({ message: '파일 크기가 너무 큽니다. (최대 5MB)' });
     }
 
-    // API 요청에 대한 에러 응답
-    if (req.path.startsWith('/api') || req.xhr) {
+    // API/백엔드 요청에 대한 에러 응답
+    if (req.path.startsWith('/api') || 
+        req.path.startsWith('/auth') || 
+        req.path.startsWith('/events') || 
+        req.path.startsWith('/user') || 
+        req.path.startsWith('/reviews') || 
+        req.path.startsWith('/savedPlaces') || 
+        req.path.startsWith('/announcement') || 
+        req.path.startsWith('/notifications') || 
+        req.path.startsWith('/archives') || 
+        req.path.startsWith('/community') || 
+        req.path.startsWith('/promotions') || 
+        req.xhr) {
         return res.status(500).json({
             message: '서버 에러가 발생했습니다',
-            error: process.env.NODE_ENV === 'development' ? err.message : undefined
+            error: err.message
         });
     }
 
