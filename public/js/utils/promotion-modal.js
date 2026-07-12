@@ -184,6 +184,30 @@
         background-color: #f1f5f9;
         color: #1f2937;
       }
+      @media (max-width: 480px) {
+        .promo-entry-card {
+          max-width: 320px;
+          border-radius: 20px;
+        }
+        .promo-entry-header {
+          padding: 12px 18px;
+        }
+        .promo-entry-header h3 {
+          font-size: 0.95rem;
+        }
+        .promo-entry-footer {
+          padding: 12px 16px;
+          gap: 8px;
+        }
+        .btn-promo-action {
+          padding: 10px;
+          font-size: 0.82rem;
+        }
+        .promo-entry-bottom-bar {
+          padding: 10px 18px;
+          font-size: 0.75rem;
+        }
+      }
     `;
     document.head.appendChild(style);
   }
