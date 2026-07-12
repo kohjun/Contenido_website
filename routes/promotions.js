@@ -10,8 +10,7 @@ const { authorizeRoles } = require('../middleware/roleMiddleware');
 router.get('/active', async (req, res) => {
   try {
     const now = new Date();
-    // 현재 시간에 활성화되어 있는 가장 최신의 홍보 조회
-    const activePromo = await Promotion.findOne({
+    const activePromos = await Promotion.find({
       isActive: true,
       startDate: { $lte: now },
       endDate: { $gte: now }
@@ -20,7 +19,7 @@ router.get('/active', async (req, res) => {
     .populate('targetEventId')
     .lean();
 
-    res.json(activePromo || null);
+    res.json(activePromos);
   } catch (error) {
     console.error('Error fetching active promotion:', error);
     res.status(500).json({ message: '활성화된 홍보 조회 중 오류가 발생했습니다.' });

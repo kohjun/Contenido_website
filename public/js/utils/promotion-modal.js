@@ -5,11 +5,11 @@
     const response = await fetch('/promotions/active');
     if (!response.ok) return;
 
-    const promo = await response.json();
-    if (!promo) return; // 활성화된 홍보 없음
+    const promos = await response.json();
+    if (!promos || promos.length === 0) return; // 활성화된 홍보 없음
 
-    // 2) 오늘 하루 보지 않기 설정 체크
-    const dismissKey = `dismiss_promotion_${promo._id}`;
+    // 2) 오늘 하루 보지 않기 설정 체크 (전체 팝업에 대해 하나의 키로 제어)
+    const dismissKey = `dismiss_promotion_all`;
     const dismissVal = localStorage.getItem(dismissKey);
     if (dismissVal) {
       const dismissDate = new Date(parseInt(dismissVal, 10));
@@ -26,9 +26,9 @@
     injectStyles();
 
     // 4) 모달 DOM 생성
-    createPromoModal(promo, dismissKey);
+    createPromoModal(promos, dismissKey);
   } catch (error) {
-    console.error('[PromotionModal] Failed to load active promotion:', error);
+    console.error('[PromotionModal] Failed to load active promotions:', error);
   }
 
   function injectStyles() {
@@ -66,10 +66,40 @@
         transform: translateY(20px);
         transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
         border: 1px solid rgba(255, 255, 255, 0.8);
+        position: relative;
       }
       .promo-entry-overlay.show .promo-entry-card {
         transform: translateY(0);
       }
+      
+      /* 캐러셀 영역 */
+      .promo-carousel-container {
+        position: relative;
+        width: 100%;
+        overflow: hidden;
+      }
+      .promo-carousel-wrapper {
+        display: flex;
+        overflow-x: auto;
+        scroll-snap-type: x mandatory;
+        scroll-behavior: smooth;
+        scrollbar-width: none;
+        -webkit-overflow-scrolling: touch;
+      }
+      .promo-carousel-wrapper::-webkit-scrollbar {
+        display: none;
+      }
+      
+      /* 개별 슬라이드 */
+      .promo-slide {
+        flex: 0 0 100%;
+        width: 100%;
+        scroll-snap-align: start;
+        display: flex;
+        flex-direction: column;
+        box-sizing: border-box;
+      }
+
       .promo-entry-header {
         padding: 18px 24px;
         display: flex;
@@ -84,6 +114,10 @@
         color: #1e1b4b;
         font-family: inherit;
         line-height: 1.4;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 85%;
       }
       .promo-entry-close-btn {
         background: none;
@@ -151,6 +185,56 @@
         transform: translateY(-1px);
         box-shadow: 0 6px 14px rgba(168, 85, 247, 0.3);
       }
+
+      /* 캐러셀 내비게이션 화살표 */
+      .promo-nav-btn {
+        position: absolute;
+        top: calc(50% + 5px); /* 헤더 크기를 고려한 세로 중앙 정렬 보정 */
+        transform: translateY(-50%);
+        width: 34px;
+        height: 34px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.9);
+        border: 1px solid #e2e8f0;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.1rem;
+        z-index: 10;
+        color: #475569;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        transition: all 0.2s ease;
+      }
+      .promo-nav-btn:hover {
+        background: white;
+        color: #0f172a;
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+      }
+      .promo-nav-btn.prev { left: 12px; }
+      .promo-nav-btn.next { right: 12px; }
+
+      /* 인디케이터 점 */
+      .promo-indicators {
+        display: flex;
+        justify-content: center;
+        gap: 6px;
+        margin-top: 10px;
+      }
+      .promo-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background-color: #cbd5e1;
+        cursor: pointer;
+        transition: all 0.2s ease;
+      }
+      .promo-dot.active {
+        background-color: #a855f7;
+        width: 16px;
+        border-radius: 4px;
+      }
+
       .promo-entry-bottom-bar {
         padding: 12px 24px;
         display: flex;
@@ -184,6 +268,7 @@
         background-color: #f1f5f9;
         color: #1f2937;
       }
+
       @media (max-width: 480px) {
         .promo-entry-card {
           max-width: 320px;
@@ -207,58 +292,143 @@
           padding: 10px 18px;
           font-size: 0.75rem;
         }
+        .promo-nav-btn {
+          width: 30px;
+          height: 30px;
+          font-size: 0.95rem;
+        }
       }
     `;
     document.head.appendChild(style);
   }
 
-  function createPromoModal(promo, dismissKey) {
+  function createPromoModal(promos, dismissKey) {
     const overlay = document.createElement('div');
     overlay.className = 'promo-entry-overlay';
     overlay.id = 'promo-entry-modal';
 
-    const targetEventUrl = promo.targetEventId 
-      ? `/additional-info.html?id=${promo.targetEventId._id || promo.targetEventId.id}`
-      : '/events.html';
+    // 카드 구조 생성
+    const card = document.createElement('div');
+    card.className = 'promo-entry-card';
 
-    overlay.innerHTML = `
-      <div class="promo-entry-card">
+    // 캐러셀 컨테이너 생성
+    const container = document.createElement('div');
+    container.className = 'promo-carousel-container';
+
+    // 캐러셀 래퍼 생성
+    const wrapper = document.createElement('div');
+    wrapper.className = 'promo-carousel-wrapper';
+
+    promos.forEach((promo, idx) => {
+      const targetEventUrl = promo.targetEventId 
+        ? `/additional-info.html?id=${promo.targetEventId._id || promo.targetEventId.id}`
+        : '/events.html';
+
+      const slide = document.createElement('div');
+      slide.className = 'promo-slide';
+      slide.innerHTML = `
         <div class="promo-entry-header">
           <h3>${escapeHtml(promo.title)}</h3>
-          <button type="button" class="promo-entry-close-btn" id="promo-close-x">×</button>
+          <button type="button" class="promo-entry-close-btn" data-close="true">×</button>
         </div>
-        <div class="promo-entry-body" id="promo-body-img">
+        <div class="promo-entry-body" data-action="benefit" data-id="${promo._id}">
           <img src="${promo.imageUrl}" alt="${escapeHtml(promo.title)}" onerror="this.src='/images/Basic_Event_Image.png'">
         </div>
         <div class="promo-entry-footer">
-          <button type="button" class="btn-promo-action benefit" id="promo-go-benefit">혜택 확인하기</button>
-          <button type="button" class="btn-promo-action event" id="promo-go-event">이벤트 신청하기</button>
+          <button type="button" class="btn-promo-action benefit" data-action="benefit" data-id="${promo._id}">혜택 확인하기</button>
+          <button type="button" class="btn-promo-action event" data-action="event" data-url="${targetEventUrl}">이벤트 신청하기</button>
         </div>
-        <div class="promo-entry-bottom-bar">
-          <label class="dismiss-today-label">
-            <input type="checkbox" id="promo-dismiss-today"> 오늘 하루 보지 않기
-          </label>
-          <button type="button" class="btn-close-text" id="promo-close-btn">닫기</button>
-        </div>
-      </div>
-    `;
+      `;
+      wrapper.appendChild(slide);
+    });
 
+    container.appendChild(wrapper);
+
+    // 슬라이드가 여러 개인 경우 화살표 및 점 인디케이터 추가
+    if (promos.length > 1) {
+      const prevBtn = document.createElement('button');
+      prevBtn.type = 'button';
+      prevBtn.className = 'promo-nav-btn prev';
+      prevBtn.innerHTML = '❬';
+      
+      const nextBtn = document.createElement('button');
+      nextBtn.type = 'button';
+      nextBtn.className = 'promo-nav-btn next';
+      nextBtn.innerHTML = '❭';
+
+      container.appendChild(prevBtn);
+      container.appendChild(nextBtn);
+
+      const indicators = document.createElement('div');
+      indicators.className = 'promo-indicators';
+      promos.forEach((_, idx) => {
+        const dot = document.createElement('span');
+        dot.className = `promo-dot ${idx === 0 ? 'active' : ''}`;
+        dot.addEventListener('click', () => {
+          wrapper.scrollTo({
+            left: wrapper.clientWidth * idx,
+            behavior: 'smooth'
+          });
+        });
+        indicators.appendChild(dot);
+      });
+      
+      container.appendChild(indicators);
+
+      // 화살표 이벤트 리스너
+      prevBtn.addEventListener('click', () => {
+        const newIndex = Math.max(0, Math.round(wrapper.scrollLeft / wrapper.clientWidth) - 1);
+        wrapper.scrollTo({
+          left: wrapper.clientWidth * newIndex,
+          behavior: 'smooth'
+        });
+      });
+
+      nextBtn.addEventListener('click', () => {
+        const newIndex = Math.min(promos.length - 1, Math.round(wrapper.scrollLeft / wrapper.clientWidth) + 1);
+        wrapper.scrollTo({
+          left: wrapper.clientWidth * newIndex,
+          behavior: 'smooth'
+        });
+      });
+
+      // 스크롤 이벤트 감지하여 인디케이터 업데이트
+      wrapper.addEventListener('scroll', () => {
+        const index = Math.round(wrapper.scrollLeft / wrapper.clientWidth);
+        const dots = indicators.querySelectorAll('.promo-dot');
+        dots.forEach((dot, dIdx) => {
+          if (dIdx === index) {
+            dot.classList.add('active');
+          } else {
+            dot.classList.remove('active');
+          }
+        });
+      });
+    }
+
+    card.appendChild(container);
+
+    // 공통 하단 바 추가 (오늘 하루 보지 않기)
+    const bottomBar = document.createElement('div');
+    bottomBar.className = 'promo-entry-bottom-bar';
+    bottomBar.innerHTML = `
+      <label class="dismiss-today-label">
+        <input type="checkbox" id="promo-dismiss-today"> 오늘 하루 보지 않기
+      </label>
+      <button type="button" class="btn-close-text" id="promo-close-btn">닫기</button>
+    `;
+    card.appendChild(bottomBar);
+    overlay.appendChild(card);
     document.body.appendChild(overlay);
 
-    // Fade-in animation trigger
+    // 서서히 보이기 애니메이션 트리거
     setTimeout(() => {
       overlay.classList.add('show');
     }, 100);
 
-    // Event listeners
-    const closeX = document.getElementById('promo-close-x');
-    const closeBtn = document.getElementById('promo-close-btn');
-    const bodyImg = document.getElementById('promo-body-img');
-    const goBenefit = document.getElementById('promo-go-benefit');
-    const goEvent = document.getElementById('promo-go-event');
-    const dismissChk = document.getElementById('promo-dismiss-today');
-
+    // 이벤트 바인딩 (이벤트 위임 활용)
     const closeModal = () => {
+      const dismissChk = document.getElementById('promo-dismiss-today');
       if (dismissChk && dismissChk.checked) {
         localStorage.setItem(dismissKey, Date.now().toString());
       }
@@ -268,21 +438,34 @@
       }, 300);
     };
 
-    closeX.addEventListener('click', closeModal);
-    closeBtn.addEventListener('click', closeModal);
+    // 닫기 및 네비게이션 버튼 리스너 바인딩
+    document.getElementById('promo-close-btn').addEventListener('click', closeModal);
     
-    // 혜택 상세 보기로 이동
-    const navigateToBenefit = () => {
-      closeModal();
-      window.location.href = `/benefit-detail.html?id=${promo._id}`;
-    };
-    bodyImg.addEventListener('click', navigateToBenefit);
-    goBenefit.addEventListener('click', navigateToBenefit);
+    // 위임 이벤트 리스너
+    overlay.addEventListener('click', (e) => {
+      // 닫기 X 버튼 클릭
+      if (e.target.closest('[data-close="true"]')) {
+        closeModal();
+        return;
+      }
+      
+      // 혜택 보기 액션
+      const benefitBtn = e.target.closest('[data-action="benefit"]');
+      if (benefitBtn) {
+        const id = benefitBtn.getAttribute('data-id');
+        closeModal();
+        window.location.href = `/benefit-detail.html?id=${id}`;
+        return;
+      }
 
-    // 연동 이벤트 신청으로 이동
-    goEvent.addEventListener('click', () => {
-      closeModal();
-      window.location.href = targetEventUrl;
+      // 이벤트 바로가기 액션
+      const eventBtn = e.target.closest('[data-action="event"]');
+      if (eventBtn) {
+        const url = eventBtn.getAttribute('data-url');
+        closeModal();
+        window.location.href = url;
+        return;
+      }
     });
   }
 
