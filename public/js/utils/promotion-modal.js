@@ -177,13 +177,13 @@
         background-color: #e2e8f0;
       }
       .btn-promo-action.event {
-        background: linear-gradient(135deg, #a855f7 0%, #3b82f6 100%);
+        background-color: #0A84FE;
         color: white;
-        box-shadow: 0 4px 10px rgba(168, 85, 247, 0.2);
+        box-shadow: 0 4px 10px rgba(10, 132, 254, 0.25);
       }
       .btn-promo-action.event:hover {
         transform: translateY(-1px);
-        box-shadow: 0 6px 14px rgba(168, 85, 247, 0.3);
+        box-shadow: 0 6px 14px rgba(10, 132, 254, 0.4);
       }
 
       /* 캐러셀 내비게이션 화살표 */
@@ -230,7 +230,7 @@
         transition: all 0.2s ease;
       }
       .promo-dot.active {
-        background-color: #a855f7;
+        background-color: #0A84FE;
         width: 16px;
         border-radius: 4px;
       }

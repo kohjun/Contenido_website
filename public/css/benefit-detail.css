@@ -45,7 +45,7 @@ body.benefit-detail-page {
 }
 .badge-promo {
   display: inline-block;
-  background: linear-gradient(135deg, #a855f7 0%, #3b82f6 100%);
+  background-color: #0A84FE;
   color: white;
   padding: 6px 14px;
   border-radius: 20px;
@@ -141,7 +141,7 @@ body.benefit-detail-page {
   line-height: 1.45;
 }
 .btn-cta {
-  background-color: #0284c7;
+  background-color: #0A84FE;
   color: white;
   border: none;
   border-radius: 12px;
@@ -149,15 +149,15 @@ body.benefit-detail-page {
   font-size: 0.92rem;
   font-weight: bold;
   cursor: pointer;
-  box-shadow: 0 4px 12px rgba(2, 132, 199, 0.3);
+  box-shadow: 0 4px 12px rgba(10, 132, 254, 0.25);
   transition: all 0.2s ease;
   font-family: inherit;
   white-space: nowrap;
 }
 .btn-cta:hover {
-  background-color: #0369a1;
+  background-color: #0975e2;
   transform: translateY(-1px);
-  box-shadow: 0 6px 16px rgba(2, 132, 199, 0.45);
+  box-shadow: 0 6px 16px rgba(10, 132, 254, 0.4);
 }
 
 /* 푸터 및 버튼 */

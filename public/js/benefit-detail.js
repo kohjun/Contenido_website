@@ -34,7 +34,7 @@ function renderBenefitDetail(promo) {
   // Period
   const start = new Date(promo.startDate).toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' });
   const end = new Date(promo.endDate).toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' });
-  document.getElementById('benefit-period').textContent = `이벤트 기간: ${start} ~ ${end}`;
+  document.getElementById('benefit-period').textContent = `혜택 기간: ${start} ~ ${end}`;
 
   // Image
   const imgEl = document.getElementById('benefit-image');
