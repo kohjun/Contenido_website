@@ -116,6 +116,9 @@ router.put('/:id',
       await promo.save();
       res.json({ message: '홍보가 성공적으로 수정되었습니다.', promotion: promo });
     } catch (error) {
+      try {
+        process.stderr.write(`[ROUTER PUT ERROR] [${new Date().toISOString()}] ${error.stack || error}\n`);
+      } catch (e) {}
       console.error('Error updating promotion:', error);
       res.status(500).json({ message: '홍보 수정 중 오류가 발생했습니다.', error: error.message });
     }

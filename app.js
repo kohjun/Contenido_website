@@ -51,6 +51,14 @@ app.use(cookieParser());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
+app.use((req, res, next) => {
+  try {
+    const fs = require('fs');
+    fs.appendFileSync('debug.log', `[${new Date().toISOString()}] ${req.method} ${req.url} - body: ${JSON.stringify(req.body)}\n`);
+  } catch (e) {}
+  next();
+});
+
 // CORS 설정 개선
 app.use((req, res, next) => {
     const allowedOrigins = ['https://contenido.kr', 'http://localhost:3000'];
@@ -203,6 +211,9 @@ app.use('/api/*', (req, res) => {
 
 // 글로벌 에러 핸들러
 app.use((err, req, res, next) => {
+    try {
+      process.stderr.write(`[GLOBAL ERROR] [${new Date().toISOString()}] ${err.stack || err}\n`);
+    } catch (e) {}
     console.error('Error:', err);
 
     // 파일 크기 제한 에러
