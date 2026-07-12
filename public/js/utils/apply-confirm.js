@@ -232,10 +232,45 @@
 
   /**
    * 약관 동의 모달을 띄우고 사용자의 응답을 Promise로 반환.
+   * @param {Object} options options.isLightning 여부 지원
    * @returns {Promise<boolean>} true = 동의 후 신청, false = 취소
    */
-  function confirmEventApplication() {
+  function confirmEventApplication(options = {}) {
     init();
+    const isLightning = !!options.isLightning;
+    
+    // 모달 타이틀과 본문 내용을 isLightning 여부에 따라 동적 변경
+    const titleEl = document.getElementById('ac-title');
+    const termsEl = document.querySelector('.ac-terms');
+    
+    if (isLightning) {
+      if (titleEl) titleEl.textContent = '번개주최 이벤트 신청 약관 동의';
+      if (termsEl) {
+        termsEl.innerHTML = `
+          <h4>번개주최자 필수 준수 사항</h4>
+          <ul>
+            <li><strong>신청 즉시 자동 1차 승인</strong>(참가 확정) 처리됩니다.</li>
+            <li>번개 모임을 실제로 진행한 후, <strong>해당 월 말까지</strong> 마이페이지에서 번개 사진 및 정산/인증 제출을 완료해야 합니다.</li>
+            <li><strong>해당 월 내에 인증을 미제출</strong>할 경우, 신청 의무 미이행으로 분류되어 <strong>경고 1회</strong>가 부여됩니다.</li>
+            <li>번개 신청 확정 후 타당한 사유 및 사전 공지 없이 번개를 임의 취소/폐지하거나 무통보 노쇼하는 경우 경고가 부여될 수 있습니다.</li>
+          </ul>
+        `;
+      }
+    } else {
+      if (titleEl) titleEl.textContent = '이벤트 신청 약관 동의';
+      if (termsEl) {
+        termsEl.innerHTML = `
+          <h4>꼭 확인하세요</h4>
+          <ul>
+            <li><strong>참가가 확정된 이후</strong>에는 참가비 환불이 <strong>불가능</strong>합니다.</li>
+            <li><strong>참가 확정 후 취소</strong>할 경우 운영규정에 따라 <strong>경고가 부여</strong>될 수 있습니다.</li>
+            <li>대타 섭외 또는 인사팀 승인이 있는 경우 경고가 면제될 수 있습니다.</li>
+            <li>자세한 내용은 <a href="rules.html" target="_blank" style="color:#0A84FE; text-decoration:underline;">동아리 규칙</a>을 참고해주세요.</li>
+          </ul>
+        `;
+      }
+    }
+
     return new Promise((resolve) => {
       const overlay = document.getElementById(MODAL_ID);
       const cb = document.getElementById('ac-agree-cb');

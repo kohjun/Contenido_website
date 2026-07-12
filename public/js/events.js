@@ -544,10 +544,16 @@ async function openContentWindow(eventId) {
 }
 
 async function applyForEvent(eventId) {
+  // allEvents에서 eventId에 해당하는 이벤트를 찾아서 isLightning 여부를 파악합니다.
+  const targetEvent = (window.allEvents || []).find(e => String(e._id || e.id) === String(eventId));
+  const isLightning = targetEvent ? !!targetEvent.isLightning : false;
+
   // 약관 동의 모달 — 동의해야 신청 진행
   const agreed = typeof window.confirmEventApplication === 'function'
-    ? await window.confirmEventApplication()
-    : confirm('참가 확정 후에는 참가비 환불이 불가능하며, 취소 시 경고가 부여될 수 있습니다. 동의하시겠습니까?');
+    ? await window.confirmEventApplication({ isLightning })
+    : confirm(isLightning
+        ? '번개주최 신청 즉시 자동 참가 확정(1차 승인)됩니다. 이벤트 완료 후 번개 인증을 제출해 주세요. 동의하시겠습니까?'
+        : '참가 확정 후에는 참가비 환불이 불가능하며, 취소 시 경고가 부여될 수 있습니다. 동의하시겠습니까?');
   if (!agreed) return;
 
   try {
