@@ -195,7 +195,7 @@ router.post('/:id/apply',
           closedAt: new Date()
         });
         existing.statusHistory = [];
-        existing.status = 'pending';
+        existing.status = event.isLightning ? 'approved' : 'pending';
         existing.appliedAt = new Date();
         existing.answers = answers;
       } else {
@@ -206,7 +206,7 @@ router.post('/:id/apply',
         event.appliedParticipants.push({
           userId: req.user.id,
           appliedAt: new Date(),
-          status: 'pending',
+          status: event.isLightning ? 'approved' : 'pending',
           answers
         });
       }
@@ -218,10 +218,21 @@ router.post('/:id/apply',
         createNotification({
           userId: event.creator,
           type: 'application_received',
-          title: `[${event.title}] ${existing ? '재신청자' : '새 신청자'}가 있습니다`,
+          title: event.isLightning
+            ? `[${event.title}] 새 번개 신청이 등록 및 자동 승인되었습니다`
+            : `[${event.title}] ${existing ? '재신청자' : '새 신청자'}가 있습니다`,
           link: `/event-status-staff.html?id=${event._id}`,
-          meta: { eventId: event._id, eventTitle: event.title, actorName: req.user.name, status: 'pending' },
+          meta: {
+            eventId: event._id,
+            eventTitle: event.title,
+            actorName: req.user.name,
+            status: event.isLightning ? 'approved' : 'pending'
+          },
         });
+      }
+
+      if (event.isLightning) {
+        return res.json({ message: '신청이 완료되어 자동으로 참가 확정(1차 승인)되었습니다. 이벤트 진행 후 인증을 제출해 주세요!' });
       }
 
       res.json({ message: existing ? '재신청이 완료되었습니다. 승인을 기다려주세요.' : '신청이 완료되었습니다. 승인을 기다려주세요.' });
