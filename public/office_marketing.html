@@ -54,20 +54,19 @@
           </div>
         </div>
 
-        <div class="form-row">
-          <div class="form-group">
-            <label for="promo-event-id">연동할 동아리 이벤트 <span class="helper-text">(선택)</span></label>
-            <select id="promo-event-id" name="targetEventId">
-              <option value="null">선택하지 않음 (이벤트와 무관한 단순 홍보)</option>
-            </select>
-          </div>
-          <div class="form-group checkbox-group">
-            <label class="toggle-switch">
-              <input type="checkbox" id="promo-is-active" name="isActive" checked>
-              <span class="slider"></span>
-            </label>
-            <span class="toggle-label">즉시 활성화 (기간 내 노출)</span>
-          </div>
+        <div class="form-group">
+          <label for="promo-event-id">연동할 동아리 이벤트 <span class="helper-text">(선택)</span></label>
+          <select id="promo-event-id" name="targetEventId">
+            <option value="null">선택하지 않음 (이벤트와 무관한 단순 홍보)</option>
+          </select>
+        </div>
+
+        <div class="form-group checkbox-group center-checkbox">
+          <label class="toggle-switch">
+            <input type="checkbox" id="promo-is-active" name="isActive" checked>
+            <span class="slider"></span>
+          </label>
+          <span class="toggle-label">즉시 활성화 (기간 내 노출)</span>
         </div>
 
         <div class="form-group">
