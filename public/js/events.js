@@ -172,10 +172,24 @@ async function updateMonthHeader(events, currentUser) {
   });
 
   const uid = currentUser && (currentUser.id || currentUser._id);
+  const now = new Date();
   const hasApplied = !!uid && monthEvents.some(e =>
     (e.appliedParticipants || []).some(p => {
       const pid = (p.userId && typeof p.userId === 'object') ? p.userId._id : p.userId;
-      return String(pid) === String(uid);
+      if (String(pid) !== String(uid)) return false;
+      if (p.status === 'cancelled') return false;
+
+      // 번개주최이벤트인 경우, 해당 월이 이미 지났다면 반드시 해당 월 내에 인증이 제출되어 있어야 인정
+      if (e.isLightning) {
+        const eventDate = new Date(e.date);
+        const nextMonthStart = new Date(eventDate.getFullYear(), eventDate.getMonth() + 1, 1);
+        if (now >= nextMonthStart) {
+          if (!p.verification || !p.verification.submittedAt) return false;
+          const submittedAt = new Date(p.verification.submittedAt);
+          if (submittedAt >= nextMonthStart) return false;
+        }
+      }
+      return true;
     })
   );
 

@@ -267,7 +267,7 @@ router.get('/monthly-application-status', authenticateToken, requireHRPermission
 
     // 이번 달에 진행되는 이벤트
     const events = await Event.find({ date: { $gte: monthStart, $lt: nextMonthStart } })
-      .select('appliedParticipants').lean();
+      .select('appliedParticipants isLightning').lean();
 
     // 신청 시점 분류 (취소 제외):
     //  - 신청 완료: 마감 전에 신청 = appliedAt < windowEnd
@@ -280,6 +280,16 @@ router.get('/monthly-application-status', authenticateToken, requireHRPermission
         const at = p.appliedAt ? new Date(p.appliedAt) : null;
         if (!at) continue;
         const uid = p.userId.toString();
+
+        // 번개주최이벤트인 경우, 해당 월이 이미 지났다면 반드시 해당 월 내에 인증이 제출되어 있어야 인정
+        if (ev.isLightning) {
+          if (now >= nextMonthStart) {
+            if (!p.verification || !p.verification.submittedAt) continue;
+            const submittedAt = new Date(p.verification.submittedAt);
+            if (submittedAt >= nextMonthStart) continue;
+          }
+        }
+
         if (at < windowEnd) {
           onTimeSet.add(uid);
         } else if (at < nextMonthStart) {
