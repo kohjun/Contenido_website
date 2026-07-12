@@ -545,7 +545,7 @@ async function openContentWindow(eventId) {
 
 async function applyForEvent(eventId) {
   // allEvents에서 eventId에 해당하는 이벤트를 찾아서 isLightning 여부를 파악합니다.
-  const targetEvent = (window.allEvents || []).find(e => String(e._id || e.id) === String(eventId));
+  const targetEvent = (allEvents || []).find(e => String(e._id || e.id) === String(eventId));
   const isLightning = targetEvent ? !!targetEvent.isLightning : false;
 
   // 약관 동의 모달 — 동의해야 신청 진행

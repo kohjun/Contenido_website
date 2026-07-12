@@ -529,7 +529,7 @@ async function applyForEvent(eventId) {
   if (!isAuthenticated) return;
 
   // 약관 동의 모달
-  const isLightning = window.currentEvent ? !!window.currentEvent.isLightning : false;
+  const isLightning = currentEvent ? !!currentEvent.isLightning : false;
   const agreed = typeof window.confirmEventApplication === 'function'
     ? await window.confirmEventApplication({ isLightning })
     : confirm(isLightning
