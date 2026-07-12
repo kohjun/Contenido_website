@@ -339,9 +339,14 @@ function displayCurrentPage(currentUser) {
     let applyButton = '';
     if (userStatus === 'approved') {
       // 참가확정 → 직접 취소 대신 담당 운영진에게 '취소 요청'
-      applyButton = cancelRequested
-        ? '<button class="btn btn-ghost btn-sm" disabled>취소 요청됨</button>'
-        : `<button class="btn btn-ghost btn-sm" onclick="requestCancellation('${event._id}')">취소 요청</button>`;
+      // 단, 번개주최이벤트(isLightning)는 승인 전/후 상관없이 바로 직접 취소 가능!
+      if (event.isLightning) {
+        applyButton = `<button class="btn btn-ghost btn-sm" onclick="cancelApplication('${event._id}')">신청취소</button>`;
+      } else {
+        applyButton = cancelRequested
+          ? '<button class="btn btn-ghost btn-sm" disabled>취소 요청됨</button>'
+          : `<button class="btn btn-ghost btn-sm" onclick="requestCancellation('${event._id}')">취소 요청</button>`;
+      }
     } else if (userStatus === 'pending') {
       // 승인 전에는 본인이 직접 취소 가능
       applyButton = `<button class="btn btn-ghost btn-sm" onclick="cancelApplication('${event._id}')">신청취소</button>`;
@@ -559,7 +564,8 @@ async function applyForEvent(eventId) {
   try {
     const response = await fetch(`/events/${eventId}/apply`, { method: 'POST' });
     if (response.ok) {
-      alert('신청이 완료되었습니다. 운영진의 승인을 기다려주세요.');
+      const data = await response.json();
+      alert(data.message || '신청이 완료되었습니다.');
       fetchEvents();
     } else {
       const error = await response.json();

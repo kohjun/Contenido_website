@@ -546,13 +546,13 @@ async function applyForEvent(eventId) {
       }
     });
 
+    const data = await response.json();
     if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.message || '신청 실패');
+      throw new Error(data.message || '신청 실패');
     }
 
     console.log('이벤트 신청 성공');
-    alert('이벤트 신청이 성공적으로 완료되었습니다.');
+    alert(data.message || '이벤트 신청이 성공적으로 완료되었습니다.');
     updateApplicationStatus();
   } catch (error) {
     console.error('이벤트 신청 에러:', error);
