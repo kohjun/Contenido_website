@@ -1,0 +1,198 @@
+/* public/css/benefit-detail.css */
+@font-face {
+  font-family: 'GmarketSansMedium';
+  src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_2001@1.1/GmarketSansMedium.woff') format('woff');
+  font-weight: normal;
+  font-style: normal;
+}
+
+body.benefit-detail-page {
+  font-family: 'GmarketSansMedium', system-ui, -apple-system, sans-serif;
+  background: linear-gradient(135deg, #f5f3ff 0%, #e0f2fe 100%);
+  margin: 0;
+  padding: 0;
+  color: #0f172a;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+}
+
+.benefit-container {
+  width: 100%;
+  max-width: 720px;
+  margin: 40px 20px 80px;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-radius: 32px;
+  box-shadow: 0 20px 60px rgba(15, 23, 42, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  padding: 40px;
+  box-sizing: border-box;
+  animation: fadeIn 0.4s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* 헤더 */
+.benefit-header {
+  text-align: center;
+  margin-bottom: 35px;
+}
+.badge-promo {
+  display: inline-block;
+  background: linear-gradient(135deg, #a855f7 0%, #3b82f6 100%);
+  color: white;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: bold;
+  letter-spacing: 1px;
+  box-shadow: 0 4px 10px rgba(168, 85, 247, 0.25);
+  margin-bottom: 15px;
+}
+.benefit-header h1 {
+  font-size: 1.85rem;
+  margin: 0 0 10px;
+  color: #1e1b4b;
+  line-height: 1.35;
+  font-weight: bold;
+}
+.benefit-period {
+  font-size: 0.88rem;
+  color: #64748b;
+  font-weight: 500;
+}
+
+/* 메인 이미지 */
+.benefit-image-wrapper {
+  width: 100%;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06);
+  background-color: #f1f5f9;
+  margin-bottom: 35px;
+  aspect-ratio: 16 / 9;
+}
+.benefit-image-wrapper img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* 본문 내용 */
+.benefit-content {
+  font-size: 1rem;
+  line-height: 1.7;
+  color: #334155;
+  margin-bottom: 40px;
+  padding: 0 5px;
+}
+.benefit-content h2, .benefit-content h3 {
+  color: #1e1b4b;
+  margin-top: 25px;
+  margin-bottom: 12px;
+}
+.benefit-content p {
+  margin-bottom: 16px;
+}
+.benefit-content ul, .benefit-content ol {
+  margin-bottom: 16px;
+  padding-left: 24px;
+}
+.benefit-content li {
+  margin-bottom: 8px;
+}
+.placeholder-text {
+  text-align: center;
+  color: #94a3b8;
+  padding: 30px 0;
+}
+
+/* CTA 카드 */
+.benefit-cta-area {
+  margin-bottom: 40px;
+}
+.cta-card {
+  background: linear-gradient(135deg, #e0f2fe 0%, #f0fdf4 100%);
+  border: 1px solid #bae6fd;
+  border-radius: 24px;
+  padding: 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  box-shadow: 0 10px 25px rgba(56, 189, 248, 0.08);
+}
+.cta-text h3 {
+  margin: 0 0 6px;
+  font-size: 1.05rem;
+  color: #0369a1;
+}
+.cta-text p {
+  margin: 0;
+  font-size: 0.86rem;
+  color: #0c4a6e;
+  line-height: 1.45;
+}
+.btn-cta {
+  background-color: #0284c7;
+  color: white;
+  border: none;
+  border-radius: 12px;
+  padding: 12px 24px;
+  font-size: 0.92rem;
+  font-weight: bold;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(2, 132, 199, 0.3);
+  transition: all 0.2s ease;
+  font-family: inherit;
+  white-space: nowrap;
+}
+.btn-cta:hover {
+  background-color: #0369a1;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(2, 132, 199, 0.45);
+}
+
+/* 푸터 및 버튼 */
+.benefit-footer {
+  text-align: center;
+  border-top: 1px solid #e2e8f0;
+  padding-top: 30px;
+}
+.btn-back {
+  background-color: #f1f5f9;
+  color: #475569;
+  border: 1px solid #cbd5e1;
+  border-radius: 12px;
+  padding: 10px 24px;
+  font-size: 0.9rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  font-family: inherit;
+}
+.btn-back:hover {
+  background-color: #e2e8f0;
+  color: #0f172a;
+}
+
+@media (max-width: 640px) {
+  .benefit-container {
+    margin: 20px 10px 60px;
+    padding: 24px;
+  }
+  .benefit-header h1 { font-size: 1.5rem; }
+  .cta-card {
+    flex-direction: column;
+    align-items: stretch;
+    text-align: center;
+  }
+  .btn-cta { width: 100%; }
+}

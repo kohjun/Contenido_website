@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Contenido · 멤버십 특별 혜택</title>
+  <link rel="icon" href="/images/Contenido_Logo.ico" type="image/x-icon">
+  <link rel="stylesheet" href="/css/benefit-detail.css">
+  <script src="/js/utils/nav-injector.js?v=20260602" defer></script>
+</head>
+<body class="benefit-detail-page">
+  <div class="benefit-container">
+    <header class="benefit-header">
+      <div class="badge-promo">SPECIAL BENEFIT ✨</div>
+      <h1 id="benefit-title">혜택 상세 정보</h1>
+      <div class="benefit-period" id="benefit-period">노출 기간: -</div>
+    </header>
+
+    <main class="benefit-main">
+      <div class="benefit-image-wrapper">
+        <img id="benefit-image" src="" alt="혜택 대표 이미지">
+      </div>
+
+      <article class="benefit-content" id="benefit-content-body">
+        <p class="placeholder-text">상세 설명을 불러오는 중...</p>
+      </article>
+
+      <section class="benefit-cta-area" id="benefit-cta-section" style="display: none;">
+        <div class="cta-card">
+          <div class="cta-text">
+            <h3>🎁 이벤트를 신청해 혜택을 받아보세요!</h3>
+            <p id="cta-event-desc">이 혜택은 특정 이벤트에 참여하는 부원 대상입니다. 지금 바로 확인해보세요.</p>
+          </div>
+          <button type="button" class="btn-cta" id="btn-cta-link">
+            이벤트 바로가기 ➔
+          </button>
+        </div>
+      </section>
+    </main>
+
+    <footer class="benefit-footer">
+      <button type="button" class="btn-back" onclick="window.history.back() || (window.location.href='/events.html')">
+        이전 페이지로 돌아가기
+      </button>
+    </footer>
+  </div>
+
+  <script src="/js/benefit-detail.js"></script>
+</body>
+</html>

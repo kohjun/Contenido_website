@@ -407,8 +407,50 @@ const Sidebar = (function() {
       
       
 
-      // 홍보부
+       // 홍보부
       //5. 마케팅팀
+      if (pageId === 'marketingTeam') {
+        try {
+          // CSS — 항상 fresh
+          document.querySelectorAll('link[href^="/css/office/marketing.css"]').forEach(l => l.remove());
+          const cssLink = document.createElement('link');
+          cssLink.rel = 'stylesheet';
+          cssLink.href = '/css/office/marketing.css?t=' + Date.now();
+          document.head.appendChild(cssLink);
+
+          // HTML 주입 (fetch + innerHTML)
+          const mainContent = document.getElementById('main-content');
+          const r = await fetch('/office_marketing.html');
+          mainContent.innerHTML = await r.text();
+
+          // 기존 marketing.js 모두 제거 (버전 query 포함)
+          document.querySelectorAll('script[src^="/js/office/marketing.js"]').forEach(s => s.remove());
+
+          // marketing.js — fresh fetch
+          await new Promise((resolve, reject) => {
+            const s = document.createElement('script');
+            s.src = '/js/office/marketing.js?t=' + Date.now();
+            s.onload = resolve;
+            s.onerror = reject;
+            document.body.appendChild(s);
+          });
+
+          // 초기화
+          if (window.MarketingDashboard && typeof window.MarketingDashboard.initialize === 'function') {
+            await window.MarketingDashboard.initialize();
+          }
+        } catch (error) {
+          console.error('Error loading marketing team page:', error);
+          const mainContent = document.getElementById('main-content');
+          mainContent.innerHTML = `
+            <div class="error-message">
+              <h3>페이지 로드 중 오류가 발생했습니다</h3>
+              <p>${error.message}</p>
+            </div>
+          `;
+        }
+        return;
+      }
 
       //6. 디자인팀
 

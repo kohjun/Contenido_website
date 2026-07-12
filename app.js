@@ -109,6 +109,7 @@ app.use('/announcement', require('./routes/announcement'));
 app.use('/notifications', require('./routes/notifications'));
 app.use('/archives', require('./routes/archives'));
 app.use('/community', require('./routes/community'));
+app.use('/promotions', require('./routes/promotions'));
 
 
 // 정적 파일 서빙 설정 전에 API 라우터 추가
@@ -177,6 +178,7 @@ if (fs.existsSync(reactBuildPath)) {
             req.path.startsWith('/savedPlaces') ||  // 추가
             req.path.startsWith('/announcement') ||
             req.path.startsWith('/notifications') ||
+            req.path.startsWith('/promotions') ||
             req.path.startsWith('/api/') ||
             req.path.startsWith('/office') ||
             req.path.startsWith('/uploads')) {
