@@ -172,7 +172,6 @@ async function updateMonthHeader(events, currentUser) {
   });
 
   const uid = currentUser && (currentUser.id || currentUser._id);
-  const now = new Date();
   const hasApplied = !!uid && monthEvents.some(e =>
     (e.appliedParticipants || []).some(p => {
       const pid = (p.userId && typeof p.userId === 'object') ? p.userId._id : p.userId;
