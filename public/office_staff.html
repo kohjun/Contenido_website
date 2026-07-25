@@ -1,0 +1,456 @@
+<div class="staff-dashboard">
+  <!-- 헤더 & 전체 진행률 대시보드 -->
+  <header class="staff-header">
+    <div class="header-content">
+      <div class="header-text">
+        <h2>스태프 기획 가이드 📋</h2>
+        <p>프로젝트 진행 시 아래 순서대로 체크하며 진행 상태를 실시간으로 점검합니다.</p>
+      </div>
+      <div class="progress-summary-card">
+        <div class="progress-info">
+          <span class="progress-label">전체 기획 진행률</span>
+          <span class="progress-percent" id="overall-progress-text">0%</span>
+        </div>
+        <div class="progress-bar-bg">
+          <div class="progress-bar-fill" id="overall-progress-bar" style="width: 0%;"></div>
+        </div>
+        <div class="progress-details" id="overall-progress-details">
+          완료 <b id="completed-count">0</b> / 전체 <span id="total-count">52</span>개 항목
+        </div>
+      </div>
+    </div>
+
+    <!-- 단계별 바로가기 뱃지 -->
+    <div class="stage-nav-pills">
+      <a href="#stage-1" class="stage-pill">1단계. 팀 운영 구조 <span class="pill-count" id="pill-stage-1">0/7</span></a>
+      <a href="#stage-2" class="stage-pill">2단계. 기획 발산 <span class="pill-count" id="pill-stage-2">0/7</span></a>
+      <a href="#stage-3" class="stage-pill">3단계. 현실 검증 <span class="pill-count" id="pill-stage-3">0/11</span></a>
+      <a href="#stage-4" class="stage-pill">4단계. 기획 수렴 <span class="pill-count" id="pill-stage-4">0/11</span></a>
+      <a href="#stage-5" class="stage-pill">5단계. 실행 준비 <span class="pill-count" id="pill-stage-5">0/13</span></a>
+      <a href="#stage-retrospective" class="stage-pill">행사 종료 후 회고 <span class="pill-count" id="pill-stage-retro">0/5</span></a>
+    </div>
+  </header>
+
+  <!-- ⭐ 스타터-스태프 명단 관리 섹션 (매번 의무신청 경고 면제) -->
+  <section class="starter-staff-section">
+    <div class="section-header">
+      <div>
+        <h3 class="section-title">
+          <span>⭐</span> 스타터-스태프 명단 관리 <small style="font-size: 0.82rem; color: #d97706; font-weight: normal;">(매번 의무신청 경고 자동 면제)</small>
+        </h3>
+        <p class="section-desc">스타터-스태프 인원을 지정하여 확정하면 인사팀 페이지에서 '스타터-스태프' 표시 및 매달 미신청 경고에서 자동으로 제외됩니다.</p>
+      </div>
+    </div>
+
+    <div class="starter-staff-card-body">
+      <div class="starter-staff-search-row">
+        <input type="text" id="starter-staff-search" placeholder="회원 이름 또는 전화번호 뒷자리로 검색..." oninput="window.StaffDashboard.filterMembers()">
+        <span class="starter-staff-count-tag">선택된 스타터-스태프: <b id="starter-staff-selected-count">0</b>명</span>
+      </div>
+
+      <div id="starter-staff-member-list" class="starter-staff-member-grid">
+        <div class="loading-placeholder">회원 목록을 불러오는 중...</div>
+      </div>
+
+      <div class="starter-staff-footer">
+        <button type="button" class="btn-save-starter" onclick="window.StaffDashboard.saveStarterStaff()">
+          스타터-스태프 명단 저장
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- 📋 스태프 기획 가이드 체크리스트 섹션 -->
+  <section class="guide-sections-wrapper">
+
+    <!-- 1단계. 팀 운영 구조 설정 -->
+    <div class="stage-card" id="stage-1">
+      <div class="stage-card-header">
+        <div class="stage-badge">1단계</div>
+        <h3 class="stage-title">팀 운영 구조 설정</h3>
+      </div>
+
+      <div class="checklist-grid">
+        <!-- 회의 일정 -->
+        <div class="guide-subcard">
+          <h4 class="subcard-title">📅 회의 일정</h4>
+          <div class="checklist-box">
+            <h5 class="box-label">체크리스트</h5>
+            <ul class="chk-list">
+              <li><label><input type="checkbox" class="staff-chk" data-id="stage1_mtg_1" onchange="window.StaffDashboard.handleCheckChange()"> 팀원 연락처 공유 완료</label></li>
+              <li><label><input type="checkbox" class="staff-chk" data-id="stage1_mtg_2" onchange="window.StaffDashboard.handleCheckChange()"> 소통 채널 개설 (카카오톡/디스코드/노션)</label></li>
+              <li><label><input type="checkbox" class="staff-chk" data-id="stage1_mtg_3" onchange="window.StaffDashboard.handleCheckChange()"> 정기 회의 일정 확정</label></li>
+              <li><label><input type="checkbox" class="staff-chk" data-id="stage1_mtg_4" onchange="window.StaffDashboard.handleCheckChange()"> 주요 마감일 설정</label></li>
+            </ul>
+          </div>
+          <div class="discussion-box">
+            <h5 class="box-label">💬 논의 안건</h5>
+            <ul>
+              <li>회의는 주 몇 회 진행할 것인가?</li>
+              <li>비대면/대면 비율은?</li>
+              <li>자료는 어디에 보관할 것인가?</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- 의사결정 구조 -->
+        <div class="guide-subcard">
+          <h4 class="subcard-title">⚖️ 의사결정 구조</h4>
+          <div class="checklist-box">
+            <h5 class="box-label">체크리스트</h5>
+            <ul class="chk-list">
+              <li><label><input type="checkbox" class="staff-chk" data-id="stage1_dec_1" onchange="window.StaffDashboard.handleCheckChange()"> PM(총괄 담당자) 지정</label></li>
+              <li><label><input type="checkbox" class="staff-chk" data-id="stage1_dec_2" onchange="window.StaffDashboard.handleCheckChange()"> 최종 결정권자 지정</label></li>
+              <li><label><input type="checkbox" class="staff-chk" data-id="stage1_dec_3" onchange="window.StaffDashboard.handleCheckChange()"> 의사결정 방식 합의</label></li>
+            </ul>
+          </div>
+          <div class="discussion-box">
+            <h5 class="box-label">💬 논의 안건</h5>
+            <ul>
+              <li>의견 충돌 시 어떻게 결정할 것인가?</li>
+              <li>긴급 상황에서는 누가 결정하는가?</li>
+              <li>팀원 책임 범위는 어디까지인가?</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2단계. 기획 발산 -->
+    <div class="stage-card" id="stage-2">
+      <div class="stage-card-header">
+        <div class="stage-badge">2단계</div>
+        <h3 class="stage-title">기획 발산</h3>
+      </div>
+
+      <div class="checklist-grid">
+        <!-- 목표 설정 -->
+        <div class="guide-subcard">
+          <h4 class="subcard-title">🎯 목표 설정</h4>
+          <div class="checklist-box">
+            <h5 class="box-label">체크리스트</h5>
+            <ul class="chk-list">
+              <li><label><input type="checkbox" class="staff-chk" data-id="stage2_goal_1" onchange="window.StaffDashboard.handleCheckChange()"> 이벤트 목적 정의</label></li>
+              <li><label><input type="checkbox" class="staff-chk" data-id="stage2_goal_2" onchange="window.StaffDashboard.handleCheckChange()"> 타겟 참가자 정의</label></li>
+              <li><label><input type="checkbox" class="staff-chk" data-id="stage2_goal_3" onchange="window.StaffDashboard.handleCheckChange()"> 기대 효과 정의</label></li>
+              <li><label><input type="checkbox" class="staff-chk" data-id="stage2_goal_4" onchange="window.StaffDashboard.handleCheckChange()"> 성공 기준 설정</label></li>
+            </ul>
+          </div>
+          <div class="discussion-box">
+            <h5 class="box-label">💬 논의 안건</h5>
+            <ul>
+              <li>왜 이 이벤트를 하는가?</li>
+              <li>참가자는 무엇을 얻어가는가?</li>
+              <li>성공했다고 판단할 기준은?</li>
+            </ul>
+          </div>
+          <div class="example-box">
+            <h5 class="box-label">📝 작성 예시</h5>
+            <p><strong>목적 :</strong> 신입 부원 적응</p>
+            <p><strong>대상 :</strong> 신입 참가자</p>
+            <p><strong>성공 기준 :</strong> 신청률 80% 이상 · 만족도 4점 이상 · 신규 인원 재참여율 50% 이상</p>
+          </div>
+        </div>
+
+        <!-- 아이디어 발산 -->
+        <div class="guide-subcard">
+          <h4 class="subcard-title">💡 아이디어 발산</h4>
+          <div class="checklist-box">
+            <h5 class="box-label">체크리스트</h5>
+            <ul class="chk-list">
+              <li><label><input type="checkbox" class="staff-chk" data-id="stage2_idea_1" onchange="window.StaffDashboard.handleCheckChange()"> 아이디어 5개 이상 도출</label></li>
+              <li><label><input type="checkbox" class="staff-chk" data-id="stage2_idea_2" onchange="window.StaffDashboard.handleCheckChange()"> 컨셉 후보 선정</label></li>
+              <li><label><input type="checkbox" class="staff-chk" data-id="stage2_idea_3" onchange="window.StaffDashboard.handleCheckChange()"> 핵심 콘텐츠 선정</label></li>
+            </ul>
+          </div>
+          <div class="discussion-box">
+            <h5 class="box-label">💬 논의 안건</h5>
+            <ul>
+              <li>기존 행사와 차별점은?</li>
+              <li>가장 재미있는 요소는?</li>
+              <li>가장 기억에 남을 장면은?</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3단계. 현실 검증 -->
+    <div class="stage-card" id="stage-3">
+      <div class="stage-card-header">
+        <div class="stage-badge">3단계</div>
+        <h3 class="stage-title">현실 검증</h3>
+      </div>
+
+      <div class="checklist-grid triple">
+        <!-- 장소 검토 -->
+        <div class="guide-subcard">
+          <h4 class="subcard-title">📍 장소 검토</h4>
+          <div class="checklist-box">
+            <h5 class="box-label">체크리스트</h5>
+            <ul class="chk-list">
+              <li><label><input type="checkbox" class="staff-chk" data-id="stage3_loc_1" onchange="window.StaffDashboard.handleCheckChange()"> 장소 후보 조사</label></li>
+              <li><label><input type="checkbox" class="staff-chk" data-id="stage3_loc_2" onchange="window.StaffDashboard.handleCheckChange()"> 대관 가능 여부 확인</label></li>
+              <li><label><input type="checkbox" class="staff-chk" data-id="stage3_loc_3" onchange="window.StaffDashboard.handleCheckChange()"> 수용 인원 확인</label></li>
+              <li><label><input type="checkbox" class="staff-chk" data-id="stage3_loc_4" onchange="window.StaffDashboard.handleCheckChange()"> 우천 시 대안 확보</label></li>
+            </ul>
+          </div>
+          <div class="discussion-box">
+            <h5 class="box-label">💬 논의 안건</h5>
+            <ul>
+              <li>이동 동선은 편한가?</li>
+              <li>참가자 접근성은 좋은가?</li>
+              <li>안전 문제는 없는가?</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- 예산 검토 -->
+        <div class="guide-subcard">
+          <h4 class="subcard-title">💰 예산 검토</h4>
+          <div class="checklist-box">
+            <h5 class="box-label">체크리스트</h5>
+            <ul class="chk-list">
+              <li><label><input type="checkbox" class="staff-chk" data-id="stage3_bud_1" onchange="window.StaffDashboard.handleCheckChange()"> 예상 지출 작성</label></li>
+              <li><label><input type="checkbox" class="staff-chk" data-id="stage3_bud_2" onchange="window.StaffDashboard.handleCheckChange()"> 참가비 산정</label></li>
+              <li><label><input type="checkbox" class="staff-chk" data-id="stage3_bud_3" onchange="window.StaffDashboard.handleCheckChange()"> 예비비 확보</label></li>
+            </ul>
+          </div>
+          <div class="discussion-box">
+            <h5 class="box-label">💬 논의 안건</h5>
+            <ul>
+              <li>예산 초과 위험은 없는가?</li>
+              <li>비용 대비 만족도가 높은가?</li>
+              <li>불필요한 지출은 없는가?</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- 실행 가능성 검토 -->
+        <div class="guide-subcard">
+          <h4 class="subcard-title">⚙️ 실행 가능성 검토</h4>
+          <div class="checklist-box">
+            <h5 class="box-label">체크리스트</h5>
+            <ul class="chk-list">
+              <li><label><input type="checkbox" class="staff-chk" data-id="stage3_fea_1" onchange="window.StaffDashboard.handleCheckChange()"> 운영 인력 충분</label></li>
+              <li><label><input type="checkbox" class="staff-chk" data-id="stage3_fea_2" onchange="window.StaffDashboard.handleCheckChange()"> 필요 장비 확보</label></li>
+              <li><label><input type="checkbox" class="staff-chk" data-id="stage3_fea_3" onchange="window.StaffDashboard.handleCheckChange()"> 일정 충돌 없음</label></li>
+              <li><label><input type="checkbox" class="staff-chk" data-id="stage3_fea_4" onchange="window.StaffDashboard.handleCheckChange()"> 허가 및 승인 확인</label></li>
+            </ul>
+          </div>
+          <div class="discussion-box">
+            <h5 class="box-label">💬 논의 안건</h5>
+            <ul>
+              <li>현재 인력으로 가능한가?</li>
+              <li>운영진 부재 시 대체 인력은 있는가?</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4단계. 기획 수렴 -->
+    <div class="stage-card" id="stage-4">
+      <div class="stage-card-header">
+        <div class="stage-badge">4단계</div>
+        <h3 class="stage-title">기획 수렴</h3>
+      </div>
+
+      <div class="checklist-grid">
+        <!-- 최종 기획 확정 -->
+        <div class="guide-subcard">
+          <h4 class="subcard-title">📌 최종 기획 확정</h4>
+          <div class="checklist-box">
+            <h5 class="box-label">체크리스트</h5>
+            <ul class="chk-list">
+              <li><label><input type="checkbox" class="staff-chk" data-id="stage4_final_1" onchange="window.StaffDashboard.handleCheckChange()"> 최종 컨셉 확정</label></li>
+              <li><label><input type="checkbox" class="staff-chk" data-id="stage4_final_2" onchange="window.StaffDashboard.handleCheckChange()"> 프로그램 순서 확정</label></li>
+              <li><label><input type="checkbox" class="staff-chk" data-id="stage4_final_3" onchange="window.StaffDashboard.handleCheckChange()"> 운영 방식 확정</label></li>
+            </ul>
+          </div>
+          <div class="discussion-box">
+            <h5 class="box-label">💬 논의 안건</h5>
+            <ul>
+              <li>참가자가 가장 기대할 포인트는?</li>
+              <li>불필요한 콘텐츠는 없는가?</li>
+              <li>흐름이 자연스러운가?</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- 역할 분담 -->
+        <div class="guide-subcard">
+          <h4 class="subcard-title">👥 역할 분담</h4>
+          <div class="checklist-box">
+            <h5 class="box-label">체크리스트</h5>
+            <ul class="chk-list two-cols">
+              <li><label><input type="checkbox" class="staff-chk" data-id="stage4_role_1" onchange="window.StaffDashboard.handleCheckChange()"> 총괄 PM</label></li>
+              <li><label><input type="checkbox" class="staff-chk" data-id="stage4_role_2" onchange="window.StaffDashboard.handleCheckChange()"> 기획 담당</label></li>
+              <li><label><input type="checkbox" class="staff-chk" data-id="stage4_role_3" onchange="window.StaffDashboard.handleCheckChange()"> 재무 담당</label></li>
+              <li><label><input type="checkbox" class="staff-chk" data-id="stage4_role_4" onchange="window.StaffDashboard.handleCheckChange()"> 홍보 담당</label></li>
+              <li><label><input type="checkbox" class="staff-chk" data-id="stage4_role_5" onchange="window.StaffDashboard.handleCheckChange()"> 소품 담당</label></li>
+              <li><label><input type="checkbox" class="staff-chk" data-id="stage4_role_6" onchange="window.StaffDashboard.handleCheckChange()"> 현장 운영 담당</label></li>
+              <li><label><input type="checkbox" class="staff-chk" data-id="stage4_role_7" onchange="window.StaffDashboard.handleCheckChange()"> 촬영 담당</label></li>
+              <li><label><input type="checkbox" class="staff-chk" data-id="stage4_role_8" onchange="window.StaffDashboard.handleCheckChange()"> 안전 담당</label></li>
+            </ul>
+          </div>
+          <div class="discussion-box">
+            <h5 class="box-label">💬 논의 안건</h5>
+            <ul>
+              <li>업무가 특정 인원에게 몰리지 않았는가?</li>
+              <li>담당자 부재 시 대체 인원은 누구인가?</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 5단계. 실행 준비 -->
+    <div class="stage-card" id="stage-5">
+      <div class="stage-card-header">
+        <div class="stage-badge">5단계</div>
+        <h3 class="stage-title">실행 준비</h3>
+      </div>
+
+      <div class="checklist-grid triple">
+        <!-- 세부 설계 -->
+        <div class="guide-subcard">
+          <h4 class="subcard-title">📝 세부 설계</h4>
+          <div class="checklist-box">
+            <h5 class="box-label">체크리스트</h5>
+            <ul class="chk-list">
+              <li><label><input type="checkbox" class="staff-chk" data-id="stage5_des_1" onchange="window.StaffDashboard.handleCheckChange()"> 참가자 모집글 작성</label></li>
+              <li><label><input type="checkbox" class="staff-chk" data-id="stage5_des_2" onchange="window.StaffDashboard.handleCheckChange()"> 참가 신청 폼 제작</label></li>
+              <li><label><input type="checkbox" class="staff-chk" data-id="stage5_des_3" onchange="window.StaffDashboard.handleCheckChange()"> 물품 리스트 작성</label></li>
+              <li><label><input type="checkbox" class="staff-chk" data-id="stage5_des_4" onchange="window.StaffDashboard.handleCheckChange()"> 진행 스크립트 작성</label></li>
+              <li><label><input type="checkbox" class="staff-chk" data-id="stage5_des_5" onchange="window.StaffDashboard.handleCheckChange()"> 운영 매뉴얼 작성</label></li>
+            </ul>
+          </div>
+          <div class="discussion-box">
+            <h5 class="box-label">💬 논의 안건</h5>
+            <ul>
+              <li>참가자가 헷갈릴 부분은 없는가?</li>
+              <li>안내 문구는 충분한가?</li>
+              <li>당일 운영 흐름은 명확한가?</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- 안전 점검 -->
+        <div class="guide-subcard">
+          <h4 class="subcard-title">🛡️ 안전 점검</h4>
+          <div class="checklist-box">
+            <h5 class="box-label">체크리스트</h5>
+            <ul class="chk-list">
+              <li><label><input type="checkbox" class="staff-chk" data-id="stage5_saf_1" onchange="window.StaffDashboard.handleCheckChange()"> 위험 요소 확인</label></li>
+              <li><label><input type="checkbox" class="staff-chk" data-id="stage5_saf_2" onchange="window.StaffDashboard.handleCheckChange()"> 응급 상황 대응책 작성</label></li>
+              <li><label><input type="checkbox" class="staff-chk" data-id="stage5_saf_3" onchange="window.StaffDashboard.handleCheckChange()"> 비상 연락망 구축</label></li>
+              <li><label><input type="checkbox" class="staff-chk" data-id="stage5_saf_4" onchange="window.StaffDashboard.handleCheckChange()"> 보험 및 허가 확인</label></li>
+            </ul>
+          </div>
+          <div class="discussion-box">
+            <h5 class="box-label">💬 논의 안건</h5>
+            <ul>
+              <li>부상 발생 시 대응 방법은?</li>
+              <li>우천 시 운영 계획은?</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- 리허설 -->
+        <div class="guide-subcard">
+          <h4 class="subcard-title">🎬 리허설</h4>
+          <div class="checklist-box">
+            <h5 class="box-label">체크리스트</h5>
+            <ul class="chk-list">
+              <li><label><input type="checkbox" class="staff-chk" data-id="stage5_reh_1" onchange="window.StaffDashboard.handleCheckChange()"> 전체 시뮬레이션 진행</label></li>
+              <li><label><input type="checkbox" class="staff-chk" data-id="stage5_reh_2" onchange="window.StaffDashboard.handleCheckChange()"> 역할별 동선 점검</label></li>
+              <li><label><input type="checkbox" class="staff-chk" data-id="stage5_reh_3" onchange="window.StaffDashboard.handleCheckChange()"> 장비 점검 완료</label></li>
+              <li><label><input type="checkbox" class="staff-chk" data-id="stage5_reh_4" onchange="window.StaffDashboard.handleCheckChange()"> 문제점 수정 완료</label></li>
+            </ul>
+          </div>
+          <div class="discussion-box">
+            <h5 class="box-label">💬 논의 안건</h5>
+            <ul>
+              <li>가장 걱정되는 변수는?</li>
+              <li>실제 운영 시 막힐 구간은?</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 행사 종료 후 회고 -->
+    <div class="stage-card retrospective" id="stage-retrospective">
+      <div class="stage-card-header">
+        <div class="stage-badge retro">회고</div>
+        <h3 class="stage-title">행사 종료 후 회고</h3>
+      </div>
+
+      <div class="checklist-grid">
+        <div class="guide-subcard">
+          <h4 class="subcard-title">🔄 마무리 체크리스트</h4>
+          <div class="checklist-box">
+            <h5 class="box-label">체크리스트</h5>
+            <ul class="chk-list">
+              <li><label><input type="checkbox" class="staff-chk" data-id="retro_chk_1" onchange="window.StaffDashboard.handleCheckChange()"> 정산 완료</label></li>
+              <li><label><input type="checkbox" class="staff-chk" data-id="retro_chk_2" onchange="window.StaffDashboard.handleCheckChange()"> 사진 및 영상 정리</label></li>
+              <li><label><input type="checkbox" class="staff-chk" data-id="retro_chk_3" onchange="window.StaffDashboard.handleCheckChange()"> 만족도 조사 진행</label></li>
+              <li><label><input type="checkbox" class="staff-chk" data-id="retro_chk_4" onchange="window.StaffDashboard.handleCheckChange()"> 회고 회의 진행</label></li>
+              <li><label><input type="checkbox" class="staff-chk" data-id="retro_chk_5" onchange="window.StaffDashboard.handleCheckChange()"> 개선사항 기록</label></li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="guide-subcard">
+          <h4 class="subcard-title">❓ 회고 질문</h4>
+          <div class="discussion-box retro-questions">
+            <ul>
+              <li><strong>가장 잘된 점은?</strong></li>
+              <li><strong>가장 아쉬운 점은?</strong></li>
+              <li><strong>다음 기수도 동일하게 진행할 것인가?</strong></li>
+              <li><strong>반드시 개선해야 할 부분은?</strong></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </section>
+
+  <!-- 💡 스태프팀 핵심 원칙 7가지 하단 배너 -->
+  <section class="principles-section">
+    <h3 class="principles-title">💡 스태프팀 핵심 원칙 7가지</h3>
+    <div class="principles-grid">
+      <div class="principle-card">
+        <span class="p-num">1</span>
+        <p>역할 분담보다 <strong>기획 확정</strong>이 먼저</p>
+      </div>
+      <div class="principle-card">
+        <span class="p-num">2</span>
+        <p>아이디어는 많이, <strong>결정은 빠르게</strong></p>
+      </div>
+      <div class="principle-card">
+        <span class="p-num">3</span>
+        <p>모든 결정은 <strong>기록으로 남기기</strong></p>
+      </div>
+      <div class="principle-card">
+        <span class="p-num">4</span>
+        <p>행사 당일보다 <strong>준비 기간</strong>이 더 중요</p>
+      </div>
+      <div class="principle-card">
+        <span class="p-num">5</span>
+        <p><strong>참가자 경험</strong>을 최우선으로 고려</p>
+      </div>
+      <div class="principle-card">
+        <span class="p-num">6</span>
+        <p>항상 <strong>Plan B(대체안)</strong>를 준비하기</p>
+      </div>
+      <div class="principle-card">
+        <span class="p-num">7</span>
+        <p>행사가 끝나도 <strong>회고까지</strong>가 프로젝트의 마무리</p>
+      </div>
+    </div>
+  </section>
+
+</div>

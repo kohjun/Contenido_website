@@ -122,7 +122,7 @@ const Sidebar = (function() {
     videoTeam: { url: '/office_video.html' },
     planningTeam: { url: '/office_planning.html' },
     regularTeam: { url: '/calendar.html' },
-    staffTeam: { url: '/calendar.html' },
+    staffTeam: { url: '/office_staff.html' },
     projectTeam: { url: '/calendar.html' },
     announcement: { url: '/office_announcement.html' }  // Add this line
   };
@@ -541,8 +541,52 @@ const Sidebar = (function() {
       
       
 
-      //10.스태프팀
-      if (['staffTeam', 'regularTeam', 'projectTeam'].includes(pageId)) {
+      // 10. 스태프팀 (기획 가이드 & 스타터-스태프 관리)
+      if (pageId === 'staffTeam') {
+        try {
+          // CSS — 항상 fresh
+          document.querySelectorAll('link[href^="/css/office/staff.css"]').forEach(l => l.remove());
+          const cssLink = document.createElement('link');
+          cssLink.rel = 'stylesheet';
+          cssLink.href = '/css/office/staff.css?t=' + Date.now();
+          document.head.appendChild(cssLink);
+
+          // HTML 주입
+          const mainContent = document.getElementById('main-content');
+          const r = await fetch('/office_staff.html');
+          mainContent.innerHTML = await r.text();
+
+          // 기존 staff.js 모두 제거
+          document.querySelectorAll('script[src^="/js/office/staff.js"]').forEach(s => s.remove());
+
+          // staff.js — fresh fetch
+          await new Promise((resolve, reject) => {
+            const s = document.createElement('script');
+            s.src = '/js/office/staff.js?t=' + Date.now();
+            s.onload = resolve;
+            s.onerror = reject;
+            document.body.appendChild(s);
+          });
+
+          // 초기화
+          if (window.StaffDashboard && typeof window.StaffDashboard.initialize === 'function') {
+            await window.StaffDashboard.initialize();
+          }
+        } catch (error) {
+          console.error('Error loading staff team page:', error);
+          const mainContent = document.getElementById('main-content');
+          mainContent.innerHTML = `
+            <div class="error-message">
+              <h3>스태프팀 페이지 로드 중 오류가 발생했습니다</h3>
+              <p>${error.message}</p>
+            </div>
+          `;
+        }
+        return;
+      }
+
+      // 11. 정기모임팀 / 프로젝트팀 (캘린더)
+      if (['regularTeam', 'projectTeam'].includes(pageId)) {
         window.calendarInitialized = false;
 
         // TOAST UI Calendar CSS 로드

@@ -10,6 +10,7 @@ const User = require('../../models/User');
 const Event = require('../../models/Event');
 const GlobalSetting = require('../../models/GlobalSetting');
 const Supporter = require('../../models/Supporter');
+const StarterStaff = require('../../models/StarterStaff');
 
 // 운영진/관리자만 (멤버 목록은 여러 오피스 페이지가 공용으로 사용 → 최소한 비공개화)
 const requireStaff = (req, res, next) => {
@@ -161,6 +162,14 @@ router.post('/bulk-update', authenticateToken, requireHRPermission, async (req, 
             errors.push({ userId: user._id, message: '경고 사유 누락' });
             continue;
           }
+          // 스타터-스태프인 경우 매번 경고 면제 처리
+          const starterStaffDoc = await StarterStaff.findOne().lean();
+          const isStarterStaff = starterStaffDoc && starterStaffDoc.memberIds.some(id => id.toString() === user._id.toString());
+          if (isStarterStaff) {
+            skipped++;
+            continue;
+          }
+
           // 해당 월 서포터즈인 경우 경고 면제 처리
           let targetY = new Date().getFullYear();
           let targetM = new Date().getMonth() + 1;
@@ -336,17 +345,26 @@ router.get('/monthly-application-status', authenticateToken, requireHRPermission
     const supporterDoc = await Supporter.findOne({ year, month: month + 1 }).lean();
     const supporterSet = new Set((supporterDoc?.memberIds || []).map(id => id.toString()));
 
+    // 스타터-스태프 명단 조회 (매번 경고 면제)
+    const starterStaffDoc = await StarterStaff.findOne().lean();
+    const starterStaffSet = new Set((starterStaffDoc?.memberIds || []).map(id => id.toString()));
+
     // 그달 마감일 이후(>= 마감일 0시) 가입자는 면제 — 신청 기간을 온전히 누리지 못함
     const exemptThreshold = new Date(year, month, endDay, 0, 0, 0, 0);
     let exemptCount = 0;
     const applied = [];      // 정시 (~5일)
     const lateApplied = [];  // 지각 (6일 이후)
     const supporters = [];   // 서포터즈 (경고 면제 & 미신청 제외)
+    const starterStaff = []; // 스타터-스태프 (매번 경고 면제 & 미신청 제외)
     const notApplied = [];   // 전혀 신청 안 함
     for (const m of members) {
       if (m.createdAt && new Date(m.createdAt) >= exemptThreshold) { exemptCount++; continue; }
       const uid = m._id.toString();
-      if (supporterSet.has(uid)) {
+      if (starterStaffSet.has(uid)) {
+        const item = fmt(m);
+        item.isStarterStaff = true;
+        starterStaff.push(item);
+      } else if (supporterSet.has(uid)) {
         const item = fmt(m);
         item.isSupporter = true;
         supporters.push(item);
@@ -362,6 +380,7 @@ router.get('/monthly-application-status', authenticateToken, requireHRPermission
     applied.sort(byName);
     lateApplied.sort(byName);
     supporters.sort(byName);
+    starterStaff.sort(byName);
     notApplied.sort(byName);
 
     res.json({
@@ -373,12 +392,14 @@ router.get('/monthly-application-status', authenticateToken, requireHRPermission
       eventCount: events.length,
       exemptCount,
       supportersCount: supporters.length,
+      starterStaffCount: starterStaff.length,
       appliedCount: applied.length,
       lateCount: lateApplied.length,
       notAppliedCount: notApplied.length,
       applied,
       lateApplied,
       supporters,
+      starterStaff,
       notApplied
     });
   } catch (error) {

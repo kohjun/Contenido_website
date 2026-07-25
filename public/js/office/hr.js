@@ -214,10 +214,11 @@ async function loadMonthlyApply() {
     const note = d.windowClosed ? '' : ` · 신청 기간 진행 중 (${endDay + 1}일 확정)`;
     const exemptNote = d.exemptCount ? ` · 신규가입 면제 ${d.exemptCount}명` : '';
     const supporterNote = d.supportersCount ? ` / 서포터즈 <b style="color:#DB2777">${d.supportersCount}</b>` : '';
+    const starterStaffNote = d.starterStaffCount ? ` / 스태프 <b style="color:#D97706">${d.starterStaffCount}</b>` : '';
     if (summary) summary.innerHTML =
       `${d.year}년 ${d.month}월 · 이벤트 ${d.eventCount}개 · ` +
       `신청 <b style="color:#0A84FE">${d.appliedCount}</b> / ` +
-      `지각 <b style="color:#D97706">${d.lateCount || 0}</b>${supporterNote} / ` +
+      `지각 <b style="color:#D97706">${d.lateCount || 0}</b>${supporterNote}${starterStaffNote} / ` +
       `미신청 <b style="color:#EF4444">${d.notAppliedCount}</b>${exemptNote}${note}`;
 
     const lateBadge = (iso) => {
@@ -229,9 +230,10 @@ async function loadMonthlyApply() {
       ? arr.map(m => {
           const cb = selectable ? `<input type="checkbox" class="ma-check" data-ma-id="${m.id}" onclick="maToggleOne('${m.id}', this.checked)">` : '';
           const phone = m.phoneTail ? `<span style="color:#94A3B8;font-weight:500;font-size:.8rem;margin-left:2px;">(${_maEsc(m.phoneTail)})</span>` : '';
+          const starterStaffTag = m.isStarterStaff ? '<span class="ma-tag" style="background:#fef3c7;color:#b45309;border:1px solid #f59e0b;">스타터-스태프</span>' : '';
           const supporterTag = m.isSupporter ? '<span class="ma-tag" style="background:#fce7f3;color:#be185d;border:1px solid #f472b6;">서포터즈</span>' : '';
           const starterTag = m.role === 'starter' ? '<span class="ma-tag">스타터</span>' : '';
-          return `<li>${cb}<span class="ma-name">${_maEsc(m.name)}${phone}</span>${m.lateAt ? lateBadge(m.lateAt) : ''}${supporterTag}${starterTag}</li>`;
+          return `<li>${cb}<span class="ma-name">${_maEsc(m.name)}${phone}</span>${m.lateAt ? lateBadge(m.lateAt) : ''}${starterStaffTag}${supporterTag}${starterTag}</li>`;
         }).join('')
       : '<li class="ma-empty">없음</li>';
     const setText = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
@@ -239,11 +241,13 @@ async function loadMonthlyApply() {
     setText('ma-applied-count', d.appliedCount);
     setText('ma-late-count', d.lateCount || 0);
     setText('ma-supporter-count', d.supportersCount || 0);
+    setText('ma-starterstaff-count', d.starterStaffCount || 0);
     setText('ma-notapplied-count', d.notAppliedCount);
-    setHTML('ma-applied-list', liHTML(d.applied, false));         // 신청 완료는 선택 불필요
-    setHTML('ma-late-list', liHTML(d.lateApplied || [], true));   // 지각 — 선택 가능
-    setHTML('ma-supporter-list', liHTML(d.supporters || [], false)); // 서포터즈 — 경고 면제 (선택 불필요)
-    setHTML('ma-notapplied-list', liHTML(d.notApplied, true));    // 미신청 — 선택 가능
+    setHTML('ma-applied-list', liHTML(d.applied, false));            // 신청 완료는 선택 불필요
+    setHTML('ma-late-list', liHTML(d.lateApplied || [], true));      // 지각 — 선택 가능
+    setHTML('ma-supporter-list', liHTML(d.supporters || [], false));    // 서포터즈 — 경고 면제
+    setHTML('ma-starterstaff-list', liHTML(d.starterStaff || [], false)); // 스타터-스태프 — 경고 면제
+    setHTML('ma-notapplied-list', liHTML(d.notApplied, true));       // 미신청 — 선택 가능
     // 재조회 시 선택 초기화
     state.maSelected.clear();
     document.querySelectorAll('.ma-selectall').forEach(c => { c.checked = false; });
