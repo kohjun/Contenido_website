@@ -65,6 +65,9 @@
     const searchKeyword = (document.getElementById('supporter-search')?.value || '').trim().toLowerCase();
 
     const filtered = allMembers.filter(m => {
+      // 참가자('participant') 및 운영진('officer')만 포함
+      if (m.role !== 'participant' && m.role !== 'officer') return false;
+
       if (!searchKeyword) return true;
       const name = (m.name || m.displayName || '').toLowerCase();
       const phone = String(m.phonenumber || '').slice(-4);
