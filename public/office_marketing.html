@@ -20,9 +20,9 @@
     <div class="section-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 12px;">
       <div>
         <h3 style="margin: 0 0 6px; font-size: 1.2rem; color: #9d174d; display: flex; align-items: center; gap: 8px;">
-          <span>🌟</span> 월별 서포터즈 명단 확정 (현재 월)
+          <span>🌟</span> <span id="supporter-title-month">8월</span> 서포터즈 명단 확정
         </h3>
-        <p style="margin: 0; font-size: 0.88rem; color: #831843;">현재 진행 월의 서포터즈 인원을 선택하고 저장하면 인사팀 페이지에서 '서포터즈' 표시 및 의무 신청 경고가 자동으로 면제됩니다.</p>
+        <p style="margin: 0; font-size: 0.88rem; color: #831843;">해당 월의 서포터즈 인원을 선택하고 저장하면 인사팀 페이지에서 '서포터즈' 표시 및 의무 신청 경고가 자동으로 면제됩니다.</p>
       </div>
       <div class="supporter-month-picker" style="display: flex; align-items: center; gap: 10px;">
         <select id="supporter-year" onchange="window.MarketingDashboard.loadSupporters()" style="padding: 8px 12px; border-radius: 10px; border: 1px solid #fbcfe8; font-weight: 600; color: #9d174d; background: #fff;">
@@ -46,11 +46,23 @@
       </div>
     </div>
 
+    <!-- 상단: 선택/저장된 확정 서포터즈 명단 요약 박스 -->
+    <div id="confirmed-supporters-box" style="margin-bottom: 20px; background: #fff0f6; border-radius: 16px; padding: 18px 20px; border: 1px solid #f472b6;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+        <h4 style="margin: 0; font-size: 1rem; color: #9d174d; font-weight: 700;">
+          <span id="confirmed-month-label">8월</span> 확정된 서포터즈 명단 (<b id="confirmed-supporters-count" style="color: #ec4899;">0</b>명)
+        </h4>
+      </div>
+      <div id="confirmed-supporters-list" style="display: flex; flex-wrap: wrap; gap: 8px;">
+        <span style="font-size: 0.88rem; color: #94a3b8;">확정된 서포터즈가 없습니다.</span>
+      </div>
+    </div>
+
     <!-- 검색 및 명단 영역 -->
     <div class="supporter-card-body" style="background: #fff; border-radius: 16px; padding: 20px; border: 1px solid #fbcfe8;">
       <div style="display: flex; gap: 12px; margin-bottom: 16px; align-items: center;">
         <input type="text" id="supporter-search" placeholder="회원 이름 또는 전화번호 뒷자리로 검색..." oninput="window.MarketingDashboard.filterSupporterMembers()" style="flex: 1; padding: 10px 14px; border: 1px solid #f472b6; border-radius: 10px; font-size: 0.9rem; outline: none;">
-        <span style="font-size: 0.88rem; color: #9d174d; font-weight: 600;">선택된 서포터즈: <b id="supporter-selected-count" style="color: #ec4899;">0</b>명</span>
+        <span style="font-size: 0.88rem; color: #9d174d; font-weight: 600;">선택 중인 인원: <b id="supporter-selected-count" style="color: #ec4899;">0</b>명</span>
       </div>
 
       <div id="supporter-member-list" class="supporter-member-grid" style="max-height: 280px; overflow-y: auto; display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; padding: 4px;">

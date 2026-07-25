@@ -66,6 +66,7 @@
         selectedSupporterIds = new Set();
       }
 
+      renderConfirmedSupporters(month);
       renderSupporterMembers();
     } catch (error) {
       console.error('[Marketing] Error loading supporters:', error);
@@ -73,7 +74,41 @@
     }
   }
 
-  // 11) 회원 목록 렌더링
+  // 11) 확정된 서포터즈 명단 상단 박스 렌더링
+  function renderConfirmedSupporters(month) {
+    const monthLabel = document.getElementById('confirmed-month-label');
+    const titleMonth = document.getElementById('supporter-title-month');
+    const listEl = document.getElementById('confirmed-supporters-list');
+    const countEl = document.getElementById('confirmed-supporters-count');
+
+    if (monthLabel) monthLabel.textContent = `${month}월`;
+    if (titleMonth) titleMonth.textContent = `${month}월`;
+
+    if (!listEl) return;
+
+    const confirmedMembers = allMembers.filter(m => {
+      const mId = (m._id || m.id).toString();
+      return selectedSupporterIds.has(mId);
+    });
+
+    if (countEl) countEl.textContent = confirmedMembers.length;
+
+    if (confirmedMembers.length === 0) {
+      listEl.innerHTML = `<span style="font-size: 0.88rem; color: #94a3b8;">${month}월에 확정된 서포터즈가 없습니다.</span>`;
+    } else {
+      listEl.innerHTML = confirmedMembers.map(m => {
+        const name = escapeHtml(m.name || m.displayName || '이름없음');
+        const phoneTail = m.phonenumber ? String(m.phonenumber).slice(-4) : '';
+        return `
+          <span style="display: inline-flex; align-items: center; gap: 4px; padding: 6px 12px; background: #ffffff; color: #be185d; border: 1px solid #f472b6; border-radius: 20px; font-size: 0.85rem; font-weight: 600; box-shadow: 0 2px 6px rgba(236,72,153,0.12);">
+            🌟 ${name} ${phoneTail ? `<small style="color:#ec4899; font-weight:normal;">(${phoneTail})</small>` : ''}
+          </span>
+        `;
+      }).join('');
+    }
+  }
+
+  // 12) 회원 목록 렌더링
   function renderSupporterMembers() {
     const listEl = document.getElementById('supporter-member-list');
     const countEl = document.getElementById('supporter-selected-count');
@@ -134,7 +169,7 @@
     renderSupporterMembers();
   }
 
-  // 12) 서포터즈 명단 저장
+  // 13) 서포터즈 명단 저장
   async function saveSupporters() {
     const year = document.getElementById('supporter-year')?.value || 2026;
     const month = document.getElementById('supporter-month')?.value || 8;
@@ -154,6 +189,8 @@
       const result = await response.json();
       if (response.ok) {
         alert(result.message || '서포터즈 명단이 저장되었습니다.');
+        renderConfirmedSupporters(month);
+        renderSupporterMembers();
       } else {
         alert(result.message || '저장에 실패했습니다.');
       }
