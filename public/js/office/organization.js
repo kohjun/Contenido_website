@@ -213,8 +213,7 @@ class OrganizationChart {
             videoTeam: { department: '홍보부', team: 'videoTeam', role: 'officer' },
             PlanningTeam: { department: '기획부', team: 'PlanningTeam', role: 'officer' },
             regularTeam: { department: '기획부', team: 'regularTeam', role: 'officer' },
-            staffTeam: { department: '기획부', team: 'staffTeam', role: 'officer' },
-            projectTeam: { department: '기획부', team: 'projectTeam', role: 'officer' }
+            staffTeam: { department: '기획부', team: 'staffTeam', role: 'officer' }
         };
         const targetInfo = teamMap[toListId];
         if (!targetInfo) return;
@@ -325,7 +324,7 @@ class OrganizationChart {
             const teams = [
                 'operationTeam', 'cooperationTeam', 'HumanResourceTeam', 'financeTeam',
                 'marketingTeam', 'designTeam', 'videoTeam',
-                'PlanningTeam', 'regularTeam', 'projectTeam'
+                'PlanningTeam', 'regularTeam'
             ];
             teams.forEach(teamId => {
                 const teamContainer = document.getElementById(teamId);

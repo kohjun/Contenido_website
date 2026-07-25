@@ -100,12 +100,6 @@ const Sidebar = (function() {
               <div class="org-menu-item-description">메인 컨텐츠 이벤트 기획</div>
             </div>
           </a>
-          <a href="#" class="org-menu-item" data-team="projectTeam">
-            <div class="org-menu-item-content">
-              <div class="org-menu-item-label"><strong>프로젝트팀</strong></div>
-              <div class="org-menu-item-description">신입부원 맞춤형 관리</div>
-            </div>
-          </a>
         </div>
       </div>
     </div>
@@ -123,14 +117,13 @@ const Sidebar = (function() {
     planningTeam: { url: '/office_planning.html' },
     regularTeam: { url: '/calendar.html' },
     staffTeam: { url: '/office_staff.html' },
-    projectTeam: { url: '/calendar.html' },
     announcement: { url: '/office_announcement.html' }  // Add this line
   };
 
   const departmentTeams = {
     operation: ['operationTeam', 'cooperationTeam', 'HumanResourceTeam', 'financeTeam'],
     promotion: ['marketingTeam', 'designTeam', 'videoTeam'],
-    planning: ['planningTeam', 'regularTeam', 'staffTeam','projectTeam']
+    planning: ['planningTeam', 'regularTeam', 'staffTeam']
   };
 
   // 현재 사용자의 권한 정보를 가져오는 함수
@@ -587,8 +580,8 @@ const Sidebar = (function() {
         return;
       }
 
-      // 11. 정기모임팀 / 프로젝트팀 (캘린더)
-      if (['regularTeam', 'projectTeam'].includes(pageId)) {
+      // 11. 정기모임팀 (캘린더)
+      if (pageId === 'regularTeam') {
         window.calendarInitialized = false;
 
         // TOAST UI Calendar CSS 로드

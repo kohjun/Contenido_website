@@ -433,7 +433,11 @@
     closeFormModal,
     handlePhotoChange,
     handleSubmit,
-    handleDelete
+    handleDelete,
+    loadSupporters,
+    filterSupporterMembers,
+    toggleSupporterMember,
+    saveSupporters
   };
 
   // HTML SPA 렌더링 후 자동 이니셜라이징 지원

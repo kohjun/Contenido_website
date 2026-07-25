@@ -424,18 +424,19 @@
 
 /* Principles Banner */
 .principles-section {
-  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+  background: #ffffff;
   border-radius: 24px;
   padding: 30px;
-  color: #ffffff;
-  box-shadow: 0 12px 32px rgba(15, 23, 42, 0.2);
+  color: #0f172a;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 6px 24px rgba(15, 23, 42, 0.04);
 }
 
 .principles-title {
   margin: 0 0 22px 0;
   font-size: 1.3rem;
   font-weight: 800;
-  color: #38bdf8;
+  color: #0f172a;
   text-align: center;
 }
 
@@ -446,20 +447,20 @@
 }
 
 .principle-card {
-  background: rgba(255, 255, 255, 0.08);
+  background: #f8fafc;
   border-radius: 14px;
   padding: 16px;
   display: flex;
   align-items: center;
   gap: 14px;
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  border: 1px solid #e2e8f0;
 }
 
 .p-num {
   width: 32px;
   height: 32px;
-  background: #38bdf8;
-  color: #0f172a;
+  background: #0f172a;
+  color: #ffffff;
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -472,12 +473,12 @@
 .principle-card p {
   margin: 0;
   font-size: 0.88rem;
-  color: #e2e8f0;
+  color: #334155;
   line-height: 1.4;
 }
 
 .principle-card strong {
-  color: #ffffff;
+  color: #0f172a;
 }
 
 @media (max-width: 768px) {
