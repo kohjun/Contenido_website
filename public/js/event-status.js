@@ -92,17 +92,22 @@ async function fetchEventStatus() {
     return;
   }
 
-  // 첫 접근 시 접근 코드 확인 (admin 은 모든 이벤트 접근 가능 → 코드 생략)
+  // 첫 접근 시 접근 코드 확인 (admin 또는 이벤트 생성자 creator는 코드 생략)
   if (!eventAccessMap.has(eventId)) {
-    let isAdmin = false;
+    let isBypassedUser = false;
     try {
-      const me = await fetch('/user/info', { credentials: 'include' }).then(r => (r.ok ? r.json() : null));
-      isAdmin = !!(me && me.role === 'admin');
+      const [me, ev] = await Promise.all([
+        fetch('/user/info', { credentials: 'include' }).then(r => (r.ok ? r.json() : null)),
+        fetch(`/events/${eventId}`).then(r => (r.ok ? r.json() : null))
+      ]);
+      const myId = me?._id || me?.id;
+      const creatorId = ev?.creator?._id || ev?.creator;
+      isBypassedUser = !!(me && (me.role === 'admin' || (myId && creatorId && myId.toString() === creatorId.toString())));
     } catch (_) {}
-    if (!isAdmin) {
+    if (!isBypassedUser) {
       const hasAccess = await verifyEventAccess(eventId);
       if (!hasAccess) {
-        window.location.href = 'event-staff.html';
+        window.location.href = 'events.html';
         return;
       }
     }

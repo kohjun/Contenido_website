@@ -690,7 +690,27 @@ function goToEventStatus() {
    5) DOM Ready - 폼 리스너 / 보고서 폼 초기화
    ========================================================================= */
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
+  // (0) 권한 체크: 기획부(department === 'planning') 또는 관리자(role === 'admin')만 접근 허용
+  try {
+    const res = await fetch('/user/info_database');
+    if (!res.ok) {
+      alert('로그인이 필요합니다.');
+      window.location.href = '/login.html';
+      return;
+    }
+    const user = await res.json();
+    const isAdmin = user.role === 'admin';
+    const isPlanningOfficer = user.role === 'officer' && user.department === 'planning';
+
+    if (!isAdmin && !isPlanningOfficer) {
+      alert('기획부 운영진 또는 관리자만 접근할 수 있는 페이지입니다.');
+      window.location.href = '/events.html';
+      return;
+    }
+  } catch (err) {
+    console.error('권한 확인 실패:', err);
+  }
   // (1) 환불 정책 라디오: custom 선택 시 설명 입력칸 토글
   const refundPolicyRadios = document.querySelectorAll('input[name="refund-policy"]');
   const customRefundSection = document.getElementById('custom-refund-section');
