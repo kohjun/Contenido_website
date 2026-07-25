@@ -335,10 +335,72 @@
         color: #1f2937 !important;
       }
 
-      @media (max-width: 480px) {
-        .promo-entry-card {
-          font-size: 0.95rem;
+      @media (max-width: 600px) {
+        .promo-entry-overlay {
+          padding: 12px !important;
         }
+
+        .promo-entry-card {
+          width: 96% !important;
+          max-width: 340px !important;
+          border-radius: 20px !important;
+        }
+
+        .promo-entry-header {
+          padding: 12px 38px 12px 16px !important;
+        }
+
+        .promo-entry-header h3 {
+          font-size: 0.92rem !important;
+        }
+
+        .promo-entry-close-btn {
+          top: 8px !important;
+          right: 10px !important;
+          width: 28px !important;
+          height: 28px !important;
+          font-size: 1.35rem !important;
+        }
+
+        .promo-entry-footer {
+          padding: 12px 14px !important;
+        }
+
+        .btn-promo-action {
+          padding: 11px 14px !important;
+          font-size: 0.84rem !important;
+          border-radius: 10px !important;
+        }
+
+        .promo-entry-bottom-bar {
+          padding: 10px 14px !important;
+          font-size: 0.76rem !important;
+          gap: 8px !important;
+        }
+
+        .dismiss-today-label {
+          font-size: 0.76rem !important;
+          gap: 4px !important;
+        }
+
+        .dismiss-today-label input {
+          width: 14px !important;
+          height: 14px !important;
+        }
+
+        .btn-close-text {
+          font-size: 0.76rem !important;
+          padding: 3px 6px !important;
+        }
+
+        .promo-nav-btn {
+          width: 30px !important;
+          height: 30px !important;
+          font-size: 0.9rem !important;
+        }
+
+        .promo-nav-btn.prev { left: 6px !important; }
+        .promo-nav-btn.next { right: 6px !important; }
       }
     `;
     document.head.appendChild(style);
