@@ -122,13 +122,15 @@
       }
 
       .promo-entry-header {
-        padding: 14px 20px !important;
+        padding: 14px 44px 14px 20px !important;
         display: flex !important;
-        justify-content: space-between !important;
+        justify-content: flex-start !important;
         align-items: center !important;
         border-bottom: 1px solid #f1f5f9 !important;
         background: #ffffff !important;
         margin: 0 !important;
+        position: relative !important;
+        width: 100% !important;
       }
 
       .promo-entry-header h3 {
@@ -141,18 +143,28 @@
         white-space: nowrap !important;
         overflow: hidden !important;
         text-overflow: ellipsis !important;
-        max-width: 85% !important;
+        width: 100% !important;
+        max-width: 100% !important;
       }
 
       .promo-entry-close-btn {
+        position: absolute !important;
+        top: 10px !important;
+        right: 14px !important;
         background: none !important;
         border: none !important;
-        font-size: 1.4rem !important;
+        font-size: 1.5rem !important;
         cursor: pointer !important;
         color: #94a3b8 !important;
         line-height: 1 !important;
         padding: 0 !important;
-        margin: 0 0 0 10px !important;
+        margin: 0 !important;
+        width: 28px !important;
+        height: 28px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        z-index: 10 !important;
       }
 
       .promo-entry-close-btn:hover {
@@ -266,29 +278,41 @@
       }
 
       .promo-entry-bottom-bar {
-        padding: 10px 20px !important;
+        padding: 12px 20px !important;
         display: flex !important;
         justify-content: space-between !important;
         align-items: center !important;
-        font-size: 0.8rem !important;
+        font-size: 0.82rem !important;
         color: #64748b !important;
         background: #ffffff !important;
+        border-top: 1px solid #f1f5f9 !important;
         margin: 0 !important;
+        width: 100% !important;
+        white-space: nowrap !important;
+        gap: 12px !important;
       }
 
       .dismiss-today-label {
         cursor: pointer !important;
-        display: flex !important;
+        display: inline-flex !important;
         align-items: center !important;
         gap: 6px !important;
         user-select: none !important;
         font-weight: 500 !important;
         margin: 0 !important;
+        white-space: nowrap !important;
+        font-size: 0.82rem !important;
+        flex-shrink: 0 !important;
+        line-height: 1 !important;
       }
 
       .dismiss-today-label input {
         cursor: pointer !important;
         margin: 0 !important;
+        width: 16px !important;
+        height: 16px !important;
+        flex-shrink: 0 !important;
+        vertical-align: middle !important;
       }
 
       .btn-close-text {
@@ -300,6 +324,10 @@
         padding: 4px 8px !important;
         border-radius: 4px !important;
         margin: 0 !important;
+        white-space: nowrap !important;
+        flex-shrink: 0 !important;
+        font-size: 0.82rem !important;
+        line-height: 1 !important;
       }
 
       .btn-close-text:hover {
