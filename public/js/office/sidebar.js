@@ -425,6 +425,7 @@ const Sidebar = (function() {
 
           // 기존 marketing.js 모두 제거 (버전 query 포함)
           document.querySelectorAll('script[src^="/js/office/marketing.js"]').forEach(s => s.remove());
+          delete window.MarketingDashboard;
 
           // marketing.js — fresh fetch
           await new Promise((resolve, reject) => {
@@ -558,6 +559,7 @@ const Sidebar = (function() {
 
           // 기존 staff.js 모두 제거
           document.querySelectorAll('script[src^="/js/office/staff.js"]').forEach(s => s.remove());
+          delete window.StaffDashboard;
 
           // staff.js — fresh fetch
           await new Promise((resolve, reject) => {

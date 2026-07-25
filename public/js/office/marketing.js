@@ -1,7 +1,5 @@
 // public/js/office/marketing.js
 (function () {
-  if (window.MarketingDashboard) return;
-
   const MODAL_ID = 'promo-form-modal';
   const FORM_ID = 'promo-form';
 

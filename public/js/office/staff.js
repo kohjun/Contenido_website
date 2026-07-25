@@ -1,7 +1,5 @@
 // public/js/office/staff.js
 (function () {
-  if (window.StaffDashboard) return;
-
   let allMembers = [];
   let selectedStarterStaffIds = new Set();
   let saveDebounceTimer = null;
@@ -226,13 +224,31 @@
       .replace(/'/g, '&#039;');
   }
 
+  function toggleStarterStaffTab() {
+    const panel = document.getElementById('starter-staff-panel');
+    const btn = document.querySelector('.starter-staff-toggle-btn');
+    if (!panel) return;
+
+    const isHidden = panel.style.display === 'none' || panel.hasAttribute('hidden');
+    if (isHidden) {
+      panel.removeAttribute('hidden');
+      panel.style.display = 'block';
+      if (btn) btn.classList.add('is-open');
+    } else {
+      panel.setAttribute('hidden', '');
+      panel.style.display = 'none';
+      if (btn) btn.classList.remove('is-open');
+    }
+  }
+
   // Global interface
   window.StaffDashboard = {
     initialize,
     handleCheckChange,
     filterMembers,
     toggleStarterMember,
-    saveStarterStaff
+    saveStarterStaff,
+    toggleStarterStaffTab
   };
 
   setTimeout(() => {

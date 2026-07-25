@@ -1,22 +1,10 @@
 <div class="staff-dashboard">
-  <!-- 헤더 & 전체 진행률 대시보드 -->
+  <!-- 헤더 -->
   <header class="staff-header">
     <div class="header-content">
       <div class="header-text">
         <h2>스태프 기획 가이드 📋</h2>
         <p>프로젝트 진행 시 아래 순서대로 체크하며 진행 상태를 실시간으로 점검합니다.</p>
-      </div>
-      <div class="progress-summary-card">
-        <div class="progress-info">
-          <span class="progress-label">전체 기획 진행률</span>
-          <span class="progress-percent" id="overall-progress-text">0%</span>
-        </div>
-        <div class="progress-bar-bg">
-          <div class="progress-bar-fill" id="overall-progress-bar" style="width: 0%;"></div>
-        </div>
-        <div class="progress-details" id="overall-progress-details">
-          완료 <b id="completed-count">0</b> / 전체 <span id="total-count">52</span>개 항목
-        </div>
       </div>
     </div>
 
@@ -31,18 +19,19 @@
     </div>
   </header>
 
-  <!-- ⭐ 스타터-스태프 명단 관리 섹션 (매번 의무신청 경고 면제) -->
+  <!-- ⭐ 스타터-스태프 명단 관리 섹션 (접고 열 수 있는 탭) -->
   <section class="starter-staff-section">
-    <div class="section-header">
-      <div>
+    <button type="button" class="starter-staff-toggle-btn" onclick="window.StaffDashboard.toggleStarterStaffTab()">
+      <div class="toggle-btn-left">
         <h3 class="section-title">
           <span>⭐</span> 스타터-스태프 명단 관리 <small style="font-size: 0.82rem; color: #d97706; font-weight: normal;">(매번 의무신청 경고 자동 면제)</small>
         </h3>
         <p class="section-desc">스타터-스태프 인원을 지정하여 확정하면 인사팀 페이지에서 '스타터-스태프' 표시 및 매달 미신청 경고에서 자동으로 제외됩니다.</p>
       </div>
-    </div>
+      <span class="starter-tab-chev" id="starter-tab-chev">▼</span>
+    </button>
 
-    <div class="starter-staff-card-body">
+    <div class="starter-staff-card-body" id="starter-staff-panel" hidden style="display: none; margin-top: 16px;">
       <div class="starter-staff-search-row">
         <input type="text" id="starter-staff-search" placeholder="회원 이름 또는 전화번호 뒷자리로 검색..." oninput="window.StaffDashboard.filterMembers()">
         <span class="starter-staff-count-tag">선택된 스타터-스태프: <b id="starter-staff-selected-count">0</b>명</span>
