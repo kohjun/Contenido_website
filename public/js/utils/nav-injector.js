@@ -1093,6 +1093,8 @@ const AuthModule = {
               </div>
             </div>
           </div>
+        `;
+
         // 운영진 페이지 및 이벤트 관리 메뉴 노출 권한 체크
         const isOfficerOrAdmin = userData.role === 'officer' || userData.role === 'admin';
         const isPlanningOrAdmin = userData.role === 'admin' || (userData.role === 'officer' && userData.department === 'planning');
