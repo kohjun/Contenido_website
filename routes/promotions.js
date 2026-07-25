@@ -67,10 +67,13 @@ router.post('/supporters', authenticateToken, authorizeRoles('officer', 'admin')
 router.get('/active', async (req, res) => {
   try {
     const now = new Date();
+    const endOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
+    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0);
+
     const activePromos = await Promotion.find({
       isActive: true,
-      startDate: { $lte: now },
-      endDate: { $gte: now }
+      startDate: { $lte: endOfToday },
+      endDate: { $gte: startOfToday }
     })
     .sort({ createdAt: -1 })
     .populate('targetEventId')
@@ -123,10 +126,15 @@ router.post('/',
         return res.status(400).json({ message: '썸네일 이미지를 올려주세요.' });
       }
 
+      const sDate = new Date(startDate);
+      sDate.setHours(0, 0, 0, 0);
+      const eDate = new Date(endDate);
+      eDate.setHours(23, 59, 59, 999);
+
       const newPromo = await Promotion.create({
         title,
-        startDate: new Date(startDate),
-        endDate: new Date(endDate),
+        startDate: sDate,
+        endDate: eDate,
         imageUrl: savedImages[0],
         targetEventId: targetEventId && targetEventId !== 'null' ? targetEventId : null,
         benefitDetail,
@@ -163,9 +171,14 @@ router.put('/:id',
         promo.imageUrl = savedImages[0];
       }
 
+      const sDate = new Date(startDate);
+      sDate.setHours(0, 0, 0, 0);
+      const eDate = new Date(endDate);
+      eDate.setHours(23, 59, 59, 999);
+
       promo.title = title;
-      promo.startDate = new Date(startDate);
-      promo.endDate = new Date(endDate);
+      promo.startDate = sDate;
+      promo.endDate = eDate;
       promo.targetEventId = targetEventId && targetEventId !== 'null' ? targetEventId : null;
       promo.benefitDetail = benefitDetail;
       promo.isActive = isActive === 'true' || isActive === true;

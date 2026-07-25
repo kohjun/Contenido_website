@@ -8,17 +8,22 @@
     const promos = await response.json();
     if (!promos || promos.length === 0) return; // 활성화된 홍보 없음
 
-    // 2) 오늘 하루 보지 않기 설정 체크 (전체 팝업에 대해 하나의 키로 제어)
+    // 2) 오늘 하루 보지 않기 설정 체크 (새로 추가/수정된 홍보가 있으면 팝업 노출)
     const dismissKey = `dismiss_promotion_all`;
     const dismissVal = localStorage.getItem(dismissKey);
     if (dismissVal) {
-      const dismissDate = new Date(parseInt(dismissVal, 10));
-      const now = new Date();
-      // 날짜가 같으면 노출하지 않음
-      if (dismissDate.toDateString() === now.toDateString()) {
-        return;
-      } else {
-        localStorage.removeItem(dismissKey); // 만료된 설정 삭제
+      const dismissTime = parseInt(dismissVal, 10);
+      const latestPromoTime = Math.max(...promos.map(p => new Date(p.updatedAt || p.createdAt || 0).getTime()));
+
+      // 새로 등록/수정된 홍보가 없는 경우에만 '오늘 하루 보지 않기' 적용
+      if (!isNaN(dismissTime) && dismissTime >= latestPromoTime) {
+        const dismissDate = new Date(dismissTime);
+        const now = new Date();
+        if (dismissDate.toDateString() === now.toDateString()) {
+          return;
+        } else {
+          localStorage.removeItem(dismissKey);
+        }
       }
     }
 
