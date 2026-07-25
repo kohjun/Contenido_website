@@ -417,17 +417,146 @@
   transform: translateY(-1px);
 }
 
-@media (max-width: 640px) {
+@media (max-width: 768px) {
+  .marketing-dashboard {
+    padding: 16px 12px;
+  }
+
   .promo-header {
     flex-direction: column;
-    align-items: flex-start;
+    align-items: stretch;
+    gap: 16px;
+    margin-bottom: 20px;
+    padding-bottom: 16px;
   }
+
+  .promo-header h2 {
+    font-size: 1.4rem;
+  }
+
+  .promo-header p {
+    font-size: 0.88rem;
+  }
+
+  .btn-create-promo {
+    width: 100%;
+    justify-content: center;
+    padding: 14px 20px;
+    font-size: 1rem;
+    min-height: 48px;
+  }
+
+  .promo-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .promo-card {
+    border-radius: 16px;
+  }
+
+  .promo-card-image {
+    height: 160px;
+  }
+
+  .promo-card-body {
+    padding: 16px;
+  }
+
+  .promo-card-body h3 {
+    font-size: 1.05rem;
+  }
+
+  .promo-card-footer {
+    padding-top: 12px;
+  }
+
+  .btn-card {
+    padding: 10px 18px;
+    font-size: 0.9rem;
+    min-height: 40px;
+  }
+
+  .supporter-section {
+    padding: 16px !important;
+    border-radius: 16px !important;
+    margin-top: 20px !important;
+  }
+
+  .section-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .supporter-month-picker {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .supporter-month-picker select {
+    flex: 1;
+    padding: 10px 12px !important;
+    font-size: 0.92rem !important;
+    min-height: 44px;
+  }
+
+  .supporter-card-body {
+    padding: 14px !important;
+  }
+
+  .supporter-card-body > div:first-child {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px !important;
+  }
+
+  .supporter-member-grid {
+    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)) !important;
+    max-height: 320px !important;
+    gap: 8px !important;
+  }
+
+  .supporter-member-grid label {
+    padding: 10px 10px !important;
+    min-height: 44px;
+  }
+
+  #confirmed-supporters-box {
+    padding: 14px !important;
+    border-radius: 14px !important;
+  }
+
+  .btn-submit {
+    width: 100%;
+    justify-content: center;
+    padding: 14px 20px !important;
+    font-size: 1rem !important;
+    min-height: 48px;
+  }
+
+  .promo-modal-overlay {
+    padding: 12px;
+  }
+
+  .promo-modal-container {
+    padding: 20px 16px;
+    max-height: 92vh;
+    border-radius: 20px;
+  }
+
   .form-row {
     grid-template-columns: 1fr;
     gap: 0;
   }
-  .checkbox-group {
-    padding-top: 10px;
-    margin-bottom: 20px;
+
+  .promo-modal-footer {
+    flex-direction: column-reverse;
+    gap: 10px;
+  }
+
+  .promo-modal-footer button {
+    width: 100%;
+    min-height: 46px;
   }
 }

@@ -483,13 +483,134 @@
 
 @media (max-width: 768px) {
   .staff-dashboard {
-    padding: 14px;
+    padding: 14px 10px;
   }
-  .header-content {
+
+  .staff-header {
+    padding: 16px;
+    border-radius: 16px;
+  }
+
+  .header-content h2 {
+    font-size: 1.4rem;
+  }
+
+  .header-text p {
+    font-size: 0.85rem;
+  }
+
+  .stage-nav-pills {
+    margin-top: 16px;
+    padding-bottom: 8px;
+    gap: 8px;
+    -webkit-overflow-scrolling: touch;
+    overflow-x: auto;
+  }
+
+  .stage-pill {
+    padding: 8px 12px;
+    font-size: 0.8rem;
+  }
+
+  .starter-staff-section {
+    padding: 16px 14px !important;
+    border-radius: 16px !important;
+  }
+
+  .starter-staff-toggle-btn {
+    align-items: flex-start;
+  }
+
+  .section-title {
+    font-size: 1.05rem !important;
+  }
+
+  .section-desc {
+    font-size: 0.8rem !important;
+  }
+
+  .starter-staff-search-row {
     flex-direction: column;
     align-items: stretch;
+    gap: 8px !important;
   }
-  .checklist-grid {
+
+  .starter-staff-member-grid {
+    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)) !important;
+    max-height: 320px !important;
+    gap: 8px !important;
+  }
+
+  .starter-staff-member-grid label {
+    padding: 10px 10px !important;
+    min-height: 44px;
+  }
+
+  #confirmed-starter-staff-box {
+    padding: 14px !important;
+    border-radius: 14px !important;
+  }
+
+  .btn-save-starter {
+    width: 100%;
+    justify-content: center;
+    padding: 14px 20px !important;
+    font-size: 1rem !important;
+    min-height: 48px;
+  }
+
+  .stage-card {
+    padding: 16px 14px;
+    border-radius: 16px;
+  }
+
+  .stage-title {
+    font-size: 1.15rem;
+  }
+
+  .checklist-grid, .checklist-grid.triple {
     grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .guide-subcard {
+    padding: 14px;
+    border-radius: 14px;
+  }
+
+  .subcard-title {
+    font-size: 0.95rem;
+  }
+
+  .chk-list li label {
+    font-size: 0.85rem;
+    padding: 4px 0;
+    min-height: 40px;
+    display: flex;
+    align-items: center;
+  }
+
+  .staff-chk {
+    width: 18px;
+    height: 18px;
+  }
+
+  .principles-section {
+    padding: 20px 16px;
+    border-radius: 16px;
+  }
+
+  .principles-title {
+    font-size: 1.15rem;
+    margin-bottom: 16px;
+  }
+
+  .principles-grid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .principle-card {
+    padding: 14px;
   }
 }
