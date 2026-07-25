@@ -27,9 +27,17 @@
 
     try {
       if (allMembers.length === 0) {
-        const memRes = await fetch('/user/participants/users', { credentials: 'include' });
+        let memRes = await fetch('/user/participants/users', { credentials: 'include' });
+        if (!memRes.ok) {
+          memRes = await fetch('/user/participants/hr-members', { credentials: 'include' });
+        }
+
         if (memRes.ok) {
           allMembers = await memRes.json();
+        } else {
+          console.warn('[Marketing] Error fetching members:', memRes.status);
+          listEl.innerHTML = `<div style="color: #ef4444; padding: 12px; text-align: center; grid-column: 1/-1;">회원 목록 조회 권한이 없거나 오류가 발생했습니다. (HTTP ${memRes.status})</div>`;
+          return;
         }
       }
 
@@ -44,7 +52,7 @@
       renderSupporterMembers();
     } catch (error) {
       console.error('[Marketing] Error loading supporters:', error);
-      listEl.innerHTML = '<div style="color: #ef4444; padding: 10px;">서포터즈 명단을 불러오지 못했습니다.</div>';
+      listEl.innerHTML = '<div style="color: #ef4444; padding: 12px; text-align: center; grid-column: 1/-1;">서포터즈 명단을 불러오는 중 오류가 발생했습니다.</div>';
     }
   }
 

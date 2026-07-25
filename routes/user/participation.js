@@ -24,7 +24,7 @@ const requireStaff = (req, res, next) => {
 // 멤버 목록 조회 핸들러 (공유 — 이름/전화번호 등 PII 포함)
 async function fetchMemberList(req, res) {
   try {
-    const users = await User.find({ isVerified: true })
+    const users = await User.find({ isVerified: { $ne: false } })
       .select('displayName name participationCount profileImage status active role gender phonenumber warningCount team department preferredActivity birthDate isTeamLeader university createdAt staffSubteam workMemo');
 
     const userData = users.map(user => ({
