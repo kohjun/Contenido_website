@@ -354,52 +354,58 @@ router.get('/monthly-application-status', authenticateToken, requireHRPermission
     let exemptCount = 0;
     const applied = [];      // 정시 (~5일)
     const lateApplied = [];  // 지각 (6일 이후)
-    const supporters = [];   // 서포터즈 (경고 면제 & 미신청 제외)
-    const starterStaff = []; // 스타터-스태프 (매번 경고 면제 & 미신청 제외)
-    const notApplied = [];   // 전혀 신청 안 함
+    const notApplied = [];   // 미신청 (서포터즈, 스타터-스태프 포함)
+
     for (const m of members) {
       if (m.createdAt && new Date(m.createdAt) >= exemptThreshold) { exemptCount++; continue; }
       const uid = m._id.toString();
+      const item = fmt(m);
+
       if (starterStaffSet.has(uid)) {
-        const item = fmt(m);
         item.isStarterStaff = true;
-        starterStaff.push(item);
-      } else if (supporterSet.has(uid)) {
-        const item = fmt(m);
+        item.isExempt = true;
+      }
+      if (supporterSet.has(uid)) {
         item.isSupporter = true;
-        supporters.push(item);
-      } else if (onTimeSet.has(uid)) {
-        applied.push(fmt(m));
+        item.isExempt = true;
+      }
+
+      if (onTimeSet.has(uid)) {
+        applied.push(item);
       } else if (lateMap.has(uid)) {
-        lateApplied.push(fmt(m, lateMap.get(uid)));
+        item.lateAt = lateMap.get(uid) ? new Date(lateMap.get(uid)).toISOString() : null;
+        lateApplied.push(item);
       } else {
-        notApplied.push(fmt(m));
+        notApplied.push(item);
       }
     }
     const byName = (a, b) => String(a.name).localeCompare(String(b.name), 'ko');
     applied.sort(byName);
     lateApplied.sort(byName);
-    supporters.sort(byName);
-    starterStaff.sort(byName);
     notApplied.sort(byName);
+
+    const warnTargetNotAppliedCount = notApplied.filter(m => !m.isExempt).length;
+    const exemptSupporterCount = notApplied.filter(m => m.isSupporter).length;
+    const exemptStarterStaffCount = notApplied.filter(m => m.isStarterStaff).length;
+    const totalExemptInNotApplied = exemptSupporterCount + exemptStarterStaffCount;
 
     res.json({
       year,
       month: month + 1,
       windowStart,
       windowEnd,
-      windowClosed: now >= windowEnd, // 6일 자정 지났는지
+      windowClosed: now >= windowEnd,
       eventCount: events.length,
       exemptCount,
-      supportersCount: supporters.length,
-      starterStaffCount: starterStaff.length,
+      supportersCount: exemptSupporterCount,
+      starterStaffCount: exemptStarterStaffCount,
+      totalExemptInNotApplied,
       appliedCount: applied.length,
       lateCount: lateApplied.length,
-      notAppliedCount: notApplied.length,
+      notAppliedCount: warnTargetNotAppliedCount, // 경고 대상 인원수 (예: 38명)
+      totalNotAppliedCount: notApplied.length,     // 전체 미신청 목록 수 (예: 46명)
       applied,
       lateApplied,
-      supporters,
-      starterStaff,
       notApplied
     });
   } catch (error) {
