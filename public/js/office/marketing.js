@@ -391,42 +391,113 @@
     }
   }
 
+  // 클라이언트 단 고화질 이미지 압축 유틸리티 (413 Payload Too Large 방지)
+  function compressImage(file, maxWidth = 1200, maxHeight = 1200, quality = 0.8) {
+    return new Promise((resolve) => {
+      if (!file || !file.type.startsWith('image/')) {
+        return resolve(file);
+      }
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+          let width = img.width;
+          let height = img.height;
+
+          if (width > maxWidth || height > maxHeight) {
+            if (width / height > maxWidth / maxHeight) {
+              height = Math.round((height * maxWidth) / width);
+              width = maxWidth;
+            } else {
+              width = Math.round((width * maxHeight) / height);
+              height = maxHeight;
+            }
+          }
+
+          const canvas = document.createElement('canvas');
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, width, height);
+
+          canvas.toBlob(
+            (blob) => {
+              if (!blob) return resolve(file);
+              const compressedFile = new File([blob], file.name.replace(/\.[^/.]+$/, "") + ".jpg", {
+                type: 'image/jpeg',
+                lastModified: Date.now()
+              });
+              resolve(compressedFile);
+            },
+            'image/jpeg',
+            quality
+          );
+        };
+        img.onerror = () => resolve(file);
+        img.src = e.target.result;
+      };
+      reader.onerror = () => resolve(file);
+      reader.readAsDataURL(file);
+    });
+  }
+
   // 7) 등록 및 수정 저장 전송
   async function handleSubmit(e) {
     e.preventDefault();
     const form = document.getElementById(FORM_ID);
     const promoId = document.getElementById('promo-id').value;
     const submitBtn = document.getElementById('btn-submit-promo');
-
-    const formData = new FormData(form);
-    
-    // Checkbox mapping
-    const isActiveVal = document.getElementById('promo-is-active').checked;
-    formData.set('isActive', isActiveVal ? 'true' : 'false');
+    const photoInput = document.getElementById('promo-photo');
 
     submitBtn.disabled = true;
-    submitBtn.textContent = '저장 중...';
-
-    const url = promoId ? `/promotions/${promoId}` : '/promotions';
-    const method = promoId ? 'PUT' : 'POST';
+    submitBtn.textContent = '이미지 처리 및 저장 중...';
 
     try {
+      const formData = new FormData(form);
+
+      // 모바일/고화질 이미지 클라이언트 단 경량화 압축
+      if (photoInput && photoInput.files && photoInput.files[0]) {
+        const originalFile = photoInput.files[0];
+        if (originalFile.size > 200 * 1024) { // 200KB 초과 시 압축
+          const compressed = await compressImage(originalFile);
+          formData.set('photo', compressed, compressed.name);
+        }
+      }
+
+      // Checkbox mapping
+      const isActiveVal = document.getElementById('promo-is-active').checked;
+      formData.set('isActive', isActiveVal ? 'true' : 'false');
+
+      const url = promoId ? `/promotions/${promoId}` : '/promotions';
+      const method = promoId ? 'PUT' : 'POST';
+
       const response = await fetch(url, {
         method: method,
         body: formData
       });
 
-      const result = await response.json();
+      let result;
+      const text = await response.text();
+      try {
+        result = JSON.parse(text);
+      } catch (parseErr) {
+        if (response.status === 413) {
+          throw new Error('업로드한 이미지 파일 용량이 너무 큽니다. 더 작은 이미지를 선택해 주세요.');
+        }
+        throw new Error(`서버 응답 오류 (HTTP ${response.status})`);
+      }
+
       if (response.ok) {
         alert(result.message || '홍보 정보가 정상 저장되었습니다.');
         closeFormModal();
         await loadPromotions();
       } else {
-        alert(`저장 실패: ${result.message}`);
+        alert(`저장 실패: ${result.message || '오류가 발생했습니다.'}`);
       }
     } catch (err) {
       console.error('[Marketing] Save error:', err);
-      alert('통신 중 오류가 발생했습니다.');
+      alert(err.message || '통신 중 오류가 발생했습니다.');
     } finally {
       submitBtn.disabled = false;
       submitBtn.textContent = '저장하기';
