@@ -8,12 +8,166 @@
   let allPromotions = [];
   let eventsList = [];
 
+  let allMembers = [];
+  let selectedSupporterIds = new Set();
+
   // 1) 초기화
   async function initialize() {
     console.log('[Marketing] Dashboard initializing...');
     await loadEventsDropdown();
     await loadPromotions();
+    await loadSupporters();
   }
+
+  // 10) 서포터즈 명단 불러오기
+  async function loadSupporters() {
+    const listEl = document.getElementById('supporter-member-list');
+    if (!listEl) return;
+
+    const year = document.getElementById('supporter-year')?.value || 2026;
+    const month = document.getElementById('supporter-month')?.value || 8;
+
+    try {
+      if (allMembers.length === 0) {
+        const memRes = await fetch('/user/participants/users', { credentials: 'include' });
+        if (memRes.ok) {
+          allMembers = await memRes.json();
+        }
+      }
+
+      const response = await fetch(`/promotions/supporters?year=${year}&month=${month}`, { credentials: 'include' });
+      if (response.ok) {
+        const data = await response.json();
+        selectedSupporterIds = new Set((data.memberIds || []).map(id => id.toString()));
+      } else {
+        selectedSupporterIds = new Set();
+      }
+
+      renderSupporterMembers();
+    } catch (error) {
+      console.error('[Marketing] Error loading supporters:', error);
+      listEl.innerHTML = '<div style="color: #ef4444; padding: 10px;">서포터즈 명단을 불러오지 못했습니다.</div>';
+    }
+  }
+
+  // 11) 회원 목록 렌더링
+  function renderSupporterMembers() {
+    const listEl = document.getElementById('supporter-member-list');
+    const countEl = document.getElementById('supporter-selected-count');
+    if (!listEl) return;
+
+    const searchKeyword = (document.getElementById('supporter-search')?.value || '').trim().toLowerCase();
+
+    const filtered = allMembers.filter(m => {
+      if (!searchKeyword) return true;
+      const name = (m.name || m.displayName || '').toLowerCase();
+      const phone = String(m.phonenumber || '').slice(-4);
+      return name.includes(searchKeyword) || phone.includes(searchKeyword);
+    });
+
+    if (filtered.length === 0) {
+      listEl.innerHTML = '<div style="color: #94a3b8; padding: 10px; text-align: center; grid-column: 1/-1;">검색 조건에 일치하는 회원이 없습니다.</div>';
+    } else {
+      listEl.innerHTML = filtered.map(m => {
+        const mId = (m._id || m.id).toString();
+        const isChecked = selectedSupporterIds.has(mId);
+        const name = escapeHtml(m.name || m.displayName || '이름없음');
+        const team = m.team ? `<span style="font-size: 0.76rem; color: #be185d; background: #fce7f3; padding: 2px 6px; border-radius: 4px; margin-left: 4px;">${escapeHtml(m.team)}</span>` : '';
+        const phoneTail = m.phonenumber ? String(m.phonenumber).slice(-4) : '';
+
+        return `
+          <label style="display: flex; align-items: center; gap: 8px; padding: 8px 12px; background: ${isChecked ? '#fdf2f8' : '#f8fafc'}; border: 1px solid ${isChecked ? '#f472b6' : '#e2e8f0'}; border-radius: 10px; cursor: pointer; transition: all 0.15s ease;">
+            <input type="checkbox" value="${mId}" ${isChecked ? 'checked' : ''} onchange="window.MarketingDashboard.toggleSupporterMember('${mId}', this.checked)" style="accent-color: #ec4899; width: 16px; height: 16px; cursor: pointer;">
+            <span style="font-size: 0.9rem; font-weight: 600; color: #1e293b;">${name}</span>
+            ${phoneTail ? `<span style="font-size: 0.8rem; color: #94a3b8;">(${phoneTail})</span>` : ''}
+            ${team}
+          </label>
+        `;
+      }).join('');
+    }
+
+    if (countEl) {
+      countEl.textContent = selectedSupporterIds.size;
+    }
+  }
+
+  function filterSupporterMembers() {
+    renderSupporterMembers();
+  }
+
+  function toggleSupporterMember(id, checked) {
+    if (checked) {
+      selectedSupporterIds.add(id);
+    } else {
+      selectedSupporterIds.delete(id);
+    }
+    const countEl = document.getElementById('supporter-selected-count');
+    if (countEl) {
+      countEl.textContent = selectedSupporterIds.size;
+    }
+    renderSupporterMembers();
+  }
+
+  // 12) 서포터즈 명단 저장
+  async function saveSupporters() {
+    const year = document.getElementById('supporter-year')?.value || 2026;
+    const month = document.getElementById('supporter-month')?.value || 8;
+
+    try {
+      const response = await fetch('/promotions/supporters', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          year: parseInt(year),
+          month: parseInt(month),
+          memberIds: Array.from(selectedSupporterIds)
+        })
+      });
+
+      const result = await response.json();
+      if (response.ok) {
+        alert(result.message || '서포터즈 명단이 저장되었습니다.');
+      } else {
+        alert(result.message || '저장에 실패했습니다.');
+      }
+    } catch (error) {
+      console.error('[Marketing] Error saving supporters:', error);
+      alert('서포터즈 명단 저장 중 오류가 발생했습니다.');
+    }
+  }
+
+  // 9) HTML 이스케이프 헬퍼
+  function escapeHtml(str) {
+    if (!str) return '';
+    return str
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
+  }
+
+  // 글로벌 인터페이스 바인딩
+  window.MarketingDashboard = {
+    initialize,
+    openCreateModal,
+    openEditModal,
+    closeFormModal,
+    handlePhotoChange,
+    handleSubmit,
+    handleDelete,
+    loadSupporters,
+    filterSupporterMembers,
+    toggleSupporterMember,
+    saveSupporters
+  };
+
+  // HTML SPA 렌더링 후 자동 이니셜라이징 지원
+  setTimeout(() => {
+    initialize();
+  }, 100);
+})();
 
   // 2) 연동할 이벤트 목록 불러와 드롭다운 생성
   async function loadEventsDropdown() {

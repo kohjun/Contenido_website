@@ -2,9 +2,66 @@ const express = require('express');
 const router = express.Router();
 const Promotion = require('../models/Promotion');
 const Event = require('../models/Event');
+const Supporter = require('../models/Supporter');
+const User = require('../models/User');
 const { upload, handleMulterError, processAndSaveImages } = require('./events/_multer');
 const authenticateToken = require('../middleware/authMiddleware');
 const { authorizeRoles } = require('../middleware/roleMiddleware');
+
+// ── 서포터즈 명단 조회 (운영진용) ──
+router.get('/supporters', authenticateToken, authorizeRoles('officer', 'admin'), async (req, res) => {
+  try {
+    const year = parseInt(req.query.year) || new Date().getFullYear();
+    const month = parseInt(req.query.month) || (new Date().getMonth() + 1);
+
+    const doc = await Supporter.findOne({ year, month })
+      .populate('memberIds', 'name displayName role team department university phonenumber')
+      .lean();
+
+    res.json({
+      year,
+      month,
+      memberIds: doc ? doc.memberIds.map(m => m._id) : [],
+      members: doc ? doc.memberIds : []
+    });
+  } catch (error) {
+    console.error('Error fetching supporters:', error);
+    res.status(500).json({ message: '서포터즈 목록 조회 중 오류가 발생했습니다.' });
+  }
+});
+
+// ── 서포터즈 명단 저장/확정 (운영진용) ──
+router.post('/supporters', authenticateToken, authorizeRoles('officer', 'admin'), async (req, res) => {
+  try {
+    const { year, month, memberIds } = req.body;
+    const parsedYear = parseInt(year);
+    const parsedMonth = parseInt(month);
+
+    if (!parsedYear || !parsedMonth || parsedMonth < 1 || parsedMonth > 12) {
+      return res.status(400).json({ message: '유효한 연도와 월을 입력해 주세요.' });
+    }
+
+    const ids = Array.isArray(memberIds) ? memberIds : [];
+
+    const supporterDoc = await Supporter.findOneAndUpdate(
+      { year: parsedYear, month: parsedMonth },
+      {
+        memberIds: ids,
+        updatedBy: req.user.id,
+        updatedAt: new Date()
+      },
+      { upsert: true, new: true }
+    );
+
+    res.json({
+      message: `${parsedYear}년 ${parsedMonth}월 서포터즈 명단 ${ids.length}명이 확정되었습니다.`,
+      supporter: supporterDoc
+    });
+  } catch (error) {
+    console.error('Error saving supporters:', error);
+    res.status(500).json({ message: '서포터즈 명단 저장 중 오류가 발생했습니다.' });
+  }
+});
 
 // 1) GET /active - 현재 활성화된 홍보 조회 (모든 사용자)
 router.get('/active', async (req, res) => {

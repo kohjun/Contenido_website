@@ -9,6 +9,7 @@ const { requireHRPermission } = require('../../middleware/roleMiddleware');
 const User = require('../../models/User');
 const Event = require('../../models/Event');
 const GlobalSetting = require('../../models/GlobalSetting');
+const Supporter = require('../../models/Supporter');
 
 // 운영진/관리자만 (멤버 목록은 여러 오피스 페이지가 공용으로 사용 → 최소한 비공개화)
 const requireStaff = (req, res, next) => {
@@ -160,6 +161,21 @@ router.post('/bulk-update', authenticateToken, requireHRPermission, async (req, 
             errors.push({ userId: user._id, message: '경고 사유 누락' });
             continue;
           }
+          // 해당 월 서포터즈인 경우 경고 면제 처리
+          let targetY = new Date().getFullYear();
+          let targetM = new Date().getMonth() + 1;
+          if (targetMonth && targetMonth.includes('-')) {
+            const parts = targetMonth.split('-');
+            targetY = parseInt(parts[0]);
+            targetM = parseInt(parts[1]);
+          }
+          const supporterDoc = await Supporter.findOne({ year: targetY, month: targetM }).lean();
+          const isSupporter = supporterDoc && supporterDoc.memberIds.some(id => id.toString() === user._id.toString());
+          if (isSupporter) {
+            skipped++;
+            continue;
+          }
+
           // 같은 대상 월(月)에 이미 활성 경고가 있으면 중복 부여 방지
           if (targetMonth && (user.warningHistory || []).some(w => w.isActive && w.targetMonth === targetMonth)) {
             skipped++;
@@ -316,22 +332,36 @@ router.get('/monthly-application-status', authenticateToken, requireHRPermission
       };
     };
 
+    // 해당 월 서포터즈 명단 조회
+    const supporterDoc = await Supporter.findOne({ year, month: month + 1 }).lean();
+    const supporterSet = new Set((supporterDoc?.memberIds || []).map(id => id.toString()));
+
     // 그달 마감일 이후(>= 마감일 0시) 가입자는 면제 — 신청 기간을 온전히 누리지 못함
     const exemptThreshold = new Date(year, month, endDay, 0, 0, 0, 0);
     let exemptCount = 0;
     const applied = [];      // 정시 (~5일)
     const lateApplied = [];  // 지각 (6일 이후)
+    const supporters = [];   // 서포터즈 (경고 면제 & 미신청 제외)
     const notApplied = [];   // 전혀 신청 안 함
     for (const m of members) {
       if (m.createdAt && new Date(m.createdAt) >= exemptThreshold) { exemptCount++; continue; }
       const uid = m._id.toString();
-      if (onTimeSet.has(uid)) applied.push(fmt(m));
-      else if (lateMap.has(uid)) lateApplied.push(fmt(m, lateMap.get(uid)));
-      else notApplied.push(fmt(m));
+      if (supporterSet.has(uid)) {
+        const item = fmt(m);
+        item.isSupporter = true;
+        supporters.push(item);
+      } else if (onTimeSet.has(uid)) {
+        applied.push(fmt(m));
+      } else if (lateMap.has(uid)) {
+        lateApplied.push(fmt(m, lateMap.get(uid)));
+      } else {
+        notApplied.push(fmt(m));
+      }
     }
     const byName = (a, b) => String(a.name).localeCompare(String(b.name), 'ko');
     applied.sort(byName);
     lateApplied.sort(byName);
+    supporters.sort(byName);
     notApplied.sort(byName);
 
     res.json({
@@ -342,11 +372,13 @@ router.get('/monthly-application-status', authenticateToken, requireHRPermission
       windowClosed: now >= windowEnd, // 6일 자정 지났는지
       eventCount: events.length,
       exemptCount,
+      supportersCount: supporters.length,
       appliedCount: applied.length,
       lateCount: lateApplied.length,
       notAppliedCount: notApplied.length,
       applied,
       lateApplied,
+      supporters,
       notApplied
     });
   } catch (error) {
