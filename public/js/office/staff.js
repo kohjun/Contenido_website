@@ -137,6 +137,7 @@
         selectedStarterStaffIds = new Set((data.memberIds || []).map(id => id.toString()));
       }
 
+      renderConfirmedStarterStaff();
       renderMembers();
     } catch (err) {
       console.error('[StaffDashboard] Error loading starter staff:', err);
@@ -144,7 +145,35 @@
     }
   }
 
-  // 6) 회원 목록 렌더링
+  // 6) 확정된 스타터-스태프 명단 상단 박스 렌더링
+  function renderConfirmedStarterStaff() {
+    const listEl = document.getElementById('confirmed-starter-staff-list');
+    const countEl = document.getElementById('confirmed-starter-staff-count');
+    if (!listEl) return;
+
+    const confirmedMembers = allMembers.filter(m => {
+      const mId = (m._id || m.id).toString();
+      return selectedStarterStaffIds.has(mId);
+    });
+
+    if (countEl) countEl.textContent = confirmedMembers.length;
+
+    if (confirmedMembers.length === 0) {
+      listEl.innerHTML = '<span style="font-size: 0.88rem; color: #94a3b8;">확정된 스타터-스태프가 없습니다.</span>';
+    } else {
+      listEl.innerHTML = confirmedMembers.map(m => {
+        const name = escapeHtml(m.name || m.displayName || '이름없음');
+        const phoneTail = m.phonenumber ? String(m.phonenumber).slice(-4) : '';
+        return `
+          <span style="display: inline-flex; align-items: center; gap: 4px; padding: 6px 12px; background: #ffffff; color: #b45309; border: 1px solid #f59e0b; border-radius: 20px; font-size: 0.85rem; font-weight: 600; box-shadow: 0 2px 6px rgba(245,158,11,0.12);">
+            ⭐ ${name} ${phoneTail ? `<small style="color:#d97706; font-weight:normal;">(${phoneTail})</small>` : ''}
+          </span>
+        `;
+      }).join('');
+    }
+  }
+
+  // 7) 회원 목록 렌더링
   function renderMembers() {
     const listEl = document.getElementById('starter-staff-member-list');
     const countEl = document.getElementById('starter-staff-selected-count');
@@ -201,7 +230,7 @@
     renderMembers();
   }
 
-  // 7) 스타터-스태프 저장
+  // 8) 스타터-스태프 저장
   async function saveStarterStaff() {
     try {
       const res = await fetch('/staff/starter-staff', {
@@ -216,6 +245,8 @@
       const result = await res.json();
       if (res.ok) {
         alert(result.message || '스타터-스태프 명단이 확정되었습니다.');
+        renderConfirmedStarterStaff();
+        renderMembers();
       } else {
         alert(result.message || '저장에 실패했습니다.');
       }
