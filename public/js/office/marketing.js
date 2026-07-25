@@ -22,8 +22,25 @@
     const listEl = document.getElementById('supporter-member-list');
     if (!listEl) return;
 
-    const year = document.getElementById('supporter-year')?.value || 2026;
-    const month = document.getElementById('supporter-month')?.value || 8;
+    const now = new Date();
+    const currentYear = now.getFullYear();
+    const currentMonth = now.getMonth() + 1;
+
+    const yearSelect = document.getElementById('supporter-year');
+    const monthSelect = document.getElementById('supporter-month');
+
+    // 현재 연도 및 월 기본 설정 (최초 1회 설정)
+    if (yearSelect && (!yearSelect.dataset.initialized)) {
+      yearSelect.value = String(currentYear);
+      yearSelect.dataset.initialized = 'true';
+    }
+    if (monthSelect && (!monthSelect.dataset.initialized)) {
+      monthSelect.value = String(currentMonth);
+      monthSelect.dataset.initialized = 'true';
+    }
+
+    const year = yearSelect?.value || currentYear;
+    const month = monthSelect?.value || currentMonth;
 
     try {
       if (allMembers.length === 0) {
