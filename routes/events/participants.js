@@ -32,6 +32,16 @@ router.get('/:id/participants',
         return res.status(404).json({ message: '이벤트를 찾을 수 없습니다.' });
       }
 
+      // 접근 권한 검증:
+      // admin, 이벤트 생성자(creator), 또는 접근 코드 입력 성공 세션(eventAccess) 보유자만 허용
+      const isAdmin = req.user.role === 'admin';
+      const isCreator = event.creator.toString() === req.user.id;
+      const hasVerifiedAccess = req.session && req.session.eventAccess && req.session.eventAccess[req.params.id] === true;
+
+      if (!isAdmin && !isCreator && !hasVerifiedAccess) {
+        return res.status(403).json({ message: '이벤트 접근 코드를 확인한 후 다시 시도해 주세요.' });
+      }
+
       const participants = event.appliedParticipants.map(participant => {
         const u = participant.userId || {};
         const totalCount = (u.participationCount && u.participationCount.totalCount) || 0;

@@ -118,16 +118,33 @@ router.get('/ended',
     }
   });
 
-// 특정 이벤트
+// 특정 이벤트 (신청자 민감정보 정제하여 응답)
 router.get('/:id', async (req, res) => {
   try {
-    const event = await Event.findById(req.params.id).populate('creator', '_id');
+    const event = await Event.findById(req.params.id).populate('creator', '_id').lean();
     if (!event) {
       return res.status(404).json({ message: 'Event not found' });
     }
+
+    // 세션 및 사용자 권한 확인
+    const user = req.user || null;
+    const isAdmin = user && user.role === 'admin';
+    const isCreator = user && event.creator && event.creator._id && event.creator._id.toString() === user.id;
+    const hasVerifiedAccess = req.session && req.session.eventAccess && req.session.eventAccess[req.params.id] === true;
+
+    // 관리자/생성자/접근코드 검증자가 아니라면 appliedParticipants 내 민감 데이터(답변, 인증, 상태이력) 제거
+    if (!isAdmin && !isCreator && !hasVerifiedAccess && Array.isArray(event.appliedParticipants)) {
+      event.appliedParticipants = event.appliedParticipants.map(p => ({
+        _id: p._id,
+        userId: p.userId,
+        status: p.status,
+        appliedAt: p.appliedAt
+      }));
+    }
+
     res.json(event);
   } catch (error) {
-    res.status(500).json({ message: 'Error fetching event', error });
+    res.status(500).json({ message: 'Error fetching event', error: error.message || error });
   }
 });
 
