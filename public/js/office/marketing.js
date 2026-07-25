@@ -154,26 +154,7 @@
       .replace(/'/g, '&#039;');
   }
 
-  // 글로벌 인터페이스 바인딩
-  window.MarketingDashboard = {
-    initialize,
-    openCreateModal,
-    openEditModal,
-    closeFormModal,
-    handlePhotoChange,
-    handleSubmit,
-    handleDelete,
-    loadSupporters,
-    filterSupporterMembers,
-    toggleSupporterMember,
-    saveSupporters
-  };
 
-  // HTML SPA 렌더링 후 자동 이니셜라이징 지원
-  setTimeout(() => {
-    initialize();
-  }, 100);
-})();
 
   // 2) 연동할 이벤트 목록 불러와 드롭다운 생성
   async function loadEventsDropdown() {
