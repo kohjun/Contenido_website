@@ -183,7 +183,6 @@ router.get('/event/:eventId',
         participation_fee: event.participation_fee,
         contents: event.contents,
         images:   event.images || [],
-        appliedParticipants: event.appliedParticipants || [],
         finalParticipants:   event.finalParticipants   || [],
 
         // ── 추가 데이터 ──

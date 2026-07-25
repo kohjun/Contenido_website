@@ -77,34 +77,46 @@ router.get('/:id/participants',
     }
   });
 
-// 승인된 참가자 목록
-router.get('/:id/approved-participants', authenticateToken, async (req, res) => {
-  try {
-    const event = await Event.findById(req.params.id)
-      .populate({
-        path: 'appliedParticipants.userId',
-        select: 'name phonenumber'
-      });
+// 승인된 참가자 목록 (운영진/스태프 전용 - 접근 코드 세션 검증)
+router.get('/:id/approved-participants',
+  authenticateToken,
+  authorizeRoles('officer', 'admin'),
+  async (req, res) => {
+    try {
+      const event = await Event.findById(req.params.id)
+        .populate({
+          path: 'appliedParticipants.userId',
+          select: 'name phonenumber'
+        });
 
-    if (!event) {
-      return res.status(404).json({ message: '이벤트를 찾을 수 없습니다.' });
+      if (!event) {
+        return res.status(404).json({ message: '이벤트를 찾을 수 없습니다.' });
+      }
+
+      // 접근 권한 검증: admin, 이벤트 생성자, 또는 접근 코드 인증 성공 세션만 허용
+      const isAdmin = req.user.role === 'admin';
+      const isCreator = event.creator.toString() === req.user.id;
+      const hasVerifiedAccess = req.session && req.session.eventAccess && req.session.eventAccess[req.params.id] === true;
+
+      if (!isAdmin && !isCreator && !hasVerifiedAccess) {
+        return res.status(403).json({ message: '이벤트 접근 코드를 확인한 후 다시 시도해 주세요.' });
+      }
+
+      const approvedParticipants = event.appliedParticipants
+        .filter(p => p.status === 'approved')
+        .map(p => ({
+          id: p.userId._id,
+          name: p.userId.name,
+          phonenumber: p.userId.phonenumber,
+          displayName: `${p.userId.name}${p.userId.phonenumber ? p.userId.phonenumber.slice(-4) : ''}`
+        }));
+
+      res.json(approvedParticipants);
+    } catch (error) {
+      console.error('Error fetching approved participants:', error);
+      res.status(500).json({ message: '승인된 참가자 목록을 가져오는 중 오류가 발생했습니다.' });
     }
-
-    const approvedParticipants = event.appliedParticipants
-      .filter(p => p.status === 'approved')
-      .map(p => ({
-        id: p.userId._id,
-        name: p.userId.name,
-        phonenumber: p.userId.phonenumber,
-        displayName: `${p.userId.name}${p.userId.phonenumber ? p.userId.phonenumber.slice(-4) : ''}`
-      }));
-
-    res.json(approvedParticipants);
-  } catch (error) {
-    console.error('Error fetching approved participants:', error);
-    res.status(500).json({ message: '승인된 참가자 목록을 가져오는 중 오류가 발생했습니다.' });
-  }
-});
+  });
 
 /* =========================================================================
    POST — 접근 코드 / 신청 / 취소
