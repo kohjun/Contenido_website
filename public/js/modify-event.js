@@ -18,17 +18,30 @@ async function parseResponse(response) {
 
 async function loadEventContent(eventId) {
   try {
-    // 인증 상태 확인 (이제 nav-injector에 포함된 AuthModule 사용)
-    const isAuthenticated = await AuthModule.checkAuthentication();
-    if (!isAuthenticated) return;
-    
-    // 사용자 정보 로드
-    const user = await AuthModule.loadUserInfo();
-    if (!user) {
-      alert('사용자 정보를 불러오는데 실패했습니다.');
-      return;
-    }
+    const urlParams = new URLSearchParams(window.location.search);
+    const inviteToken = urlParams.get('invite');
+    const inviterId = urlParams.get('inviter');
+    const hasInvite = !!(inviteToken || inviterId);
 
+    let user = null;
+    if (!hasInvite) {
+      // 일반 접근인 경우에만 로그인 필수 검증
+      const isAuthenticated = await AuthModule.checkAuthentication();
+      if (!isAuthenticated) return;
+      
+      user = await AuthModule.loadUserInfo();
+      if (!user) {
+        alert('사용자 정보를 불러오는데 실패했습니다.');
+        return;
+      }
+    } else {
+      // 초대장 링크 접근 시: 비로그인 및 active가 false인 게스트 계정도 허용
+      try {
+        user = await AuthModule.loadUserInfo();
+      } catch (e) {
+        user = null;
+      }
+    }
     
     console.log(`이벤트 ID ${eventId} 정보 로드 시도`);
     const response = await fetch(`/events/${eventId}`);
@@ -188,8 +201,12 @@ async function loadEventContent(eventId) {
     }
 
     // 생성자인 경우 수정 버튼 표시
+    const userId = user ? (user.id || user._id) : null;
+    const userRole = user ? user.role : 'guest';
+    const isActive = user ? user.active : false;
+
     if (modifyButton) {
-      if (currentEvent.creator === user.id && (user.role === 'officer' || user.role === 'admin')) {
+      if (userId && currentEvent.creator === userId && (userRole === 'officer' || userRole === 'admin')) {
         modifyButton.style.display = 'block';
       } else {
         modifyButton.style.display = 'none';
@@ -197,11 +214,10 @@ async function loadEventContent(eventId) {
     }
 
     // 신청 상태 확인 및 버튼 업데이트
-    const hasApplied = currentEvent.appliedParticipants.some(p => p.userId === user.id);
-    const isActive = user.active;
+    const hasApplied = userId ? currentEvent.appliedParticipants.some(p => p.userId === userId) : false;
     const approvedCount = currentEvent.appliedParticipants.filter(p => p.status === 'approved').length;
     const isFull = approvedCount >= currentEvent.participants;
-    const myEntry = currentEvent.appliedParticipants.find(p => p.userId === user.id);
+    const myEntry = userId ? currentEvent.appliedParticipants.find(p => p.userId === userId) : null;
     const myStatus = myEntry ? myEntry.status : null;
     // 활성 신청 = 승인대기/참가확정 (취소·거절은 비활성 → 취소 시 다시 신청 가능)
     const isActiveApplication = myStatus === 'pending' || myStatus === 'approved';

@@ -248,9 +248,39 @@
     });
 
     shareBtn.addEventListener('click', () => {
+      const coverImageUrl = `${window.location.origin}/images/invitation_cover.png`;
+      if (window.Kakao && typeof Kakao.isInitialized === 'function' && Kakao.isInitialized()) {
+        try {
+          Kakao.Share.sendDefault({
+            objectType: 'feed',
+            content: {
+              title: `💌 [콘테니도 초대장] ${title}`,
+              description: `${inviterLabel}님이 [${title}] 이벤트에 초대를 보냈습니다. 링크를 눌러 참가 신청을 완료해 주세요!`,
+              imageUrl: coverImageUrl,
+              link: {
+                mobileWebUrl: inviteUrl,
+                webUrl: inviteUrl
+              }
+            },
+            buttons: [
+              {
+                title: '초대장 확인 & 신청하기',
+                link: {
+                  mobileWebUrl: inviteUrl,
+                  webUrl: inviteUrl
+                }
+              }
+            ]
+          });
+          return;
+        } catch (e) {
+          console.error('Kakao share error:', e);
+        }
+      }
+
       if (navigator.share) {
         navigator.share({
-          title: `[초대장] ${title}`,
+          title: `[콘테니도 초대장] ${title}`,
           text: `${inviterLabel}님이 [${title}] 이벤트에 당신을 초대했습니다! 아래 링크에서 지인 참가 신청을 완료해 주세요.`,
           url: inviteUrl
         }).catch(() => {});
