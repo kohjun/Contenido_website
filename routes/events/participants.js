@@ -10,11 +10,68 @@ const { authorizeRoles, requireActiveUser } = require('../../middleware/roleMidd
 const { createNotification } = require('../../utils/notify');
 const { upload, handleMulterError, processAndSaveImages } = require('./_multer');
 
+const { generateInviteToken, decodeInviteToken } = require('../../utils/inviteToken');
+
 const router = express.Router();
 
 /* =========================================================================
-   GET — 참가자 목록
+   GET — 참가자 목록 및 초대 토큰
    ========================================================================= */
+
+// 초대 토큰 발급 (마이페이지용)
+router.get('/:id/invite-token',
+  authenticateToken,
+  async (req, res) => {
+    try {
+      const event = await Event.findById(req.params.id);
+      if (!event) return res.status(404).json({ message: '이벤트를 찾을 수 없습니다.' });
+      if (!event.allowCompanions) return res.status(400).json({ message: '지인 동반이 허용되지 않은 이벤트입니다.' });
+
+      const token = generateInviteToken(req.params.id, req.user.id);
+      res.json({ inviteToken: token });
+    } catch (error) {
+      console.error('Error generating invite token:', error);
+      res.status(500).json({ message: '초대 토큰 생성 중 오류가 발생했습니다.' });
+    }
+  });
+
+// 초대한 부원 정보 조회 (암호화 토큰 또는 inviterId 지원)
+router.get('/:id/inviter-info', async (req, res) => {
+  try {
+    const { invite, inviterId: rawInviterId } = req.query;
+    let targetInviterId = rawInviterId;
+
+    if (invite) {
+      const decoded = decodeInviteToken(invite);
+      if (!decoded || decoded.eventId !== req.params.id) {
+        return res.status(400).json({ message: '유효하지 않거나 변조된 초대장 링크입니다.' });
+      }
+      targetInviterId = decoded.inviterUserId;
+    }
+
+    if (!targetInviterId) {
+      return res.status(400).json({ message: '초대자 정보가 필요합니다.' });
+    }
+
+    const inviter = await User.findById(targetInviterId).select('name displayName phonenumber').lean();
+    if (!inviter) {
+      return res.status(404).json({ message: '초대자 정보를 찾을 수 없습니다.' });
+    }
+    const name = inviter.name || inviter.displayName || '부원';
+    const digits = String(inviter.phonenumber || '').replace(/[^0-9]/g, '');
+    const phoneTail = digits.length >= 4 ? digits.slice(-4) : digits;
+
+    res.json({
+      inviterId: inviter._id,
+      name,
+      phoneTail,
+      displayLabel: `${name} (${phoneTail})`
+    });
+  } catch (error) {
+    console.error('Error fetching inviter info:', error);
+    res.status(500).json({ message: 'Error fetching inviter info' });
+  }
+});
 
 // 참가자 정보 (운영진 전용)
 router.get('/:id/participants',
@@ -48,22 +105,26 @@ router.get('/:id/participants',
         const regularCount = (u.participationCount && u.participationCount.regularCount) || 0;
         return {
           userId: u._id,
-          name: u.name,
-          displayName: u.displayName,
-          gender: u.gender,
-          phonenumber: u.phonenumber,
+          name: participant.isGuest && participant.guestInfo ? participant.guestInfo.name : u.name,
+          displayName: participant.isGuest && participant.guestInfo ? participant.guestInfo.name : u.displayName,
+          gender: participant.isGuest && participant.guestInfo ? participant.guestInfo.gender : u.gender,
+          phonenumber: participant.isGuest && participant.guestInfo ? participant.guestInfo.phone : u.phonenumber,
+          age: participant.isGuest && participant.guestInfo ? participant.guestInfo.age : null,
           status: participant.status,
           cancellationRequested: participant.cancellationRequested || false,
           appliedAt: participant.appliedAt,
           answers: participant.answers,
           birthDate: u.birthDate,
-          role: u.role,
+          role: participant.isGuest ? 'guest' : u.role,
           team: u.team,
           preferredActivity: u.preferredActivity,
           totalCount,
           regularCount,
           verification: participant.verification,
-          companions: participant.companions || []
+          companions: participant.companions || [],
+          inviterUserId: participant.inviterUserId ? participant.inviterUserId.toString() : null,
+          isGuest: !!participant.isGuest,
+          guestInfo: participant.guestInfo || null
         };
       });
 
@@ -311,6 +372,100 @@ router.post('/:id/apply',
     }
   });
 
+/* =========================================================================
+   POST — 초대장(Approach 2)으로 지인 신청 접수
+   ========================================================================= */
+router.post('/:id/apply-companion', async (req, res) => {
+  try {
+    const { inviteToken, invite, inviterUserId: rawInviterUserId, guestInfo, answers } = req.body;
+    const event = await Event.findById(req.params.id);
+
+    if (!event) {
+      return res.status(404).json({ message: '이벤트를 찾을 수 없습니다.' });
+    }
+    if (event.isEnded) {
+      return res.status(400).json({ message: '이미 종료된 이벤트입니다.' });
+    }
+    if (!event.allowCompanions) {
+      return res.status(400).json({ message: '해당 이벤트는 지인 동반 신청을 허용하지 않습니다.' });
+    }
+
+    let inviterUserId = rawInviterUserId;
+    const tokenToDecode = inviteToken || invite;
+    if (tokenToDecode) {
+      const decoded = decodeInviteToken(tokenToDecode);
+      if (!decoded || decoded.eventId !== req.params.id) {
+        return res.status(400).json({ message: '유효하지 않거나 변조된 초대장 토큰입니다.' });
+      }
+      inviterUserId = decoded.inviterUserId;
+    }
+
+    if (!inviterUserId) {
+      return res.status(400).json({ message: '초대한 부원의 정보가 누락되었습니다.' });
+    }
+    if (!guestInfo || !guestInfo.name || !guestInfo.phone || !guestInfo.age) {
+      return res.status(400).json({ message: '지인의 이름, 연락처, 성별, 나이를 모두 입력해 주세요.' });
+    }
+
+    // 초대한 부원의 활성 신청 여부 검증
+    const inviterApp = event.appliedParticipants.find(
+      p => p.userId.toString() === inviterUserId && (p.status === 'pending' || p.status === 'approved')
+    );
+    if (!inviterApp) {
+      return res.status(400).json({ message: '초대한 부원의 활성 신청이 없거나 신청이 취소되어 지인 신청이 불가능합니다.' });
+    }
+
+    // 초대한 부원이 이미 초대한 지인 수 검증
+    const existingCompanions = event.appliedParticipants.filter(
+      p => p.inviterUserId && p.inviterUserId.toString() === inviterUserId && p.status !== 'cancelled'
+    );
+    const maxAllowed = event.maxCompanionsPerUser || 1;
+    if (existingCompanions.length >= maxAllowed) {
+      return res.status(400).json({ message: `해당 부원의 지인 동반 신청 한도(최대 ${maxAllowed}명)를 초과했습니다.` });
+    }
+
+    // 총 활성 신청자 정원 검증
+    const totalActive = event.appliedParticipants.filter(
+      p => p.status === 'pending' || p.status === 'approved'
+    ).length;
+    if (event.participants && totalActive >= event.participants) {
+      return res.status(400).json({ message: '이벤트 정원이 모두 마감되었습니다.' });
+    }
+
+    // 중복 지인 신청 검증 (동일 전화번호)
+    const cleanPhone = String(guestInfo.phone).replace(/[^0-9]/g, '');
+    const duplicateGuest = event.appliedParticipants.find(
+      p => p.isGuest && p.guestInfo && String(p.guestInfo.phone).replace(/[^0-9]/g, '') === cleanPhone && p.status !== 'cancelled'
+    );
+    if (duplicateGuest) {
+      return res.status(400).json({ message: '이미 동일한 연락처로 접수된 지인 신청이 있습니다.' });
+    }
+
+    // 신규 지인 신청 저장
+    event.appliedParticipants.push({
+      userId: inviterUserId,
+      inviterUserId: inviterUserId,
+      isGuest: true,
+      guestInfo: {
+        name: guestInfo.name.trim(),
+        phone: guestInfo.phone.trim(),
+        gender: guestInfo.gender || 'male',
+        age: parseInt(guestInfo.age) || 20
+      },
+      appliedAt: new Date(),
+      status: event.isLightning ? 'approved' : 'pending',
+      answers: answers || []
+    });
+
+    await event.save();
+
+    res.json({ message: '지인 동반 신청이 완료되었습니다. 승인을 기다려주세요!' });
+  } catch (error) {
+    console.error('Error applying companion:', error);
+    res.status(500).json({ message: '지인 신청 접수 중 오류가 발생했습니다.', error: error.message });
+  }
+});
+
 router.post('/:id/cancel-application',
   authenticateToken,
   authorizeRoles('participant', 'starter', 'officer', 'admin'),
@@ -322,7 +477,7 @@ router.post('/:id/cancel-application',
       }
 
       const participant = event.appliedParticipants.find(
-        p => p.userId.toString() === req.user.id
+        p => p.userId.toString() === req.user.id && !p.isGuest
       );
 
       if (!participant) {
@@ -346,9 +501,29 @@ router.post('/:id/cancel-application',
       });
       participant.status = 'cancelled';
 
+      // 동반 연쇄 취소: 이 부원이 초대한 지인들의 신청도 함께 취소 처리
+      const linkedCompanions = event.appliedParticipants.filter(
+        p => p.inviterUserId && p.inviterUserId.toString() === req.user.id && p.status !== 'cancelled'
+      );
+
+      for (const comp of linkedCompanions) {
+        const prev = comp.status || 'pending';
+        if (!comp.statusHistory) comp.statusHistory = [];
+        comp.statusHistory.push({
+          previousStatus: prev,
+          newStatus: 'cancelled',
+          changedBy: req.user.id,
+          changedAt: new Date(),
+          changerName: `초대자 취소로 인한 동반 취소`,
+          isReset: false
+        });
+        comp.status = 'cancelled';
+        comp.cancellationRequested = false;
+      }
+
       await event.save();
 
-      res.status(200).json({ message: '신청이 취소되었습니다.' });
+      res.status(200).json({ message: '신청이 취소되었습니다. (동반 지인 신청도 함께 취소됨)' });
     } catch (error) {
       console.error('Error canceling application:', error);
       res.status(500).json({ message: '신청 취소 중 오류가 발생했습니다.', error });

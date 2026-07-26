@@ -425,51 +425,20 @@ function sortParticipants(arr, mode) {
       break;
     case 'status':
       sorted.sort((a, b) => {
-        const aR = statusRank[a.status || 'pending'] ?? 99;
-        const bR = statusRank[b.status || 'pending'] ?? 99;
-        return aR - bR;
-      });
-      break;
-    case 'age-young':
-      // 어린 사람 우선 (birthDate desc)
-      sorted.sort((a, b) => new Date(b.birthDate || 0) - new Date(a.birthDate || 0));
-      break;
-    case 'age-old':
-      // 나이 많은 사람 우선 (birthDate asc)
-      sorted.sort((a, b) => new Date(a.birthDate || 0) - new Date(b.birthDate || 0));
-      break;
-    case 'count-desc':
-      // 정기 참여횟수 많은 순
-      sorted.sort((a, b) => (b.regularCount || 0) - (a.regularCount || 0));
-      break;
-    case 'count-asc':
-      // 정기 참여횟수 적은 순
-      sorted.sort((a, b) => (a.regularCount || 0) - (b.regularCount || 0));
-      break;
-  }
-  return sorted;
-}
-
-function renderParticipantList() {
-  const list = document.getElementById('participant-list');
-  if (!list || !_currentEvent) return;
-
-  if (_currentParticipants.length === 0) {
-    list.innerHTML = '<div class="empty">아직 신청한 사람이 없어요.</div>';
-    return;
-  }
-
-  // 필터 적용
-  const filtered = _currentFilter === 'all'
-    ? _currentParticipants
-    : _currentParticipants.filter(p => (p.status || 'pending') === _currentFilter);
-
   if (filtered.length === 0) {
     list.innerHTML = `<div class="empty">해당 상태의 신청자가 없어요.</div>`;
     return;
   }
 
-  const sorted = sortParticipants(filtered, _currentSort);
+  // 초대장(Approach 2)으로 신청한 지인은 해당 부원의 카드 내부에 묶어서 표시 (단독 카드 미노출)
+  const mainParticipants = filtered.filter(p => !p.isGuest);
+
+  if (mainParticipants.length === 0) {
+    list.innerHTML = `<div class="empty">해당 상태의 신청자가 없어요.</div>`;
+    return;
+  }
+
+  const sorted = sortParticipants(mainParticipants, _currentSort);
   const approvedCount = _currentParticipants.filter(p => p.status === 'approved').length;
   const canApprove = approvedCount < (_currentEvent.participants || 0);
   const event = _currentEvent;
@@ -630,6 +599,44 @@ function renderParticipantList() {
       `
       : '';
 
+    // 초대장(Approach 2)으로 신청된 지인 목록을 부원 카드 하단에 그룹으로 묶어 표시
+    const linkedGuests = _currentParticipants.filter(
+      g => g.isGuest && String(g.inviterUserId) === String(p.userId)
+    );
+
+    const guestSectionHtml = linkedGuests.length > 0
+      ? `
+        <div style="margin-top: 10px; padding: 10px 12px; background: #f0f9ff; border: 1px solid #7dd3fc; border-radius: 12px; font-size: 0.82rem;">
+          <strong style="display: flex; align-items: center; justify-content: space-between; color: #0369a1; margin-bottom: 6px;">
+            <span>👥 초대장 동반 신청 지인 (${linkedGuests.length}명)</span>
+          </strong>
+          <div style="display: flex; flex-direction: column; gap: 6px;">
+            ${linkedGuests.map(g => {
+              const gName = g.guestInfo?.name || g.name || '지인';
+              const gPhone = g.guestInfo?.phone || g.phonenumber || '-';
+              const gGenderStr = g.gender === 'female' ? '여' : (g.gender === 'male' ? '남' : '');
+              const gAgeStr = g.age ? `${g.age}세` : '';
+              const gMeta = [gGenderStr, gAgeStr, gPhone].filter(Boolean).join(' · ');
+              const stBadge = g.status === 'approved'
+                ? '<span style="background: #dcfce7; color: #15803d; padding: 2px 6px; border-radius: 4px; font-size: 0.72rem; font-weight: bold;">승인됨</span>'
+                : (g.status === 'cancelled'
+                  ? '<span style="background: #f1f5f9; color: #64748b; padding: 2px 6px; border-radius: 4px; font-size: 0.72rem;">취소됨</span>'
+                  : '<span style="background: #fef9c3; color: #a16207; padding: 2px 6px; border-radius: 4px; font-size: 0.72rem;">대기중</span>');
+              return `
+                <div style="background: #ffffff; border: 1px solid #bae6fd; padding: 6px 10px; border-radius: 8px; display: flex; align-items: center; justify-content: space-between;">
+                  <div>
+                    <strong style="color: #0f172a; font-size: 0.85rem;">${escapeHtml(gName)}</strong>
+                    <span style="color: #64748b; font-size: 0.78rem; margin-left: 4px;">(${escapeHtml(gMeta)})</span>
+                  </div>
+                  ${stBadge}
+                </div>
+              `;
+            }).join('')}
+          </div>
+        </div>
+      `
+      : '';
+
     return `
       <article class="participant-card ${statusClass}" data-user-id="${p.userId}">
         <div class="pc-header">
@@ -658,6 +665,7 @@ function renderParticipantList() {
           </div>
         </div>
         ${companionHtml}
+        ${guestSectionHtml}
         <div class="pc-actions">
           ${buttonsHtml}
           ${answersBtn}

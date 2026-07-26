@@ -57,7 +57,16 @@ const appliedParticipantSchema = new mongoose.Schema({
   // 참가확정(approved)자가 담당자에게 취소를 요청한 상태. 담당자가 '취소 처리'하면 cancelled로 전환.
   cancellationRequested: { type: Boolean, default: false },
   cancellationRequestedAt: { type: Date, default: null },
-  // 동반 지인 목록
+  // 초대장(Approach 2)으로 신청한 지인 정보
+  inviterUserId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
+  isGuest: { type: Boolean, default: false },
+  guestInfo: {
+    name: { type: String },
+    phone: { type: String },
+    gender: { type: String, enum: ['male', 'female', 'none', 'other'] },
+    age: { type: Number }
+  },
+  // 동반 지인 목록 (하위 호환용)
   companions: [{
     name: { type: String, required: true },
     phone: { type: String, required: true },

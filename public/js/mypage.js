@@ -280,6 +280,7 @@ async function fetchUserEvents() {
     // 모든 이벤트 가져오기
     const eventsResponse = await fetch('/events');
     const events = await eventsResponse.json();
+    currentUserEventsList = events;
     console.log(`전체 이벤트 ${events.length}개 로드 완료`);
 
     // 종료된 이벤트 가져오기
@@ -289,7 +290,7 @@ async function fetchUserEvents() {
 
     // 신청한 이벤트 필터링 (진행 중인 이벤트 중에서, 취소된 신청은 제외)
     const appliedEvents = events.filter(event => 
-      event.appliedParticipants.some(p => p.userId === user.id && p.status !== 'cancelled')
+      event.appliedParticipants.some(p => p.userId === user.id && !p.isGuest && p.status !== 'cancelled')
     );
     console.log(`신청한 이벤트 ${appliedEvents.length}개 필터링 완료`);
 
@@ -313,6 +314,26 @@ async function fetchUserEvents() {
 
 // 이벤트 목록을 화면에 표시하는 함수
 let currentUserId = null;
+let currentUserEventsList = [];
+
+window.openInvitationModal = async function(eventId) {
+  const event = currentUserEventsList.find(e => e._id === eventId);
+  if (!event || !userData || !window.showInvitationModal) {
+    alert('초대장 정보를 불러올 수 없습니다. 페이지를 새로고침 해주세요.');
+    return;
+  }
+  try {
+    const res = await fetch(`/events/${eventId}/invite-token`);
+    if (!res.ok) {
+      throw new Error('초대장 토큰 생성에 실패했습니다.');
+    }
+    const data = await res.json();
+    window.showInvitationModal(event, userData, data.inviteToken);
+  } catch (err) {
+    console.error('Error opening invitation modal:', err);
+    alert('초대장 링크를 생성하는 중 오류가 발생했습니다.');
+  }
+};
 
 function displayEvents(containerId, events, emptyMessage) {
   const container = document.getElementById(containerId);
@@ -323,16 +344,33 @@ function displayEvents(containerId, events, emptyMessage) {
 
   container.innerHTML = events.map(event => {
     let companionBadge = '';
+    let inviteBtn = '';
+
     if (containerId === 'applied-events' && currentUserId && Array.isArray(event.appliedParticipants)) {
-      const myApp = event.appliedParticipants.find(p => String(p.userId || p.userId?._id) === String(currentUserId));
-      if (myApp && Array.isArray(myApp.companions) && myApp.companions.length > 0) {
-        const names = myApp.companions.map(c => {
-          const gStr = c.gender === 'female' ? '여' : (c.gender === 'male' ? '남' : '');
-          const ageStr = c.age ? `${c.age}세` : '';
+      // 초대된 동반 지인 목록
+      const guestApps = event.appliedParticipants.filter(p => p.isGuest && String(p.inviterUserId) === String(currentUserId) && p.status !== 'cancelled');
+      if (guestApps.length > 0) {
+        const names = guestApps.map(g => {
+          const info = g.guestInfo || {};
+          const gStr = info.gender === 'female' ? '여' : (info.gender === 'male' ? '남' : '');
+          const ageStr = info.age ? `${info.age}세` : '';
           const meta = [gStr, ageStr].filter(Boolean).join(' ');
-          return meta ? `${c.name}(${meta})` : c.name;
+          const statusKOR = g.status === 'approved' ? '승인' : (g.status === 'pending' ? '대기' : g.status);
+          return `${info.name || '지인'}(${meta} · ${statusKOR})`;
         }).join(', ');
-        companionBadge = `<div style="margin-top: 6px; font-size: 0.82rem; color: #0284c7; font-weight: bold;">👥 동반 지인 ${myApp.companions.length}명: ${names}</div>`;
+        companionBadge = `<div style="margin-top: 6px; font-size: 0.82rem; color: #0284c7; font-weight: bold;">👥 초대된 동반 지인 (${guestApps.length}명): ${names}</div>`;
+      }
+
+      // 초대장 보내기 버튼 (지인 동반 허용 이벤트인 경우에만 생성!)
+      const myApp = event.appliedParticipants.find(p => String(p.userId || p.userId?._id) === String(currentUserId) && !p.isGuest);
+      if (event.allowCompanions && myApp && (myApp.status === 'pending' || myApp.status === 'approved')) {
+        inviteBtn = `
+          <div class="event-actions" style="margin-top: 10px;">
+            <button type="button" class="invitation-btn" style="background: linear-gradient(135deg, #0284c7, #0369a1); color: #ffffff; border: none; border-radius: 10px; padding: 8px 14px; font-weight: 700; font-size: 0.84rem; cursor: pointer; box-shadow: 0 4px 10px rgba(2, 132, 199, 0.25);" onclick="event.stopPropagation(); openInvitationModal('${event._id}')">
+              ✉️ 지인 초대장 보내기
+            </button>
+          </div>
+        `;
       }
     }
 
@@ -350,6 +388,7 @@ function displayEvents(containerId, events, emptyMessage) {
             </div>
           </div>
         </div>
+        ${inviteBtn}
         ${containerId === 'participated-events' ? `
           <div class="event-actions">
             <button class="review-button" onclick="goToEventReview('${event._id}')">

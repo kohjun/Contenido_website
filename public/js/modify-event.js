@@ -209,6 +209,24 @@ async function loadEventContent(eventId) {
     console.log(`신청 상태: status=${myStatus}, 활성신청=${isActiveApplication}, 활성회원=${isActive}, 승인인원=${approvedCount}/${currentEvent.participants}, 마감여부=${isFull}`);
 
     if (applicationSection) {
+      const urlParams = new URLSearchParams(window.location.search);
+      const inviteToken = urlParams.get('invite');
+      const inviterId = urlParams.get('inviter');
+      if ((inviteToken || inviterId) && currentEvent.allowCompanions) {
+        try {
+          const query = inviteToken ? `invite=${encodeURIComponent(inviteToken)}` : `inviterId=${encodeURIComponent(inviterId)}`;
+          const invRes = await fetch(`/events/${currentEvent._id}/inviter-info?${query}`);
+          if (invRes.ok) {
+            const inviterData = await invRes.json();
+            renderGuestApplicationForm(currentEvent, inviterData, inviteToken);
+            await initializeKakaoShare();
+            return;
+          }
+        } catch (e) {
+          console.error('Error loading inviter info:', e);
+        }
+      }
+
       if (currentEvent.isLightning) {
         // 번개주최이벤트
         if (isActiveApplication) {
@@ -1334,3 +1352,113 @@ document.addEventListener('DOMContentLoaded', () => {
     alert('이벤트 ID가 없습니다.');
   }
 });
+
+/* =========================================================================
+   초대장 지인 동반 신청 폼 렌더링 & 제출 (Approach 2)
+   ========================================================================= */
+function renderGuestApplicationForm(currentEvent, inviterData, inviteToken) {
+  const applicationSection = document.getElementById('application-section');
+  if (!applicationSection) return;
+
+  let questionsHtml = '';
+  if (currentEvent.isSelective && Array.isArray(currentEvent.additionalQuestions) && currentEvent.additionalQuestions.length > 0) {
+    questionsHtml = `
+      <div class="application-form" style="margin-top: 16px;">
+        <h4 style="margin: 0 0 10px; font-size: 0.95rem; color: #1e293b;">📋 추가 질문</h4>
+        ${currentEvent.additionalQuestions.map((q, idx) => `
+          <div class="question-section" style="margin-bottom: 10px;">
+            <p class="question-text" style="font-size: 0.85rem; font-weight: bold; margin-bottom: 4px;">Q${idx + 1}. ${escapeHtml(q.questionText)}</p>
+            <textarea class="answer-textarea" name="guest_answer_${idx}" required style="width: 100%; box-sizing: border-box; padding: 8px; border-radius: 8px; border: 1px solid #cbd5e1; font-size: 0.85rem;" rows="3"></textarea>
+          </div>
+        `).join('')}
+      </div>
+    `;
+  }
+
+  const safeInviteToken = escapeHtml(inviteToken || '');
+
+  applicationSection.innerHTML = `
+    <div class="guest-app-container" style="background: #ffffff; border: 2px solid #38bdf8; border-radius: 20px; padding: 20px; box-shadow: 0 10px 25px rgba(2, 132, 199, 0.15); margin-top: 16px;">
+      <div style="background: linear-gradient(135deg, #e0f2fe, #bae6fd); border-radius: 14px; padding: 14px; text-align: center; margin-bottom: 16px;">
+        <span style="font-size: 0.78rem; font-weight: bold; color: #0284c7; letter-spacing: 0.5px;">💌 CONTENIDO 지인 초대장</span>
+        <h3 style="margin: 6px 0 2px; font-size: 1.1rem; color: #0f172a; font-weight: 800;">초대한 부원: ${escapeHtml(inviterData.displayLabel)}</h3>
+        <small style="color: #64748b; font-size: 0.75rem;">(초대자 정보는 수정할 수 없도록 고정되어 있습니다)</small>
+      </div>
+
+      <h4 style="margin: 0 0 12px; font-size: 0.95rem; color: #0f172a; font-weight: 700;">✍️ 지인 참가 신청서 작성</h4>
+      <form id="guest-app-form" onsubmit="submitGuestApplication(event, '${currentEvent._id}', '${inviterData.inviterId}', '${safeInviteToken}')">
+        <div style="display: flex; flex-direction: column; gap: 10px; text-align: left;">
+          <div>
+            <label style="display: block; font-size: 0.82rem; font-weight: bold; color: #475569; margin-bottom: 4px;">지인 성함</label>
+            <input type="text" id="ga-name" placeholder="성함 입력" required style="width: 100%; box-sizing: border-box; padding: 10px; border-radius: 8px; border: 1px solid #cbd5e1; font-size: 0.85rem;">
+          </div>
+          <div>
+            <label style="display: block; font-size: 0.82rem; font-weight: bold; color: #475569; margin-bottom: 4px;">연락처</label>
+            <input type="tel" id="ga-phone" placeholder="010-XXXX-XXXX" required style="width: 100%; box-sizing: border-box; padding: 10px; border-radius: 8px; border: 1px solid #cbd5e1; font-size: 0.85rem;">
+          </div>
+          <div style="display: flex; gap: 10px;">
+            <div style="flex: 1;">
+              <label style="display: block; font-size: 0.82rem; font-weight: bold; color: #475569; margin-bottom: 4px;">성별</label>
+              <select id="ga-gender" style="width: 100%; box-sizing: border-box; padding: 10px; border-radius: 8px; border: 1px solid #cbd5e1; font-size: 0.85rem; background: #fff;">
+                <option value="male">남성</option>
+                <option value="female">여성</option>
+              </select>
+            </div>
+            <div style="flex: 1;">
+              <label style="display: block; font-size: 0.82rem; font-weight: bold; color: #475569; margin-bottom: 4px;">나이</label>
+              <input type="number" id="ga-age" placeholder="나이(세)" min="10" max="100" required style="width: 100%; box-sizing: border-box; padding: 10px; border-radius: 8px; border: 1px solid #cbd5e1; font-size: 0.85rem;">
+            </div>
+          </div>
+          ${questionsHtml}
+          <button type="submit" class="submit-button" style="margin-top: 14px; width: 100%; background: linear-gradient(135deg, #0284c7, #0369a1); color: #fff; border: none; border-radius: 10px; padding: 12px; font-size: 0.95rem; font-weight: bold; cursor: pointer; box-shadow: 0 4px 12px rgba(2, 132, 199, 0.3);">
+            지인 동반 신청 완료하기
+          </button>
+        </div>
+      </form>
+    </div>
+  `;
+}
+
+async function submitGuestApplication(e, eventId, inviterUserId, inviteToken) {
+  e.preventDefault();
+  const name = document.getElementById('ga-name').value.trim();
+  const phone = document.getElementById('ga-phone').value.trim();
+  const gender = document.getElementById('ga-gender').value;
+  const age = document.getElementById('ga-age').value.trim();
+
+  if (!name || !phone || !age) {
+    alert('이름, 연락처, 나이를 모두 입력해 주세요.');
+    return;
+  }
+
+  // 질문 답변 수집
+  const answers = [];
+  const textareas = document.querySelectorAll('textarea[name^="guest_answer_"]');
+  textareas.forEach((ta, idx) => {
+    answers.push({ questionIndex: idx, answerText: ta.value.trim() });
+  });
+
+  try {
+    const res = await fetch(`/events/${eventId}/apply-companion`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        inviteToken,
+        inviterUserId,
+        guestInfo: { name, phone, gender, age: parseInt(age) },
+        answers
+      })
+    });
+
+    const data = await res.json();
+    if (res.ok) {
+      alert(data.message || '지인 동반 신청이 완료되었습니다!');
+      window.location.href = 'events.html';
+    } else {
+      alert(data.message || '지인 동반 신청에 실패했습니다.');
+    }
+  } catch (err) {
+    console.error('Error submitting guest application:', err);
+    alert('지인 신청 제출 중 오류가 발생했습니다.');
+  }
+}
