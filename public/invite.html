@@ -44,17 +44,28 @@
       display: flex;
       flex-direction: column;
       align-items: center;
+      justify-content: center;
       padding: 24px 16px 48px;
     }
 
-    .invite-container {
+    /* 액자형 초대장 카드 외곽 틀 */
+    .invite-card-frame {
       width: 100%;
-      max-width: 480px;
+      max-width: 500px;
       background: #FFFFFF;
-      border-radius: 24px;
-      border: 1px solid rgba(10, 132, 254, 0.2);
-      box-shadow: 0 20px 40px rgba(10, 132, 254, 0.08);
+      border-radius: 28px;
+      border: 2px solid #0A84FE;
+      box-shadow: 0 24px 50px rgba(10, 132, 254, 0.15), inset 0 0 0 6px #F2F8FF;
+      padding: 10px;
+      position: relative;
+    }
+
+    /* 초대장 카드 내부 영역 */
+    .invite-card-inner {
+      border: 1px solid rgba(10, 132, 254, 0.3);
+      border-radius: 20px;
       overflow: hidden;
+      background: #FFFFFF;
     }
 
     .invite-banner {
@@ -62,6 +73,7 @@
       color: #FFFFFF;
       padding: 32px 24px 24px;
       text-align: center;
+      position: relative;
     }
 
     .invite-badge {
@@ -85,8 +97,16 @@
       letter-spacing: -0.3px;
     }
 
+    .invitation-divider {
+      width: 60px;
+      height: 2px;
+      background: rgba(255, 255, 255, 0.35);
+      margin: 14px auto 0;
+      border-radius: 2px;
+    }
+
     .inviter-badge-box {
-      margin: 16px 24px 0;
+      margin: 16px 20px 0;
       background: #E8F2FF;
       border: 1px solid rgba(10, 132, 254, 0.25);
       border-radius: 14px;
@@ -109,7 +129,7 @@
     }
 
     .invite-body {
-      padding: 24px;
+      padding: 24px 20px;
     }
 
     .section-heading {
@@ -259,88 +279,92 @@
 </head>
 <body>
 
-  <div class="invite-container">
-    <div class="invite-banner">
-      <span class="invite-badge">CONTENIDO INVITATION</span>
-      <h1 class="invite-title" id="inv-event-title">초대장 로딩 중...</h1>
-    </div>
-
-    <div class="inviter-badge-box" id="inviter-box" style="display: none;">
-      <div class="inviter-badge-label">초대한 부원</div>
-      <div class="inviter-badge-name" id="inviter-name">-</div>
-    </div>
-
-    <div class="invite-body">
-      <div id="loading-view" class="loading-spinner">
-        초대장 정보를 불러오고 있습니다...
+  <!-- 초대장 모양 외곽 카드리플렛 프레임 -->
+  <div class="invite-card-frame">
+    <div class="invite-card-inner">
+      <div class="invite-banner">
+        <span class="invite-badge">CONTENIDO INVITATION</span>
+        <h1 class="invite-title" id="inv-event-title">초대장 로딩 중...</h1>
+        <div class="invitation-divider"></div>
       </div>
 
-      <div id="error-view" style="display: none; text-align: center; color: #EF4444; padding: 24px;">
-        <p id="error-msg" style="font-weight: 700; font-size: 0.95rem;">초대장 링크를 확인해 주세요.</p>
+      <div class="inviter-badge-box" id="inviter-box" style="display: none;">
+        <div class="inviter-badge-label">초대한 부원</div>
+        <div class="inviter-badge-name" id="inviter-name">-</div>
       </div>
 
-      <div id="content-view" style="display: none;">
-        <!-- 이벤트 핵심 정보 -->
-        <h2 class="section-heading">이벤트 정보</h2>
-        <div class="info-card">
-          <div class="info-row">
-            <span class="info-label">일시</span>
-            <span class="info-val" id="inv-date-time">-</span>
-          </div>
-          <div class="info-row">
-            <span class="info-label">장소</span>
-            <span class="info-val" id="inv-place">-</span>
-          </div>
-          <div class="info-row">
-            <span class="info-label">참가비</span>
-            <span class="info-val" id="inv-fee">-</span>
-          </div>
+      <div class="invite-body">
+        <div id="loading-view" class="loading-spinner">
+          초대장 정보를 불러오고 있습니다...
         </div>
 
-        <!-- 이벤트 본문 상세 내용 -->
-        <div class="contents-card" id="inv-contents-card" style="display: none;">
-          <h2 class="section-heading">이벤트 상세 안내</h2>
-          <div class="contents-body" id="inv-contents"></div>
+        <div id="error-view" style="display: none; text-align: center; color: #EF4444; padding: 24px;">
+          <p id="error-msg" style="font-weight: 700; font-size: 0.95rem;">초대장 링크를 확인해 주세요.</p>
         </div>
 
-        <!-- 지인 신청서 작성 폼 -->
-        <h2 class="section-heading">지인 참가 신청서</h2>
-        <form id="invite-form">
-          <div class="form-group">
-            <label for="ga-name">성함</label>
-            <input type="text" id="ga-name" class="form-control" placeholder="성함 입력" required>
-          </div>
-
-          <div class="form-group">
-            <label for="ga-phone">연락처</label>
-            <input type="tel" id="ga-phone" class="form-control" placeholder="010-XXXX-XXXX" required>
-          </div>
-
-          <div style="display: flex; gap: 10px;">
-            <div class="form-group" style="flex: 1;">
-              <label for="ga-gender">성별</label>
-              <select id="ga-gender" class="form-control">
-                <option value="male">남성</option>
-                <option value="female">여성</option>
-              </select>
+        <div id="content-view" style="display: none;">
+          <!-- 이벤트 핵심 정보 -->
+          <h2 class="section-heading">이벤트 정보</h2>
+          <div class="info-card">
+            <div class="info-row">
+              <span class="info-label">일시</span>
+              <span class="info-val" id="inv-date-time">-</span>
             </div>
-            <div class="form-group" style="flex: 1;">
-              <label for="ga-age">나이</label>
-              <input type="number" id="ga-age" class="form-control" placeholder="나이(세)" min="10" max="100" required>
+            <div class="info-row">
+              <span class="info-label">장소</span>
+              <span class="info-val" id="inv-place">-</span>
+            </div>
+            <div class="info-row">
+              <span class="info-label">참가비</span>
+              <span class="info-val" id="inv-fee">-</span>
             </div>
           </div>
 
-          <div id="questions-container"></div>
+          <!-- 이벤트 본문 상세 내용 -->
+          <div class="contents-card" id="inv-contents-card" style="display: none;">
+            <h2 class="section-heading">이벤트 상세 안내</h2>
+            <div class="contents-body" id="inv-contents"></div>
+          </div>
 
-          <button type="submit" id="submit-btn" class="submit-btn">지인 참가 신청 완료하기</button>
-        </form>
-      </div>
+          <!-- 지인 신청서 작성 폼 -->
+          <h2 class="section-heading">지인 참가 신청서</h2>
+          <form id="invite-form">
+            <div class="form-group">
+              <label for="ga-name">성함</label>
+              <input type="text" id="ga-name" class="form-control" placeholder="성함 입력" required>
+            </div>
 
-      <div id="success-view" class="success-container" style="display: none;">
-        <h2 class="success-title">신청이 성공적으로 접수되었습니다</h2>
-        <p class="success-text">
-          지인 동반 신청이 완료되었습니다.<br>행사 당일 뵙겠습니다. 감사합니다.
-        </p>
+            <div class="form-group">
+              <label for="ga-phone">연락처</label>
+              <input type="tel" id="ga-phone" class="form-control" placeholder="010-XXXX-XXXX" required>
+            </div>
+
+            <div style="display: flex; gap: 10px;">
+              <div class="form-group" style="flex: 1;">
+                <label for="ga-gender">성별</label>
+                <select id="ga-gender" class="form-control">
+                  <option value="male">남성</option>
+                  <option value="female">여성</option>
+                </select>
+              </div>
+              <div class="form-group" style="flex: 1;">
+                <label for="ga-age">나이</label>
+                <input type="number" id="ga-age" class="form-control" placeholder="나이(세)" min="10" max="100" required>
+              </div>
+            </div>
+
+            <div id="questions-container"></div>
+
+            <button type="submit" id="submit-btn" class="submit-btn">지인 참가 신청 완료하기</button>
+          </form>
+        </div>
+
+        <div id="success-view" class="success-container" style="display: none;">
+          <h2 class="success-title">신청이 성공적으로 접수되었습니다</h2>
+          <p class="success-text">
+            지인 동반 신청이 완료되었습니다.<br>행사 당일 뵙겠습니다. 감사합니다.
+          </p>
+        </div>
       </div>
     </div>
   </div>
