@@ -170,7 +170,7 @@ router.post('/bulk-update', authenticateToken, requireHRPermission, async (req, 
             continue;
           }
 
-          // 해당 월 서포터즈인 경우 경고 면제 처리
+          // 해당 월 서포터즈인 경우 경고 면제 처리 (전 달 서포터즈 명단 기준: 예 7월 서포터즈 -> 8월 면제)
           let targetY = new Date().getFullYear();
           let targetM = new Date().getMonth() + 1;
           if (targetMonth && targetMonth.includes('-')) {
@@ -178,7 +178,10 @@ router.post('/bulk-update', authenticateToken, requireHRPermission, async (req, 
             targetY = parseInt(parts[0]);
             targetM = parseInt(parts[1]);
           }
-          const supporterDoc = await Supporter.findOne({ year: targetY, month: targetM }).lean();
+          let supporterY = targetM === 1 ? targetY - 1 : targetY;
+          let supporterM = targetM === 1 ? 12 : targetM - 1;
+
+          const supporterDoc = await Supporter.findOne({ year: supporterY, month: supporterM }).lean();
           const isSupporter = supporterDoc && supporterDoc.memberIds.some(id => id.toString() === user._id.toString());
           if (isSupporter) {
             skipped++;
@@ -341,8 +344,12 @@ router.get('/monthly-application-status', authenticateToken, requireHRPermission
       };
     };
 
-    // 해당 월 서포터즈 명단 조회
-    const supporterDoc = await Supporter.findOne({ year, month: month + 1 }).lean();
+    // targetDisplayMonth (예: 8월)의 경고 면제 서포터즈는 전 달(예: 7월) 서포터즈 명단 기준
+    const targetDisplayMonth = month + 1;
+    const supporterYear = targetDisplayMonth === 1 ? year - 1 : year;
+    const supporterMonth = targetDisplayMonth === 1 ? 12 : targetDisplayMonth - 1;
+
+    const supporterDoc = await Supporter.findOne({ year: supporterYear, month: supporterMonth }).lean();
     const supporterSet = new Set((supporterDoc?.memberIds || []).map(id => id.toString()));
 
     // 스타터-스태프 명단 조회 (매번 경고 면제)

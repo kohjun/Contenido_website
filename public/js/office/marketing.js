@@ -80,9 +80,16 @@
     const titleMonth = document.getElementById('supporter-title-month');
     const listEl = document.getElementById('confirmed-supporters-list');
     const countEl = document.getElementById('confirmed-supporters-count');
+    const noteEl = document.getElementById('supporter-next-month-note');
+
+    const mNum = parseInt(month);
+    const nextMonth = mNum === 12 ? 1 : mNum + 1;
 
     if (monthLabel) monthLabel.textContent = `${month}월`;
     if (titleMonth) titleMonth.textContent = `${month}월`;
+    if (noteEl && !isNaN(mNum)) {
+      noteEl.textContent = `${mNum}월 서포터즈 인원을 선택하고 저장하면 다음 달인 ${nextMonth}월 인사팀 페이지에서 '서포터즈' 표시 및 의무 신청 경고가 자동으로 면제됩니다.`;
+    }
 
     if (!listEl) return;
 
