@@ -615,11 +615,16 @@ function renderParticipantList() {
         <div style="margin-top: 8px; padding: 8px 12px; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 10px; font-size: 0.82rem; color: #166534;">
           <strong style="display: flex; align-items: center; gap: 4px; color: #15803d; margin-bottom: 4px;">👥 동반 지인 (${p.companions.length}명)</strong>
           <div style="display: flex; flex-wrap: wrap; gap: 6px;">
-            ${p.companions.map(c => `
-              <span style="background: #ffffff; border: 1px solid #cbd5e1; padding: 2px 8px; border-radius: 6px; font-weight: 500; color: #334155;">
-                ${escapeHtml(c.name)} <small style="color: #64748b;">(${escapeHtml(c.phone)})</small>
-              </span>
-            `).join('')}
+            ${p.companions.map(c => {
+              const gStr = c.gender === 'female' ? '여' : (c.gender === 'male' ? '남' : '');
+              const ageStr = c.age ? `${c.age}세` : '';
+              const metaInfo = [gStr, ageStr, c.phone].filter(Boolean).join(' · ');
+              return `
+                <span style="background: #ffffff; border: 1px solid #cbd5e1; padding: 2px 8px; border-radius: 6px; font-weight: 500; color: #334155;">
+                  ${escapeHtml(c.name)} <small style="color: #64748b;">(${escapeHtml(metaInfo)})</small>
+                </span>
+              `;
+            }).join('')}
           </div>
         </div>
       `

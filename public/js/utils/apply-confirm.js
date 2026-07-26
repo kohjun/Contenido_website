@@ -291,11 +291,16 @@
         }
         const row = document.createElement('div');
         row.className = 'ac-companion-row';
-        row.style.cssText = 'display: flex; gap: 8px; margin-bottom: 8px; align-items: center;';
+        row.style.cssText = 'display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; padding: 8px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; align-items: center;';
         row.innerHTML = `
-          <input type="text" class="ac-c-name" placeholder="지인 이름" style="flex: 1; padding: 8px 10px; border-radius: 8px; border: 1px solid #CBD5E1; font-size: 0.85rem;" required>
-          <input type="tel" class="ac-c-phone" placeholder="연락처 (010-XXXX-XXXX)" style="flex: 1.2; padding: 8px 10px; border-radius: 8px; border: 1px solid #CBD5E1; font-size: 0.85rem;" required>
-          <button type="button" class="ac-remove-c-btn" style="background: #ef4444; color: white; border: none; border-radius: 6px; padding: 6px 8px; font-size: 0.75rem; cursor: pointer;">삭제</button>
+          <input type="text" class="ac-c-name" placeholder="이름" style="flex: 1; min-width: 75px; padding: 6px 8px; border-radius: 6px; border: 1px solid #CBD5E1; font-size: 0.82rem;" required>
+          <input type="tel" class="ac-c-phone" placeholder="연락처 (010-XXXX-XXXX)" style="flex: 1.2; min-width: 110px; padding: 6px 8px; border-radius: 6px; border: 1px solid #CBD5E1; font-size: 0.82rem;" required>
+          <select class="ac-c-gender" style="padding: 6px 6px; border-radius: 6px; border: 1px solid #CBD5E1; font-size: 0.82rem; background: #fff;">
+            <option value="male">남성</option>
+            <option value="female">여성</option>
+          </select>
+          <input type="number" class="ac-c-age" placeholder="나이(세)" min="10" max="100" style="width: 70px; padding: 6px 6px; border-radius: 6px; border: 1px solid #CBD5E1; font-size: 0.82rem;" required>
+          <button type="button" class="ac-remove-c-btn" style="background: #ef4444; color: white; border: none; border-radius: 6px; padding: 5px 8px; font-size: 0.75rem; cursor: pointer;">삭제</button>
         `;
         row.querySelector('.ac-remove-c-btn').addEventListener('click', () => row.remove());
         compList.appendChild(row);
@@ -317,12 +322,16 @@
         for (const r of rows) {
           const name = (r.querySelector('.ac-c-name')?.value || '').trim();
           const phone = (r.querySelector('.ac-c-phone')?.value || '').trim();
-          if (name || phone) {
-            if (!name || !phone) {
-              alert('동반 지인의 이름과 연락처를 모두 입력해 주세요.');
+          const gender = r.querySelector('.ac-c-gender')?.value || 'male';
+          const ageVal = (r.querySelector('.ac-c-age')?.value || '').trim();
+          const age = ageVal ? parseInt(ageVal) : null;
+
+          if (name || phone || ageVal) {
+            if (!name || !phone || !ageVal) {
+              alert('동반 지인의 이름, 연락처, 나이를 모두 입력해 주세요.');
               return null;
             }
-            list.push({ name, phone });
+            list.push({ name, phone, gender, age });
           }
         }
         return list;

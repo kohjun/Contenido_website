@@ -61,8 +61,9 @@ const appliedParticipantSchema = new mongoose.Schema({
   companions: [{
     name: { type: String, required: true },
     phone: { type: String, required: true },
-    relationship: { type: String, default: '지인' },
-    gender: { type: String, enum: ['male', 'female', 'none'], default: 'none' }
+    gender: { type: String, enum: ['male', 'female', 'none', 'other'], default: 'male' },
+    age: { type: Number },
+    relationship: { type: String, default: '지인' }
   }],
   // 현재(활성) 신청의 상태 변경 이력
   statusHistory: [statusHistoryEntrySchema],

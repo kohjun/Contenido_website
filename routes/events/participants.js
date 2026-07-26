@@ -209,9 +209,11 @@ router.post('/:id/apply',
           return res.status(400).json({ message: `지인 동반은 인당 최대 ${maxAllowed}명까지만 신청할 수 있습니다.` });
         }
         for (const c of companions) {
-          if (!c.name || !c.name.trim() || !c.phone || !c.phone.trim()) {
-            return res.status(400).json({ message: '동반 지인의 이름과 연락처를 모두 입력해 주세요.' });
+          if (!c.name || !c.name.trim() || !c.phone || !c.phone.trim() || !c.age) {
+            return res.status(400).json({ message: '동반 지인의 이름, 연락처, 나이를 모두 입력해 주세요.' });
           }
+          if (c.age) c.age = parseInt(c.age);
+          if (!c.gender) c.gender = 'male';
         }
       }
 

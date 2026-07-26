@@ -326,7 +326,13 @@ function displayEvents(containerId, events, emptyMessage) {
     if (containerId === 'applied-events' && currentUserId && Array.isArray(event.appliedParticipants)) {
       const myApp = event.appliedParticipants.find(p => String(p.userId || p.userId?._id) === String(currentUserId));
       if (myApp && Array.isArray(myApp.companions) && myApp.companions.length > 0) {
-        companionBadge = `<div style="margin-top: 6px; font-size: 0.82rem; color: #0284c7; font-weight: bold;">👥 동반 지인 ${myApp.companions.length}명 (${myApp.companions.map(c => c.name).join(', ')})</div>`;
+        const names = myApp.companions.map(c => {
+          const gStr = c.gender === 'female' ? '여' : (c.gender === 'male' ? '남' : '');
+          const ageStr = c.age ? `${c.age}세` : '';
+          const meta = [gStr, ageStr].filter(Boolean).join(' ');
+          return meta ? `${c.name}(${meta})` : c.name;
+        }).join(', ');
+        companionBadge = `<div style="margin-top: 6px; font-size: 0.82rem; color: #0284c7; font-weight: bold;">👥 동반 지인 ${myApp.companions.length}명: ${names}</div>`;
       }
     }
 
