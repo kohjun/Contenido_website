@@ -27,146 +27,233 @@
   <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;600;700;800&display=swap" rel="stylesheet">
 
   <style>
+    @font-face {
+      font-family: 'GmarketSansMedium';
+      src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_2001@1.1/GmarketSansMedium.woff') format('woff');
+      font-weight: normal;
+      font-style: normal;
+    }
+
     * { box-sizing: border-box; margin: 0; padding: 0; }
+
     body {
-      background: #f8fafc;
-      font-family: 'Pretendard', system-ui, -apple-system, sans-serif;
-      color: #0f172a;
+      background: linear-gradient(180deg, #F2F8FF 0%, #E8F2FF 100%);
+      font-family: 'GmarketSansMedium', 'Pretendard', system-ui, -apple-system, sans-serif;
+      color: #0F172A;
       min-height: 100vh;
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: 20px 16px 40px;
+      padding: 24px 16px 48px;
     }
+
     .invite-container {
       width: 100%;
       max-width: 480px;
-      background: #ffffff;
+      background: #FFFFFF;
       border-radius: 24px;
-      border: 2px solid #38bdf8;
-      box-shadow: 0 20px 40px rgba(2, 132, 199, 0.12);
+      border: 1px solid rgba(10, 132, 254, 0.2);
+      box-shadow: 0 20px 40px rgba(10, 132, 254, 0.08);
       overflow: hidden;
     }
+
     .invite-banner {
-      background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
-      color: #ffffff;
-      padding: 28px 24px 20px;
+      background: linear-gradient(135deg, #0A84FE 0%, #0875E0 100%);
+      color: #FFFFFF;
+      padding: 32px 24px 24px;
       text-align: center;
     }
+
     .invite-badge {
       display: inline-block;
       background: rgba(255, 255, 255, 0.2);
-      padding: 4px 14px;
+      color: #FFFFFF;
+      padding: 5px 14px;
       border-radius: 20px;
-      font-size: 0.78rem;
-      letter-spacing: 1px;
+      font-size: 0.76rem;
+      letter-spacing: 1.5px;
       font-weight: 700;
-      margin-bottom: 8px;
+      margin-bottom: 10px;
+      text-transform: uppercase;
     }
+
     .invite-title {
       font-size: 1.35rem;
       font-weight: 800;
-      margin-bottom: 4px;
-      line-height: 1.3;
+      margin: 0;
+      line-height: 1.35;
+      letter-spacing: -0.3px;
     }
+
     .inviter-badge-box {
-      margin: 16px 20px 0;
-      background: linear-gradient(135deg, #e0f2fe, #bae6fd);
+      margin: 16px 24px 0;
+      background: #E8F2FF;
+      border: 1px solid rgba(10, 132, 254, 0.25);
       border-radius: 14px;
-      padding: 14px;
+      padding: 14px 16px;
       text-align: center;
-      border: 1px solid #7dd3fc;
     }
-    .inviter-badge-box strong {
-      color: #0369a1;
+
+    .inviter-badge-label {
+      font-size: 0.78rem;
+      color: #0A84FE;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      margin-bottom: 2px;
+    }
+
+    .inviter-badge-name {
+      color: #0F172A;
       font-size: 1.05rem;
+      font-weight: 800;
     }
+
     .invite-body {
-      padding: 20px 24px 28px;
+      padding: 24px;
     }
+
+    .section-heading {
+      font-size: 0.95rem;
+      font-weight: 800;
+      color: #0F172A;
+      margin-bottom: 10px;
+      letter-spacing: -0.2px;
+    }
+
     .info-card {
-      background: #f0f9ff;
-      border: 1px solid #bae6fd;
+      background: #F8FAFC;
+      border: 1px solid #E2E8F0;
       border-radius: 16px;
-      padding: 16px;
+      padding: 16px 18px;
       margin-bottom: 20px;
     }
+
     .info-row {
       display: flex;
       align-items: flex-start;
-      gap: 10px;
+      gap: 12px;
       margin-bottom: 10px;
-      font-size: 0.9rem;
+      font-size: 0.88rem;
     }
+
     .info-row:last-child { margin-bottom: 0; }
+
     .info-label {
-      color: #0284c7;
+      color: #0A84FE;
       font-weight: 700;
-      min-width: 60px;
+      min-width: 52px;
     }
+
     .info-val {
       color: #334155;
       flex: 1;
+      font-weight: 500;
+      word-break: break-word;
     }
+
+    .contents-card {
+      background: #FFFFFF;
+      border: 1px solid #E2E8F0;
+      border-radius: 16px;
+      padding: 18px;
+      margin-bottom: 24px;
+    }
+
+    .contents-body {
+      font-size: 0.88rem;
+      color: #334155;
+      line-height: 1.65;
+      word-break: break-word;
+    }
+
+    .contents-body img {
+      max-width: 100%;
+      height: auto;
+      border-radius: 10px;
+      margin: 10px 0;
+    }
+
     .form-group {
-      margin-bottom: 14px;
+      margin-bottom: 16px;
     }
+
     .form-group label {
       display: block;
-      font-size: 0.85rem;
+      font-size: 0.84rem;
       font-weight: 700;
       color: #475569;
       margin-bottom: 6px;
     }
+
     .form-control {
       width: 100%;
-      padding: 12px;
-      border-radius: 10px;
-      border: 1.5px solid #cbd5e1;
-      font-size: 0.9rem;
+      padding: 12px 14px;
+      border-radius: 12px;
+      border: 1.5px solid #CBD5E1;
+      font-size: 0.88rem;
       font-family: inherit;
-      background: #fff;
+      background: #FFFFFF;
+      color: #0F172A;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease;
     }
+
     .form-control:focus {
       outline: none;
-      border-color: #0284c7;
-      box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15);
+      border-color: #0A84FE;
+      box-shadow: 0 0 0 3px rgba(10, 132, 254, 0.15);
     }
+
     .submit-btn {
       width: 100%;
-      background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
-      color: #ffffff;
+      background: linear-gradient(135deg, #0A84FE 0%, #0875E0 100%);
+      color: #FFFFFF;
       border: none;
-      border-radius: 12px;
-      padding: 14px;
-      font-size: 1rem;
+      border-radius: 14px;
+      padding: 15px;
+      font-size: 0.98rem;
       font-weight: 800;
       font-family: inherit;
       cursor: pointer;
-      box-shadow: 0 8px 20px rgba(2, 132, 199, 0.3);
-      transition: transform 0.15s ease, background 0.15s ease;
+      box-shadow: 0 8px 20px rgba(10, 132, 254, 0.25);
+      transition: transform 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
       margin-top: 10px;
     }
+
     .submit-btn:hover {
       transform: translateY(-1px);
+      box-shadow: 0 10px 24px rgba(10, 132, 254, 0.35);
     }
+
     .submit-btn:disabled {
-      background: #94a3b8;
+      background: #CBD5E1;
       box-shadow: none;
       cursor: not-allowed;
+      transform: none;
     }
+
     .success-container {
       text-align: center;
-      padding: 30px 20px;
+      padding: 32px 20px;
     }
-    .success-icon {
-      font-size: 3rem;
-      margin-bottom: 12px;
+
+    .success-title {
+      font-size: 1.3rem;
+      font-weight: 800;
+      color: #0F172A;
+      margin-bottom: 10px;
     }
+
+    .success-text {
+      color: #475569;
+      font-size: 0.9rem;
+      line-height: 1.6;
+    }
+
     .loading-spinner {
       text-align: center;
       padding: 40px 20px;
       color: #64748b;
+      font-size: 0.9rem;
     }
   </style>
 </head>
@@ -174,13 +261,13 @@
 
   <div class="invite-container">
     <div class="invite-banner">
-      <span class="invite-badge">💌 CONTENIDO EVENT</span>
+      <span class="invite-badge">CONTENIDO INVITATION</span>
       <h1 class="invite-title" id="inv-event-title">초대장 로딩 중...</h1>
     </div>
 
     <div class="inviter-badge-box" id="inviter-box" style="display: none;">
-      <span style="font-size: 0.8rem; color: #0284c7; font-weight: 700;">초대한 부원</span><br>
-      <strong id="inviter-name">-</strong>
+      <div class="inviter-badge-label">초대한 부원</div>
+      <div class="inviter-badge-name" id="inviter-name">-</div>
     </div>
 
     <div class="invite-body">
@@ -188,29 +275,39 @@
         초대장 정보를 불러오고 있습니다...
       </div>
 
-      <div id="error-view" style="display: none; text-align: center; color: #ef4444; padding: 20px;">
-        <p id="error-msg">초대장 링크를 확인해 주세요.</p>
+      <div id="error-view" style="display: none; text-align: center; color: #EF4444; padding: 24px;">
+        <p id="error-msg" style="font-weight: 700; font-size: 0.95rem;">초대장 링크를 확인해 주세요.</p>
       </div>
 
       <div id="content-view" style="display: none;">
+        <!-- 이벤트 핵심 정보 -->
+        <h2 class="section-heading">이벤트 정보</h2>
         <div class="info-card">
           <div class="info-row">
-            <span class="info-label">📅 일시</span>
+            <span class="info-label">일시</span>
             <span class="info-val" id="inv-date-time">-</span>
           </div>
           <div class="info-row">
-            <span class="info-label">📍 장소</span>
+            <span class="info-label">장소</span>
             <span class="info-val" id="inv-place">-</span>
           </div>
           <div class="info-row">
-            <span class="info-label">💵 참가비</span>
+            <span class="info-label">참가비</span>
             <span class="info-val" id="inv-fee">-</span>
           </div>
         </div>
 
+        <!-- 이벤트 본문 상세 내용 -->
+        <div class="contents-card" id="inv-contents-card" style="display: none;">
+          <h2 class="section-heading">이벤트 상세 안내</h2>
+          <div class="contents-body" id="inv-contents"></div>
+        </div>
+
+        <!-- 지인 신청서 작성 폼 -->
+        <h2 class="section-heading">지인 참가 신청서</h2>
         <form id="invite-form">
           <div class="form-group">
-            <label for="ga-name">지인 성함</label>
+            <label for="ga-name">성함</label>
             <input type="text" id="ga-name" class="form-control" placeholder="성함 입력" required>
           </div>
 
@@ -240,10 +337,9 @@
       </div>
 
       <div id="success-view" class="success-container" style="display: none;">
-        <div class="success-icon">🎉</div>
-        <h2 style="font-size: 1.25rem; font-weight: 800; color: #0f172a; margin-bottom: 8px;">신청이 완료되었습니다!</h2>
-        <p style="color: #64748b; font-size: 0.9rem; line-height: 1.5;">
-          지인 동반 신청이 정상 접수되었습니다.<br>행사 당일 뵙겠습니다. 감사합니다!
+        <h2 class="success-title">신청이 성공적으로 접수되었습니다</h2>
+        <p class="success-text">
+          지인 동반 신청이 완료되었습니다.<br>행사 당일 뵙겠습니다. 감사합니다.
         </p>
       </div>
     </div>

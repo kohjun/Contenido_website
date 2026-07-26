@@ -16,6 +16,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   const invDateTime = document.getElementById('inv-date-time');
   const invPlace = document.getElementById('inv-place');
   const invFee = document.getElementById('inv-fee');
+  const invContentsCard = document.getElementById('inv-contents-card');
+  const invContents = document.getElementById('inv-contents');
   const questionsContainer = document.getElementById('questions-container');
   const inviteForm = document.getElementById('invite-form');
   const submitBtn = document.getElementById('submit-btn');
@@ -60,11 +62,17 @@ document.addEventListener('DOMContentLoaded', async () => {
     invPlace.textContent = eventData.place || '상세 장소 추후 공지';
     invFee.textContent = eventData.participation_fee ? `${eventData.participation_fee.toLocaleString()}원` : '무료';
 
-    // 추가 질문 렌더링
+    // 이벤트 상세 본문 렌더링
+    if (eventData.contents && invContents && invContentsCard) {
+      invContents.innerHTML = eventData.contents;
+      invContentsCard.style.display = 'block';
+    }
+
+    // 추가 질문 렌더링 (아이콘 없이 깔끔한 텍스트 라벨)
     if (eventData.isSelective && Array.isArray(eventData.additionalQuestions) && eventData.additionalQuestions.length > 0) {
       questionsContainer.innerHTML = `
         <div style="margin: 16px 0 14px; padding-top: 14px; border-top: 1px dashed #cbd5e1;">
-          <h4 style="font-size: 0.9rem; color: #1e293b; margin-bottom: 10px;">📋 추가 질문</h4>
+          <h3 class="section-heading" style="margin-bottom: 12px;">추가 질문</h3>
           ${eventData.additionalQuestions.map((q, idx) => `
             <div class="form-group">
               <label>Q${idx + 1}. ${escapeHtml(q.questionText)}</label>
