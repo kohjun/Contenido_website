@@ -185,7 +185,7 @@
     const phoneTail = digits.length >= 4 ? digits.slice(-4) : digits;
     const inviterLabel = `${inviterName} (${phoneTail})`;
 
-    const inviteUrl = `${window.location.origin}/additional-info.html?id=${eventData._id}&invite=${inviteToken}`;
+    const inviteUrl = `${window.location.origin}/invite.html?id=${eventData._id}&invite=${inviteToken}`;
 
     overlay.innerHTML = `
       <div class="inv-card" role="dialog" aria-modal="true">

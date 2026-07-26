@@ -1,8 +1,16 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ko">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script>
+    (function() {
+      var p = new URLSearchParams(window.location.search);
+      if (p.has('invite') || p.has('inviter')) {
+        window.location.replace('/invite.html' + window.location.search);
+      }
+    })();
+  </script>
   <title>콘테니도 이벤트 초대장</title>
   <meta property="og:type" content="website">
   <meta property="og:title" content="콘테니도 이벤트 초대장">
