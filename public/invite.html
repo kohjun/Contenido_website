@@ -171,19 +171,56 @@
       word-break: break-word;
     }
 
+    /* 이벤트 상세 안내 접기/펼치기 카드 */
     .contents-card {
       background: #FFFFFF;
       border: 1px solid #E2E8F0;
       border-radius: 16px;
-      padding: 18px;
+      padding: 16px 18px;
       margin-bottom: 24px;
     }
 
+    .contents-header-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .contents-toggle-btn {
+      background: #E8F2FF;
+      color: #0A84FE;
+      border: none;
+      border-radius: 20px;
+      padding: 5px 12px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      font-family: inherit;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      transition: background 0.15s ease;
+    }
+
+    .contents-toggle-btn:hover {
+      background: #DBEAFE;
+    }
+
     .contents-body {
+      display: none;
       font-size: 0.88rem;
       color: #334155;
       line-height: 1.65;
       word-break: break-word;
+      margin-top: 14px;
+      padding-top: 14px;
+      border-top: 1px solid #F1F5F9;
+    }
+
+    .contents-body.is-open {
+      display: block;
     }
 
     .contents-body img {
@@ -320,9 +357,15 @@
             </div>
           </div>
 
-          <!-- 이벤트 본문 상세 내용 -->
+          <!-- 이벤트 본문 상세 내용 (접기/펼치기 토글) -->
           <div class="contents-card" id="inv-contents-card" style="display: none;">
-            <h2 class="section-heading">이벤트 상세 안내</h2>
+            <div class="contents-header-row" id="inv-contents-toggle">
+              <h2 class="section-heading" style="margin-bottom: 0;">이벤트 상세 안내</h2>
+              <button type="button" class="contents-toggle-btn">
+                <span id="toggle-btn-text">펼치기</span>
+                <span id="toggle-btn-icon">▼</span>
+              </button>
+            </div>
             <div class="contents-body" id="inv-contents"></div>
           </div>
 

@@ -62,10 +62,29 @@ document.addEventListener('DOMContentLoaded', async () => {
     invPlace.textContent = eventData.place || '상세 장소 추후 공지';
     invFee.textContent = eventData.participation_fee ? `${eventData.participation_fee.toLocaleString()}원` : '무료';
 
-    // 이벤트 상세 본문 렌더링
+    // 이벤트 상세 본문 렌더링 & 펼치기/접기 토글
     if (eventData.contents && invContents && invContentsCard) {
       invContents.innerHTML = eventData.contents;
       invContentsCard.style.display = 'block';
+
+      const toggleHeader = document.getElementById('inv-contents-toggle');
+      const toggleText = document.getElementById('toggle-btn-text');
+      const toggleIcon = document.getElementById('toggle-btn-icon');
+
+      if (toggleHeader) {
+        toggleHeader.addEventListener('click', () => {
+          const isOpen = invContents.classList.contains('is-open');
+          if (isOpen) {
+            invContents.classList.remove('is-open');
+            if (toggleText) toggleText.textContent = '펼치기';
+            if (toggleIcon) toggleIcon.textContent = '▼';
+          } else {
+            invContents.classList.add('is-open');
+            if (toggleText) toggleText.textContent = '접기';
+            if (toggleIcon) toggleIcon.textContent = '▲';
+          }
+        });
+      }
     }
 
     // 추가 질문 렌더링 (아이콘 없이 깔끔한 텍스트 라벨)
