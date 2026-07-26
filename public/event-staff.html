@@ -23,8 +23,6 @@
         <button type="button" class="tab is-active" role="tab" aria-selected="true"
                 data-target="panel-create">새 이벤트 등록</button>
         <button type="button" class="tab" role="tab" aria-selected="false"
-                data-target="panel-report">참가자 보고</button>
-        <button type="button" class="tab" role="tab" aria-selected="false"
                 data-target="panel-status">신청자 관리</button>
       </div>
     </div>
@@ -367,82 +365,7 @@
       </div>
     </section>
 
-    <!-- ===== 패널 2: 보고서 ===== -->
-    <section id="panel-report" class="es-tab-panel" role="tabpanel">
-      <div class="es-card">
-        <div class="es-card-header">
-          <h2>최종 참가자 보고서</h2>
-          <p class="desc">완료된 이벤트의 실제 참가자를 선택해 보고서를 제출합니다.</p>
-        </div>
-
-        <div class="es-form">
-
-          <!-- 이벤트 선택 + 불러오기 -->
-          <div class="field">
-            <label class="field-label" for="report-event">이벤트 선택</label>
-            <div class="es-search-row">
-              <select id="report-event" class="select" required></select>
-              <button type="button" class="btn btn-secondary" onclick="loadApprovedParticipants()">
-                승인된 참가자 불러오기
-              </button>
-            </div>
-          </div>
-
-          <!-- 접근 코드 -->
-          <div class="field es-access-code">
-            <label class="field-label" for="report-access-code">접근 코드</label>
-            <input type="password" id="report-access-code" class="input"
-                   pattern="\d{4}" maxlength="4"
-                   placeholder="0000" required>
-            <span class="field-hint">이벤트 생성 시 설정한 접근 코드를 입력하세요</span>
-          </div>
-
-          <!-- 참가자 선택 -->
-          <div class="participant-selection-container">
-
-            <!-- 선택된 미리보기 -->
-            <div class="es-selected-preview">
-              <div class="preview-head">
-                <span>선택된 참가자</span>
-                <span class="count"><span id="selected-count">0</span>명</span>
-              </div>
-              <div id="selected-participants-preview" class="preview-container">
-                <p>선택된 참가자가 없습니다</p>
-              </div>
-            </div>
-
-            <!-- 검색 -->
-            <div class="field" style="margin-top: var(--sp-4);">
-              <label class="field-label" for="participant-search">참가자 검색</label>
-              <div class="es-search-row">
-                <input type="text" id="participant-search" class="input"
-                       placeholder="이름 또는 전화번호 뒷자리로 검색">
-                <button type="button" class="btn btn-ghost"
-                        onclick="searchParticipant(document.getElementById('participant-search').value)">
-                  검색
-                </button>
-              </div>
-              <span class="field-hint">*일일 스태프를 포함하고 노쇼자는 제외하여 체크해주세요</span>
-            </div>
-
-            <!-- 참가자 그리드 -->
-            <div id="participant-list" class="participant-grid"></div>
-          </div>
-
-          <!-- 액션 -->
-          <div class="es-actions">
-            <button type="button" class="btn btn-primary btn-lg" onclick="submitReport()">
-              보고서 제출
-            </button>
-            <button type="button" class="btn btn-ghost" onclick="window.location.href='events.html'">
-              진행중인 이벤트
-            </button>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- ===== 패널 3: 신청자 관리 ===== -->
+    <!-- ===== 패널 2: 신청자 관리 ===== -->
     <section id="panel-status" class="es-tab-panel" role="tabpanel">
       <div class="es-card">
         <div class="es-card-header">

@@ -210,12 +210,24 @@ const getSchedulerStatus = () => {
         description: '이벤트 자동 참가자 확정 (성비 1:1, 어린 순)',
         schedule: '*/5 * * * *',
         nextRun: processEventAutoConfirmations.nextInvocation()
+      },
+      {
+        name: 'autoEndEventsJob',
+        description: '이벤트 행사 종료 시간 경과 시 자동 종료 및 리뷰 유도 알림 발송',
+        schedule: '* * * * *',
+        nextRun: autoEndEventsJob.nextInvocation()
       }
     ],
     currentTime: new Date(),
     timezone: 'Asia/Seoul'
   };
 };
+
+// 매 1분마다 행사 종료 시각 경과 이벤트 자동 종료 및 리뷰 알림 발송
+const { checkAndAutoEndEvents } = require('./eventAutoEnd');
+const autoEndEventsJob = schedule.scheduleJob('* * * * *', async () => {
+  await checkAndAutoEndEvents();
+});
 
 module.exports = {
   // 기존 스케줄러들
@@ -224,6 +236,7 @@ module.exports = {
 
   getSchedulerStatus,
 
-  // 이벤트 자동 확정
-  processEventAutoConfirmations
+  // 이벤트 자동 확정 및 종료
+  processEventAutoConfirmations,
+  autoEndEventsJob
 };

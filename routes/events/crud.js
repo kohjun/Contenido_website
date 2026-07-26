@@ -11,6 +11,8 @@ const authenticateToken = require('../../middleware/authMiddleware');
 const { authorizeRoles } = require('../../middleware/roleMiddleware');
 const { upload, handleMulterError, processAndSaveImages } = require('./_multer');
 
+const { checkAndAutoEndEvents } = require('../../utils/eventAutoEnd');
+
 const router = express.Router();
 
 /* =========================================================================
@@ -20,6 +22,7 @@ const router = express.Router();
 // 모든 진행중 이벤트
 router.get('/', async (req, res) => {
   try {
+    await checkAndAutoEndEvents();
     const events = await Event.find({ isEnded: false }).populate('creator', 'displayName email');
     res.json(events);
   } catch (error) {
@@ -92,6 +95,7 @@ router.get('/ended',
   authorizeRoles('officer', 'participant', 'starter', 'admin', 'guest'),
   async (req, res) => {
     try {
+      await checkAndAutoEndEvents();
       const endedEvents = await Event.find({ isEnded: true });
 
       const eventsWithReviews = await Promise.all(endedEvents.map(async (event) => {
