@@ -425,6 +425,41 @@ function sortParticipants(arr, mode) {
       break;
     case 'status':
       sorted.sort((a, b) => {
+        const aR = statusRank[a.status || 'pending'] ?? 99;
+        const bR = statusRank[b.status || 'pending'] ?? 99;
+        return aR - bR;
+      });
+      break;
+    case 'age-young':
+      sorted.sort((a, b) => new Date(b.birthDate || 0) - new Date(a.birthDate || 0));
+      break;
+    case 'age-old':
+      sorted.sort((a, b) => new Date(a.birthDate || 0) - new Date(b.birthDate || 0));
+      break;
+    case 'count-desc':
+      sorted.sort((a, b) => (b.regularCount || 0) - (a.regularCount || 0));
+      break;
+    case 'count-asc':
+      sorted.sort((a, b) => (a.regularCount || 0) - (b.regularCount || 0));
+      break;
+  }
+  return sorted;
+}
+
+function renderParticipantList() {
+  const list = document.getElementById('participant-list');
+  if (!list || !_currentEvent) return;
+
+  if (_currentParticipants.length === 0) {
+    list.innerHTML = '<div class="empty">아직 신청한 사람이 없어요.</div>';
+    return;
+  }
+
+  // 필터 적용
+  const filtered = _currentFilter === 'all'
+    ? _currentParticipants
+    : _currentParticipants.filter(p => (p.status || 'pending') === _currentFilter);
+
   if (filtered.length === 0) {
     list.innerHTML = `<div class="empty">해당 상태의 신청자가 없어요.</div>`;
     return;
