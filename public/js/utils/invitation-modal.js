@@ -248,7 +248,7 @@
     });
 
     shareBtn.addEventListener('click', () => {
-      const coverImageUrl = `${window.location.origin}/images/invitation_cover.png`;
+      const coverImageUrl = 'https://contenido.kr/images/invitation_cover.png';
       if (window.Kakao && typeof Kakao.isInitialized === 'function' && Kakao.isInitialized()) {
         try {
           Kakao.Share.sendDefault({
@@ -257,6 +257,8 @@
               title: `💌 [콘테니도 초대장] ${title}`,
               description: `${inviterLabel}님이 [${title}] 이벤트에 초대를 보냈습니다. 링크를 눌러 참가 신청을 완료해 주세요!`,
               imageUrl: coverImageUrl,
+              imageWidth: 1200,
+              imageHeight: 630,
               link: {
                 mobileWebUrl: inviteUrl,
                 webUrl: inviteUrl

@@ -439,10 +439,15 @@ async function initializeKakaoShare() {
     return;
   }
 
-  // 이벤트 이미지 URL 설정 (항상 절대 경로)
-  const eventImageUrl = currentEvent.images && currentEvent.images.length > 0
-    ? window.location.origin + (currentEvent.images[0].startsWith('/') ? currentEvent.images[0] : '/' + currentEvent.images[0])
-    : window.location.origin + '/images/Basic_Event_Image.png';
+  // 이벤트 이미지 URL 설정 (초대장 페이지인 경우 초대장 커버 이미지 사용)
+  const urlParams = new URLSearchParams(window.location.search);
+  const isInvitePage = urlParams.has('invite') || urlParams.has('inviter');
+
+  const eventImageUrl = isInvitePage
+    ? 'https://contenido.kr/images/invitation_cover.png'
+    : (currentEvent.images && currentEvent.images.length > 0
+      ? window.location.origin + (currentEvent.images[0].startsWith('/') ? currentEvent.images[0] : '/' + currentEvent.images[0])
+      : window.location.origin + '/images/Basic_Event_Image.png');
 
   // D-Day 계산 추가
   const today = new Date();
