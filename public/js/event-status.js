@@ -661,22 +661,23 @@ function renderParticipantList() {
                     ? '<span style="background: #f1f5f9; color: #64748b; padding: 2px 6px; border-radius: 4px; font-size: 0.72rem;">↩ 본인취소</span>'
                     : '<span style="background: #fef9c3; color: #a16207; padding: 2px 6px; border-radius: 4px; font-size: 0.72rem;">⏳ 대기중</span>'));
 
+              const gId = g._id || g.id;
               let gButtonsHtml = '';
               if (g.status === 'pending') {
                 if (p.status === 'approved') {
                   gButtonsHtml = `
-                    <button onclick="updateGuestStatus('${event._id}', '${g._id}', 'approved')" style="background: #10b981; color: #fff; border: none; border-radius: 6px; padding: 4px 9px; font-size: 0.75rem; font-weight: 700; cursor: pointer;">지인 승인</button>
-                    <button onclick="updateGuestStatus('${event._id}', '${g._id}', 'rejected')" style="background: #ef4444; color: #fff; border: none; border-radius: 6px; padding: 4px 9px; font-size: 0.75rem; cursor: pointer;">거절</button>
+                    <button onclick="updateGuestStatus('${event._id}', '${gId}', 'approved')" style="background: #10b981; color: #fff; border: none; border-radius: 6px; padding: 4px 9px; font-size: 0.75rem; font-weight: 700; cursor: pointer;">지인 승인</button>
+                    <button onclick="updateGuestStatus('${event._id}', '${gId}', 'rejected')" style="background: #ef4444; color: #fff; border: none; border-radius: 6px; padding: 4px 9px; font-size: 0.75rem; cursor: pointer;">거절</button>
                   `;
                 } else {
                   gButtonsHtml = `
                     <button onclick="alert('초대한 부원(${escapeHtml(p.name)})의 참가가 확정(승인)된 후에만 지인을 승인할 수 있습니다.')" style="background: #cbd5e1; color: #64748b; border: none; border-radius: 6px; padding: 4px 9px; font-size: 0.75rem; cursor: not-allowed;" title="부원 승인 후 가능">지인 승인 (부원 승인 필요)</button>
-                    <button onclick="updateGuestStatus('${event._id}', '${g._id}', 'rejected')" style="background: #ef4444; color: #fff; border: none; border-radius: 6px; padding: 4px 9px; font-size: 0.75rem; cursor: pointer;">거절</button>
+                    <button onclick="updateGuestStatus('${event._id}', '${gId}', 'rejected')" style="background: #ef4444; color: #fff; border: none; border-radius: 6px; padding: 4px 9px; font-size: 0.75rem; cursor: pointer;">거절</button>
                   `;
                 }
               } else if (g.status === 'approved' || g.status === 'rejected') {
                 gButtonsHtml = `
-                  <button onclick="resetGuestStatus('${event._id}', '${g._id}', '${escapeHtml(gName)}')" style="background: #64748b; color: #fff; border: none; border-radius: 6px; padding: 3px 8px; font-size: 0.72rem; cursor: pointer;">대기로 되돌리기</button>
+                  <button onclick="resetGuestStatus('${event._id}', '${gId}', '${escapeHtml(gName)}')" style="background: #64748b; color: #fff; border: none; border-radius: 6px; padding: 3px 8px; font-size: 0.72rem; cursor: pointer;">대기로 되돌리기</button>
                 `;
               }
 

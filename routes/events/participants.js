@@ -104,6 +104,7 @@ router.get('/:id/participants',
         const totalCount = (u.participationCount && u.participationCount.totalCount) || 0;
         const regularCount = (u.participationCount && u.participationCount.regularCount) || 0;
         return {
+          _id: participant._id ? participant._id.toString() : null,
           userId: u._id,
           name: participant.isGuest && participant.guestInfo ? participant.guestInfo.name : u.name,
           displayName: participant.isGuest && participant.guestInfo ? participant.guestInfo.name : u.displayName,
