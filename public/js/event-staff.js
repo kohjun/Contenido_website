@@ -431,66 +431,23 @@ function deleteQuestion(button) {
 
 let selectedParticipants = new Set();
 
-async function loadReportFormOptions() {
+async function loadStatusEventOptions() {
   try {
     const response = await fetch('/events');
     const events = await response.json();
 
-    // 두 select에 같은 옵션 채우기
-    ['report-event', 'status-event-select'].forEach(id => {
-      const sel = document.getElementById(id);
-      if (!sel) return;
-      // 첫 placeholder 옵션 유지하고 나머지 제거
-      sel.innerHTML = '<option value="">이벤트를 선택하세요...</option>';
-      events.forEach(event => {
-        const option = document.createElement('option');
-        option.value = event._id;
-        option.textContent = event.title;
-        sel.appendChild(option);
-      });
-    });
+    const sel = document.getElementById('status-event-select');
+    if (!sel) return;
 
-    const participantsResponse = await fetch('/user/participants/users');
-    const participants = await participantsResponse.json();
-
-    const participantList = document.getElementById('participant-list');
-    if (!participantList) {
-      console.error("Element with ID 'participant-list' not found.");
-      return;
-    }
-
-    participantList.innerHTML = '';
-
-    // active가 true인 유저만 + 이름+전화번호 뒷자리 표시
-    const activeParticipants = participants.filter(p => p.active);
-
-    activeParticipants.forEach(participant => {
-      const div = document.createElement('div');
-      div.className = 'participant-item';
-
-      const phoneLastFour = participant.phonenumber ? participant.phonenumber.slice(-4) : '';
-      const displayText = `${participant.name}${phoneLastFour}`;
-
-      div.setAttribute('data-name', displayText.toLowerCase());
-      div.setAttribute('data-display', displayText);
-
-      const checkbox = document.createElement('input');
-      checkbox.type = 'checkbox';
-      checkbox.value = participant.id;
-      checkbox.id = `participant-${participant.id}`;
-      checkbox.setAttribute('data-display', displayText);
-
-      const label = document.createElement('label');
-      label.htmlFor = checkbox.id;
-      label.textContent = displayText;
-
-      div.appendChild(checkbox);
-      div.appendChild(label);
-
-      participantList.appendChild(div);
+    sel.innerHTML = '<option value="">이벤트를 선택하세요...</option>';
+    events.forEach(event => {
+      const option = document.createElement('option');
+      option.value = event._id;
+      option.textContent = event.title;
+      sel.appendChild(option);
     });
   } catch (error) {
-    console.error('Error loading report form options:', error);
+    console.error('Error loading event options:', error);
   }
 }
 
@@ -750,8 +707,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
   }
 
-  // (3) 보고서 폼 옵션 로드 (event-staff.html 인라인 스크립트에서도 호출 가능)
-  if (document.getElementById('report-event')) {
-    loadReportFormOptions();
+  // (3) 신청자 관리 이벤트 목록 옵션 로드
+  if (document.getElementById('status-event-select')) {
+    loadStatusEventOptions();
   }
 });
