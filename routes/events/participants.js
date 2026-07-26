@@ -603,23 +603,14 @@ router.post('/:eventId/participants/:userId/status',
         return res.status(404).json({ message: '참가자를 찾을 수 없습니다.' });
       }
 
-      // 부원 본인이 초대한 동반 지인(게스트)들 함께 찾기
-      const linkedGuests = event.appliedParticipants.filter(
-        g => g.isGuest && g.inviterUserId && g.inviterUserId.toString() === userId && g.status !== 'cancelled'
-      );
-
-      // 승인 시 정원 확인 (부원 + 동반 지인 수 함께 계산)
-      if (status === 'approved') {
+      // 승인 시 정원 확인
+      if (status === 'approved' && participant.status !== 'approved') {
         const approvedCount = event.appliedParticipants.filter(
           p => p.status === 'approved'
         ).length;
-        const additionalNeeded = (participant.status !== 'approved' ? 1 : 0) + 
-          linkedGuests.filter(g => g.status !== 'approved').length;
 
-        if (event.participants && (approvedCount + additionalNeeded > event.participants)) {
-          return res.status(400).json({ 
-            message: `정원이 부족합니다. (현재 승인 인원: ${approvedCount}명, 정원: ${event.participants}명, 추가 승인 대상(지인 포함): ${additionalNeeded}명)` 
-          });
+        if (event.participants && approvedCount >= event.participants) {
+          return res.status(400).json({ message: '이미 정원이 다 찼습니다.' });
         }
       }
 
@@ -636,19 +627,23 @@ router.post('/:eventId/participants/:userId/status',
 
       participant.status = status;
 
-      // 동반 지인들도 부원과 함께 묶어서 승인/거절 상태 일괄 적용
-      linkedGuests.forEach(guest => {
-        if (!guest.statusHistory) guest.statusHistory = [];
-        const guestPrevStatus = guest.status || 'pending';
-        guest.statusHistory.push({
-          previousStatus: guestPrevStatus,
-          newStatus: status,
-          changedBy: req.user.id,
-          changedAt: new Date(),
-          changerName: req.user.name
+      // 부원이 거절(rejected)된 경우, 해당 부원이 초대한 지인들도 함께 거절 처리
+      if (status === 'rejected') {
+        const linkedGuests = event.appliedParticipants.filter(
+          g => g.isGuest && g.inviterUserId && g.inviterUserId.toString() === userId && g.status !== 'cancelled'
+        );
+        linkedGuests.forEach(guest => {
+          if (!guest.statusHistory) guest.statusHistory = [];
+          guest.statusHistory.push({
+            previousStatus: guest.status || 'pending',
+            newStatus: 'rejected',
+            changedBy: req.user.id,
+            changedAt: new Date(),
+            changerName: req.user.name
+          });
+          guest.status = 'rejected';
         });
-        guest.status = status;
-      });
+      }
 
       await event.save();
 
@@ -664,10 +659,108 @@ router.post('/:eventId/participants/:userId/status',
         });
       }
 
-      res.json({ message: linkedGuests.length > 0 ? `참가자 및 동반 지인(${linkedGuests.length}명)이 함께 ${status === 'approved' ? '승인' : '거절'}되었습니다.` : '참가자 상태가 업데이트되었습니다.' });
+      res.json({ message: status === 'approved' ? '참가 부원이 승인되었습니다. (동반 지인은 개별 승인 필요)' : '참가자 상태가 업데이트되었습니다.' });
     } catch (error) {
       console.error('Error updating participant status:', error);
       res.status(500).json({ message: '상태 업데이트 중 오류가 발생했습니다.' });
+    }
+  });
+
+/* =========================================================================
+   POST — 지인 동반 신청자 개별 승인/거절/초기화
+   ========================================================================= */
+router.post('/:eventId/guests/:guestId/status',
+  authenticateToken,
+  authorizeRoles('officer', 'admin'),
+  async (req, res) => {
+    try {
+      const { eventId, guestId } = req.params;
+      const { status } = req.body;
+
+      const event = await Event.findById(eventId);
+      if (!event) {
+        return res.status(404).json({ message: '이벤트를 찾을 수 없습니다.' });
+      }
+
+      const guest = event.appliedParticipants.find(
+        p => p._id.toString() === guestId && p.isGuest
+      );
+      if (!guest) {
+        return res.status(404).json({ message: '동반 지인 신청 건을 찾을 수 없습니다.' });
+      }
+
+      // 지인을 승인하려는 경우: 초대한 부원의 참가가 확정(approved)된 상태인지 검증!
+      if (status === 'approved') {
+        const inviter = event.appliedParticipants.find(
+          p => !p.isGuest && p.userId.toString() === guest.inviterUserId.toString()
+        );
+        if (!inviter || inviter.status !== 'approved') {
+          return res.status(400).json({ message: '초대한 부원의 참가가 확정(승인)된 후에만 동반 지인을 승인할 수 있습니다.' });
+        }
+
+        const approvedCount = event.appliedParticipants.filter(
+          p => p.status === 'approved'
+        ).length;
+        if (event.participants && approvedCount >= event.participants) {
+          return res.status(400).json({ message: '이벤트 정원이 마감되었습니다.' });
+        }
+      }
+
+      if (!guest.statusHistory) guest.statusHistory = [];
+      const previousStatus = guest.status || 'pending';
+      guest.statusHistory.push({
+        previousStatus,
+        newStatus: status,
+        changedBy: req.user.id,
+        changedAt: new Date(),
+        changerName: req.user.name
+      });
+      guest.status = status;
+
+      await event.save();
+
+      res.json({ message: status === 'approved' ? '동반 지인이 승인되었습니다.' : '동반 지인 신청이 거절되었습니다.' });
+    } catch (error) {
+      console.error('Error updating guest status:', error);
+      res.status(500).json({ message: '지인 상태 업데이트 중 오류가 발생했습니다.' });
+    }
+  });
+
+router.post('/:eventId/guests/:guestId/reset-status',
+  authenticateToken,
+  authorizeRoles('officer', 'admin'),
+  async (req, res) => {
+    try {
+      const { eventId, guestId } = req.params;
+      const event = await Event.findById(eventId);
+      if (!event) {
+        return res.status(404).json({ message: '이벤트를 찾을 수 없습니다.' });
+      }
+
+      const guest = event.appliedParticipants.find(
+        p => p._id.toString() === guestId && p.isGuest
+      );
+      if (!guest) {
+        return res.status(404).json({ message: '동반 지인 신청 건을 찾을 수 없습니다.' });
+      }
+
+      if (!guest.statusHistory) guest.statusHistory = [];
+      guest.statusHistory.push({
+        previousStatus: guest.status,
+        newStatus: 'pending',
+        changedBy: req.user.id,
+        changedAt: new Date(),
+        changerName: req.user.name,
+        isReset: true
+      });
+      guest.status = 'pending';
+
+      await event.save();
+
+      res.json({ message: '동반 지인 상태가 대기 상태로 되돌려졌습니다.' });
+    } catch (error) {
+      console.error('Error resetting guest status:', error);
+      res.status(500).json({ message: '지인 상태 되돌리기 중 오류가 발생했습니다.' });
     }
   });
 

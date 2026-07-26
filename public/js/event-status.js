@@ -642,28 +642,54 @@ function renderParticipantList() {
     const guestSectionHtml = linkedGuests.length > 0
       ? `
         <div style="margin-top: 10px; padding: 10px 12px; background: #f0f9ff; border: 1px solid #7dd3fc; border-radius: 12px; font-size: 0.82rem;">
-          <strong style="display: flex; align-items: center; justify-content: space-between; color: #0369a1; margin-bottom: 6px;">
+          <strong style="display: flex; align-items: center; justify-content: space-between; color: #0369a1; margin-bottom: 8px;">
             <span>👥 초대장 동반 신청 지인 (${linkedGuests.length}명)</span>
           </strong>
-          <div style="display: flex; flex-direction: column; gap: 6px;">
+          <div style="display: flex; flex-direction: column; gap: 8px;">
             ${linkedGuests.map(g => {
               const gName = g.guestInfo?.name || g.name || '지인';
               const gPhone = g.guestInfo?.phone || g.phonenumber || '-';
               const gGenderStr = g.gender === 'female' ? '여' : (g.gender === 'male' ? '남' : '');
               const gAgeStr = g.age ? `${g.age}세` : '';
               const gMeta = [gGenderStr, gAgeStr, gPhone].filter(Boolean).join(' · ');
+              
               const stBadge = g.status === 'approved'
-                ? '<span style="background: #dcfce7; color: #15803d; padding: 2px 6px; border-radius: 4px; font-size: 0.72rem; font-weight: bold;">승인됨</span>'
-                : (g.status === 'cancelled'
-                  ? '<span style="background: #f1f5f9; color: #64748b; padding: 2px 6px; border-radius: 4px; font-size: 0.72rem;">취소됨</span>'
-                  : '<span style="background: #fef9c3; color: #a16207; padding: 2px 6px; border-radius: 4px; font-size: 0.72rem;">대기중</span>');
+                ? '<span style="background: #dcfce7; color: #15803d; padding: 2px 6px; border-radius: 4px; font-size: 0.72rem; font-weight: bold;">✓ 승인됨</span>'
+                : (g.status === 'rejected'
+                  ? '<span style="background: #fef2f2; color: #b91c1c; padding: 2px 6px; border-radius: 4px; font-size: 0.72rem;">✕ 거절됨</span>'
+                  : (g.status === 'cancelled'
+                    ? '<span style="background: #f1f5f9; color: #64748b; padding: 2px 6px; border-radius: 4px; font-size: 0.72rem;">↩ 본인취소</span>'
+                    : '<span style="background: #fef9c3; color: #a16207; padding: 2px 6px; border-radius: 4px; font-size: 0.72rem;">⏳ 대기중</span>'));
+
+              let gButtonsHtml = '';
+              if (g.status === 'pending') {
+                if (p.status === 'approved') {
+                  gButtonsHtml = `
+                    <button onclick="updateGuestStatus('${event._id}', '${g._id}', 'approved')" style="background: #10b981; color: #fff; border: none; border-radius: 6px; padding: 4px 9px; font-size: 0.75rem; font-weight: 700; cursor: pointer;">지인 승인</button>
+                    <button onclick="updateGuestStatus('${event._id}', '${g._id}', 'rejected')" style="background: #ef4444; color: #fff; border: none; border-radius: 6px; padding: 4px 9px; font-size: 0.75rem; cursor: pointer;">거절</button>
+                  `;
+                } else {
+                  gButtonsHtml = `
+                    <button onclick="alert('초대한 부원(${escapeHtml(p.name)})의 참가가 확정(승인)된 후에만 지인을 승인할 수 있습니다.')" style="background: #cbd5e1; color: #64748b; border: none; border-radius: 6px; padding: 4px 9px; font-size: 0.75rem; cursor: not-allowed;" title="부원 승인 후 가능">지인 승인 (부원 승인 필요)</button>
+                    <button onclick="updateGuestStatus('${event._id}', '${g._id}', 'rejected')" style="background: #ef4444; color: #fff; border: none; border-radius: 6px; padding: 4px 9px; font-size: 0.75rem; cursor: pointer;">거절</button>
+                  `;
+                }
+              } else if (g.status === 'approved' || g.status === 'rejected') {
+                gButtonsHtml = `
+                  <button onclick="resetGuestStatus('${event._id}', '${g._id}', '${escapeHtml(gName)}')" style="background: #64748b; color: #fff; border: none; border-radius: 6px; padding: 3px 8px; font-size: 0.72rem; cursor: pointer;">대기로 되돌리기</button>
+                `;
+              }
+
               return `
-                <div style="background: #ffffff; border: 1px solid #bae6fd; padding: 6px 10px; border-radius: 8px; display: flex; align-items: center; justify-content: space-between;">
+                <div style="background: #ffffff; border: 1px solid #bae6fd; padding: 8px 12px; border-radius: 10px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
                   <div>
                     <strong style="color: #0f172a; font-size: 0.85rem;">${escapeHtml(gName)}</strong>
                     <span style="color: #64748b; font-size: 0.78rem; margin-left: 4px;">(${escapeHtml(gMeta)})</span>
+                    <span style="margin-left: 6px;">${stBadge}</span>
                   </div>
-                  ${stBadge}
+                  <div style="display: flex; gap: 6px;">
+                    ${gButtonsHtml}
+                  </div>
                 </div>
               `;
             }).join('')}
@@ -816,6 +842,58 @@ async function updateParticipantStatus(eventId, userId, status) {
   } catch (error) {
     console.error('Error:', error);
     alert(error.message || '상태 업데이트 중 오류가 발생했습니다.');
+  }
+}
+
+async function updateGuestStatus(eventId, guestId, status) {
+  try {
+    const response = await fetch(`/events/${eventId}/guests/${guestId}/status`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status })
+    });
+    if (!response.ok) {
+      const error = await response.json();
+      if (response.status === 403) {
+        const hasAccess = await verifyEventAccess(eventId);
+        if (hasAccess) return await updateGuestStatus(eventId, guestId, status);
+        window.location.href = 'event-staff.html';
+        return;
+      }
+      throw new Error(error.message);
+    }
+    alert(status === 'approved' ? '동반 지인이 승인되었습니다.' : '동반 지인 신청이 거절되었습니다.');
+    await fetchEventStatus();
+  } catch (error) {
+    console.error('Error updating guest status:', error);
+    alert(error.message || '지인 상태 업데이트 중 오류가 발생했습니다.');
+  }
+}
+
+async function resetGuestStatus(eventId, guestId, guestName) {
+  const confirmMessage = `${guestName} 지인의 참가 상태를 대기 상태로 되돌리시겠습니까?`;
+  if (!confirm(confirmMessage)) return;
+
+  try {
+    const response = await fetch(`/events/${eventId}/guests/${guestId}/reset-status`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' }
+    });
+    if (!response.ok) {
+      const error = await response.json();
+      if (response.status === 403) {
+        const hasAccess = await verifyEventAccess(eventId);
+        if (hasAccess) return await resetGuestStatus(eventId, guestId, guestName);
+        window.location.href = 'event-staff.html';
+        return;
+      }
+      throw new Error(error.message);
+    }
+    alert(`${guestName} 지인의 상태가 대기 상태로 되돌려졌습니다.`);
+    await fetchEventStatus();
+  } catch (error) {
+    console.error('Error resetting guest status:', error);
+    alert(error.message || '지인 상태 되돌리기 중 오류가 발생했습니다.');
   }
 }
 
