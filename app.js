@@ -119,6 +119,7 @@ app.use('/archives', require('./routes/archives'));
 app.use('/community', require('./routes/community'));
 app.use('/promotions', require('./routes/promotions'));
 app.use('/staff', require('./routes/staff'));
+app.use('/regular', require('./routes/regular'));
 
 
 // 정적 파일 서빙 설정 전에 API 라우터 추가

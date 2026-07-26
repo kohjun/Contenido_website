@@ -1,16 +1,369 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>정기모임팀 페이지</title>
-  <link rel="stylesheet" href="./css/regular.css">
-</head>
-<body>
-  <div class="navigation-buttons">
-    <button onclick="window.location.href='events.html'">진행중인 이벤트</button><br><br><br>
-    <button class="event-manage-button" style="display: block;" onclick="window.location.href='event-staff.html'">이벤트 관리</button>
+<div class="regular-dashboard">
+  <!-- 헤더 -->
+  <header class="regular-header">
+    <div class="header-content">
+      <div class="header-text">
+        <h2>정기모임 운영 가이드</h2>
+        <p>대규모 인원(40~50명)의 친목·교류 경험 제공과 안전하고 유쾌한 분위기 조성을 위한 단계별 체크리스트입니다.</p>
+      </div>
+    </div>
+
+    <!-- 단계별 바로가기 뱃지 -->
+    <div class="stage-nav-pills">
+      <a href="#stage-reg-1" class="stage-pill">1단계. 운영 구조 & 역할 <span class="pill-count" id="pill-reg-stage-1">0/7</span></a>
+      <a href="#stage-reg-2" class="stage-pill">2단계. 조 편성 & 동선·시간표 <span class="pill-count" id="pill-reg-stage-2">0/8</span></a>
+      <a href="#stage-reg-3" class="stage-pill">3단계. 안전·인원 통제 <span class="pill-count" id="pill-reg-stage-3">0/8</span></a>
+      <a href="#stage-reg-4" class="stage-pill">4단계. 친목 텐션 & 분위기 <span class="pill-count" id="pill-reg-stage-4">0/8</span></a>
+      <a href="#stage-reg-5" class="stage-pill">5단계. 현장 진행 & 실시간 소통 <span class="pill-count" id="pill-reg-stage-5">0/8</span></a>
+      <a href="#stage-reg-retro" class="stage-pill">종료 후 회고 <span class="pill-count" id="pill-reg-stage-retro">0/5</span></a>
+    </div>
+  </header>
+
+  <!-- 핵심 비교 가이드 카드 (스태프팀 vs 정기모임팀 비교표) -->
+  <div class="comparison-card">
+    <h3 class="comparison-card-title">💡 스태프팀 vs 정기모임팀 기획·운영 비교 가이드</h3>
+    <div class="comparison-table-wrap">
+      <table class="comparison-table">
+        <thead>
+          <tr>
+            <th>구분</th>
+            <th>스태프팀 (콘텐츠 중심)</th>
+            <th>정기모임팀 (운영·분위기 중심)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>핵심 목적</strong></td>
+            <td class="staff-col">리얼 버라이어티 콘텐츠 기획·연출·진행</td>
+            <td class="regular-col">대규모 인원 친목·교류 경험 제공</td>
+          </tr>
+          <tr>
+            <td><strong>참여 규모</strong></td>
+            <td class="staff-col">10~20명 소규모 몰입</td>
+            <td class="regular-col">40~50명 대규모 인원 조율</td>
+          </tr>
+          <tr>
+            <td><strong>기획 요소</strong></td>
+            <td class="staff-col">룰, 세계관, 미션, 밸런스 설계</td>
+            <td class="regular-col">동선, 시간표, 조 편성, 인원 통제</td>
+          </tr>
+          <tr>
+            <td><strong>몰입 & 경쟁</strong></td>
+            <td class="staff-col">개인/팀 간 명확한 경쟁 (탈락 허용)</td>
+            <td class="regular-col">조 단위 협동 & 약한 경쟁 (탈락 없음)</td>
+          </tr>
+          <tr>
+            <td><strong>운영자 역할</strong></td>
+            <td class="staff-col">연출자 · 판정자 · 기획자</td>
+            <td class="regular-col">관리자 · 조율자 · 안전 담당</td>
+          </tr>
+          <tr>
+            <td><strong>요구 역량</strong></td>
+            <td class="staff-col">기획력, 연출 감각, 즉흥 대응</td>
+            <td class="regular-col">소통력, 통제력, 안정 운영</td>
+          </tr>
+          <tr>
+            <td><strong>한 줄 정의</strong></td>
+            <td class="staff-col">사람이 출연하는 예능을 만드는 팀</td>
+            <td class="regular-col">사람들이 잘 섞이게 판을 관리하는 팀</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
   </div>
-  
-</body>
-</html>
+
+  <!-- 정기모임 운영 가이드 체크리스트 섹션 -->
+  <section class="guide-sections-wrapper">
+
+    <!-- 1단계. 운영 구조 & 역할 분담 -->
+    <div class="stage-card" id="stage-reg-1">
+      <div class="stage-card-header">
+        <div class="stage-badge">1단계</div>
+        <h3 class="stage-title">운영 구조 & 역할 분담</h3>
+      </div>
+
+      <div class="checklist-grid">
+        <!-- 회의 & 소통 채널 -->
+        <div class="guide-subcard">
+          <h4 class="subcard-title">소통 채널 & 정기 회의</h4>
+          <div class="checklist-box">
+            <h5 class="box-label">체크리스트</h5>
+            <ul class="chk-list">
+              <li><label><input type="checkbox" class="reg-chk" data-id="reg_s1_chk_1" onchange="window.RegularDashboard.handleCheckChange()"> 정기모임팀 단톡방 및 단체 공지 채널 개설</label></li>
+              <li><label><input type="checkbox" class="reg-chk" data-id="reg_s1_chk_2" onchange="window.RegularDashboard.handleCheckChange()"> 정기모임 전 사전 기획 회의 일정 확정</label></li>
+              <li><label><input type="checkbox" class="reg-chk" data-id="reg_s1_chk_3" onchange="window.RegularDashboard.handleCheckChange()"> 타임테이블 마감일 및 장소 예약 마감일 공유</label></li>
+              <li><label><input type="checkbox" class="reg-chk" data-id="reg_s1_chk_4" onchange="window.RegularDashboard.handleCheckChange()"> 당일 현장 스태프 비상 연락망 구성</label></li>
+            </ul>
+          </div>
+          <div class="discussion-box">
+            <h5 class="box-label">논의 안건</h5>
+            <ul>
+              <li>사전 회의는 언제/몇 회 진행할 것인가?</li>
+              <li>비상 상황 시 즉각 소통할 메인 채널은 무엇인가?</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- 운영자 역할 지정 -->
+        <div class="guide-subcard">
+          <h4 class="subcard-title">운영자 역할 분담 (관리자·조율자·안전 담당)</h4>
+          <div class="checklist-box">
+            <h5 class="box-label">체크리스트</h5>
+            <ul class="chk-list">
+              <li><label><input type="checkbox" class="reg-chk" data-id="reg_s1_chk_5" onchange="window.RegularDashboard.handleCheckChange()"> 메인 MC / 진행자 지정</label></li>
+              <li><label><input type="checkbox" class="reg-chk" data-id="reg_s1_chk_6" onchange="window.RegularDashboard.handleCheckChange()"> 현장 동선 & 인원 통제 담당자 지정</label></li>
+              <li><label><input type="checkbox" class="reg-chk" data-id="reg_s1_chk_7" onchange="window.RegularDashboard.handleCheckChange()"> 안전 관리 & 비상 대응 담당자 지정</label></li>
+            </ul>
+          </div>
+          <div class="discussion-box">
+            <h5 class="box-label">논의 안건</h5>
+            <ul>
+              <li>조별 케어를 조장이 직접 할 것인가, 운영진이 배치될 것인가?</li>
+              <li>돌발 상황 시 최종 의사결정자는 누구인가?</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2단계. 조 편성 & 동선·시간표 설계 -->
+    <div class="stage-card" id="stage-reg-2">
+      <div class="stage-card-header">
+        <div class="stage-badge">2단계</div>
+        <h3 class="stage-title">조 편성 & 동선·시간표 설계</h3>
+      </div>
+
+      <div class="checklist-grid">
+        <!-- 조 편성 밸런스 -->
+        <div class="guide-subcard">
+          <h4 class="subcard-title">조 편성 & 친목 밸런스</h4>
+          <div class="checklist-box">
+            <h5 class="box-label">체크리스트</h5>
+            <ul class="chk-list">
+              <li><label><input type="checkbox" class="reg-chk" data-id="reg_s2_chk_1" onchange="window.RegularDashboard.handleCheckChange()"> 40~50명 전체 인원 명단 및 성별 비율 확인</label></li>
+              <li><label><input type="checkbox" class="reg-chk" data-id="reg_s2_chk_2" onchange="window.RegularDashboard.handleCheckChange()"> 신입 부원 vs 기존 부원 균등 배치 조 편성</label></li>
+              <li><label><input type="checkbox" class="reg-chk" data-id="reg_s2_chk_3" onchange="window.RegularDashboard.handleCheckChange()"> 분위기 메이커 / 조장 사전 배정</label></li>
+              <li><label><input type="checkbox" class="reg-chk" data-id="reg_s2_chk_4" onchange="window.RegularDashboard.handleCheckChange()"> 조별 이름 및 소통 오픈채팅방 생성 안내</label></li>
+            </ul>
+          </div>
+          <div class="discussion-box">
+            <h5 class="box-label">논의 안건</h5>
+            <ul>
+              <li>소외되는 부원이 없도록 조장을 어떻게 배정할 것인가?</li>
+              <li>친한 인원끼리 뭉치지 않고 잘 섞이게 할 대책은?</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- 동선 및 타임테이블 -->
+        <div class="guide-subcard">
+          <h4 class="subcard-title">이동 동선 & 타임테이블 마진 설계</h4>
+          <div class="checklist-box">
+            <h5 class="box-label">체크리스트</h5>
+            <ul class="chk-list">
+              <li><label><input type="checkbox" class="reg-chk" data-id="reg_s2_chk_5" onchange="window.RegularDashboard.handleCheckChange()"> 식당/대여 장소 수용 인원 및 사전 예약 확인</label></li>
+              <li><label><input type="checkbox" class="reg-chk" data-id="reg_s2_chk_6" onchange="window.RegularDashboard.handleCheckChange()"> 40~50명 이동 동선 최소화 및 안전 경로 확보</label></li>
+              <li><label><input type="checkbox" class="reg-chk" data-id="reg_s2_chk_7" onchange="window.RegularDashboard.handleCheckChange()"> 지연 가능 대비 15분 이상 타임테이블 여유(마진) 설계</label></li>
+              <li><label><input type="checkbox" class="reg-chk" data-id="reg_s2_chk_8" onchange="window.RegularDashboard.handleCheckChange()"> 최종 타임테이블 및 안내 카드 부원 공지</label></li>
+            </ul>
+          </div>
+          <div class="discussion-box">
+            <h5 class="box-label">논의 안건</h5>
+            <ul>
+              <li>대규모 인원 이동 시 병목이 생기는 지점은 어디인가?</li>
+              <li>우천이나 대중교통 지연 시 대체 동선이 준비되어 있는가?</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3단계. 안전·인원 통제 & 리스크 관리 -->
+    <div class="stage-card" id="stage-reg-3">
+      <div class="stage-card-header">
+        <div class="stage-badge">3단계</div>
+        <h3 class="stage-title">안전·인원 통제 & 리스크 관리</h3>
+      </div>
+
+      <div class="checklist-grid">
+        <!-- 안전 관리 -->
+        <div class="guide-subcard">
+          <h4 class="subcard-title">안전사고 예방 & 비상 대책</h4>
+          <div class="checklist-box">
+            <h5 class="box-label">체크리스트</h5>
+            <ul class="chk-list">
+              <li><label><input type="checkbox" class="reg-chk" data-id="reg_s3_chk_1" onchange="window.RegularDashboard.handleCheckChange()"> 비상 구급약품 준비 (소독약, 밴드, 소화제 등)</label></li>
+              <li><label><input type="checkbox" class="reg-chk" data-id="reg_s3_chk_2" onchange="window.RegularDashboard.handleCheckChange()"> 과도한 음주 예방 규칙 및 수칙 부원 사전 공지</label></li>
+              <li><label><input type="checkbox" class="reg-chk" data-id="reg_s3_chk_3" onchange="window.RegularDashboard.handleCheckChange()"> 이동 중 사고 방지용 전차선 인원 점검 절차 수립</label></li>
+              <li><label><input type="checkbox" class="reg-chk" data-id="reg_s3_chk_4" onchange="window.RegularDashboard.handleCheckChange()"> 인근 병원/응급실 및 비상 대피소 위치 파악</label></li>
+            </ul>
+          </div>
+          <div class="discussion-box">
+            <h5 class="box-label">논의 안건</h5>
+            <ul>
+              <li>음주 사고 또는 귀가 조치가 필요할 때 대처 절차는?</li>
+              <li>부상자 발생 시 즉시 이동시킬 구호 수단은 준비되었는가?</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- 인원 통제 & 이탈 방지 -->
+        <div class="guide-subcard">
+          <h4 class="subcard-title">인원 이탈 방지 & 조별 실시간 출석</h4>
+          <div class="checklist-box">
+            <h5 class="box-label">체크리스트</h5>
+            <ul class="chk-list">
+              <li><label><input type="checkbox" class="reg-chk" data-id="reg_s3_chk_5" onchange="window.RegularDashboard.handleCheckChange()"> 장소 이동마다 조장 중심 조원 인원 체크 체크리스트</label></li>
+              <li><label><input type="checkbox" class="reg-chk" data-id="reg_s3_chk_6" onchange="window.RegularDashboard.handleCheckChange()"> 조기 귀가자 및 중간 합류자 사전 파악 및 양식 작성</label></li>
+              <li><label><input type="checkbox" class="reg-chk" data-id="reg_s3_chk_7" onchange="window.RegularDashboard.handleCheckChange()"> 분위기 저하 또는 혼자 있는 부원 전담 케어 조율자 지정</label></li>
+              <li><label><input type="checkbox" class="reg-chk" data-id="reg_s3_chk_8" onchange="window.RegularDashboard.handleCheckChange()"> 미출석/무단 이탈 부원 발생 시 즉각 연락 확인</label></li>
+            </ul>
+          </div>
+          <div class="discussion-box">
+            <h5 class="box-label">논의 안건</h5>
+            <ul>
+              <li>조장이 인원을 제때 점검하지 못할 때 백업 인원은 누구인가?</li>
+              <li>중간에 어색해서 나가는 인원이 생기지 않도록 하는 안전장치는?</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4단계. 친목 텐션 & 분위기 유도 -->
+    <div class="stage-card" id="stage-reg-4">
+      <div class="stage-card-header">
+        <div class="stage-badge">4단계</div>
+        <h3 class="stage-title">친목 텐션 & 분위기 유도</h3>
+      </div>
+
+      <div class="checklist-grid">
+        <!-- 친목 프로그램 -->
+        <div class="guide-subcard">
+          <h4 class="subcard-title">조 단위 협동 & 탈락 없는 참여형 프로그램</h4>
+          <div class="checklist-box">
+            <h5 class="box-label">체크리스트</h5>
+            <ul class="chk-list">
+              <li><label><input type="checkbox" class="reg-chk" data-id="reg_s4_chk_1" onchange="window.RegularDashboard.handleCheckChange()"> 탈락자 없이 모두가 끝까지 참여하는 조별 게임 구상</label></li>
+              <li><label><input type="checkbox" class="reg-chk" data-id="reg_s4_chk_2" onchange="window.RegularDashboard.handleCheckChange()"> 아이스브레이킹 퀴즈 및 자기소개 카드 준비</label></li>
+              <li><label><input type="checkbox" class="reg-chk" data-id="reg_s4_chk_3" onchange="window.RegularDashboard.handleCheckChange()"> 조 간 과도한 경쟁(감정 싸움)을 지양하는 재미 위주 점수표</label></li>
+              <li><label><input type="checkbox" class="reg-chk" data-id="reg_s4_chk_4" onchange="window.RegularDashboard.handleCheckChange()"> 게임 도구, 소품, 상품/시상품 준비 완료</label></li>
+            </ul>
+          </div>
+          <div class="discussion-box">
+            <h5 class="box-label">논의 안건</h5>
+            <ul>
+              <li>내향적인 부원도 쉽게 말문이 터질 수 있는 미션인가?</li>
+              <li>게임 규칙이 너무 복잡해서 설명 시간이 길어지지 않는가?</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- 분위기 케어 -->
+        <div class="guide-subcard">
+          <h4 class="subcard-title">분위기 조성 & 유용한 진행 팁</h4>
+          <div class="checklist-box">
+            <h5 class="box-label">체크리스트</h5>
+            <ul class="chk-list">
+              <li><label><input type="checkbox" class="reg-chk" data-id="reg_s4_chk_5" onchange="window.RegularDashboard.handleCheckChange()"> 모임 장소 배경 음악(BGM) 및 마이크 음향 체크</label></li>
+              <li><label><input type="checkbox" class="reg-chk" data-id="reg_s4_chk_6" onchange="window.RegularDashboard.handleCheckChange()"> 리액션 및 분위기 유도 멘트 준비</label></li>
+              <li><label><input type="checkbox" class="reg-chk" data-id="reg_s4_chk_7" onchange="window.RegularDashboard.handleCheckChange()"> 자리 배치 변경 시간 설정 (다양한 부원과의 교류 유도)</label></li>
+              <li><label><input type="checkbox" class="reg-chk" data-id="reg_s4_chk_8" onchange="window.RegularDashboard.handleCheckChange()"> 기념 사진/단체 사진 촬영 타임 포함</label></li>
+            </ul>
+          </div>
+          <div class="discussion-box">
+            <h5 class="box-label">논의 안건</h5>
+            <ul>
+              <li>텐션이 떨어질 때 바로 분위기를 끌어올릴 카드(소포상, 미니게임)는?</li>
+              <li>특정 조만 소외되거나 분위기가 가라앉지 않는가?</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 5단계. 당일 현장 진행 & 실시간 소통 -->
+    <div class="stage-card" id="stage-reg-5">
+      <div class="stage-card-header">
+        <div class="stage-badge">5단계</div>
+        <h3 class="stage-title">당일 현장 진행 & 실시간 소통</h3>
+      </div>
+
+      <div class="checklist-grid">
+        <!-- 현장 셋업 & 리허설 -->
+        <div class="guide-subcard">
+          <h4 class="subcard-title">현장 셋업 & 이동 최종 동선 점검</h4>
+          <div class="checklist-box">
+            <h5 class="box-label">체크리스트</h5>
+            <ul class="chk-list">
+              <li><label><input type="checkbox" class="reg-chk" data-id="reg_s5_chk_1" onchange="window.RegularDashboard.handleCheckChange()"> 시작 1시간 전 장소 도착 및 현장 세팅 완료</label></li>
+              <li><label><input type="checkbox" class="reg-chk" data-id="reg_s5_chk_2" onchange="window.RegularDashboard.handleCheckChange()"> 조별 좌석 배치표 및 명찰/안내문 비치</label></li>
+              <li><label><input type="checkbox" class="reg-chk" data-id="reg_s5_chk_3" onchange="window.RegularDashboard.handleCheckChange()"> 진행자 MC 및 보조 스태프 시뮬레이션 리허설</label></li>
+              <li><label><input type="checkbox" class="reg-chk" data-id="reg_s5_chk_4" onchange="window.RegularDashboard.handleCheckChange()"> 입장 출석 확인 및 웰컴 안내 준비</label></li>
+            </ul>
+          </div>
+          <div class="discussion-box">
+            <h5 class="box-label">논의 안건</h5>
+            <ul>
+              <li>지각하는 부원 발생 시 조원 조율은 어떻게 처리할 것인가?</li>
+              <li>음향/영상 장비에 이상이 있을 때 대체 수단은?</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- 진행 및 상황 대응 -->
+        <div class="guide-subcard">
+          <h4 class="subcard-title">실시간 운영 & 안전 모니터링</h4>
+          <div class="checklist-box">
+            <h5 class="box-label">체크리스트</h5>
+            <ul class="chk-list">
+              <li><label><input type="checkbox" class="reg-chk" data-id="reg_s5_chk_5" onchange="window.RegularDashboard.handleCheckChange()"> 정시 시작 및 타임테이블 스케줄 실시간 모니터링</label></li>
+              <li><label><input type="checkbox" class="reg-chk" data-id="reg_s5_chk_6" onchange="window.RegularDashboard.handleCheckChange()"> 각 조별 텐션 및 소외 인원 유무 수시 파악</label></li>
+              <li><label><input type="checkbox" class="reg-chk" data-id="reg_s5_chk_7" onchange="window.RegularDashboard.handleCheckChange()"> 식사/이동 시 조장별 실시간 인원보고 수집</label></li>
+              <li><label><input type="checkbox" class="reg-chk" data-id="reg_s5_chk_8" onchange="window.RegularDashboard.handleCheckChange()"> 행사 클로징 인사 및 귀가 안전 당부 안내</label></li>
+            </ul>
+          </div>
+          <div class="discussion-box">
+            <h5 class="box-label">논의 안건</h5>
+            <ul>
+              <li>예정 시간보다 일찍 끝나거나 지연될 경우 유연 대응책은?</li>
+              <li>2차/회식 이동 시 안전 가이드라인 전달이 잘 되고 있는가?</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 정기모임 종료 후 회고 -->
+    <div class="stage-card" id="stage-reg-retro">
+      <div class="stage-card-header">
+        <div class="stage-badge" style="background: #e0f2fe; color: #0284c7;">회고</div>
+        <h3 class="stage-title">정기모임 종료 후 회고</h3>
+      </div>
+
+      <div class="checklist-grid">
+        <div class="guide-subcard" style="grid-column: 1 / -1;">
+          <h4 class="subcard-title">만족도 피드백 & 개선점 회고</h4>
+          <div class="checklist-box">
+            <h5 class="box-label">체크리스트</h5>
+            <ul class="chk-list">
+              <li><label><input type="checkbox" class="reg-chk" data-id="reg_sretro_chk_1" onchange="window.RegularDashboard.handleCheckChange()"> 정기모임 참가 부원 대상 만족도/친목 피드백 수집</label></li>
+              <li><label><input type="checkbox" class="reg-chk" data-id="reg_sretro_chk_2" onchange="window.RegularDashboard.handleCheckChange()"> 정기모임 운영진 결산 및 안전사고 발생 여부 종합 점검</label></li>
+              <li><label><input type="checkbox" class="reg-chk" data-id="reg_sretro_chk_3" onchange="window.RegularDashboard.handleCheckChange()"> 정기모임 사진 및 회고 후기 업로드</label></li>
+              <li><label><input type="checkbox" class="reg-chk" data-id="reg_sretro_chk_4" onchange="window.RegularDashboard.handleCheckChange()"> 잘했던 점(Keep) & 아쉬웠던 점(Problem) 정리</label></li>
+              <li><label><input type="checkbox" class="reg-chk" data-id="reg_sretro_chk_5" onchange="window.RegularDashboard.handleCheckChange()"> 다음 정기모임에 적용할 개선 시도점(Try) 도출</label></li>
+            </ul>
+          </div>
+          <div class="discussion-box">
+            <h5 class="box-label">논의 안건</h5>
+            <ul>
+              <li>부원들이 "사람과 분위기가 좋았다"고 느낄 만큼 친목 목표가 달성되었는가?</li>
+              <li>인원 이탈이나 동선 상의 불편함은 없었는가? 다음 모임 개선안은 무엇인가?</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </section>
+</div>

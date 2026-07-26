@@ -1,0 +1,295 @@
+/* =====================================================================
+   regular.css — 정기모임팀 운영 가이드 (self-contained, modern/emerald)
+   ===================================================================== */
+
+@font-face {
+  font-family: 'GmarketSansMedium';
+  src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_2001@1.1/GmarketSansMedium.woff') format('woff');
+  font-weight: normal;
+  font-style: normal;
+}
+
+:root {
+  --c-brand:        #10B981;
+  --c-brand-strong: #059669;
+  --c-brand-soft:   #D1FAE5;
+  --c-brand-tint:   #ECFDF5;
+
+  --c-bg:           #F0FDF4;
+  --c-surface:      #FFFFFF;
+  --c-surface-2:    #F8FAFC;
+
+  --c-text:         #0F172A;
+  --c-text-muted:   #475569;
+  --c-text-soft:    #64748B;
+
+  --c-border:       #E2E8F0;
+  --c-border-brand: #A7F3D0;
+
+  --c-warn:         #F59E0B;
+  --c-warn-soft:    #FEF3C7;
+  --c-info:         #0284C7;
+  --c-info-soft:    #E0F2FE;
+
+  --r-sm: 8px; --r-md: 12px; --r-lg: 16px; --r-xl: 20px; --r-pill: 999px;
+  --sh-sm: 0 1px 2px rgba(15, 23, 42, .06);
+  --sh-md: 0 4px 12px rgba(16, 185, 129, .08);
+  --sh-lg: 0 10px 24px rgba(16, 185, 129, .12);
+}
+
+* { box-sizing: border-box; font-family: 'GmarketSansMedium', 'Pretendard', system-ui, sans-serif; }
+
+.regular-dashboard {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 24px 20px calc(40px + 80px);
+}
+
+/* ───────── 헤더 ───────── */
+.regular-header {
+  background: linear-gradient(135deg, #059669 0%, #10B981 100%);
+  color: #FFFFFF;
+  border-radius: 24px;
+  padding: 28px 24px 20px;
+  margin-bottom: 24px;
+  box-shadow: 0 12px 30px rgba(5, 150, 105, 0.2);
+}
+
+.regular-header h2 {
+  font-size: 1.6rem;
+  font-weight: 800;
+  margin: 0 0 6px;
+  letter-spacing: -0.3px;
+}
+
+.regular-header p {
+  margin: 0 0 16px;
+  font-size: 0.9rem;
+  opacity: 0.92;
+  line-height: 1.5;
+}
+
+.stage-nav-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.stage-pill {
+  background: rgba(255, 255, 255, 0.18);
+  color: #FFFFFF;
+  text-decoration: none;
+  padding: 6px 14px;
+  border-radius: var(--r-pill);
+  font-size: 0.82rem;
+  font-weight: 700;
+  transition: background 0.15s ease;
+}
+
+.stage-pill:hover {
+  background: rgba(255, 255, 255, 0.32);
+}
+
+.pill-count {
+  background: rgba(0, 0, 0, 0.2);
+  padding: 2px 7px;
+  border-radius: 10px;
+  font-size: 0.76rem;
+  margin-left: 4px;
+}
+
+/* ───────── 비교표 카드 ───────── */
+.comparison-card {
+  background: #FFFFFF;
+  border: 1px solid var(--c-border-brand);
+  border-radius: 20px;
+  padding: 20px;
+  margin-bottom: 24px;
+  box-shadow: var(--sh-md);
+}
+
+.comparison-card-title {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: #065F46;
+  margin: 0 0 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.comparison-table-wrap {
+  overflow-x: auto;
+}
+
+.comparison-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.84rem;
+}
+
+.comparison-table th, .comparison-table td {
+  padding: 10px 12px;
+  border: 1px solid #E2E8F0;
+  text-align: left;
+}
+
+.comparison-table th {
+  background: #ECFDF5;
+  color: #065F46;
+  font-weight: 700;
+}
+
+.comparison-table td.staff-col {
+  background: #F8FAFC;
+  color: #334155;
+}
+
+.comparison-table td.regular-col {
+  background: #F0FDF4;
+  color: #065F46;
+  font-weight: 600;
+}
+
+/* ───────── Stage Cards & Checklist Grid ───────── */
+.guide-sections-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.stage-card {
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 20px;
+  padding: 20px;
+  box-shadow: var(--sh-sm);
+}
+
+.stage-card-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #F1F5F9;
+}
+
+.stage-badge {
+  background: #D1FAE5;
+  color: #065F46;
+  font-weight: 800;
+  font-size: 0.8rem;
+  padding: 4px 12px;
+  border-radius: var(--r-pill);
+}
+
+.stage-title {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #0F172A;
+  margin: 0;
+}
+
+.checklist-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 16px;
+}
+
+.checklist-grid.triple {
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+}
+
+.guide-subcard {
+  background: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  border-radius: 16px;
+  padding: 16px;
+}
+
+.subcard-title {
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: #0F172A;
+  margin: 0 0 12px;
+  padding-bottom: 8px;
+  border-bottom: 2px solid #E2E8F0;
+}
+
+.checklist-box {
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 12px;
+  padding: 12px 14px;
+  margin-bottom: 12px;
+}
+
+.box-label {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #059669;
+  margin: 0 0 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.chk-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.chk-list li {
+  margin-bottom: 8px;
+  font-size: 0.86rem;
+  color: #334155;
+}
+
+.chk-list li:last-child { margin-bottom: 0; }
+
+.chk-list label {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  cursor: pointer;
+  line-height: 1.4;
+}
+
+.chk-list input[type="checkbox"] {
+  accent-color: #10B981;
+  width: 16px;
+  height: 16px;
+  margin-top: 2px;
+  cursor: pointer;
+}
+
+.discussion-box {
+  background: #ECFDF5;
+  border: 1px solid #A7F3D0;
+  border-radius: 12px;
+  padding: 12px 14px;
+}
+
+.discussion-box .box-label {
+  color: #065F46;
+}
+
+.discussion-box ul {
+  margin: 0;
+  padding-left: 18px;
+  font-size: 0.84rem;
+  color: #064E3B;
+  line-height: 1.5;
+}
+
+.discussion-box li {
+  margin-bottom: 4px;
+}
+
+.discussion-box li:last-child { margin-bottom: 0; }
+
+@media (max-width: 768px) {
+  .regular-dashboard { padding: 16px 14px calc(80px + env(safe-area-inset-bottom, 0px)); }
+  .checklist-grid, .checklist-grid.triple { grid-template-columns: 1fr; }
+}

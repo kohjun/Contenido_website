@@ -115,7 +115,7 @@ const Sidebar = (function() {
     designTeam: { url: '/office_design.html' },
     videoTeam: { url: '/office_video.html' },
     planningTeam: { url: '/office_planning.html' },
-    regularTeam: { url: '/calendar.html' },
+    regularTeam: { url: '/office_regular.html' },
     staffTeam: { url: '/office_staff.html' },
     announcement: { url: '/office_announcement.html' }  // Add this line
   };
@@ -507,30 +507,41 @@ const Sidebar = (function() {
         return;
       }
 
-      //9. 정기모임팀
+      // 9. 정기모임팀 (운영 가이드 & 체크리스트)
       if (pageId === 'regularTeam') {
-        // regular.js 스크립트가 이미 있다면 제거
-        const existingHRScript = document.querySelector('script[src="/js/office/regular.js"]');
-        if (existingHRScript) {
-          existingHRScript.remove();
-        }
-        const link = document.createElement('link');
-          link.rel = 'stylesheet';
-          link.href = './css/regular.css';
-          document.head.appendChild(link);
-        // regular.js 새로 로드
-        await new Promise((resolve, reject) => {
-          const hrScript = document.createElement('script');
-          hrScript.src = '/js/office/regular.js';
-          hrScript.onload = resolve;
-          hrScript.onerror = reject;
-          document.body.appendChild(hrScript);
-        });
+        try {
+          // CSS — 항상 fresh
+          document.querySelectorAll('link[href*="/css/office/regular.css"], link[href*="regular.css"]').forEach(l => l.remove());
+          const cssLink = document.createElement('link');
+          cssLink.rel = 'stylesheet';
+          cssLink.href = '/css/office/regular.css?t=' + Date.now();
+          document.head.appendChild(cssLink);
 
-        // 사용자 데이터 로드 함수 호출
-        if (typeof loadUsers === 'function') {
-          loadUsers();
+          // HTML 주입
+          const mainContent = document.getElementById('main-content');
+          const r = await fetch('/office_regular.html');
+          mainContent.innerHTML = await r.text();
+
+          // 기존 regular.js 모두 제거
+          document.querySelectorAll('script[src*="/js/office/regular.js"], script[src*="regular.js"]').forEach(s => s.remove());
+          delete window.RegularDashboard;
+
+          // regular.js — fresh fetch
+          await new Promise((resolve, reject) => {
+            const s = document.createElement('script');
+            s.src = '/js/office/regular.js?t=' + Date.now();
+            s.onload = resolve;
+            s.onerror = reject;
+            document.body.appendChild(s);
+          });
+        } catch (err) {
+          console.error('[Sidebar] Error loading regularTeam:', err);
+          const mainContent = document.getElementById('main-content');
+          if (mainContent) {
+            mainContent.innerHTML = `<div style="padding: 24px; color: #ef4444;"><h3>정기모임팀 페이지 로드 중 오류가 발생했습니다</h3><p>${err.message}</p></div>`;
+          }
         }
+        return;
       }
       
       
