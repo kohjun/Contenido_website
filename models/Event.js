@@ -57,6 +57,13 @@ const appliedParticipantSchema = new mongoose.Schema({
   // 참가확정(approved)자가 담당자에게 취소를 요청한 상태. 담당자가 '취소 처리'하면 cancelled로 전환.
   cancellationRequested: { type: Boolean, default: false },
   cancellationRequestedAt: { type: Date, default: null },
+  // 동반 지인 목록
+  companions: [{
+    name: { type: String, required: true },
+    phone: { type: String, required: true },
+    relationship: { type: String, default: '지인' },
+    gender: { type: String, enum: ['male', 'female', 'none'], default: 'none' }
+  }],
   // 현재(활성) 신청의 상태 변경 이력
   statusHistory: [statusHistoryEntrySchema],
   // 재신청 시 이전 신청의 이력을 분리 보관 (취소 후 재신청한 각 시도가 하나의 레코드)
@@ -170,6 +177,14 @@ const eventSchema = new mongoose.Schema({
     type: String,
     required: true,
     maxlength: 60
+  },
+  allowCompanions: {
+    type: Boolean,
+    default: false
+  },
+  maxCompanionsPerUser: {
+    type: Number,
+    default: 1
   },
   isSelective: {
     type: Boolean,

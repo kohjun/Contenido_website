@@ -162,6 +162,9 @@ async function submitEvent() {
       formData.append('refundCustomDescription', refundCustomDescription);
     }
 
+    const allowCompanions = document.getElementById('allowCompanions')?.checked || false;
+    const maxCompanionsPerUser = document.getElementById('maxCompanionsPerUser')?.value || 1;
+
     // 새 필드
     formData.append('tags', JSON.stringify(tags));
     if (applicationStartAt)     formData.append('applicationStartAt',     applicationStartAt);
@@ -170,6 +173,8 @@ async function submitEvent() {
     if (!isLightning && maxApplicants) formData.append('maxApplicants', maxApplicants);
     formData.append('feeType', isLightning ? 'fixed' : feeType);
     if (!isLightning && feeType === 'range') formData.append('participation_fee_max', participation_fee_max);
+    formData.append('allowCompanions', allowCompanions);
+    formData.append('maxCompanionsPerUser', maxCompanionsPerUser);
 
     if (isSelective && !isLightning) {
       const questions = Array.from(document.querySelectorAll('.question-item')).map(item => ({

@@ -285,6 +285,8 @@ router.post('/',
         maxApplicants:          parsedMaxApplicants,
         feeType:                resolvedFeeType,
         participation_fee_max:  resolvedFeeType === 'range' ? parsedFeeMax : null,
+        allowCompanions:        req.body.allowCompanions === 'true' || req.body.allowCompanions === true,
+        maxCompanionsPerUser:   req.body.maxCompanionsPerUser ? parseInt(req.body.maxCompanionsPerUser) : 1,
       };
 
       const event = new Event(eventData);
@@ -314,7 +316,7 @@ router.put('/update-content',
       title, place, date, participants, startTime, endTime, participation_fee, contents,
       // 새 필드
       tags, applicationStartAt, applicationDeadlineAt, confirmationDeadlineAt,
-      maxApplicants, feeType, participation_fee_max
+      maxApplicants, feeType, participation_fee_max, allowCompanions, maxCompanionsPerUser
     } = req.body;
 
     try {
@@ -398,6 +400,12 @@ router.put('/update-content',
         event.participation_fee_max = event.feeType === 'range' && participation_fee_max
           ? parseInt(participation_fee_max)
           : null;
+      }
+      if (allowCompanions !== undefined) {
+        event.allowCompanions = allowCompanions === 'true' || allowCompanions === true;
+      }
+      if (maxCompanionsPerUser !== undefined) {
+        event.maxCompanionsPerUser = parseInt(maxCompanionsPerUser) || 1;
       }
 
       await event.save();

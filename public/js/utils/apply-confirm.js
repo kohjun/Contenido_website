@@ -235,40 +235,37 @@
    * @param {Object} options options.isLightning 여부 지원
    * @returns {Promise<boolean>} true = 동의 후 신청, false = 취소
    */
-  function confirmEventApplication(options = {}) {
-    init();
-    const isLightning = !!options.isLightning;
-    
-    // 모달 타이틀과 본문 내용을 isLightning 여부에 따라 동적 변경
-    const titleEl = document.getElementById('ac-title');
-    const termsEl = document.querySelector('.ac-terms');
-    
-    if (isLightning) {
-      if (titleEl) titleEl.textContent = '번개주최 이벤트 신청 약관 동의';
-      if (termsEl) {
-        termsEl.innerHTML = `
-          <h4>번개주최자 필수 준수 사항</h4>
-          <ul>
-            <li><strong>신청 즉시 자동 1차 승인</strong>(참가 확정) 처리됩니다.</li>
-            <li>번개 모임을 실제로 진행한 후, <strong>해당 월 말까지</strong> 마이페이지에서 번개 사진 및 정산/인증 제출을 완료해야 합니다.</li>
-            <li><strong>해당 월 내에 인증을 미제출</strong>할 경우, 신청 의무 미이행으로 분류되어 <strong>경고 1회</strong>가 부여됩니다.</li>
-            <li>번개 신청 확정 후 타당한 사유 및 사전 공지 없이 번개를 임의 취소/폐지하거나 무통보 노쇼하는 경우 경고가 부여될 수 있습니다.</li>
-          </ul>
-        `;
+    const allowCompanions = !!options.allowCompanions;
+    const maxCompanions = options.maxCompanionsPerUser || 1;
+
+    let companionWrap = document.getElementById('ac-companion-wrap');
+    if (!companionWrap) {
+      companionWrap = document.createElement('div');
+      companionWrap.id = 'ac-companion-wrap';
+      const bodyEl = document.querySelector('.ac-body');
+      const agreeWrap = document.getElementById('ac-agree-wrap');
+      if (bodyEl && agreeWrap) {
+        bodyEl.insertBefore(companionWrap, agreeWrap);
       }
-    } else {
-      if (titleEl) titleEl.textContent = '이벤트 신청 약관 동의';
-      if (termsEl) {
-        termsEl.innerHTML = `
-          <h4>꼭 확인하세요</h4>
-          <ul>
-            <li><strong>참가가 확정된 이후</strong>에는 참가비 환불이 <strong>불가능</strong>합니다.</li>
-            <li><strong>참가 확정 후 취소</strong>할 경우 운영규정에 따라 <strong>경고가 부여</strong>될 수 있습니다.</li>
-            <li>대타 섭외 또는 인사팀 승인이 있는 경우 경고가 면제될 수 있습니다.</li>
-            <li>자세한 내용은 <a href="rules.html" target="_blank" style="color:#0A84FE; text-decoration:underline;">동아리 규칙</a>을 참고해주세요.</li>
-          </ul>
-        `;
-      }
+    }
+
+    if (allowCompanions && companionWrap) {
+      companionWrap.style.display = 'block';
+      companionWrap.innerHTML = `
+        <div style="margin: 14px 0; background: #FFF; border: 1.5px solid #CBD5E1; border-radius: 12px; padding: 14px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+            <h4 style="margin: 0; font-size: 0.92rem; color: #1e293b; display: flex; align-items: center; gap: 6px;">
+              <span>👥</span> 동반 지인 신청 (최대 ${maxCompanions}명)
+            </h4>
+            <button type="button" id="ac-add-companion-btn" style="background: #0A84FE; color: white; border: none; border-radius: 6px; padding: 5px 10px; font-size: 0.8rem; cursor: pointer; font-weight: bold;">+ 지인 추가</button>
+          </div>
+          <p style="margin: 0 0 10px; font-size: 0.8rem; color: #64748b;">함께 참여할 지인의 이름과 연락처를 입력해 주세요.</p>
+          <div id="ac-companion-list"></div>
+        </div>
+      `;
+    } else if (companionWrap) {
+      companionWrap.style.display = 'none';
+      companionWrap.innerHTML = '';
     }
 
     return new Promise((resolve) => {
@@ -277,17 +274,66 @@
       const wrap = document.getElementById('ac-agree-wrap');
       const confirmBtn = document.getElementById('ac-confirm');
       const cancelBtn = document.getElementById('ac-cancel');
+      const addCompBtn = document.getElementById('ac-add-companion-btn');
+      const compList = document.getElementById('ac-companion-list');
 
       // 초기화
       cb.checked = false;
       wrap.classList.remove('is-checked');
       confirmBtn.disabled = true;
 
+      const addCompanionRow = () => {
+        if (!compList) return;
+        const rows = compList.querySelectorAll('.ac-companion-row');
+        if (rows.length >= maxCompanions) {
+          alert(`동반 지인은 최대 ${maxCompanions}명까지 등록할 수 있습니다.`);
+          return;
+        }
+        const row = document.createElement('div');
+        row.className = 'ac-companion-row';
+        row.style.cssText = 'display: flex; gap: 8px; margin-bottom: 8px; align-items: center;';
+        row.innerHTML = `
+          <input type="text" class="ac-c-name" placeholder="지인 이름" style="flex: 1; padding: 8px 10px; border-radius: 8px; border: 1px solid #CBD5E1; font-size: 0.85rem;" required>
+          <input type="tel" class="ac-c-phone" placeholder="연락처 (010-XXXX-XXXX)" style="flex: 1.2; padding: 8px 10px; border-radius: 8px; border: 1px solid #CBD5E1; font-size: 0.85rem;" required>
+          <button type="button" class="ac-remove-c-btn" style="background: #ef4444; color: white; border: none; border-radius: 6px; padding: 6px 8px; font-size: 0.75rem; cursor: pointer;">삭제</button>
+        `;
+        row.querySelector('.ac-remove-c-btn').addEventListener('click', () => row.remove());
+        compList.appendChild(row);
+      };
+
+      if (addCompBtn) {
+        addCompBtn.addEventListener('click', addCompanionRow);
+      }
+
       const onChange = () => {
         wrap.classList.toggle('is-checked', cb.checked);
         confirmBtn.disabled = !cb.checked;
       };
-      const onConfirm = () => { cleanup(); resolve(true); };
+
+      const getCompanions = () => {
+        if (!allowCompanions || !compList) return [];
+        const rows = compList.querySelectorAll('.ac-companion-row');
+        const list = [];
+        for (const r of rows) {
+          const name = (r.querySelector('.ac-c-name')?.value || '').trim();
+          const phone = (r.querySelector('.ac-c-phone')?.value || '').trim();
+          if (name || phone) {
+            if (!name || !phone) {
+              alert('동반 지인의 이름과 연락처를 모두 입력해 주세요.');
+              return null;
+            }
+            list.push({ name, phone });
+          }
+        }
+        return list;
+      };
+
+      const onConfirm = () => {
+        const companions = getCompanions();
+        if (companions === null) return;
+        cleanup();
+        resolve({ agreed: true, companions });
+      };
       const onCancel = () => { cleanup(); resolve(false); };
       const onOverlayClick = (e) => { if (e.target === overlay) onCancel(); };
       const onKey = (e) => { if (e.key === 'Escape') onCancel(); };

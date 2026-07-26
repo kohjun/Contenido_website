@@ -62,7 +62,8 @@ router.get('/:id/participants',
           preferredActivity: u.preferredActivity,
           totalCount,
           regularCount,
-          verification: participant.verification
+          verification: participant.verification,
+          companions: participant.companions || []
         };
       });
 
@@ -188,9 +189,48 @@ router.post('/:id/apply',
         answers = req.body.answers;
       }
 
+      // 동반 지인 정보 처리
+      let companions = [];
+      if (req.body.companions) {
+        try {
+          companions = typeof req.body.companions === 'string' ? JSON.parse(req.body.companions) : req.body.companions;
+          if (!Array.isArray(companions)) companions = [];
+        } catch (e) {
+          companions = [];
+        }
+      }
+
+      if (companions.length > 0) {
+        if (!event.allowCompanions) {
+          return res.status(400).json({ message: '해당 이벤트는 지인 동반 신청을 허용하지 않습니다.' });
+        }
+        const maxAllowed = event.maxCompanionsPerUser || 1;
+        if (companions.length > maxAllowed) {
+          return res.status(400).json({ message: `지인 동반은 인당 최대 ${maxAllowed}명까지만 신청할 수 있습니다.` });
+        }
+        for (const c of companions) {
+          if (!c.name || !c.name.trim() || !c.phone || !c.phone.trim()) {
+            return res.status(400).json({ message: '동반 지인의 이름과 연락처를 모두 입력해 주세요.' });
+          }
+        }
+      }
+
       const existing = event.appliedParticipants.find(
         p => p.userId.toString() === req.user.id
       );
+
+      // 정원(seat count) 계산: 본인(1) + 지인 수
+      const requestedSeats = 1 + companions.length;
+      if (event.participants && !event.isLightning) {
+        const totalSeatsTaken = event.appliedParticipants
+          .filter(p => (p.status === 'approved' || p.status === 'pending') && (!existing || p._id.toString() !== existing._id.toString()))
+          .reduce((sum, p) => sum + 1 + ((p.companions && p.companions.length) || 0), 0);
+
+        if (totalSeatsTaken + requestedSeats > event.participants) {
+          const remaining = Math.max(0, event.participants - totalSeatsTaken);
+          return res.status(400).json({ message: `이벤트 정원을 초과합니다. (잔여 자릿수: ${remaining}석, 신청 요구: ${requestedSeats}석)` });
+        }
+      }
 
       if (existing) {
         // 활성 신청은 중복 불가
@@ -220,6 +260,7 @@ router.post('/:id/apply',
         existing.status = event.isLightning ? 'approved' : 'pending';
         existing.appliedAt = new Date();
         existing.answers = answers;
+        existing.companions = companions;
       } else {
         // 신규 신청 — 한도 체크 (maxApplicants 있을 때만)
         if (event.maxApplicants && event.appliedParticipants.length >= event.maxApplicants) {
@@ -229,7 +270,8 @@ router.post('/:id/apply',
           userId: req.user.id,
           appliedAt: new Date(),
           status: event.isLightning ? 'approved' : 'pending',
-          answers
+          answers,
+          companions
         });
       }
 

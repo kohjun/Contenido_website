@@ -530,12 +530,17 @@ async function applyForEvent(eventId) {
 
   // 약관 동의 모달
   const isLightning = currentEvent ? !!currentEvent.isLightning : false;
-  const agreed = typeof window.confirmEventApplication === 'function'
-    ? await window.confirmEventApplication({ isLightning })
+  const allowCompanions = currentEvent ? !!currentEvent.allowCompanions : false;
+  const maxCompanionsPerUser = currentEvent ? (currentEvent.maxCompanionsPerUser || 1) : 1;
+
+  const result = typeof window.confirmEventApplication === 'function'
+    ? await window.confirmEventApplication({ isLightning, allowCompanions, maxCompanionsPerUser })
     : confirm(isLightning
         ? '번개주최 신청 즉시 자동 참가 확정(1차 승인)됩니다. 이벤트 완료 후 번개 인증을 제출해 주세요. 동의하시겠습니까?'
         : '참가 확정 후에는 참가비 환불이 불가능하며, 취소 시 경고가 부여될 수 있습니다. 동의하시겠습니까?');
-  if (!agreed) return;
+  if (!result) return;
+
+  const companions = (result && typeof result === 'object' && result.companions) ? result.companions : [];
 
   console.log(`이벤트 ${eventId} 신청 시도`);
   try {
@@ -543,7 +548,8 @@ async function applyForEvent(eventId) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
-      }
+      },
+      body: JSON.stringify({ companions })
     });
 
     const data = await response.json();

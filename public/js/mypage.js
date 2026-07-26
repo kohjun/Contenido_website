@@ -274,6 +274,7 @@ async function fetchUserEvents() {
     }
     
     const user = await userResponse.json();
+    currentUserId = user.id;
     console.log(`로그인된 사용자 ID: ${user.id}`);
 
     // 모든 이벤트 가져오기
@@ -311,6 +312,8 @@ async function fetchUserEvents() {
 }
 
 // 이벤트 목록을 화면에 표시하는 함수
+let currentUserId = null;
+
 function displayEvents(containerId, events, emptyMessage) {
   const container = document.getElementById(containerId);
   if (events.length === 0) {
@@ -318,28 +321,39 @@ function displayEvents(containerId, events, emptyMessage) {
     return;
   }
 
-  container.innerHTML = events.map(event => `
-    <div class="event-item">
-      <div class="event-content" onclick="goToEventDetails('${event._id}')">
-        <div class="event-title">${event.title}</div>
-        <div class="event-details">
-          <div>일시: ${new Date(event.date).toLocaleDateString()} ${event.startTime} ~ ${event.endTime}</div>
-          <div>장소: ${event.place}</div>
-          <div>참가비: ${event.participation_fee.toLocaleString()}원</div>
-          <div class="event-status ${getStatusClass(event, containerId)}">
-            ${getEventStatus(event, containerId)}
+  container.innerHTML = events.map(event => {
+    let companionBadge = '';
+    if (containerId === 'applied-events' && currentUserId && Array.isArray(event.appliedParticipants)) {
+      const myApp = event.appliedParticipants.find(p => String(p.userId || p.userId?._id) === String(currentUserId));
+      if (myApp && Array.isArray(myApp.companions) && myApp.companions.length > 0) {
+        companionBadge = `<div style="margin-top: 6px; font-size: 0.82rem; color: #0284c7; font-weight: bold;">👥 동반 지인 ${myApp.companions.length}명 (${myApp.companions.map(c => c.name).join(', ')})</div>`;
+      }
+    }
+
+    return `
+      <div class="event-item">
+        <div class="event-content" onclick="goToEventDetails('${event._id}')">
+          <div class="event-title">${event.title}</div>
+          <div class="event-details">
+            <div>일시: ${new Date(event.date).toLocaleDateString()} ${event.startTime} ~ ${event.endTime}</div>
+            <div>장소: ${event.place}</div>
+            <div>참가비: ${event.participation_fee.toLocaleString()}원</div>
+            ${companionBadge}
+            <div class="event-status ${getStatusClass(event, containerId)}">
+              ${getEventStatus(event, containerId)}
+            </div>
           </div>
         </div>
+        ${containerId === 'participated-events' ? `
+          <div class="event-actions">
+            <button class="review-button" onclick="goToEventReview('${event._id}')">
+              리뷰 남기기
+            </button>
+          </div>
+        ` : ''}
       </div>
-      ${containerId === 'participated-events' ? `
-        <div class="event-actions">
-          <button class="review-button" onclick="goToEventReview('${event._id}')">
-            리뷰 남기기
-          </button>
-        </div>
-      ` : ''}
-    </div>
-  `).join('');
+    `;
+  }).join('');
 }
 
 // 상태에 따른 CSS 클래스 반환

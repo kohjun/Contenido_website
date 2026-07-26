@@ -609,6 +609,22 @@ function renderParticipantList() {
       `;
     }
 
+    const hasCompanions = Array.isArray(p.companions) && p.companions.length > 0;
+    const companionHtml = hasCompanions
+      ? `
+        <div style="margin-top: 8px; padding: 8px 12px; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 10px; font-size: 0.82rem; color: #166534;">
+          <strong style="display: flex; align-items: center; gap: 4px; color: #15803d; margin-bottom: 4px;">👥 동반 지인 (${p.companions.length}명)</strong>
+          <div style="display: flex; flex-wrap: wrap; gap: 6px;">
+            ${p.companions.map(c => `
+              <span style="background: #ffffff; border: 1px solid #cbd5e1; padding: 2px 8px; border-radius: 6px; font-weight: 500; color: #334155;">
+                ${escapeHtml(c.name)} <small style="color: #64748b;">(${escapeHtml(c.phone)})</small>
+              </span>
+            `).join('')}
+          </div>
+        </div>
+      `
+      : '';
+
     return `
       <article class="participant-card ${statusClass}" data-user-id="${p.userId}">
         <div class="pc-header">
@@ -636,6 +652,7 @@ function renderParticipantList() {
             <span>정기 <b>${p.regularCount || 0}</b>회${p.totalCount ? ` <span class="meta-sub">(총 ${p.totalCount}회)</span>` : ''}</span>
           </div>
         </div>
+        ${companionHtml}
         <div class="pc-actions">
           ${buttonsHtml}
           ${answersBtn}
