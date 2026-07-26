@@ -232,41 +232,10 @@
 
   /**
    * 약관 동의 모달을 띄우고 사용자의 응답을 Promise로 반환.
-   * @param {Object} options options.isLightning 여부 지원
    * @returns {Promise<boolean>} true = 동의 후 신청, false = 취소
    */
-    const allowCompanions = !!options.allowCompanions;
-    const maxCompanions = options.maxCompanionsPerUser || 1;
-
-    let companionWrap = document.getElementById('ac-companion-wrap');
-    if (!companionWrap) {
-      companionWrap = document.createElement('div');
-      companionWrap.id = 'ac-companion-wrap';
-      const bodyEl = document.querySelector('.ac-body');
-      const agreeWrap = document.getElementById('ac-agree-wrap');
-      if (bodyEl && agreeWrap) {
-        bodyEl.insertBefore(companionWrap, agreeWrap);
-      }
-    }
-
-    if (allowCompanions && companionWrap) {
-      companionWrap.style.display = 'block';
-      companionWrap.innerHTML = `
-        <div style="margin: 14px 0; background: #FFF; border: 1.5px solid #CBD5E1; border-radius: 12px; padding: 14px;">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-            <h4 style="margin: 0; font-size: 0.92rem; color: #1e293b; display: flex; align-items: center; gap: 6px;">
-              <span>👥</span> 동반 지인 신청 (최대 ${maxCompanions}명)
-            </h4>
-            <button type="button" id="ac-add-companion-btn" style="background: #0A84FE; color: white; border: none; border-radius: 6px; padding: 5px 10px; font-size: 0.8rem; cursor: pointer; font-weight: bold;">+ 지인 추가</button>
-          </div>
-          <p style="margin: 0 0 10px; font-size: 0.8rem; color: #64748b;">함께 참여할 지인의 이름과 연락처를 입력해 주세요.</p>
-          <div id="ac-companion-list"></div>
-        </div>
-      `;
-    } else if (companionWrap) {
-      companionWrap.style.display = 'none';
-      companionWrap.innerHTML = '';
-    }
+  window.confirmEventApplication = function (options = {}) {
+    init();
 
     return new Promise((resolve) => {
       const overlay = document.getElementById(MODAL_ID);
@@ -274,74 +243,20 @@
       const wrap = document.getElementById('ac-agree-wrap');
       const confirmBtn = document.getElementById('ac-confirm');
       const cancelBtn = document.getElementById('ac-cancel');
-      const addCompBtn = document.getElementById('ac-add-companion-btn');
-      const compList = document.getElementById('ac-companion-list');
 
       // 초기화
       cb.checked = false;
       wrap.classList.remove('is-checked');
       confirmBtn.disabled = true;
 
-      const addCompanionRow = () => {
-        if (!compList) return;
-        const rows = compList.querySelectorAll('.ac-companion-row');
-        if (rows.length >= maxCompanions) {
-          alert(`동반 지인은 최대 ${maxCompanions}명까지 등록할 수 있습니다.`);
-          return;
-        }
-        const row = document.createElement('div');
-        row.className = 'ac-companion-row';
-        row.style.cssText = 'display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; padding: 8px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; align-items: center;';
-        row.innerHTML = `
-          <input type="text" class="ac-c-name" placeholder="이름" style="flex: 1; min-width: 75px; padding: 6px 8px; border-radius: 6px; border: 1px solid #CBD5E1; font-size: 0.82rem;" required>
-          <input type="tel" class="ac-c-phone" placeholder="연락처 (010-XXXX-XXXX)" style="flex: 1.2; min-width: 110px; padding: 6px 8px; border-radius: 6px; border: 1px solid #CBD5E1; font-size: 0.82rem;" required>
-          <select class="ac-c-gender" style="padding: 6px 6px; border-radius: 6px; border: 1px solid #CBD5E1; font-size: 0.82rem; background: #fff;">
-            <option value="male">남성</option>
-            <option value="female">여성</option>
-          </select>
-          <input type="number" class="ac-c-age" placeholder="나이(세)" min="10" max="100" style="width: 70px; padding: 6px 6px; border-radius: 6px; border: 1px solid #CBD5E1; font-size: 0.82rem;" required>
-          <button type="button" class="ac-remove-c-btn" style="background: #ef4444; color: white; border: none; border-radius: 6px; padding: 5px 8px; font-size: 0.75rem; cursor: pointer;">삭제</button>
-        `;
-        row.querySelector('.ac-remove-c-btn').addEventListener('click', () => row.remove());
-        compList.appendChild(row);
-      };
-
-      if (addCompBtn) {
-        addCompBtn.addEventListener('click', addCompanionRow);
-      }
-
       const onChange = () => {
         wrap.classList.toggle('is-checked', cb.checked);
         confirmBtn.disabled = !cb.checked;
       };
 
-      const getCompanions = () => {
-        if (!allowCompanions || !compList) return [];
-        const rows = compList.querySelectorAll('.ac-companion-row');
-        const list = [];
-        for (const r of rows) {
-          const name = (r.querySelector('.ac-c-name')?.value || '').trim();
-          const phone = (r.querySelector('.ac-c-phone')?.value || '').trim();
-          const gender = r.querySelector('.ac-c-gender')?.value || 'male';
-          const ageVal = (r.querySelector('.ac-c-age')?.value || '').trim();
-          const age = ageVal ? parseInt(ageVal) : null;
-
-          if (name || phone || ageVal) {
-            if (!name || !phone || !ageVal) {
-              alert('동반 지인의 이름, 연락처, 나이를 모두 입력해 주세요.');
-              return null;
-            }
-            list.push({ name, phone, gender, age });
-          }
-        }
-        return list;
-      };
-
       const onConfirm = () => {
-        const companions = getCompanions();
-        if (companions === null) return;
         cleanup();
-        resolve({ agreed: true, companions });
+        resolve(true);
       };
       const onCancel = () => { cleanup(); resolve(false); };
       const onOverlayClick = (e) => { if (e.target === overlay) onCancel(); };
@@ -367,7 +282,5 @@
       // 첫 진입 시 체크박스 포커스
       setTimeout(() => cb.focus(), 200);
     });
-  }
-
-  window.confirmEventApplication = confirmEventApplication;
+  };
 })();
