@@ -19,48 +19,6 @@
     </div>
   </header>
 
-  <!-- 스타터-스태프 명단 관리 섹션 (접고 열 수 있는 탭) -->
-  <section class="starter-staff-section">
-    <button type="button" class="starter-staff-toggle-btn" onclick="window.StaffDashboard.toggleStarterStaffTab()">
-      <div class="toggle-btn-left">
-        <h3 class="section-title">
-          스타터-스태프 명단 관리 <small style="font-size: 0.82rem; color: #d97706; font-weight: normal;">(매번 의무신청 경고 자동 면제)</small>
-        </h3>
-        <p class="section-desc">스타터-스태프 인원을 지정하여 확정하면 인사팀 페이지에서 '스타터-스태프' 표시 및 매달 미신청 경고에서 자동으로 제외됩니다.</p>
-      </div>
-      <span class="starter-tab-chev" id="starter-tab-chev">▼</span>
-    </button>
-
-    <div class="starter-staff-card-body" id="starter-staff-panel" hidden style="display: none; margin-top: 16px;">
-      <!-- 상단: 선택/저장된 확정 스타터-스태프 명단 요약 박스 -->
-      <div id="confirmed-starter-staff-box" style="margin-bottom: 20px; background: #fffbeb; border-radius: 16px; padding: 18px 20px; border: 1px solid #f59e0b;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-          <h4 style="margin: 0; font-size: 1rem; color: #b45309; font-weight: 700;">
-            ⭐ 확정된 스타터-스태프 명단 (<b id="confirmed-starter-staff-count" style="color: #d97706;">0</b>명)
-          </h4>
-        </div>
-        <div id="confirmed-starter-staff-list" style="display: flex; flex-wrap: wrap; gap: 8px;">
-          <span style="font-size: 0.88rem; color: #94a3b8;">확정된 스타터-스태프가 없습니다.</span>
-        </div>
-      </div>
-
-      <div class="starter-staff-search-row">
-        <input type="text" id="starter-staff-search" placeholder="회원 이름 또는 전화번호 뒷자리로 검색..." oninput="window.StaffDashboard.filterMembers()">
-        <span class="starter-staff-count-tag">선택 중인 인원: <b id="starter-staff-selected-count">0</b>명</span>
-      </div>
-
-      <div id="starter-staff-member-list" class="starter-staff-member-grid">
-        <div class="loading-placeholder">회원 목록을 불러오는 중...</div>
-      </div>
-
-      <div class="starter-staff-footer">
-        <button type="button" class="btn-save-starter" onclick="window.StaffDashboard.saveStarterStaff()">
-          스타터-스태프 명단 저장
-        </button>
-      </div>
-    </div>
-  </section>
-
   <!-- 스태프 기획 가이드 체크리스트 섹션 -->
   <section class="guide-sections-wrapper">
 

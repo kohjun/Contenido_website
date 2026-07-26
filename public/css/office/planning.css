@@ -431,3 +431,50 @@ body {
   .pl-summary-value { font-size: 1.1rem; }
   .pl-chart-card-title { font-size: 0.9rem; }
 }
+
+/* ───────── Starter Staff Section ───────── */
+.starter-staff-section {
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(10px);
+  border-radius: 20px;
+  padding: 18px 22px;
+  margin-bottom: 24px;
+  border: 1px solid rgba(245, 158, 11, 0.35);
+  box-shadow: 0 8px 24px rgba(245, 158, 11, 0.08);
+}
+
+.starter-staff-toggle-btn {
+  width: 100%;
+  background: transparent;
+  border: none;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  text-align: left;
+  cursor: pointer;
+  padding: 4px 0;
+}
+
+.starter-tab-chev {
+  font-size: 1.1rem;
+  color: #d97706;
+  transition: transform 0.2s ease;
+  margin-left: 12px;
+}
+
+.starter-staff-toggle-btn.is-open .starter-tab-chev {
+  transform: rotate(180deg);
+}
+
+.starter-staff-card-body {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 18px;
+  border: 1px solid #fef3c7;
+}
+
+.starter-staff-search-row input:focus {
+  border-color: #d97706;
+  outline: none;
+}
+

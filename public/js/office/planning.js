@@ -400,4 +400,177 @@
     bootPlanning();
   }
   window.bootPlanning = bootPlanning;
+
+  /* ───────── 스타터-스태프 명단 관리 ───────── */
+  let allMembers = [];
+  let selectedStarterStaffIds = new Set();
+
+  async function loadStarterStaff() {
+    const listEl = document.getElementById('starter-staff-member-list');
+    if (!listEl) return;
+
+    try {
+      if (allMembers.length === 0) {
+        let memRes = await fetch('/user/participants/users', { credentials: 'include' });
+        if (!memRes.ok) {
+          memRes = await fetch('/user/participants/hr-members', { credentials: 'include' });
+        }
+
+        if (memRes.ok) {
+          allMembers = await memRes.json();
+        } else {
+          listEl.innerHTML = `<div style="color: #ef4444; padding: 12px; text-align: center; grid-column: 1/-1;">회원 목록 조회 권한이 없거나 오류가 발생했습니다.</div>`;
+          return;
+        }
+      }
+
+      const res = await fetch('/staff/starter-staff', { credentials: 'include' });
+      if (res.ok) {
+        const data = await res.json();
+        selectedStarterStaffIds = new Set((data.memberIds || []).map(id => id.toString()));
+      }
+
+      renderConfirmedStarterStaff();
+      renderMembers();
+    } catch (err) {
+      console.error('[planning.js] Error loading starter staff:', err);
+      if (listEl) listEl.innerHTML = '<div style="color:#ef4444;padding:12px;text-align:center;grid-column:1/-1;">스타터-스태프 명단을 불러오는 중 오류가 발생했습니다.</div>';
+    }
+  }
+
+  function renderConfirmedStarterStaff() {
+    const listEl = document.getElementById('confirmed-starter-staff-list');
+    const countEl = document.getElementById('confirmed-starter-staff-count');
+    if (!listEl) return;
+
+    const confirmedMembers = allMembers.filter(m => {
+      const mId = (m._id || m.id).toString();
+      return selectedStarterStaffIds.has(mId);
+    });
+
+    if (countEl) countEl.textContent = confirmedMembers.length;
+
+    if (confirmedMembers.length === 0) {
+      listEl.innerHTML = '<span style="font-size: 0.88rem; color: #94a3b8;">확정된 스타터-스태프가 없습니다.</span>';
+    } else {
+      listEl.innerHTML = confirmedMembers.map(m => {
+        const name = escapeHTML(m.name || m.displayName || '이름없음');
+        const phoneTail = m.phonenumber ? String(m.phonenumber).slice(-4) : '';
+        return `
+          <span style="display: inline-flex; align-items: center; gap: 4px; padding: 6px 12px; background: #ffffff; color: #b45309; border: 1px solid #f59e0b; border-radius: 20px; font-size: 0.85rem; font-weight: 600; box-shadow: 0 2px 6px rgba(245,158,11,0.12);">
+            ⭐ ${name} ${phoneTail ? `<small style="color:#d97706; font-weight:normal;">(${phoneTail})</small>` : ''}
+          </span>
+        `;
+      }).join('');
+    }
+  }
+
+  function renderMembers() {
+    const listEl = document.getElementById('starter-staff-member-list');
+    const countEl = document.getElementById('starter-staff-selected-count');
+    if (!listEl) return;
+
+    const keyword = (document.getElementById('starter-staff-search')?.value || '').trim().toLowerCase();
+
+    const filtered = allMembers.filter(m => {
+      if (m.role !== 'participant' && m.role !== 'officer') return false;
+
+      if (!keyword) return true;
+      const name = (m.name || m.displayName || '').toLowerCase();
+      const phone = String(m.phonenumber || '').slice(-4);
+      return name.includes(keyword) || phone.includes(keyword);
+    });
+
+    if (filtered.length === 0) {
+      listEl.innerHTML = '<div style="color: #94a3b8; padding: 10px; text-align: center; grid-column: 1/-1;">검색 조건에 일치하는 회원이 없습니다.</div>';
+    } else {
+      listEl.innerHTML = filtered.map(m => {
+        const mId = (m._id || m.id).toString();
+        const isChecked = selectedStarterStaffIds.has(mId);
+        const name = escapeHTML(m.name || m.displayName || '이름없음');
+        const team = m.team ? `<span style="font-size: 0.76rem; color: #b45309; background: #fef3c7; padding: 2px 6px; border-radius: 4px; margin-left: 4px;">${escapeHTML(m.team)}</span>` : '';
+        const phoneTail = m.phonenumber ? String(m.phonenumber).slice(-4) : '';
+
+        return `
+          <label style="display: flex; align-items: center; gap: 8px; padding: 8px 12px; background: ${isChecked ? '#fffbeb' : '#f8fafc'}; border: 1px solid ${isChecked ? '#f59e0b' : '#e2e8f0'}; border-radius: 10px; cursor: pointer; transition: all 0.15s ease;">
+            <input type="checkbox" value="${mId}" ${isChecked ? 'checked' : ''} onchange="window.PlanningDashboard.toggleStarterMember('${mId}', this.checked)" style="accent-color: #f59e0b; width: 16px; height: 16px; cursor: pointer;">
+            <span style="font-size: 0.9rem; font-weight: 600; color: #1e293b;">${name}</span>
+            ${phoneTail ? `<span style="font-size: 0.8rem; color: #94a3b8;">(${phoneTail})</span>` : ''}
+            ${team}
+          </label>
+        `;
+      }).join('');
+    }
+
+    if (countEl) countEl.textContent = selectedStarterStaffIds.size;
+  }
+
+  function filterMembers() {
+    renderMembers();
+  }
+
+  function toggleStarterMember(id, checked) {
+    if (checked) {
+      selectedStarterStaffIds.add(id);
+    } else {
+      selectedStarterStaffIds.delete(id);
+    }
+    const countEl = document.getElementById('starter-staff-selected-count');
+    if (countEl) countEl.textContent = selectedStarterStaffIds.size;
+    renderMembers();
+  }
+
+  async function saveStarterStaff() {
+    try {
+      const res = await fetch('/staff/starter-staff', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          memberIds: Array.from(selectedStarterStaffIds)
+        })
+      });
+
+      const result = await res.json();
+      if (res.ok) {
+        alert(result.message || '스타터-스태프 명단이 확정되었습니다.');
+        renderConfirmedStarterStaff();
+        renderMembers();
+      } else {
+        alert(result.message || '저장에 실패했습니다.');
+      }
+    } catch (err) {
+      console.error('[planning.js] Error saving starter staff:', err);
+      alert('스타터-스태프 저장 중 오류가 발생했습니다.');
+    }
+  }
+
+  function toggleStarterStaffTab() {
+    const panel = document.getElementById('starter-staff-panel');
+    const chev = document.getElementById('starter-tab-chev');
+    const btn = document.querySelector('.starter-staff-toggle-btn');
+    if (!panel) return;
+
+    const isHidden = panel.hasAttribute('hidden') || panel.style.display === 'none';
+    if (isHidden) {
+      panel.removeAttribute('hidden');
+      panel.style.display = 'block';
+      if (btn) btn.classList.add('is-open');
+      if (chev) chev.textContent = '▲';
+      loadStarterStaff();
+    } else {
+      panel.setAttribute('hidden', '');
+      panel.style.display = 'none';
+      if (btn) btn.classList.remove('is-open');
+      if (chev) chev.textContent = '▼';
+    }
+  }
+
+  window.PlanningDashboard = {
+    toggleStarterStaffTab,
+    filterMembers,
+    toggleStarterMember,
+    saveStarterStaff,
+    loadStarterStaff
+  };
 })();
