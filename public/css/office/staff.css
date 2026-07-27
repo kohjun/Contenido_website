@@ -614,3 +614,67 @@
     padding: 14px;
   }
 }
+
+/* ───────── 비교표 카드 ───────── */
+.comparison-card {
+  background: #FFFFFF;
+  border: 1px solid #FED7AA;
+  border-radius: 20px;
+  padding: 20px;
+  margin-bottom: 28px;
+  box-shadow: 0 4px 16px rgba(245, 158, 11, 0.08);
+}
+
+.comparison-card-title {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: #B45309;
+  margin: 0 0 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.comparison-table-wrap {
+  overflow-x: auto;
+}
+
+.comparison-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.84rem;
+}
+
+.comparison-table th, .comparison-table td {
+  padding: 10px 12px;
+  border: 1px solid #E2E8F0;
+  text-align: left;
+}
+
+.comparison-table th {
+  background: #FFFBEB;
+  color: #B45309;
+  font-weight: 700;
+}
+
+.comparison-table th.staff-header-col {
+  background: #FEF3C7;
+  color: #92400E;
+}
+
+.comparison-table th.regular-header-col {
+  background: #ECFDF5;
+  color: #065F46;
+}
+
+.comparison-table td.staff-col {
+  background: #FFFBEB;
+  color: #92400E;
+  font-weight: 600;
+}
+
+.comparison-table td.regular-col {
+  background: #F0FDF4;
+  color: #065F46;
+}
+
