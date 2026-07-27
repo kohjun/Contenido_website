@@ -663,8 +663,8 @@
 }
 
 .comparison-table th.regular-header-col {
-  background: #ECFDF5;
-  color: #065F46;
+  background: #F1F5F9;
+  color: #334155;
 }
 
 .comparison-table td.staff-col {
@@ -674,7 +674,7 @@
 }
 
 .comparison-table td.regular-col {
-  background: #F0FDF4;
-  color: #065F46;
+  background: #FFFFFF;
+  color: #334155;
 }
 
