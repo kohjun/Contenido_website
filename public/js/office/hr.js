@@ -40,7 +40,6 @@ const state = {
 const TEAM_KOR = {
   operationTeam: '운영팀',
   HumanResourceTeam: '인사팀',
-  financeTeam: '재무팀',
   cooperationTeam: '대외협력팀',
   marketingTeam: '홍보팀',
   designTeam: '디자인팀',
@@ -55,7 +54,6 @@ const TEAM_KOR = {
 const TEAM_CODE = {
   operationTeam: 'O',
   HumanResourceTeam: 'H',
-  financeTeam: 'F',
   cooperationTeam: 'CO',
   marketingTeam: 'M',
   designTeam: 'D',

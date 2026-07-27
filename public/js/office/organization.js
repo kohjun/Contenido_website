@@ -207,7 +207,6 @@ class OrganizationChart {
             operationTeam: { department: '운영부', team: 'operationTeam', role: 'officer' },
             cooperationTeam: { department: '운영부', team: 'cooperationTeam', role: 'officer' },
             HumanResourceTeam: { department: '운영부', team: 'HumanResourceTeam', role: 'officer' },
-            financeTeam: { department: '운영부', team: 'financeTeam', role: 'officer' },
             marketingTeam: { department: '홍보부', team: 'marketingTeam', role: 'officer' },
             designTeam: { department: '홍보부', team: 'designTeam', role: 'officer' },
             videoTeam: { department: '홍보부', team: 'videoTeam', role: 'officer' },
@@ -322,7 +321,7 @@ class OrganizationChart {
 
             // 일반 팀 처리
             const teams = [
-                'operationTeam', 'cooperationTeam', 'HumanResourceTeam', 'financeTeam',
+                'operationTeam', 'cooperationTeam', 'HumanResourceTeam',
                 'marketingTeam', 'designTeam', 'videoTeam',
                 'PlanningTeam', 'regularTeam'
             ];

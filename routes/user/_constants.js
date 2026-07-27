@@ -6,7 +6,6 @@ const TEAM_TO_DEPARTMENT = {
   operationTeam:     'operation',
   cooperationTeam:   'operation',
   HumanResourceTeam: 'operation',
-  financeTeam:       'operation',
   marketingTeam:     'promotion',
   designTeam:        'promotion',
   videoTeam:         'promotion',

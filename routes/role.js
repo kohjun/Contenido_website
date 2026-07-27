@@ -23,7 +23,7 @@ router.get('/office_:team.html', async (req, res, next) => {
 
     // 부서별 팀 매핑 정의
     const departmentTeams = {
-      operation: ['operationTeam', 'cooperationTeam', 'HumanResourceTeam', 'financeTeam'],
+      operation: ['operationTeam', 'cooperationTeam', 'HumanResourceTeam'],
       promotion: ['marketingTeam', 'designTeam', 'videoTeam'],
       planning: ['PlanningTeam', 'regularTeam', 'staffTeam']
     };

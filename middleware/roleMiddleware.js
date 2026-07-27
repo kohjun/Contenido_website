@@ -3,7 +3,7 @@ const Event = require('../models/Event');
 
 // 부서별 팀 매핑 정보
 const departmentTeams = {
-    operation: ['operationTeam', 'cooperationTeam', 'HumanResourceTeam', 'financeTeam'],
+    operation: ['operationTeam', 'cooperationTeam', 'HumanResourceTeam'],
     promotion: ['marketingTeam', 'designTeam', 'videoTeam'],
     planning: ['PlanningTeam', 'regularTeam', 'staffTeam']
 };
@@ -18,7 +18,6 @@ const extractTeamFromUrl = (url) => {
             'hr': 'HumanResourceTeam',
             'operation': 'operationTeam',
             'cooperation': 'cooperationTeam',
-            'finance': 'financeTeam',
             'marketing': 'marketingTeam',
             'design': 'designTeam',
             'video': 'videoTeam',

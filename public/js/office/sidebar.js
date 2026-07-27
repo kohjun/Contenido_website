@@ -34,12 +34,6 @@ const Sidebar = (function() {
               <div class="org-menu-item-description">인사 규칙 및 입출관리</div>
             </div>
           </a>
-          <a href="#" class="org-menu-item" data-team="financeTeam">
-            <div class="org-menu-item-content">
-              <div class="org-menu-item-label"><strong>재무팀</strong></div>
-              <div class="org-menu-item-description">정산, 입출금 결제내역 관리</div>
-            </div>
-          </a>
         </div>
 
         <!-- 홍보부 -->
@@ -110,7 +104,6 @@ const Sidebar = (function() {
     operationTeam: { url: '/office_operation.html' },
     cooperationTeam: { url: '/office_cooperation.html' },
     HumanResourceTeam: { url: '/office_hr.html' },
-    financeTeam: { url: '/office_finance.html' },
     marketingTeam: { url: '/office_marketing.html' },
     designTeam: { url: '/office_design.html' },
     videoTeam: { url: '/office_video.html' },
@@ -121,7 +114,7 @@ const Sidebar = (function() {
   };
 
   const departmentTeams = {
-    operation: ['operationTeam', 'cooperationTeam', 'HumanResourceTeam', 'financeTeam'],
+    operation: ['operationTeam', 'cooperationTeam', 'HumanResourceTeam'],
     promotion: ['marketingTeam', 'designTeam', 'videoTeam'],
     planning: ['planningTeam', 'regularTeam', 'staffTeam']
   };
@@ -150,13 +143,29 @@ const Sidebar = (function() {
     // 1. 관리자는 모든 접근 가능
     if (userRole.role === 'admin') return true;
     
-    // 2. 부장은 자신의 부서의 모든 팀 페이지에 접근 가능
+    // 2. 운영진 권한이 아니면 접근 불가
+    if (userRole.role !== 'officer') return false;
+
+    const normalizedTarget = (teamId || '').toLowerCase();
+    const normalizedUserTeam = (userRole.team || '').toLowerCase();
+
+    // 3. 부장은 자신의 부서의 모든 팀 페이지에 접근 가능
     if (userRole.isDepartmentHead) {
-      return departmentTeams[userRole.department]?.includes(teamId);
+      let userDept = (userRole.department || '').toLowerCase();
+      if (userDept.includes('기획') || userDept === 'planning') userDept = 'planning';
+      else if (userDept.includes('운영') || userDept === 'operation') userDept = 'operation';
+      else if (userDept.includes('홍보') || userDept === 'promotion') userDept = 'promotion';
+
+      const allowedTeams = (departmentTeams[userDept] || []).map(t => t.toLowerCase());
+      if (allowedTeams.includes(normalizedTarget)) return true;
     }
     
-    // 3. 일반 팀원은 자신의 팀 페이지만 접근 가능
-    return userRole.team === teamId;
+    // 4. 일반 팀원은 자신의 팀 페이지만 접근 가능 (대소문자 무관 매칭)
+    if (normalizedUserTeam && normalizedUserTeam === normalizedTarget) {
+      return true;
+    }
+
+    return false;
   }
 
   // 페이지 로드 함수
@@ -350,52 +359,7 @@ const Sidebar = (function() {
         }
       }
 
-      //4. 재무팀
-      if (pageId === 'financeTeam') {
-        try {
-          // 기존 스크립트 제거 및 새로 로드
-          const existingScript = document.querySelector('script[src="/js/office/finance.js"]');
-          if (existingScript) {
-            existingScript.remove();
-          }
-      
-          // 새 스크립트 로드
-          await new Promise((resolve, reject) => {
-            const financeScript = document.createElement('script');
-            financeScript.src = '/js/office/finance.js';
-            financeScript.onload = resolve;
-            financeScript.onerror = reject;
-            document.body.appendChild(financeScript);
-          });
-      
-          // CSS 파일 확인 및 추가
-          if (!document.querySelector('link[href="/css/finance.css"]')) {
-            const cssLink = document.createElement('link');
-            cssLink.rel = 'stylesheet';
-            cssLink.href = '/css/finance.css';
-            document.head.appendChild(cssLink);
-          }
-      
-          // HTML 컨텐츠 로드
-          const mainContent = document.getElementById('main-content');
-          const response = await fetch('/office_finance.html');
-          const html = await response.text();
-          mainContent.innerHTML = html;
-      
-          // TransactionTable 및 FeeVerification 초기화
-          setTimeout(() => {
-            if (typeof TransactionTable === 'function') {
-              new TransactionTable();
-            }
-            if (typeof FeeVerification === 'function') {
-              new FeeVerification();
-            }
-          }, 100); // DOM 업데이트 후 초기화
-        } catch (error) {
-          console.error('Error loading finance page:', error);
-          alert('재무팀 페이지 로드 중 문제가 발생했습니다.');
-        }
-      }
+
       
       
       
