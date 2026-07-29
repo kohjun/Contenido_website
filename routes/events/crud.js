@@ -163,9 +163,9 @@ router.post('/',
   handleMulterError,
   async (req, res) => {
     try {
-      if (req.user.role !== 'admin' && req.user.department !== 'planning') {
+      if (req.user.role !== 'admin' && req.user.role !== 'officer') {
         return res.status(403).json({
-          message: '기획부 또는 관리자만 이벤트 생성이 가능합니다.'
+          message: '운영진 또는 관리자만 이벤트 생성이 가능합니다.'
         });
       }
 

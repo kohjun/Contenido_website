@@ -662,11 +662,10 @@ document.addEventListener('DOMContentLoaded', async () => {
       return;
     }
     const user = await res.json();
-    const isAdmin = user.role === 'admin';
-    const isPlanningOfficer = user.role === 'officer' && user.department === 'planning';
+    const isOfficerOrAdmin = user.role === 'officer' || user.role === 'admin';
 
-    if (!isAdmin && !isPlanningOfficer) {
-      alert('기획부 운영진 또는 관리자만 접근할 수 있는 페이지입니다.');
+    if (!isOfficerOrAdmin) {
+      alert('운영진 또는 관리자만 접근할 수 있는 페이지입니다.');
       window.location.href = '/events.html';
       return;
     }
