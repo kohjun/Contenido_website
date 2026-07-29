@@ -953,7 +953,7 @@ const AuthModule = {
                   <li><a href="ended-events.html">종료된 이벤트</a></li>
                   <li><a href="/calendar.html">이벤트 캘린더</a></li>
                   <li><a href="/ranking">활동 랭킹</a></li>
-                  <li><a href="/event-staff.html" id="eventStaffLink" style="display: none;">이벤트 관리(기획부/관리자)</a></li>
+                  <li><a href="/event-staff.html" id="eventStaffLink" style="display: none;">이벤트 관리</a></li>
                   <li><a href="community.html">커뮤니티</a></li>
               </ul>
               <a href="/rules.html"><h3>동아리회칙 및  메뉴얼</h3></a>
@@ -1106,7 +1106,7 @@ const AuthModule = {
 
         const eventStaffLink = document.getElementById('eventStaffLink');
         if (eventStaffLink) {
-          eventStaffLink.style.display = isPlanningOrAdmin ? '' : 'none';
+          eventStaffLink.style.display = isOfficerOrAdmin ? '' : 'none';
         }
       } else {
         // 로그인되지 않은 상태

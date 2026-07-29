@@ -188,7 +188,28 @@ const processEventAutoConfirmations = schedule.scheduleJob('*/5 * * * *', async 
   }
 });
 
-// ============== 스케줄러 상태 확인 함수 ==============
+// 매 1분마다 행사 종료 시각 경과 이벤트 자동 종료 및 리뷰 알림 발송
+const { checkAndAutoEndEvents } = require('./eventAutoEnd');
+const autoEndEventsJob = schedule.scheduleJob('* * * * *', async () => {
+  await checkAndAutoEndEvents();
+});
+
+// 매달 1일 정각(00:00)에 실행되는 월간 번개주최 정산/삭제/생성 스케줄러
+const { runMonthlyLightningTask, createCurrentMonthLightningEvent } = require('./lightningMonthlyService');
+const monthlyLightningJob = schedule.scheduleJob('0 0 1 * *', async () => {
+  try {
+    await runMonthlyLightningTask();
+  } catch (err) {
+    console.error('월간 번개주최 스케줄러 실행 에러:', err);
+  }
+});
+
+// 서버 부팅 시 이번 달 번개주최 이벤트 존재 여부 점검 및 자동 생성 (비동기)
+setTimeout(() => {
+  createCurrentMonthLightningEvent().catch(err => {
+    console.error('부팅 시 번개주최 이벤트 생성 실패:', err);
+  });
+}, 3000);
 
 const getSchedulerStatus = () => {
   return {
@@ -216,18 +237,18 @@ const getSchedulerStatus = () => {
         description: '이벤트 행사 종료 시간 경과 시 자동 종료 및 리뷰 유도 알림 발송',
         schedule: '* * * * *',
         nextRun: autoEndEventsJob.nextInvocation()
+      },
+      {
+        name: 'monthlyLightningJob',
+        description: '매달 1일 번개주최 이벤트 정산/삭제 및 신규 생성',
+        schedule: '0 0 1 * *',
+        nextRun: monthlyLightningJob.nextInvocation()
       }
     ],
     currentTime: new Date(),
     timezone: 'Asia/Seoul'
   };
 };
-
-// 매 1분마다 행사 종료 시각 경과 이벤트 자동 종료 및 리뷰 알림 발송
-const { checkAndAutoEndEvents } = require('./eventAutoEnd');
-const autoEndEventsJob = schedule.scheduleJob('* * * * *', async () => {
-  await checkAndAutoEndEvents();
-});
 
 module.exports = {
   // 기존 스케줄러들
@@ -238,5 +259,6 @@ module.exports = {
 
   // 이벤트 자동 확정 및 종료
   processEventAutoConfirmations,
-  autoEndEventsJob
+  autoEndEventsJob,
+  monthlyLightningJob
 };

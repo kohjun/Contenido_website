@@ -115,4 +115,23 @@ router.post('/:id/end',
     }
   });
 
+/* =========================================================================
+   POST — 월간 번개주최 정산 및 생성 수동 실행 (관리자/운영진 전용)
+   ========================================================================= */
+
+const { runMonthlyLightningTask } = require('../../utils/lightningMonthlyService');
+
+router.post('/lightning-monthly/trigger',
+  authenticateToken,
+  authorizeRoles('officer', 'admin'),
+  async (req, res) => {
+    try {
+      await runMonthlyLightningTask();
+      res.json({ message: '월간 번개주최 정산 및 신규 이벤트 생성이 성공적으로 완료되었습니다.' });
+    } catch (error) {
+      console.error('Error triggering monthly lightning task:', error);
+      res.status(500).json({ message: '월간 번개주최 작업 처리 중 오류가 발생했습니다.', error: error.message });
+    }
+  });
+
 module.exports = router;
