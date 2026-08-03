@@ -165,18 +165,32 @@ async function loadEventContent(eventId) {
       participantsElem.textContent = `${currentEvent.participants}명 (최대 ${currentEvent.maxApplicants}명 신청)`;
     }
 
-    // 참가자 규칙 상태 표시
+    // 참가자 규칙 및 지인 동반 허용 상태 표시
     if (detailsElem && kakaoShareButton) {
+      detailsElem.querySelectorAll('.rules-status, .companion-status').forEach(el => el.remove());
+
       const rulesStatus = document.createElement('p');
       rulesStatus.className = 'rules-status';
       rulesStatus.innerHTML = currentEvent.hasParticipantRules ?
         ' <strong>참가자 규칙 적용</strong> 활동부원은 참가가 확정된 이후에 취소 시 경고 1회가 부과됩니다.' :
         '참가자 규칙이 적용되지 않는 일반 이벤트입니다.';
-      // kakaoShareButton이 detailsElem의 자식인지 확인
-      if (kakaoShareButton.parentNode === detailsElem) {
-        detailsElem.insertBefore(rulesStatus, kakaoShareButton);
+
+      const targetRef = kakaoShareButton.parentNode === detailsElem ? kakaoShareButton : null;
+      if (targetRef) {
+        detailsElem.insertBefore(rulesStatus, targetRef);
       } else {
         detailsElem.appendChild(rulesStatus);
+      }
+
+      if (currentEvent.allowCompanions) {
+        const companionStatus = document.createElement('p');
+        companionStatus.className = 'companion-status';
+        companionStatus.innerHTML = '<strong>지인 동반 허용</strong> 신청한 부원이 마이페이지에서 초대장 링크를 발급하여 지인을 함께 초대할 수 있습니다.';
+        if (targetRef) {
+          detailsElem.insertBefore(companionStatus, targetRef);
+        } else {
+          detailsElem.appendChild(companionStatus);
+        }
       }
     }
     

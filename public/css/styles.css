@@ -2928,6 +2928,21 @@ tr:hover {
   color: #533f03;
 }
 
+.companion-status {
+  margin: 0.6rem 0 1rem;
+  padding: 0.8rem;
+  background-color: #e0f2fe;
+  border: 1px solid #bae6fd;
+  border-radius: 8px;
+  color: #0369a1;
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+.companion-status strong {
+  color: #0284c7;
+}
+
 /* 공유 버튼과 모달 스타일 */
 .title-share-container {
   display: flex;

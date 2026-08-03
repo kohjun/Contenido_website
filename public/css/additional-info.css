@@ -390,6 +390,22 @@ img.info-icon,
 }
 .rules-status strong { color: var(--c-brand-strong); font-weight: 600; }
 
+.companion-status {
+  color: #0369a1;
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  padding: 12px 14px;
+  background: #e0f2fe;
+  border: 1px solid #bae6fd;
+  border-radius: 10px;
+  margin: 10px 0 14px;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  font-weight: 500;
+}
+.companion-status strong { color: #0284c7; font-weight: 700; }
+
 /* =========================================================================
    8) Event contents
    ========================================================================= */
