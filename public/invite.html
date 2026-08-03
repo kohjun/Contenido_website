@@ -399,7 +399,59 @@
 
             <div id="questions-container"></div>
 
-            <button type="submit" id="submit-btn" class="submit-btn">지인 참가 신청 완료하기</button>
+            <!-- 약관 및 참가 동의서 -->
+            <div style="margin-top: 18px; padding: 16px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 14px; text-align: left;">
+              <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+                <span style="font-size: 0.92rem; color: #0f172a; font-weight: 700;">약관 및 참가 동의서</span>
+                <label style="font-size: 0.8rem; color: #0284c7; cursor: pointer; font-weight: 600; display: flex; align-items: center; gap: 4px;">
+                  <input type="checkbox" id="chk-agree-all" onchange="const chks = document.querySelectorAll('.guest-term-chk'); chks.forEach(c => c.checked = this.checked);" style="accent-color: #0284c7; cursor: pointer;">
+                  전체 동의
+                </label>
+              </div>
+
+              <!-- 1. 개인정보 동의 -->
+              <div style="margin-bottom: 12px; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 12px;">
+                <div style="font-size: 0.82rem; font-weight: 700; color: #1e293b; margin-bottom: 4px;">1. 개인정보 수집 및 이용 동의 [필수]</div>
+                <div style="font-size: 0.78rem; color: #64748b; line-height: 1.45; max-height: 70px; overflow-y: auto; background: #f8fafc; padding: 8px; border-radius: 6px; margin-bottom: 8px;">
+                  • 수집 항목: 성함, 연락처, 성별, 나이<br>
+                  • 이용 목적: 이벤트 참가자 본인 확인, 안전 및 비상 연락망 운용, 행사 진행 안내<br>
+                  • 보유 및 이용 기간: 이벤트 종료 후 30일 이내 안전하게 파기
+                </div>
+                <label style="display: flex; align-items: center; gap: 6px; font-size: 0.82rem; color: #334155; font-weight: 600; cursor: pointer;">
+                  <input type="checkbox" id="chk-privacy" class="guest-term-chk" required style="accent-color: #0284c7; width: 16px; height: 16px; cursor: pointer;">
+                  개인정보 수집 및 이용에 동의합니다.
+                </label>
+              </div>
+
+              <!-- 2. 풍기문란 방지 및 행동 수칙 동의 -->
+              <div style="margin-bottom: 12px; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 12px;">
+                <div style="font-size: 0.82rem; font-weight: 700; color: #1e293b; margin-bottom: 4px;">2. 풍기문란 방지 및 행동 수칙 동의 [필수]</div>
+                <div style="font-size: 0.78rem; color: #64748b; line-height: 1.45; max-height: 80px; overflow-y: auto; background: #f8fafc; padding: 8px; border-radius: 6px; margin-bottom: 8px;">
+                  • 불쾌감, 위협, 성적 수치심을 주는 언행(성희롱, 강요, 과도한 스킨십 등) 엄금<br>
+                  • 과도한 음주 강권, 시비 및 비신사적인 행동 절대 금지<br>
+                  • 수칙 위반 시 현장에서 즉시 퇴장 조치되며, 향후 콘테니도 모임 및 행사에 영구 참가 제한 조치가 취해집니다.
+                </div>
+                <label style="display: flex; align-items: center; gap: 6px; font-size: 0.82rem; color: #334155; font-weight: 600; cursor: pointer;">
+                  <input type="checkbox" id="chk-conduct" class="guest-term-chk" required style="accent-color: #0284c7; width: 16px; height: 16px; cursor: pointer;">
+                  풍기문란 방지 및 행동 수칙을 확인하였으며 동의합니다.
+                </label>
+              </div>
+
+              <!-- 3. 이벤트 참가 규칙 및 환불·노쇼 규정 동의 -->
+              <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 12px;">
+                <div style="font-size: 0.82rem; font-weight: 700; color: #1e293b; margin-bottom: 4px;">3. 이벤트 참가 규칙 및 환불·노쇼 규정 동의 [필수]</div>
+                <div style="font-size: 0.78rem; color: #64748b; line-height: 1.45; max-height: 80px; overflow-y: auto; background: #f8fafc; padding: 8px; border-radius: 6px; margin-bottom: 8px;">
+                  • 참가 규칙: 행사 진행 및 안전을 위해 담당 운영진 및 스태프의 안내에 협조해야 합니다.<br>
+                  • 환불 & 노쇼(No-Show) 규정: 당일 무단 불참 및 일정 임박 취소 시 참가비 환불이 불가합니다. 무단 불참 시 타 참가자에게 피해를 주므로 영구 지인 동반 신청이 제한될 수 있습니다.
+                </div>
+                <label style="display: flex; align-items: center; gap: 6px; font-size: 0.82rem; color: #334155; font-weight: 600; cursor: pointer;">
+                  <input type="checkbox" id="chk-rules" class="guest-term-chk" required style="accent-color: #0284c7; width: 16px; height: 16px; cursor: pointer;">
+                  이벤트 참가 규칙 및 환불·노쇼 규정에 동의합니다.
+                </label>
+              </div>
+            </div>
+
+            <button type="submit" id="submit-btn" class="submit-btn" style="margin-top: 16px;">지인 참가 신청 완료하기</button>
           </form>
         </div>
 

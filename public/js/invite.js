@@ -127,6 +127,15 @@ document.addEventListener('DOMContentLoaded', async () => {
       return;
     }
 
+    const chkPrivacy = document.getElementById('chk-privacy')?.checked;
+    const chkConduct = document.getElementById('chk-conduct')?.checked;
+    const chkRules = document.getElementById('chk-rules')?.checked;
+
+    if (!chkPrivacy || !chkConduct || !chkRules) {
+      alert('개인정보 동의, 풍기문란 방지 행동 수칙, 이벤트 참가 규칙 및 환불·노쇼 규정에 모두 동의하셔야 신청이 완료됩니다.');
+      return;
+    }
+
     const answers = [];
     const textareas = document.querySelectorAll('textarea[name^="guest_answer_"]');
     textareas.forEach((ta, idx) => {

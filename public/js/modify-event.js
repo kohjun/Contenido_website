@@ -1437,6 +1437,59 @@ function renderGuestApplicationForm(currentEvent, inviterData, inviteToken) {
             </div>
           </div>
           ${questionsHtml}
+
+          <!-- 약관 및 참가 동의서 -->
+          <div style="margin-top: 14px; padding: 14px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; text-align: left;">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;">
+              <span style="font-size: 0.88rem; color: #0f172a; font-weight: 700;">약관 및 참가 동의서</span>
+              <label style="font-size: 0.78rem; color: #0284c7; cursor: pointer; font-weight: 600; display: flex; align-items: center; gap: 4px;">
+                <input type="checkbox" id="chk-agree-all-mod" onchange="const chks = document.querySelectorAll('.guest-mod-term-chk'); chks.forEach(c => c.checked = this.checked);" style="accent-color: #0284c7; cursor: pointer;">
+                전체 동의
+              </label>
+            </div>
+
+            <!-- 1. 개인정보 동의 -->
+            <div style="margin-bottom: 10px; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px;">
+              <div style="font-size: 0.8rem; font-weight: 700; color: #1e293b; margin-bottom: 3px;">1. 개인정보 수집 및 이용 동의 [필수]</div>
+              <div style="font-size: 0.75rem; color: #64748b; line-height: 1.4; max-height: 60px; overflow-y: auto; background: #f8fafc; padding: 6px; border-radius: 6px; margin-bottom: 6px;">
+                • 수집 항목: 성함, 연락처, 성별, 나이<br>
+                • 이용 목적: 본인 확인, 안전 비상 연락망, 행사 운영<br>
+                • 보유 기간: 행사 종료 후 30일 이내 파기
+              </div>
+              <label style="display: flex; align-items: center; gap: 6px; font-size: 0.78rem; color: #334155; font-weight: 600; cursor: pointer;">
+                <input type="checkbox" id="chk-privacy-mod" class="guest-mod-term-chk" required style="accent-color: #0284c7; cursor: pointer;">
+                개인정보 수집 및 이용에 동의합니다.
+              </label>
+            </div>
+
+            <!-- 2. 풍기문란 방지 및 행동 수칙 동의 -->
+            <div style="margin-bottom: 10px; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px;">
+              <div style="font-size: 0.8rem; font-weight: 700; color: #1e293b; margin-bottom: 3px;">2. 풍기문란 방지 및 행동 수칙 동의 [필수]</div>
+              <div style="font-size: 0.75rem; color: #64748b; line-height: 1.4; max-height: 70px; overflow-y: auto; background: #f8fafc; padding: 6px; border-radius: 6px; margin-bottom: 6px;">
+                • 불쾌감, 위협, 성희롱 등 성적 수치심을 주는 행위 엄금<br>
+                • 과도한 음주 강권 및 시비, 비신사적 언행 절대 금지<br>
+                • 위반 시 현장 즉시 퇴장 및 영구 참가 제한
+              </div>
+              <label style="display: flex; align-items: center; gap: 6px; font-size: 0.78rem; color: #334155; font-weight: 600; cursor: pointer;">
+                <input type="checkbox" id="chk-conduct-mod" class="guest-mod-term-chk" required style="accent-color: #0284c7; cursor: pointer;">
+                풍기문란 방지 및 행동 수칙을 확인하였으며 동의합니다.
+              </label>
+            </div>
+
+            <!-- 3. 참가 규칙 및 환불·노쇼 규정 동의 -->
+            <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px;">
+              <div style="font-size: 0.8rem; font-weight: 700; color: #1e293b; margin-bottom: 3px;">3. 참가 규칙 및 환불·노쇼 규정 동의 [필수]</div>
+              <div style="font-size: 0.75rem; color: #64748b; line-height: 1.4; max-height: 70px; overflow-y: auto; background: #f8fafc; padding: 6px; border-radius: 6px; margin-bottom: 6px;">
+                • 참가 규칙: 행사 진행 및 안전을 위해 스태프 안내 준수<br>
+                • 환불/노쇼 규정: 무단 불참 및 당일 취소 시 환불 불가
+              </div>
+              <label style="display: flex; align-items: center; gap: 6px; font-size: 0.78rem; color: #334155; font-weight: 600; cursor: pointer;">
+                <input type="checkbox" id="chk-rules-mod" class="guest-mod-term-chk" required style="accent-color: #0284c7; cursor: pointer;">
+                이벤트 참가 규칙 및 환불·노쇼 규정에 동의합니다.
+              </label>
+            </div>
+          </div>
+
           <button type="submit" class="submit-button" style="margin-top: 14px; width: 100%; background: linear-gradient(135deg, #0284c7, #0369a1); color: #fff; border: none; border-radius: 10px; padding: 12px; font-size: 0.95rem; font-weight: bold; cursor: pointer; box-shadow: 0 4px 12px rgba(2, 132, 199, 0.3);">
             지인 동반 신청 완료하기
           </button>
@@ -1455,6 +1508,15 @@ async function submitGuestApplication(e, eventId, inviterUserId, inviteToken) {
 
   if (!name || !phone || !age) {
     alert('이름, 연락처, 나이를 모두 입력해 주세요.');
+    return;
+  }
+
+  const chkPrivacy = document.getElementById('chk-privacy-mod')?.checked;
+  const chkConduct = document.getElementById('chk-conduct-mod')?.checked;
+  const chkRules = document.getElementById('chk-rules-mod')?.checked;
+
+  if (!chkPrivacy || !chkConduct || !chkRules) {
+    alert('개인정보 동의, 풍기문란 방지 행동 수칙, 이벤트 참가 규칙 및 환불·노쇼 규정에 모두 동의하셔야 신청이 완료됩니다.');
     return;
   }
 
