@@ -1,5 +1,5 @@
 /* =====================================================================
-   invitation-modal.js — 이벤트 지인 초대장 생성 & 공유 모달
+   invitation-modal.js — 이벤트 지인 초대장 생성 & 공유 모달 (고급 시그니처 디자인)
    ===================================================================== */
 (function () {
   if (window.showInvitationModal) return;
@@ -14,149 +14,179 @@
     style.textContent = `
       .inv-overlay {
         position: fixed; inset: 0;
-        background: rgba(15, 23, 42, 0.65);
+        background: rgba(11, 19, 43, 0.78);
         display: flex; align-items: center; justify-content: center;
         z-index: 100000;
-        backdrop-filter: blur(4px);
-        -webkit-backdrop-filter: blur(4px);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
         opacity: 0; pointer-events: none;
-        transition: opacity 200ms ease;
-        padding: 16px;
-        font-family: 'GmarketSansMedium', system-ui, sans-serif;
+        transition: opacity 250ms ease;
+        padding: 20px;
+        font-family: 'GmarketSansMedium', 'Pretendard', system-ui, sans-serif;
       }
       .inv-overlay.is-open { opacity: 1; pointer-events: auto; }
 
       .inv-card {
-        background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
-        border: 2px solid #38bdf8;
+        background: linear-gradient(145deg, #0f172a 0%, #1e293b 100%);
+        border: 1px solid rgba(255, 255, 255, 0.12);
         border-radius: 24px;
         width: 100%;
-        max-width: 420px;
-        box-shadow: 0 25px 50px -12px rgba(14, 165, 233, 0.35);
+        max-width: 440px;
+        box-shadow: 0 25px 60px -12px rgba(10, 132, 254, 0.35), 0 0 1px 1px rgba(255, 255, 255, 0.08);
         overflow: hidden;
         display: flex; flex-direction: column;
-        transform: translateY(12px);
-        transition: transform 200ms ease;
+        transform: translateY(16px) scale(0.98);
+        transition: transform 250ms cubic-bezier(0.16, 1, 0.3, 1);
         position: relative;
+        color: #f8fafc;
       }
-      .inv-overlay.is-open .inv-card { transform: translateY(0); }
+      .inv-overlay.is-open .inv-card { transform: translateY(0) scale(1); }
 
       .inv-header {
-        background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+        background: linear-gradient(135deg, #0A84FE 0%, #0056B3 100%);
         color: #ffffff;
-        padding: 20px 24px 16px;
+        padding: 24px 24px 20px;
         text-align: center;
         position: relative;
+        box-shadow: 0 4px 20px rgba(10, 132, 254, 0.3);
       }
       .inv-header .inv-badge {
         display: inline-block;
-        background: rgba(255, 255, 255, 0.25);
-        padding: 4px 12px;
+        background: rgba(255, 255, 255, 0.18);
+        border: 1px solid rgba(255, 255, 255, 0.25);
+        padding: 3px 12px;
         border-radius: 20px;
-        font-size: 0.78rem;
-        letter-spacing: 1px;
+        font-size: 0.72rem;
+        letter-spacing: 1.5px;
         font-weight: 700;
         text-transform: uppercase;
-        margin-bottom: 6px;
+        margin-bottom: 8px;
+        color: #ffffff;
       }
       .inv-header h3 {
         margin: 0;
-        font-size: 1.25rem;
+        font-size: 1.3rem;
         font-weight: 800;
-        line-height: 1.3;
+        line-height: 1.35;
+        letter-spacing: -0.3px;
+        color: #ffffff;
       }
 
       .inv-close-btn {
         position: absolute;
-        top: 14px; right: 16px;
-        background: none; border: none;
-        color: #ffffff; font-size: 1.4rem;
-        cursor: pointer; opacity: 0.8;
+        top: 16px; right: 18px;
+        background: rgba(255, 255, 255, 0.15);
+        border: none;
+        width: 32px; height: 32px;
+        border-radius: 50%;
+        color: #ffffff; font-size: 1.2rem;
+        cursor: pointer; opacity: 0.85;
+        display: flex; align-items: center; justify-content: center;
+        transition: all 150ms ease;
       }
-      .inv-close-btn:hover { opacity: 1; }
+      .inv-close-btn:hover { opacity: 1; background: rgba(255, 255, 255, 0.28); transform: rotate(90deg); }
 
       .inv-body {
-        padding: 20px 24px;
-        color: #0f172a;
+        padding: 24px;
+        color: #f8fafc;
+      }
+
+      .inv-inviter-tag {
+        background: rgba(10, 132, 254, 0.12);
+        border: 1px solid rgba(10, 132, 254, 0.3);
+        border-radius: 14px;
+        padding: 12px 16px;
+        text-align: center;
+        font-size: 0.88rem;
+        color: #60A5FA;
+        font-weight: 600;
+        margin-bottom: 20px;
+      }
+      .inv-inviter-tag strong {
+        color: #ffffff;
+        font-weight: 800;
       }
 
       .inv-info-box {
-        background: #ffffff;
-        border-radius: 16px;
-        padding: 16px;
-        border: 1px solid #bae6fd;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
-        margin-bottom: 16px;
+        background: rgba(255, 255, 255, 0.04);
+        border-radius: 18px;
+        padding: 18px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        margin-bottom: 20px;
       }
       .inv-info-row {
         display: flex;
         align-items: flex-start;
-        gap: 10px;
-        margin-bottom: 10px;
+        gap: 12px;
+        margin-bottom: 12px;
         font-size: 0.88rem;
       }
       .inv-info-row:last-child { margin-bottom: 0; }
       .inv-info-label {
-        color: #0284c7;
-        font-weight: 700;
-        width: 65px;
+        color: #94A3B8;
+        font-weight: 600;
+        width: 55px;
         flex-shrink: 0;
+        font-size: 0.82rem;
       }
       .inv-info-val {
-        color: #1e293b;
-        font-weight: 600;
+        color: #F8FAFC;
+        font-weight: 700;
         flex: 1;
         word-break: break-all;
-      }
-
-      .inv-inviter-tag {
-        background: #e0f2fe;
-        border: 1px dashed #0284c7;
-        border-radius: 12px;
-        padding: 10px 14px;
-        text-align: center;
-        font-size: 0.86rem;
-        color: #0369a1;
-        font-weight: 700;
-        margin-bottom: 16px;
+        line-height: 1.4;
       }
 
       .inv-link-input-group {
-        display: flex; gap: 8px; margin-bottom: 12px;
+        display: flex; gap: 8px; margin-bottom: 16px;
       }
       .inv-link-input {
         flex: 1;
-        padding: 10px 12px;
-        border-radius: 10px;
-        border: 1px solid #cbd5e1;
-        font-size: 0.8rem;
-        background: #ffffff;
-        color: #475569;
+        padding: 12px 14px;
+        border-radius: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        font-size: 0.82rem;
+        background: rgba(15, 23, 42, 0.6);
+        color: #CBD5E1;
+        outline: none;
+        transition: border-color 150ms ease;
+      }
+      .inv-link-input:focus {
+        border-color: #0A84FE;
       }
 
       .inv-actions {
-        display: flex; gap: 8px; flex-wrap: wrap;
+        display: flex; gap: 10px; flex-wrap: wrap;
       }
       .inv-btn {
-        flex: 1; min-width: 120px;
-        padding: 12px;
-        border: none; border-radius: 12px;
-        font-size: 0.9rem; font-weight: 700;
+        flex: 1; min-width: 130px;
+        padding: 13px 16px;
+        border: none; border-radius: 14px;
+        font-size: 0.92rem; font-weight: 700;
         cursor: pointer;
-        transition: all 150ms ease;
+        transition: all 180ms ease;
         text-align: center;
         display: flex; align-items: center; justify-content: center; gap: 6px;
+        letter-spacing: -0.2px;
       }
       .inv-btn-copy {
-        background: #0284c7; color: #ffffff;
-        box-shadow: 0 4px 10px rgba(2, 132, 199, 0.3);
+        background: linear-gradient(135deg, #0A84FE 0%, #0056B3 100%);
+        color: #ffffff;
+        box-shadow: 0 4px 16px rgba(10, 132, 254, 0.35);
       }
-      .inv-btn-copy:hover { background: #0369a1; }
+      .inv-btn-copy:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 6px 20px rgba(10, 132, 254, 0.45);
+      }
       .inv-btn-share {
-        background: #f59e0b; color: #ffffff;
-        box-shadow: 0 4px 10px rgba(245, 158, 11, 0.3);
+        background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
+        color: #ffffff;
+        box-shadow: 0 4px 16px rgba(245, 158, 11, 0.35);
       }
-      .inv-btn-share:hover { background: #d97706; }
+      .inv-btn-share:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 6px 20px rgba(245, 158, 11, 0.45);
+      }
     `;
     document.head.appendChild(style);
   }
@@ -190,25 +220,25 @@
     overlay.innerHTML = `
       <div class="inv-card" role="dialog" aria-modal="true">
         <div class="inv-header">
-          <span class="inv-badge">💌 CONTENIDO INVITATION</span>
+          <span class="inv-badge">CONTENIDO INVITATION</span>
           <h3>${escapeHtml(title)}</h3>
-          <button type="button" class="inv-close-btn" id="inv-close">&times;</button>
+          <button type="button" class="inv-close-btn" id="inv-close" aria-label="닫기">&times;</button>
         </div>
         <div class="inv-body">
           <div class="inv-inviter-tag">
-            👑 <strong>${escapeHtml(inviterLabel)}</strong> 님이 귀하를 초대합니다!
+            초대 부원 : <strong>${escapeHtml(inviterLabel)}</strong>
           </div>
           <div class="inv-info-box">
             <div class="inv-info-row">
-              <span class="inv-info-label">📅 일시</span>
+              <span class="inv-info-label">일시</span>
               <span class="inv-info-val">${escapeHtml(dateStr)} (${escapeHtml(timeStr)})</span>
             </div>
             <div class="inv-info-row">
-              <span class="inv-info-label">📍 장소</span>
+              <span class="inv-info-label">장소</span>
               <span class="inv-info-val">${escapeHtml(placeStr)}</span>
             </div>
             <div class="inv-info-row">
-              <span class="inv-info-label">💵 참가비</span>
+              <span class="inv-info-label">참가비</span>
               <span class="inv-info-val">${escapeHtml(feeStr)}</span>
             </div>
           </div>
@@ -216,8 +246,8 @@
             <input type="text" class="inv-link-input" id="inv-link-text" value="${escapeHtml(inviteUrl)}" readonly>
           </div>
           <div class="inv-actions">
-            <button type="button" class="inv-btn inv-btn-copy" id="inv-btn-copy">🔗 초대장 링크 복사</button>
-            <button type="button" class="inv-btn inv-btn-share" id="inv-btn-share">💬 공유하기</button>
+            <button type="button" class="inv-btn inv-btn-copy" id="inv-btn-copy">초대장 링크 복사</button>
+            <button type="button" class="inv-btn inv-btn-share" id="inv-btn-share">초대장 공유하기</button>
           </div>
         </div>
       </div>
@@ -254,7 +284,7 @@
           Kakao.Share.sendDefault({
             objectType: 'feed',
             content: {
-              title: `💌 [콘테니도 초대장] ${title}`,
+              title: `[콘테니도 초대장] ${title}`,
               description: `${inviterLabel}님이 [${title}] 이벤트에 초대를 보냈습니다. 링크를 눌러 참가 신청을 완료해 주세요!`,
               imageUrl: coverImageUrl,
               imageWidth: 1200,
