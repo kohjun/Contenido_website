@@ -27,18 +27,18 @@
       .inv-overlay.is-open { opacity: 1; pointer-events: auto; }
 
       .inv-card {
-        background: linear-gradient(145deg, #0f172a 0%, #1e293b 100%);
-        border: 1px solid rgba(255, 255, 255, 0.12);
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
         border-radius: 24px;
         width: 100%;
         max-width: 440px;
-        box-shadow: 0 25px 60px -12px rgba(10, 132, 254, 0.35), 0 0 1px 1px rgba(255, 255, 255, 0.08);
+        box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.25);
         overflow: hidden;
         display: flex; flex-direction: column;
         transform: translateY(16px) scale(0.98);
         transition: transform 250ms cubic-bezier(0.16, 1, 0.3, 1);
         position: relative;
-        color: #f8fafc;
+        color: #0f172a;
       }
       .inv-overlay.is-open .inv-card { transform: translateY(0) scale(1); }
 
@@ -48,7 +48,7 @@
         padding: 24px 24px 20px;
         text-align: center;
         position: relative;
-        box-shadow: 0 4px 20px rgba(10, 132, 254, 0.3);
+        box-shadow: 0 4px 20px rgba(10, 132, 254, 0.25);
       }
       .inv-header .inv-badge {
         display: inline-block;
@@ -88,30 +88,30 @@
 
       .inv-body {
         padding: 24px;
-        color: #f8fafc;
+        color: #0f172a;
       }
 
       .inv-inviter-tag {
-        background: rgba(10, 132, 254, 0.12);
-        border: 1px solid rgba(10, 132, 254, 0.3);
+        background: #eff6ff;
+        border: 1px solid #bfdbfe;
         border-radius: 14px;
         padding: 12px 16px;
         text-align: center;
         font-size: 0.88rem;
-        color: #60A5FA;
+        color: #1d4ed8;
         font-weight: 600;
         margin-bottom: 20px;
       }
       .inv-inviter-tag strong {
-        color: #ffffff;
+        color: #0056b3;
         font-weight: 800;
       }
 
       .inv-info-box {
-        background: rgba(255, 255, 255, 0.04);
+        background: #f8fafc;
         border-radius: 18px;
         padding: 18px;
-        border: 1px solid rgba(255, 255, 255, 0.08);
+        border: 1px solid #e2e8f0;
         margin-bottom: 20px;
       }
       .inv-info-row {
@@ -123,14 +123,14 @@
       }
       .inv-info-row:last-child { margin-bottom: 0; }
       .inv-info-label {
-        color: #94A3B8;
+        color: #64748b;
         font-weight: 600;
         width: 55px;
         flex-shrink: 0;
         font-size: 0.82rem;
       }
       .inv-info-val {
-        color: #F8FAFC;
+        color: #0f172a;
         font-weight: 700;
         flex: 1;
         word-break: break-all;
@@ -144,10 +144,10 @@
         flex: 1;
         padding: 12px 14px;
         border-radius: 12px;
-        border: 1px solid rgba(255, 255, 255, 0.15);
+        border: 1px solid #cbd5e1;
         font-size: 0.82rem;
-        background: rgba(15, 23, 42, 0.6);
-        color: #CBD5E1;
+        background: #f8fafc;
+        color: #334155;
         outline: none;
         transition: border-color 150ms ease;
       }
