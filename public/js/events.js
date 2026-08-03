@@ -376,6 +376,7 @@ function displayCurrentPage(currentUser) {
       `<span class="badge badge-team" data-team="${escapeAttr(event.team)}">${escapeAttr(event.team)}</span>`,
       event.isSelective         ? '<span class="badge badge-warning">지원서 필요</span>' : '',
       event.hasParticipantRules ? '<span class="badge badge-warning">참가자 규칙 적용</span>' : '',
+      event.allowCompanions     ? '<span class="badge badge-warning">지인 동반 허용</span>' : '',
     ].filter(Boolean).join('');
 
     // 태그 (#형식, 메타 정보 아래)
