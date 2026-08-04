@@ -283,16 +283,30 @@ router.post('/:id/apply',
         p => p.userId.toString() === req.user.id
       );
 
-      // 정원(seat count) 계산: 본인(1) + 지인 수
+      // seat count: 본인(1) + 지인 수
       const requestedSeats = 1 + companions.length;
-      if (event.participants && !event.isLightning) {
-        const totalSeatsTaken = event.appliedParticipants
+
+      // 1) 번개 이벤트인 경우: 신청과 동시에 자동 승인(approved)되므로 정원(participants) 검증
+      if (event.isLightning && event.participants) {
+        const approvedSeats = event.appliedParticipants
+          .filter(p => p.status === 'approved' && (!existing || p._id.toString() !== existing._id.toString()))
+          .reduce((sum, p) => sum + 1 + ((p.companions && p.companions.length) || 0), 0);
+
+        if (approvedSeats + requestedSeats > event.participants) {
+          const remaining = Math.max(0, event.participants - approvedSeats);
+          return res.status(400).json({ message: `번개 이벤트 정원을 초과합니다. (잔여 자릿수: ${remaining}석, 신청 요구: ${requestedSeats}석)` });
+        }
+      }
+
+      // 2) 최대 신청자 수(maxApplicants)가 설정되어 있는 경우: 총 신청자(pending + approved + 지인) 한도 검증
+      if (event.maxApplicants) {
+        const totalActiveSeats = event.appliedParticipants
           .filter(p => (p.status === 'approved' || p.status === 'pending') && (!existing || p._id.toString() !== existing._id.toString()))
           .reduce((sum, p) => sum + 1 + ((p.companions && p.companions.length) || 0), 0);
 
-        if (totalSeatsTaken + requestedSeats > event.participants) {
-          const remaining = Math.max(0, event.participants - totalSeatsTaken);
-          return res.status(400).json({ message: `이벤트 정원을 초과합니다. (잔여 자릿수: ${remaining}석, 신청 요구: ${requestedSeats}석)` });
+        if (totalActiveSeats + requestedSeats > event.maxApplicants) {
+          const remaining = Math.max(0, event.maxApplicants - totalActiveSeats);
+          return res.status(400).json({ message: `신청 한도(최대 ${event.maxApplicants}명)를 초과했습니다. (잔여 신청 자릿수: ${remaining}석)` });
         }
       }
 
@@ -326,10 +340,6 @@ router.post('/:id/apply',
         existing.answers = answers;
         existing.companions = companions;
       } else {
-        // 신규 신청 — 한도 체크 (maxApplicants 있을 때만)
-        if (event.maxApplicants && event.appliedParticipants.length >= event.maxApplicants) {
-          return res.status(400).json({ message: '신청 한도를 초과했습니다.' });
-        }
         event.appliedParticipants.push({
           userId: req.user.id,
           appliedAt: new Date(),
@@ -425,12 +435,14 @@ router.post('/:id/apply-companion', async (req, res) => {
       return res.status(400).json({ message: `해당 부원의 지인 동반 신청 한도(최대 ${maxAllowed}명)를 초과했습니다.` });
     }
 
-    // 총 활성 신청자 정원 검증
-    const totalActive = event.appliedParticipants.filter(
-      p => p.status === 'pending' || p.status === 'approved'
-    ).length;
-    if (event.participants && totalActive >= event.participants) {
-      return res.status(400).json({ message: '이벤트 정원이 모두 마감되었습니다.' });
+    // 최대 신청자 수(maxApplicants)가 설정되어 있는 경우에만 전체 신청자 한도 검증
+    if (event.maxApplicants) {
+      const totalActive = event.appliedParticipants.filter(
+        p => p.status === 'pending' || p.status === 'approved'
+      ).length;
+      if (totalActive >= event.maxApplicants) {
+        return res.status(400).json({ message: `이벤트 신청 한도(최대 ${event.maxApplicants}명)를 초과했습니다.` });
+      }
     }
 
     // 중복 지인 신청 검증 (동일 전화번호)
