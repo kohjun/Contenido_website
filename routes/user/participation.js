@@ -170,7 +170,7 @@ router.post('/bulk-update', authenticateToken, requireHRPermission, async (req, 
             continue;
           }
 
-          // 해당 월 서포터즈인 경우 경고 면제 처리 (전 달 서포터즈 명단 기준: 예 7월 서포터즈 -> 8월 면제)
+          // 해당 월 서포터즈 경고 면제 처리 (당월 및 전월 서포터즈 명단 모두 호환 지원)
           let targetY = new Date().getFullYear();
           let targetM = new Date().getMonth() + 1;
           if (targetMonth && targetMonth.includes('-')) {
@@ -178,12 +178,22 @@ router.post('/bulk-update', authenticateToken, requireHRPermission, async (req, 
             targetY = parseInt(parts[0]);
             targetM = parseInt(parts[1]);
           }
-          let supporterY = targetM === 1 ? targetY - 1 : targetY;
-          let supporterM = targetM === 1 ? 12 : targetM - 1;
+          let supporterYPrev = targetM === 1 ? targetY - 1 : targetY;
+          let supporterMPrev = targetM === 1 ? 12 : targetM - 1;
 
-          const supporterDoc = await Supporter.findOne({ year: supporterY, month: supporterM }).lean();
-          const isSupporter = supporterDoc && supporterDoc.memberIds.some(id => id.toString() === user._id.toString());
-          if (isSupporter) {
+          const supporterDocs = await Supporter.find({
+            $or: [
+              { year: targetY, month: targetM },
+              { year: supporterYPrev, month: supporterMPrev }
+            ]
+          }).lean();
+
+          const supporterSetBulk = new Set();
+          supporterDocs.forEach(doc => {
+            (doc.memberIds || []).forEach(id => supporterSetBulk.add(id.toString()));
+          });
+
+          if (supporterSetBulk.has(user._id.toString())) {
             skipped++;
             continue;
           }
@@ -344,13 +354,22 @@ router.get('/monthly-application-status', authenticateToken, requireHRPermission
       };
     };
 
-    // targetDisplayMonth (예: 8월)의 경고 면제 서포터즈는 전 달(예: 7월) 서포터즈 명단 기준
+    // targetDisplayMonth (예: 8월)의 경고 면제 서포터즈는 당월(8월) 및 전월(7월) 서포터즈 명단 모두 조회하여 적용
     const targetDisplayMonth = month + 1;
-    const supporterYear = targetDisplayMonth === 1 ? year - 1 : year;
-    const supporterMonth = targetDisplayMonth === 1 ? 12 : targetDisplayMonth - 1;
+    const supporterYearPrev = targetDisplayMonth === 1 ? year - 1 : year;
+    const supporterMonthPrev = targetDisplayMonth === 1 ? 12 : targetDisplayMonth - 1;
 
-    const supporterDoc = await Supporter.findOne({ year: supporterYear, month: supporterMonth }).lean();
-    const supporterSet = new Set((supporterDoc?.memberIds || []).map(id => id.toString()));
+    const supporterDocs = await Supporter.find({
+      $or: [
+        { year, month: targetDisplayMonth },
+        { year: supporterYearPrev, month: supporterMonthPrev }
+      ]
+    }).lean();
+
+    const supporterSet = new Set();
+    supporterDocs.forEach(doc => {
+      (doc.memberIds || []).forEach(id => supporterSet.add(id.toString()));
+    });
 
     // 스타터-스태프 명단 조회 (매번 경고 면제)
     const starterStaffDoc = await StarterStaff.findOne().lean();
