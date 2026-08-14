@@ -14,47 +14,78 @@
   min-height: 100%;
 }
 
-/* 헤더 영역 */
+/* 헤더 영역 - 히어로 카드 스타일 */
 .promo-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 30px;
-  border-bottom: 1px solid #e2e8f0;
-  padding-bottom: 20px;
+  margin-bottom: 28px;
+  background: linear-gradient(135deg, rgba(236, 72, 153, 0.08) 0%, rgba(244, 63, 94, 0.04) 50%, rgba(15, 23, 42, 0.02) 100%), #ffffff;
+  border: 1px solid rgba(244, 114, 182, 0.35);
+  border-radius: 20px;
+  padding: 24px 28px;
   gap: 20px;
+  box-shadow: 0 10px 30px rgba(236, 72, 153, 0.07);
 }
+
+.promo-header-badge {
+  display: inline-block;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 1px;
+  color: #be185d;
+  background: #fce7f3;
+  border: 1px solid #fbcfe8;
+  padding: 3px 10px;
+  border-radius: 20px;
+  margin-bottom: 8px;
+}
+
 .promo-header h2 {
-  font-size: 1.8rem;
-  margin: 0 0 8px;
-  color: #0f172a;
-  font-weight: bold;
+  font-size: 1.5rem;
+  margin: 0 0 6px;
+  color: #831843;
+  font-weight: 800;
+  letter-spacing: -0.3px;
 }
+
 .promo-header p {
   margin: 0;
-  color: #64748b;
-  font-size: 0.95rem;
+  color: #9d174d;
+  font-size: 0.9rem;
+  line-height: 1.45;
 }
+
 .btn-create-promo {
-  background: linear-gradient(135deg, #ec4899 0%, #f43f5e 100%);
+  background: linear-gradient(135deg, #ec4899 0%, #be185d 100%);
   color: white;
   border: none;
-  border-radius: 12px;
-  padding: 12px 24px;
-  font-size: 0.95rem;
+  border-radius: 14px;
+  padding: 13px 22px;
+  font-size: 0.92rem;
   font-weight: bold;
   cursor: pointer;
-  box-shadow: 0 4px 14px rgba(236, 72, 153, 0.4);
+  box-shadow: 0 4px 16px rgba(236, 72, 153, 0.35);
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 8px;
   transition: all 0.2s ease;
   font-family: inherit;
   flex-shrink: 0;
+  white-space: nowrap;
 }
+
+.btn-create-promo .btn-icon {
+  font-size: 1.1rem;
+  font-weight: 900;
+  line-height: 1;
+}
+
 .btn-create-promo:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(236, 72, 153, 0.6);
+  box-shadow: 0 6px 22px rgba(236, 72, 153, 0.5);
+  background: linear-gradient(135deg, #f43f5e 0%, #9d174d 100%);
 }
 
 /* 그리드 & 목록 */
@@ -424,10 +455,24 @@
 
   .promo-header {
     flex-direction: column;
-    align-items: stretch;
+    align-items: flex-start;
+    padding: 20px 18px;
     gap: 16px;
     margin-bottom: 20px;
-    padding-bottom: 16px;
+  }
+
+  .promo-header h2 {
+    font-size: 1.25rem;
+  }
+
+  .promo-header p {
+    font-size: 0.85rem;
+  }
+
+  .btn-create-promo {
+    width: 100%;
+    padding: 14px;
+    font-size: 0.95rem;
   }
 }
 
