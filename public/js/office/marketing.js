@@ -567,14 +567,14 @@
         summaryEl.innerHTML = '<span style="font-size: 0.88rem; color: #94a3b8;">등록된 활성 부원이 없습니다.</span>';
       } else {
         let pillsHtml = `
-          <button type="button" onclick="window.MarketingDashboard.selectUnivFilter('all')" class="univ-pill-btn active" data-univ="all" style="padding: 4px 12px; border-radius: 20px; border: 1px solid #0284c7; background: #0284c7; color: #fff; font-size: 0.82rem; font-weight: 700; cursor: pointer;">
+          <button type="button" onclick="window.MarketingDashboard.selectUnivFilter('all')" class="univ-pill-btn active" data-univ="all" style="padding: 4px 12px; border-radius: 20px; border: 1px solid #ec4899; background: #ec4899; color: #fff; font-size: 0.82rem; font-weight: 700; cursor: pointer;">
             전체 (${activeMembers.length}명)
           </button>
         `;
         sortedUnivs.forEach(u => {
           const count = univCounts[u];
           pillsHtml += `
-            <button type="button" onclick="window.MarketingDashboard.selectUnivFilter('${escapeHtml(u)}')" class="univ-pill-btn" data-univ="${escapeHtml(u)}" style="padding: 4px 12px; border-radius: 20px; border: 1px solid #bae6fd; background: #ffffff; color: #0369a1; font-size: 0.82rem; font-weight: 600; cursor: pointer;">
+            <button type="button" onclick="window.MarketingDashboard.selectUnivFilter('${escapeHtml(u)}')" class="univ-pill-btn" data-univ="${escapeHtml(u)}" style="padding: 4px 12px; border-radius: 20px; border: 1px solid #fbcfe8; background: #ffffff; color: #9d174d; font-size: 0.82rem; font-weight: 600; cursor: pointer;">
               ${escapeHtml(u)} (${count}명)
             </button>
           `;
@@ -710,13 +710,13 @@
     document.querySelectorAll('.univ-pill-btn').forEach(btn => {
       const u = btn.dataset.univ;
       if (u === univName) {
-        btn.style.background = '#0284c7';
+        btn.style.background = '#ec4899';
         btn.style.color = '#ffffff';
-        btn.style.borderColor = '#0284c7';
+        btn.style.borderColor = '#ec4899';
       } else {
         btn.style.background = '#ffffff';
-        btn.style.color = '#0369a1';
-        btn.style.borderColor = '#bae6fd';
+        btn.style.color = '#9d174d';
+        btn.style.borderColor = '#fbcfe8';
       }
     });
 

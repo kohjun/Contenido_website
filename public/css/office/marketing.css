@@ -496,8 +496,8 @@
 
 .univ-member-card:hover {
   transform: translateY(-2px);
-  border-color: #38bdf8;
-  box-shadow: 0 6px 16px rgba(14, 165, 233, 0.15);
+  border-color: #f472b6;
+  box-shadow: 0 6px 16px rgba(236, 72, 153, 0.15);
 }
 
 .univ-avatar {
@@ -505,9 +505,9 @@
   height: 46px;
   border-radius: 50%;
   object-fit: cover;
-  border: 2px solid #e0f2fe;
+  border: 2px solid #fbcfe8;
   flex-shrink: 0;
-  background: #f1f5f9;
+  background: #fff0f6;
 }
 
 .univ-info-block {
@@ -535,8 +535,8 @@
 .univ-user-age {
   font-size: 0.76rem;
   font-weight: 600;
-  color: #64748b;
-  background: #f1f5f9;
+  color: #831843;
+  background: #fce7f3;
   padding: 2px 6px;
   border-radius: 6px;
   flex-shrink: 0;
@@ -553,7 +553,7 @@
 
 .univ-profile-name {
   font-weight: 600;
-  color: #0284c7;
+  color: #ec4899;
 }
 
 .univ-phone-tail {
@@ -568,11 +568,11 @@
   gap: 4px;
   font-size: 0.76rem;
   font-weight: 700;
-  color: #0369a1;
-  background: #e0f2fe;
+  color: #9d174d;
+  background: #fff0f6;
   padding: 2px 8px;
   border-radius: 8px;
-  border: 1px solid #bae6fd;
+  border: 1px solid #fbcfe8;
   max-width: 100%;
   white-space: nowrap;
   overflow: hidden;
@@ -589,9 +589,9 @@
   display: inline-block;
   font-size: 0.68rem;
   font-weight: 700;
-  color: #b45309;
-  background: #fef3c7;
-  border: 1px solid #fde68a;
+  color: #be185d;
+  background: #fce7f3;
+  border: 1px solid #f472b6;
   padding: 1px 5px;
   border-radius: 4px;
 }
