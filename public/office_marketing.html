@@ -15,6 +15,8 @@
     <div id="promotion-list" class="promo-grid">
       <div class="loading-placeholder">홍보 목록을 불러오는 중...</div>
     </div>
+  </section>
+
   <!-- 월별 서포터즈 관리 섹션 -->
   <section class="supporter-section" style="margin-top: 30px; background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(10px); border-radius: 20px; padding: 24px; border: 1px solid rgba(255, 255, 255, 0.6); box-shadow: 0 10px 30px rgba(236, 72, 153, 0.08);">
     <div class="section-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 12px;">
@@ -73,6 +75,43 @@
         <button type="button" class="btn-submit" onclick="window.MarketingDashboard.saveSupporters()" style="background: linear-gradient(135deg, #ec4899 0%, #be185d 100%); color: white; border: none; padding: 12px 24px; border-radius: 12px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 12px rgba(236, 72, 153, 0.3);">
           서포터즈 명단 확정/저장
         </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- 🎓 활성 부원 출신 대학 현황 섹션 -->
+  <section class="univ-section" style="margin-top: 30px; background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(10px); border-radius: 20px; padding: 24px; border: 1px solid rgba(255, 255, 255, 0.6); box-shadow: 0 10px 30px rgba(14, 165, 233, 0.08);">
+    <div class="section-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 12px;">
+      <div>
+        <h3 style="margin: 0 0 6px; font-size: 1.2rem; color: #0369a1; display: flex; align-items: center; gap: 8px;">
+          <span>🎓</span> 활성 부원 출신 대학 현황
+        </h3>
+        <p style="margin: 0; font-size: 0.88rem; color: #0284c7;">현재 활동 중인 활성 부원들의 대학 분포를 한눈에 조회하고 동명이인을 명확히 구분할 수 있습니다.</p>
+      </div>
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <span style="font-size: 0.88rem; font-weight: 700; color: #0369a1; background: #e0f2fe; padding: 6px 14px; border-radius: 20px; border: 1px solid #bae6fd;">
+          총 활성 부원: <b id="univ-active-total-count" style="color: #0284c7;">0</b>명 / <b id="univ-total-count" style="color: #0284c7;">0</b>개교
+        </span>
+      </div>
+    </div>
+
+    <!-- 대학별 현황 요약 태그 리스트 -->
+    <div id="univ-summary-pills" style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; background: #f0f9ff; padding: 14px 18px; border-radius: 16px; border: 1px solid #bae6fd;">
+      <span style="font-size: 0.88rem; color: #64748b;">대학 정보를 불러오는 중...</span>
+    </div>
+
+    <!-- 검색 및 필터 컨트롤 -->
+    <div class="univ-card-body" style="background: #fff; border-radius: 16px; padding: 20px; border: 1px solid #bae6fd;">
+      <div style="display: flex; gap: 12px; margin-bottom: 16px; align-items: center; flex-wrap: wrap;">
+        <input type="text" id="univ-search-input" placeholder="이름, 프로필 이름, 대학명 또는 전화번호 뒷자리로 검색..." oninput="window.MarketingDashboard.filterUnivMembers()" style="flex: 1; min-width: 240px; padding: 10px 14px; border: 1px solid #38bdf8; border-radius: 10px; font-size: 0.9rem; outline: none;">
+        <select id="univ-filter-select" onchange="window.MarketingDashboard.filterUnivMembers()" style="padding: 10px 14px; border: 1px solid #38bdf8; border-radius: 10px; font-size: 0.9rem; font-weight: 600; color: #0369a1; background: #fff; outline: none; cursor: pointer;">
+          <option value="all">전체 대학 보기</option>
+        </select>
+      </div>
+
+      <!-- 활성 부원 카드 그리드 -->
+      <div id="univ-member-grid" style="max-height: 480px; overflow-y: auto; display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 12px; padding: 4px;">
+        <div class="loading-placeholder">활성 부원 대학 목록을 불러오는 중...</div>
       </div>
     </div>
   </section>

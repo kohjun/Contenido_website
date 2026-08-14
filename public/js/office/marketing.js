@@ -68,6 +68,7 @@
 
       renderConfirmedSupporters(month);
       renderSupporterMembers();
+      renderUnivSection();
     } catch (error) {
       console.error('[Marketing] Error loading supporters:', error);
       listEl.innerHTML = '<div style="color: #ef4444; padding: 12px; text-align: center; grid-column: 1/-1;">서포터즈 명단을 불러오는 중 오류가 발생했습니다.</div>';
@@ -530,6 +531,198 @@
     }
   }
 
+  // 13) 활성 부원 출신 대학 현황 렌더링
+  function renderUnivSection() {
+    const gridEl = document.getElementById('univ-member-grid');
+    const summaryEl = document.getElementById('univ-summary-pills');
+    const filterSelect = document.getElementById('univ-filter-select');
+    const activeTotalEl = document.getElementById('univ-active-total-count');
+    const univTotalEl = document.getElementById('univ-total-count');
+
+    if (!gridEl) return;
+
+    // 1. 활성 유저만 필터링 (active === true)
+    const activeMembers = allMembers.filter(m => m.active === true);
+
+    if (activeTotalEl) activeTotalEl.textContent = activeMembers.length;
+
+    // 2. 대학별 집계 계산
+    const univCounts = {};
+    activeMembers.forEach(m => {
+      const uName = (m.university && m.university.trim()) ? m.university.trim() : '미입력';
+      univCounts[uName] = (univCounts[uName] || 0) + 1;
+    });
+
+    const sortedUnivs = Object.keys(univCounts).sort((a, b) => {
+      if (a === '미입력') return 1;
+      if (b === '미입력') return -1;
+      return univCounts[b] - univCounts[a];
+    });
+
+    if (univTotalEl) univTotalEl.textContent = sortedUnivs.filter(u => u !== '미입력').length;
+
+    // 3. 대학별 현황 요약 태그(Pills) 렌더링 & 드롭다운 셀렉트 갱신
+    if (summaryEl) {
+      if (activeMembers.length === 0) {
+        summaryEl.innerHTML = '<span style="font-size: 0.88rem; color: #94a3b8;">등록된 활성 부원이 없습니다.</span>';
+      } else {
+        let pillsHtml = `
+          <button type="button" onclick="window.MarketingDashboard.selectUnivFilter('all')" class="univ-pill-btn active" data-univ="all" style="padding: 4px 12px; border-radius: 20px; border: 1px solid #0284c7; background: #0284c7; color: #fff; font-size: 0.82rem; font-weight: 700; cursor: pointer;">
+            전체 (${activeMembers.length}명)
+          </button>
+        `;
+        sortedUnivs.forEach(u => {
+          const count = univCounts[u];
+          pillsHtml += `
+            <button type="button" onclick="window.MarketingDashboard.selectUnivFilter('${escapeHtml(u)}')" class="univ-pill-btn" data-univ="${escapeHtml(u)}" style="padding: 4px 12px; border-radius: 20px; border: 1px solid #bae6fd; background: #ffffff; color: #0369a1; font-size: 0.82rem; font-weight: 600; cursor: pointer;">
+              ${escapeHtml(u)} (${count}명)
+            </button>
+          `;
+        });
+        summaryEl.innerHTML = pillsHtml;
+      }
+    }
+
+    if (filterSelect) {
+      let optionsHtml = '<option value="all">전체 대학 보기</option>';
+      sortedUnivs.forEach(u => {
+        optionsHtml += `<option value="${escapeHtml(u)}">${escapeHtml(u)} (${univCounts[u]}명)</option>`;
+      });
+      filterSelect.innerHTML = optionsHtml;
+    }
+
+    filterUnivMembers();
+  }
+
+  // 동명이인 감지 맵 생성 (이름별 인원수)
+  function getDuplicateNameSet(members) {
+    const nameCounts = {};
+    members.forEach(m => {
+      const n = (m.name || m.displayName || '').trim();
+      if (n) nameCounts[n] = (nameCounts[n] || 0) + 1;
+    });
+    return nameCounts;
+  }
+
+  // 나이 계산 함수
+  function calcAgeStr(birthDateStr) {
+    if (!birthDateStr) return '-';
+    const birth = new Date(birthDateStr);
+    if (isNaN(birth.getTime())) return '-';
+    const today = new Date();
+    let age = today.getFullYear() - birth.getFullYear();
+    const m = today.getMonth() - birth.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) {
+      age--;
+    }
+    return age > 0 ? `${age}세` : '-';
+  }
+
+  // 14) 활성 부원 대학 검색 & 필터링 렌더링
+  function filterUnivMembers() {
+    const gridEl = document.getElementById('univ-member-grid');
+    const searchInput = document.getElementById('univ-search-input');
+    const filterSelect = document.getElementById('univ-filter-select');
+
+    if (!gridEl) return;
+
+    const searchTerm = (searchInput?.value || '').trim().toLowerCase();
+    const selectedUniv = filterSelect?.value || 'all';
+
+    const activeMembers = allMembers.filter(m => m.active === true);
+    const nameCounts = getDuplicateNameSet(activeMembers);
+
+    const filtered = activeMembers.filter(m => {
+      const name = (m.name || '').toLowerCase();
+      const displayName = (m.displayName || '').toLowerCase();
+      const phone = (m.phonenumber || '').toLowerCase();
+      const phoneTail = phone.length >= 4 ? phone.slice(-4) : phone;
+      const univ = (m.university || '미입력').toLowerCase();
+
+      // 대학 필터
+      if (selectedUniv !== 'all') {
+        const targetUniv = (m.university && m.university.trim()) ? m.university.trim() : '미입력';
+        if (targetUniv !== selectedUniv) return false;
+      }
+
+      // 검색어 필터
+      if (searchTerm) {
+        const matchesName = name.includes(searchTerm);
+        const matchesDisplay = displayName.includes(searchTerm);
+        const matchesPhone = phone.includes(searchTerm) || phoneTail.includes(searchTerm);
+        const matchesUniv = univ.includes(searchTerm);
+        return matchesName || matchesDisplay || matchesPhone || matchesUniv;
+      }
+
+      return true;
+    });
+
+    if (filtered.length === 0) {
+      gridEl.innerHTML = '<div style="color: #64748b; padding: 24px; text-align: center; grid-column: 1/-1;">조건에 부합하는 활성 부원이 없습니다.</div>';
+      return;
+    }
+
+    gridEl.innerHTML = filtered.map(m => {
+      const realName = escapeHtml(m.name || m.displayName || '이름없음');
+      const profileName = escapeHtml(m.displayName || m.name || '-');
+      const phoneTail = m.phonenumber ? String(m.phonenumber).replace(/[^0-9]/g, '').slice(-4) : '****';
+      const ageStr = calcAgeStr(m.birthDate);
+      const univStr = (m.university && m.university.trim()) ? escapeHtml(m.university.trim()) : '미입력';
+      const isNoUniv = !m.university || !m.university.trim();
+      const avatarSrc = escapeHtml(m.profileImage || '/images/basic_Image.png');
+
+      // 동명이인 여부 확인
+      const rawName = (m.name || m.displayName || '').trim();
+      const isDuplicate = (nameCounts[rawName] || 0) > 1;
+
+      return `
+        <div class="univ-member-card">
+          <img src="${avatarSrc}" alt="${realName}" onerror="this.src='/images/basic_Image.png'" class="univ-avatar">
+          <div class="univ-info-block">
+            <div class="univ-name-row">
+              <span class="univ-user-name">${realName}</span>
+              ${isDuplicate ? `<span class="univ-dup-badge" title="동명이인 구분을 위해 프로필명/연락처 확인">동명이인</span>` : ''}
+              <span class="univ-user-age">${ageStr}</span>
+            </div>
+            <div class="univ-profile-row">
+              <span class="univ-profile-name">@${profileName}</span>
+              <span class="univ-phone-tail">(${phoneTail})</span>
+            </div>
+            <div>
+              <span class="univ-badge-tag ${isNoUniv ? 'no-univ' : ''}">
+                🎓 ${univStr}
+              </span>
+            </div>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  // 요약 버튼(Pill) 클릭 시 필터 적용
+  function selectUnivFilter(univName) {
+    const filterSelect = document.getElementById('univ-filter-select');
+    if (filterSelect) {
+      filterSelect.value = univName;
+    }
+
+    // pill 버튼 active 처리
+    document.querySelectorAll('.univ-pill-btn').forEach(btn => {
+      const u = btn.dataset.univ;
+      if (u === univName) {
+        btn.style.background = '#0284c7';
+        btn.style.color = '#ffffff';
+        btn.style.borderColor = '#0284c7';
+      } else {
+        btn.style.background = '#ffffff';
+        btn.style.color = '#0369a1';
+        btn.style.borderColor = '#bae6fd';
+      }
+    });
+
+    filterUnivMembers();
+  }
+
   // 9) HTML 이스케이프 헬퍼
   function escapeHtml(str) {
     if (!str) return '';
@@ -553,7 +746,10 @@
     loadSupporters,
     filterSupporterMembers,
     toggleSupporterMember,
-    saveSupporters
+    saveSupporters,
+    renderUnivSection,
+    filterUnivMembers,
+    selectUnivFilter
   };
 
   // HTML SPA 렌더링 후 자동 이니셜라이징 지원
