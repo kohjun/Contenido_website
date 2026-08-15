@@ -119,7 +119,7 @@ router.post('/',
   handleMulterError,
   async (req, res) => {
     try {
-      const { title, startDate, endDate, targetEventId, benefitDetail, isActive } = req.body;
+      const { title, startDate, endDate, targetEventId, linkUrl, benefitDetail, isActive } = req.body;
       
       const savedImages = req.files ? await processAndSaveImages(req.files) : [];
       if (savedImages.length === 0) {
@@ -137,6 +137,7 @@ router.post('/',
         endDate: eDate,
         imageUrl: savedImages[0],
         targetEventId: targetEventId && targetEventId !== 'null' ? targetEventId : null,
+        linkUrl: linkUrl ? linkUrl.trim() : '',
         benefitDetail,
         isActive: isActive === 'true' || isActive === true
       });
@@ -158,7 +159,7 @@ router.put('/:id',
   async (req, res) => {
     try {
       const { id } = req.params;
-      const { title, startDate, endDate, targetEventId, benefitDetail, isActive } = req.body;
+      const { title, startDate, endDate, targetEventId, linkUrl, benefitDetail, isActive } = req.body;
       
       const promo = await Promotion.findById(id);
       if (!promo) {
@@ -180,6 +181,7 @@ router.put('/:id',
       promo.startDate = sDate;
       promo.endDate = eDate;
       promo.targetEventId = targetEventId && targetEventId !== 'null' ? targetEventId : null;
+      promo.linkUrl = linkUrl ? linkUrl.trim() : '';
       promo.benefitDetail = benefitDetail;
       promo.isActive = isActive === 'true' || isActive === true;
 

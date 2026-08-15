@@ -299,7 +299,7 @@
       }
 
       const dateRangeText = `${start.toLocaleDateString()} ~ ${end.toLocaleDateString()}`;
-      const eventText = promo.targetEventId ? `🔗 ${promo.targetEventId.title}` : '단독 홍보 (연동 없음)';
+      const eventText = promo.targetEventId ? `🔗 ${promo.targetEventId.title}` : (promo.linkUrl ? `🌐 커스텀 링크 (${promo.linkUrl})` : '단독 홍보 (연동 없음)');
 
       const card = document.createElement('div');
       card.className = 'promo-card';
@@ -330,6 +330,8 @@
 
     form.reset();
     document.getElementById('promo-id').value = '';
+    const linkUrlInput = document.getElementById('promo-link-url');
+    if (linkUrlInput) linkUrlInput.value = '';
     document.getElementById('promo-modal-title').textContent = '신규 홍보 등록';
     document.getElementById('photo-required').style.display = 'inline'; // 새등록 시 필수 표시
 
@@ -360,6 +362,8 @@
     document.getElementById('promo-start-date').value = new Date(promo.startDate).toISOString().split('T')[0];
     document.getElementById('promo-end-date').value = new Date(promo.endDate).toISOString().split('T')[0];
     document.getElementById('promo-event-id').value = promo.targetEventId ? (promo.targetEventId._id || promo.targetEventId.id || promo.targetEventId) : 'null';
+    const linkUrlInput = document.getElementById('promo-link-url');
+    if (linkUrlInput) linkUrlInput.value = promo.linkUrl || '';
     document.getElementById('promo-is-active').checked = !!promo.isActive;
     document.getElementById('promo-benefit-detail').value = promo.benefitDetail;
 

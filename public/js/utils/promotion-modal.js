@@ -187,7 +187,7 @@
         height: 100% !important;
         max-width: 100% !important;
         max-height: 100% !important;
-        object-fit: cover !important;
+        object-fit: contain !important;
         display: block !important;
         margin: 0 !important;
         padding: 0 !important;

@@ -57,13 +57,27 @@ function renderBenefitDetail(promo) {
   if (promo.targetEventId) {
     const event = promo.targetEventId;
     ctaDesc.innerHTML = `이 혜택은 <strong>[${escapeHtml(event.title)}]</strong> 이벤트 참가자와 연계되어 있습니다.<br>지금 바로 이벤트를 신청하고 특별한 혜택을 획득해 보세요!`;
+    ctaLinkBtn.innerHTML = `이벤트 바로가기 ➔`;
     ctaLinkBtn.onclick = () => {
       window.location.href = `/additional-info.html?id=${event._id || event.id}`;
+    };
+    ctaSection.style.display = 'block';
+  } else if (promo.linkUrl && promo.linkUrl.trim()) {
+    const targetUrl = promo.linkUrl.trim();
+    ctaDesc.innerHTML = `이 혜택에 연결된 링크로 이동하여 더 많은 정보를 확인해 보세요!`;
+    ctaLinkBtn.innerHTML = `바로가기 ➔`;
+    ctaLinkBtn.onclick = () => {
+      if (targetUrl.startsWith('http://') || targetUrl.startsWith('https://')) {
+        window.open(targetUrl, '_blank');
+      } else {
+        window.location.href = targetUrl;
+      }
     };
     ctaSection.style.display = 'block';
   } else {
     // 단독 홍보일 경우에는 기본적으로 전체 이벤트 목록으로 이동하도록 처리
     ctaDesc.innerHTML = `Contenido의 다양하고 재미있는 연합 동아리 이벤트들을 지금 바로 신청해보세요!`;
+    ctaLinkBtn.innerHTML = `이벤트 목록 바로가기 ➔`;
     ctaLinkBtn.onclick = () => {
       window.location.href = `/events.html`;
     };
