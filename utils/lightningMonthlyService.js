@@ -118,7 +118,10 @@ async function processPrevMonthLightningEvents(currentDate = new Date()) {
 
     const prevYear = currMonth === 1 ? currYear - 1 : currYear;
     const prevMonth = currMonth === 1 ? 12 : currMonth - 1;
-    const targetMonthStr = `${prevYear}-${String(prevMonth).padStart(2, '0')}`;
+    
+    const { getApplicationCycleBlock } = require('../routes/user/participation');
+    const cycle = getApplicationCycleBlock ? getApplicationCycleBlock(prevYear, prevMonth) : { type: 'single', warningTargetMonth: `${prevYear}-${String(prevMonth).padStart(2, '0')}`, isFirstMonth: true, isLastMonth: true };
+    const targetMonthStr = cycle.warningTargetMonth || `${prevYear}-${String(prevMonth).padStart(2, '0')}`;
 
     const prevMonthStart = new Date(prevYear, prevMonth - 1, 1, 0, 0, 0, 0);
     const prevMonthEnd = new Date(prevYear, prevMonth, 0, 23, 59, 59, 999);
@@ -154,13 +157,13 @@ async function processPrevMonthLightningEvents(currentDate = new Date()) {
         if (isVerifiedAndApproved) {
           // (A) 인증을 하고 2차 승인이 된 경우: 전달에 경고가 부여되어 있으면 없애줌
           const existingWarning = (user.warningHistory || []).find(
-            w => w.isActive && w.targetMonth === targetMonthStr
+            w => w.isActive && (w.targetMonth === targetMonthStr || w.targetMonth === `${prevYear}-${String(prevMonth).padStart(2, '0')}`)
           );
           if (existingWarning) {
             existingWarning.isActive = false;
             existingWarning.removedAt = new Date();
             existingWarning.removedByName = 'System';
-            existingWarning.removalReason = '번개주최 인증 및 2차 승인 완료에 따른 전달 경고 취소';
+            existingWarning.removalReason = '번개주최 인증 및 2차 승인 완료에 따른 경고 취소';
 
             user.warningCount = user.getActiveWarningCount();
             await user.save();
@@ -168,15 +171,21 @@ async function processPrevMonthLightningEvents(currentDate = new Date()) {
           }
         } else {
           // (B) 인증을 하지 않았거나 승인이 되지 않은 사람:
+          // 2개월 주기의 첫 번째 달인 경우 경고 유예 (2번째 달에 다시 신청 기회 제공)
+          if (cycle.type === 'bi-monthly' && cycle.isFirstMonth) {
+            console.log(`[LightningMonthly] 회원 ${user.name}(${user._id})는 ${cycle.label} 2개월 완화 주기 첫 달 미인증으로 경고 유예 처리됩니다.`);
+            continue;
+          }
+
           // 전달 경고가 이미 부여되어 있으면 넘어감, 없으면 의무신청/이행 하지 않은 것으로 간주하여 경고 부여
           const existingWarning = (user.warningHistory || []).find(
-            w => w.isActive && w.targetMonth === targetMonthStr
+            w => w.isActive && (w.targetMonth === targetMonthStr || w.targetMonth === `${prevYear}-${String(prevMonth).padStart(2, '0')}`)
           );
           if (existingWarning) {
             console.log(`[LightningMonthly] 회원 ${user.name}(${user._id})는 ${targetMonthStr} 경고가 이미 존재하여 넘어갑니다.`);
           } else {
             user.warningHistory.push({
-              reason: `${prevMonth}월 번개주최 미인증/미승인 (월간 신청 의무 미이행)`,
+              reason: `${cycle.label || `${prevMonth}월`} 번개주최 미인증/미승인 (월간 신청 의무 미이행)`,
               category: '월간미신청',
               targetMonth: targetMonthStr,
               issuedBy: adminId,

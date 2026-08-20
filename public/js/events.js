@@ -141,6 +141,7 @@ async function updateMonthHeader(events, currentUser) {
   const month = now.getMonth();   // 0-indexed
   const monthNum = month + 1;
   const day = now.getDate();
+  const year = now.getFullYear();
 
   // 제목: "N월 이벤트"
   titleEl.textContent = `${monthNum}월 이벤트`;
@@ -149,12 +150,23 @@ async function updateMonthHeader(events, currentUser) {
 
   let startDay = 1;
   let endDay = 5;
+  let cycle = {
+    type: (monthNum === 3 || monthNum === 4 || monthNum === 5 || monthNum === 6 || monthNum === 9 || monthNum === 10 || monthNum === 11 || monthNum === 12) ? 'bi-monthly' : 'single',
+    label: (monthNum === 3 || monthNum === 4) ? '3~4월' : (monthNum === 5 || monthNum === 6) ? '5~6월' : (monthNum === 9 || monthNum === 10) ? '9~10월' : (monthNum === 11 || monthNum === 12) ? '11~12월' : `${monthNum}월`,
+    months: (monthNum === 3 || monthNum === 4) ? [3, 4] : (monthNum === 5 || monthNum === 6) ? [5, 6] : (monthNum === 9 || monthNum === 10) ? [9, 10] : (monthNum === 11 || monthNum === 12) ? [11, 12] : [monthNum],
+    isFirstMonth: (monthNum === 3 || monthNum === 5 || monthNum === 9 || monthNum === 11),
+    isLastMonth: (monthNum === 4 || monthNum === 6 || monthNum === 10 || monthNum === 12)
+  };
+
   try {
     const res = await fetch('/user/monthly-application-period');
     if (res.ok) {
       const period = await res.json();
       startDay = period.startDay || 1;
       endDay = period.endDay || 5;
+      if (period.cycle) {
+        cycle = period.cycle;
+      }
     }
   } catch (err) {
     console.error('Error loading monthly period:', err);
@@ -164,15 +176,15 @@ async function updateMonthHeader(events, currentUser) {
   const periodText = `${monthNum}월 ${startDay}일 ~ ${monthNum}월 ${endDay}일`;
   const isClosed = day > endDay;
 
-  // 이번 달 이벤트 신청 여부 (항상 계산해서 사용자 상태 pill 표시)
-  const year = now.getFullYear();
-  const monthEvents = (events || []).filter(e => {
+  // 주기 내 이벤트 신청 여부 (항상 계산해서 사용자 상태 pill 표시)
+  const queryMonths = cycle.months || [monthNum];
+  const cycleEvents = (events || []).filter(e => {
     const d = new Date(e.date);
-    return d.getFullYear() === year && d.getMonth() === month;
+    return d.getFullYear() === year && queryMonths.includes(d.getMonth() + 1);
   });
 
   const uid = currentUser && (currentUser.id || currentUser._id);
-  const hasApplied = !!uid && monthEvents.some(e =>
+  const hasApplied = !!uid && cycleEvents.some(e =>
     (e.appliedParticipants || []).some(p => {
       const pid = (p.userId && typeof p.userId === 'object') ? p.userId._id : p.userId;
       if (String(pid) !== String(uid)) return false;
@@ -192,11 +204,22 @@ async function updateMonthHeader(events, currentUser) {
     })
   );
 
-  const userPillHtml = uid
-    ? (hasApplied
+  let userPillHtml = '';
+  if (uid) {
+    if (cycle.type === 'bi-monthly') {
+      if (hasApplied) {
+        userPillHtml = `<span class="pill pill-success">${cycle.label} 이벤트 신청 완료 (의무 충족)</span>`;
+      } else if (cycle.isFirstMonth) {
+        userPillHtml = `<span class="pill pill-warning">${monthNum}월 미신청 (${cycle.months[1]}월까지 1회 신청 필요)</span>`;
+      } else {
+        userPillHtml = `<span class="pill pill-danger" style="background:#fee2e2;color:#b91c1c;border:1px solid #f87171;">${cycle.label} 미신청 (경고 1회 부여 대상)</span>`;
+      }
+    } else {
+      userPillHtml = hasApplied
         ? `<span class="pill pill-success">${monthNum}월 이벤트 신청 완료</span>`
-        : `<span class="pill pill-warning">미신청 상태, 경고 1회 부여 가능</span>`)
-    : '';
+        : `<span class="pill pill-warning">미신청 상태, 경고 1회 부여 가능</span>`;
+    }
+  }
 
   // 마감일 이후엔 신청 마감 pill을 사용자 pill 위에 추가
   const closedPillHtml = isClosed
@@ -207,8 +230,12 @@ async function updateMonthHeader(events, currentUser) {
     ? `<span class="meta-line meta-line-status">${userPillHtml}</span>`
     : '';
 
+  const cycleNoticeHtml = cycle.type === 'bi-monthly'
+    ? `<span style="color:#0284c7;font-weight:600;">[학기 중 완화] ${cycle.label} 중 1회 이상 신청</span>`
+    : `최소 1개 이상 신청`;
+
   metaEl.innerHTML =
-    `<span class="meta-line">신청기간 <b>${periodText}</b> · 최소 1개 이상 신청 ${closedPillHtml}</span>` +
+    `<span class="meta-line">신청기간 <b>${periodText}</b> · ${cycleNoticeHtml} ${closedPillHtml}</span>` +
     statusLineHtml;
   metaEl.classList.remove('is-hidden');
 }

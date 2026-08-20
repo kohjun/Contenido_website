@@ -170,22 +170,25 @@ router.post('/bulk-update', authenticateToken, requireHRPermission, async (req, 
             continue;
           }
 
-          // 해당 월 서포터즈 경고 면제 처리 (당월 및 전월 서포터즈 명단 모두 호환 지원)
+          // 해당 월/주기 서포터즈 경고 면제 처리
           let targetY = new Date().getFullYear();
-          let targetM = new Date().getMonth() + 1;
+          let targetMonths = [new Date().getMonth() + 1];
           if (targetMonth && targetMonth.includes('-')) {
             const parts = targetMonth.split('-');
-            targetY = parseInt(parts[0]);
-            targetM = parseInt(parts[1]);
+            targetY = parseInt(parts[0]) || targetY;
+            if (parts[1].includes('~')) {
+              const mParts = parts[1].split('~').map(x => parseInt(x)).filter(x => !isNaN(x));
+              targetMonths = mParts;
+            } else {
+              targetMonths = [parseInt(parts[1]) || (new Date().getMonth() + 1)];
+            }
           }
-          let supporterYPrev = targetM === 1 ? targetY - 1 : targetY;
-          let supporterMPrev = targetM === 1 ? 12 : targetM - 1;
+          const prevM = targetMonths[0] === 1 ? 12 : targetMonths[0] - 1;
+          if (!targetMonths.includes(prevM)) targetMonths.push(prevM);
 
           const supporterDocs = await Supporter.find({
-            $or: [
-              { year: targetY, month: targetM },
-              { year: supporterYPrev, month: supporterMPrev }
-            ]
+            year: targetY,
+            month: { $in: targetMonths }
           }).lean();
 
           const supporterSetBulk = new Set();
@@ -239,6 +242,73 @@ router.post('/bulk-update', authenticateToken, requireHRPermission, async (req, 
   }
 });
 
+// 2026년 학기 중/방학 월간 신청 주기 블록 헬퍼 함수
+function getApplicationCycleBlock(year, month) {
+  let months;
+  let type; // 'single' | 'bi-monthly'
+  let label;
+  let warningTargetMonth;
+
+  if (month === 1) {
+    months = [1];
+    type = 'single';
+    label = '1월';
+    warningTargetMonth = `${year}-01`;
+  } else if (month === 2) {
+    months = [2];
+    type = 'single';
+    label = '2월';
+    warningTargetMonth = `${year}-02`;
+  } else if (month === 3 || month === 4) {
+    months = [3, 4];
+    type = 'bi-monthly';
+    label = '3~4월';
+    warningTargetMonth = `${year}-03~04`;
+  } else if (month === 5 || month === 6) {
+    months = [5, 6];
+    type = 'bi-monthly';
+    label = '5~6월';
+    warningTargetMonth = `${year}-05~06`;
+  } else if (month === 7) {
+    months = [7];
+    type = 'single';
+    label = '7월';
+    warningTargetMonth = `${year}-07`;
+  } else if (month === 8) {
+    months = [8];
+    type = 'single';
+    label = '8월';
+    warningTargetMonth = `${year}-08`;
+  } else if (month === 9 || month === 10) {
+    months = [9, 10];
+    type = 'bi-monthly';
+    label = '9~10월';
+    warningTargetMonth = `${year}-09~10`;
+  } else if (month === 11 || month === 12) {
+    months = [11, 12];
+    type = 'bi-monthly';
+    label = '11~12월';
+    warningTargetMonth = `${year}-11~12`;
+  } else {
+    months = [month];
+    type = 'single';
+    label = `${month}월`;
+    warningTargetMonth = `${year}-${String(month).padStart(2, '0')}`;
+  }
+
+  const isFirstMonth = months.length === 1 || month === months[0];
+  const isLastMonth = months.length === 1 || month === months[months.length - 1];
+
+  return {
+    type,
+    label,
+    months,
+    isFirstMonth,
+    isLastMonth,
+    warningTargetMonth
+  };
+}
+
 // 월간 신청 의무 기간 조회 헬퍼
 async function getMonthlyPeriod() {
   const setting = await GlobalSetting.findOne({ key: 'monthlyApplicationPeriod' });
@@ -255,7 +325,16 @@ async function getMonthlyPeriod() {
 router.get('/monthly-application-period', async (req, res) => {
   try {
     const period = await getMonthlyPeriod();
-    res.json(period);
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = now.getMonth() + 1; // 1-indexed
+    const cycle = getApplicationCycleBlock(year, month);
+    res.json({
+      ...period,
+      year,
+      month,
+      cycle
+    });
   } catch (error) {
     console.error('Error fetching monthly application period:', error);
     res.status(500).json({ message: '설정 조회 중 오류가 발생했습니다.' });
@@ -286,9 +365,9 @@ router.post('/monthly-application-period', authenticateToken, requireHRPermissio
   }
 });
 
-// 이번 달 이벤트에 설정된 기간 내에 신청했는지로 회원 분류 (인사팀 월간 신청 현황)
-//  - 대상: 활동 중(active)인 참가자/스타터 (월간 신청 의무 대상)
-//  - 기준: 그 달에 진행되는 이벤트(event.date in month)에, 설정된 시작일~마감일 사이 appliedAt(취소 제외)
+// 3) 회원 분류 및 월간 신청 현황 (인사팀 월간 신청 현황)
+//  - 2026년 학기 중(3~4월, 5~6월, 9~10월, 11~12월) 2개월 1회 완화 주기 지원
+//  - 방학 기간(1월, 2월, 7월, 8월) 1개월 1회 주기 지원
 router.get('/monthly-application-status', authenticateToken, requireHRPermission, async (req, res) => {
   try {
     const period = await getMonthlyPeriod();
@@ -296,41 +375,70 @@ router.get('/monthly-application-status', authenticateToken, requireHRPermission
     const endDay = period.endDay;
 
     const now = new Date();
-    const year = now.getFullYear();
-    const month = now.getMonth(); // 0-indexed
-    const monthStart = new Date(year, month, 1, 0, 0, 0, 0);
-    const nextMonthStart = new Date(year, month + 1, 1, 0, 0, 0, 0);
+    const year = parseInt(req.query.year) || now.getFullYear();
+    const currentMonthNum = req.query.month ? parseInt(req.query.month) : (now.getMonth() + 1); // 1-12
+    const month = currentMonthNum - 1; // 0-indexed
+
+    const cycle = getApplicationCycleBlock(year, currentMonthNum);
+
     const windowStart = new Date(year, month, startDay, 0, 0, 0, 0);
     const windowEnd = new Date(year, month, endDay + 1, 0, 0, 0, 0); // 마감 다음 날 00:00
+    const windowClosed = now >= windowEnd;
 
-    // 이번 달에 진행되는 이벤트
-    const events = await Event.find({ date: { $gte: monthStart, $lt: nextMonthStart } })
-      .select('appliedParticipants isLightning').lean();
+    // 해당 주기에 포함되어 조회할 월 목록 (단일월: [month], 2개월 블록: 1번째 달이면 [m1], 2번째 달이면 [m1, m2])
+    let queryMonths = [currentMonthNum];
+    if (cycle.type === 'bi-monthly' && cycle.isLastMonth) {
+      // 2번째 달(예: 10월)인 경우 9월과 10월 이벤트를 모두 조회하여 2달 중 1회라도 신청했는지 확인
+      queryMonths = cycle.months;
+    }
 
-    // 신청 시점 분류 (취소 제외):
-    //  - 신청 완료: 마감 전에 신청 = appliedAt < windowEnd
-    //  - 지각: 마감 이후 신청
-    const onTimeSet = new Set();  // appliedAt < windowEnd (마감 전)
-    const lateMap = new Map();    // userId -> 가장 이른 지각(>= windowEnd) appliedAt
+    // 각 대상 월별 이벤트 조회
+    const monthRanges = queryMonths.map(mNum => {
+      const mIdx = mNum - 1;
+      return {
+        mNum,
+        start: new Date(year, mIdx, 1, 0, 0, 0, 0),
+        nextStart: new Date(year, mIdx + 1, 1, 0, 0, 0, 0),
+        wEnd: new Date(year, mIdx, endDay + 1, 0, 0, 0, 0)
+      };
+    });
+
+    const overallStart = monthRanges[0].start;
+    const overallEnd = monthRanges[monthRanges.length - 1].nextStart;
+
+    const events = await Event.find({ date: { $gte: overallStart, $lt: overallEnd } })
+      .select('title date appliedParticipants isLightning').lean();
+
+    // 유저별 온타임 신청 여부 및 지각 신청 정보 수집
+    const onTimeSet = new Set();
+    const lateMap = new Map(); // uid -> latest appliedAt
+
     for (const ev of events) {
+      const evDate = new Date(ev.date);
+      const evMonthNum = evDate.getMonth() + 1;
+      const evMonthRange = monthRanges.find(r => r.mNum === evMonthNum) || {
+        wEnd: new Date(evDate.getFullYear(), evDate.getMonth(), endDay + 1, 0, 0, 0, 0),
+        nextStart: new Date(evDate.getFullYear(), evDate.getMonth() + 1, 1, 0, 0, 0, 0)
+      };
+
       for (const p of (ev.appliedParticipants || [])) {
-        if (!p.userId || p.status === 'cancelled') continue; // 취소건은 집계 제외
+        if (!p.userId || p.status === 'cancelled') continue;
         const at = p.appliedAt ? new Date(p.appliedAt) : null;
         if (!at) continue;
         const uid = p.userId.toString();
 
         // 번개주최이벤트인 경우, 해당 월이 이미 지났다면 반드시 해당 월 내에 인증이 제출되어 있어야 인정
         if (ev.isLightning) {
-          if (now >= nextMonthStart) {
+          if (now >= evMonthRange.nextStart) {
             if (!p.verification || !p.verification.submittedAt) continue;
             const submittedAt = new Date(p.verification.submittedAt);
-            if (submittedAt >= nextMonthStart) continue;
+            if (submittedAt >= evMonthRange.nextStart) continue;
           }
         }
 
-        if (at < windowEnd) {
+        if (at < evMonthRange.wEnd) {
           onTimeSet.add(uid);
-        } else if (at < nextMonthStart) {
+        } else if (at < evMonthRange.nextStart) {
           const prev = lateMap.get(uid);
           if (!prev || at < prev) lateMap.set(uid, at);
         }
@@ -349,21 +457,22 @@ router.get('/monthly-application-status', authenticateToken, requireHRPermission
         role: m.role,
         team: m.team || null,
         university: m.university || null,
-        phoneTail: digits.length >= 4 ? digits.slice(-4) : digits, // 뒷 4자리만 (전체번호 미반환)
+        phoneTail: digits.length >= 4 ? digits.slice(-4) : digits,
         lateAt: lateAt ? new Date(lateAt).toISOString() : null
       };
     };
 
-    // targetDisplayMonth (예: 8월)의 경고 면제 서포터즈는 당월(8월) 및 전월(7월) 서포터즈 명단 모두 조회하여 적용
-    const targetDisplayMonth = month + 1;
-    const supporterYearPrev = targetDisplayMonth === 1 ? year - 1 : year;
-    const supporterMonthPrev = targetDisplayMonth === 1 ? 12 : targetDisplayMonth - 1;
+    // 서포터즈 명단 조회 (해당 주기 범위 내 및 직전월 포함)
+    let supporterQueryMonths = [currentMonthNum];
+    const prevMonthNum = currentMonthNum === 1 ? 12 : currentMonthNum - 1;
+    supporterQueryMonths.push(prevMonthNum);
+    if (cycle.type === 'bi-monthly') {
+      cycle.months.forEach(m => { if (!supporterQueryMonths.includes(m)) supporterQueryMonths.push(m); });
+    }
 
     const supporterDocs = await Supporter.find({
-      $or: [
-        { year, month: targetDisplayMonth },
-        { year: supporterYearPrev, month: supporterMonthPrev }
-      ]
+      year,
+      month: { $in: supporterQueryMonths }
     }).lean();
 
     const supporterSet = new Set();
@@ -375,12 +484,12 @@ router.get('/monthly-application-status', authenticateToken, requireHRPermission
     const starterStaffDoc = await StarterStaff.findOne().lean();
     const starterStaffSet = new Set((starterStaffDoc?.memberIds || []).map(id => id.toString()));
 
-    // 그달 마감일 이후(>= 마감일 0시) 가입자는 면제 — 신청 기간을 온전히 누리지 못함
+    // 마감일 이후(>= 마감일 0시) 가입자는 면제
     const exemptThreshold = new Date(year, month, endDay, 0, 0, 0, 0);
     let exemptCount = 0;
-    const applied = [];      // 정시 (~5일)
-    const lateApplied = [];  // 지각 (6일 이후)
-    const notApplied = [];   // 미신청 (서포터즈, 스타터-스태프 포함)
+    const applied = [];      // 정시 신청
+    const lateApplied = [];  // 지각 신청
+    const notApplied = [];   // 미신청
 
     for (const m of members) {
       if (m.createdAt && new Date(m.createdAt) >= exemptThreshold) { exemptCount++; continue; }
@@ -405,6 +514,7 @@ router.get('/monthly-application-status', authenticateToken, requireHRPermission
         notApplied.push(item);
       }
     }
+
     const byName = (a, b) => String(a.name).localeCompare(String(b.name), 'ko');
     applied.sort(byName);
     lateApplied.sort(byName);
@@ -415,12 +525,43 @@ router.get('/monthly-application-status', authenticateToken, requireHRPermission
     const exemptStarterStaffCount = notApplied.filter(m => m.isStarterStaff).length;
     const totalExemptInNotApplied = exemptSupporterCount + exemptStarterStaffCount;
 
+    // 2개월 주기의 1번째 달(예: 9월)인 경우 경고 부여 불가 (2번째 달 마감 후 일괄 경고)
+    let canWarn = false;
+    let warnReason = '';
+
+    if (cycle.type === 'single') {
+      canWarn = windowClosed && events.length > 0;
+      warnReason = events.length === 0 ? '이번 달 이벤트가 없어 경고를 부여할 수 없습니다.'
+                 : !windowClosed ? `신청 기간 진행 중 — ${endDay + 1}일 이후 경고할 수 있습니다.`
+                 : '';
+    } else if (cycle.type === 'bi-monthly') {
+      if (cycle.isFirstMonth) {
+        canWarn = false;
+        warnReason = `${cycle.label} 2개월 완화 주기 진행 중 — ${cycle.months[1]}월 마감 후 미신청자에게 일괄 경고가 부과됩니다.`;
+      } else {
+        canWarn = windowClosed && events.length > 0;
+        warnReason = events.length === 0 ? `${cycle.label} 이벤트가 없어 경고를 부여할 수 없습니다.`
+                   : !windowClosed ? `${currentMonthNum}월 신청 기간 진행 중 — ${endDay + 1}일 이후 경고할 수 있습니다.`
+                   : '';
+      }
+    }
+
     res.json({
       year,
-      month: month + 1,
+      month: currentMonthNum,
+      cycle: {
+        type: cycle.type,
+        label: cycle.label,
+        months: cycle.months,
+        isFirstMonth: cycle.isFirstMonth,
+        isLastMonth: cycle.isLastMonth,
+        warningTargetMonth: cycle.warningTargetMonth
+      },
       windowStart,
       windowEnd,
-      windowClosed: now >= windowEnd,
+      windowClosed,
+      canWarn,
+      warnReason,
       eventCount: events.length,
       exemptCount,
       supportersCount: exemptSupporterCount,
@@ -428,8 +569,8 @@ router.get('/monthly-application-status', authenticateToken, requireHRPermission
       totalExemptInNotApplied,
       appliedCount: applied.length,
       lateCount: lateApplied.length,
-      notAppliedCount: warnTargetNotAppliedCount, // 경고 대상 인원수 (예: 38명)
-      totalNotAppliedCount: notApplied.length,     // 전체 미신청 목록 수 (예: 46명)
+      notAppliedCount: warnTargetNotAppliedCount,
+      totalNotAppliedCount: notApplied.length,
       applied,
       lateApplied,
       notApplied
@@ -440,4 +581,5 @@ router.get('/monthly-application-status', authenticateToken, requireHRPermission
   }
 });
 
+router.getApplicationCycleBlock = getApplicationCycleBlock;
 module.exports = router;

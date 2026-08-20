@@ -204,16 +204,29 @@ async function loadMonthlyApply() {
     }
     const d = await res.json();
     _monthlyApplyLoaded = true;
-    state.maMonth = `${d.year}-${String(d.month).padStart(2, '0')}`;
-    state.maCanWarn = !!d.windowClosed && (d.eventCount || 0) > 0;
-    state.maWarnReason = (d.eventCount || 0) === 0 ? '이번 달 이벤트가 없어 경고를 부여할 수 없습니다.'
-                       : !d.windowClosed ? `신청 기간 진행 중 — ${endDay + 1}일 이후 경고할 수 있습니다.`
-                       : '';
-    const note = d.windowClosed ? '' : ` · 신청 기간 진행 중 (${endDay + 1}일 확정)`;
+    const cycle = d.cycle || {
+      type: 'single',
+      label: `${d.month}월`,
+      months: [d.month],
+      isFirstMonth: true,
+      isLastMonth: true,
+      warningTargetMonth: `${d.year}-${String(d.month).padStart(2, '0')}`
+    };
+
+    state.maMonth = cycle.warningTargetMonth || `${d.year}-${String(d.month).padStart(2, '0')}`;
+    state.maCycle = cycle;
+    state.maCanWarn = !!d.canWarn;
+    state.maWarnReason = d.warnReason || '';
+
+    const cycleTypeBadge = cycle.type === 'bi-monthly'
+      ? `<span style="background:#e0f2fe;color:#0369a1;padding:2px 8px;border-radius:12px;font-size:0.75rem;font-weight:600;margin-left:6px;border:1px solid #bae6fd;">학기 중 2개월 완화 (${cycle.label})</span>`
+      : `<span style="background:#f1f5f9;color:#475569;padding:2px 8px;border-radius:12px;font-size:0.75rem;font-weight:600;margin-left:6px;">방학 1개월 주기</span>`;
+
+    const note = d.warnReason ? ` · <span style="color:#d97706;font-weight:500;">${_maEsc(d.warnReason)}</span>` : '';
     const exemptNote = d.exemptCount ? ` · 신규가입 면제 ${d.exemptCount}명` : '';
     const totalExemptNote = (d.totalExemptInNotApplied || 0) > 0 ? ` (면제 ${d.totalExemptInNotApplied}명 제외)` : '';
     if (summary) summary.innerHTML =
-      `${d.year}년 ${d.month}월 · 이벤트 ${d.eventCount}개 · ` +
+      `${d.year}년 ${d.month}월 ${cycleTypeBadge} · 이벤트 ${d.eventCount}개 · ` +
       `신청 <b style="color:#0A84FE">${d.appliedCount}</b> / ` +
       `지각 <b style="color:#D97706">${d.lateCount || 0}</b> / ` +
       `미신청 <b style="color:#EF4444">${d.notAppliedCount}</b>명${totalExemptNote}${exemptNote}${note}`;
@@ -228,8 +241,8 @@ async function loadMonthlyApply() {
           const isExempt = m.isSupporter || m.isStarterStaff;
           let cb = '';
           if (selectable) {
-            if (isExempt) {
-              cb = `<input type="checkbox" class="ma-check" disabled title="경고 면제 대상 (선택 불가)">`;
+            if (isExempt || !state.maCanWarn) {
+              cb = `<input type="checkbox" class="ma-check" disabled title="${isExempt ? '경고 면제 대상 (선택 불가)' : (state.maWarnReason || '현재 경고 부여 불가')}">`;
             } else {
               cb = `<input type="checkbox" class="ma-check" data-ma-id="${m.id}" onclick="maToggleOne('${m.id}', this.checked)">`;
             }
@@ -247,8 +260,21 @@ async function loadMonthlyApply() {
     setText('ma-late-count', d.lateCount || 0);
     setText('ma-notapplied-count', d.notAppliedCount);
     setHTML('ma-applied-list', liHTML(d.applied, false));            // 신청 완료는 선택 불필요
-    setHTML('ma-late-list', liHTML(d.lateApplied || [], true));      // 지각 — 선택 가능
-    setHTML('ma-notapplied-list', liHTML(d.notApplied, true));       // 미신청 — 선택 가능 (면제 대상은 disabled)
+    setHTML('ma-late-list', liHTML(d.lateApplied || [], true));      // 지각
+    setHTML('ma-notapplied-list', liHTML(d.notApplied, true));       // 미신청
+
+    // 2개월 완화 첫 달인 경우 미신청 헤더 레이블 친절 표기
+    const notAppliedHeader = document.querySelector('.ma-col-warn h4');
+    if (notAppliedHeader) {
+      if (cycle.type === 'bi-monthly' && cycle.isFirstMonth) {
+        notAppliedHeader.innerHTML = `미신청 <small style="color:#0369a1;">(${cycle.months[1]}월까지 유예)</small> <span class="ma-badge" id="ma-notapplied-count">${d.notAppliedCount}</span>
+          <label class="ma-selectall-label"><input type="checkbox" class="ma-selectall" disabled title="2개월 완화 첫 달은 경고 불가"> 전체</label>`;
+      } else {
+        notAppliedHeader.innerHTML = `미신청 <span class="ma-badge" id="ma-notapplied-count">${d.notAppliedCount}</span>
+          <label class="ma-selectall-label"><input type="checkbox" class="ma-selectall" onclick="maToggleAll('ma-notapplied-list', this.checked)"> 전체</label>`;
+      }
+    }
+
     // 재조회 시 선택 초기화
     state.maSelected.clear();
     document.querySelectorAll('.ma-selectall').forEach(c => { c.checked = false; });
@@ -298,9 +324,23 @@ function updateMaBar() {
   const noteEl = document.getElementById('ma-warn-note');
   if (cnt) cnt.textContent = n;
   if (bar) bar.style.display = n > 0 ? 'flex' : 'none';
-  if (btn) { btn.disabled = !state.maCanWarn; btn.title = state.maCanWarn ? '' : (state.maWarnReason || ''); }
-  if (noteEl) noteEl.textContent = state.maCanWarn ? '' : (state.maWarnReason || '');
+  if (!state.maCanWarn) {
+    if (btn) {
+      btn.disabled = true;
+      btn.style.opacity = '0.5';
+      btn.style.cursor = 'not-allowed';
+    }
+    if (noteEl) noteEl.textContent = state.maWarnReason ? ` (${state.maWarnReason})` : ' (신청 기간 진행 중)';
+  } else {
+    if (btn) {
+      btn.disabled = false;
+      btn.style.opacity = '1';
+      btn.style.cursor = 'pointer';
+    }
+    if (noteEl) noteEl.textContent = '';
+  }
 }
+
 function maToggleOne(id, checked) {
   if (checked) state.maSelected.add(id); else state.maSelected.delete(id);
   updateMaBar();
@@ -323,11 +363,11 @@ function openMonthlyWarning() {
   state.bulkActionType = 'addWarning';
   state.bulkSource = 'monthly';
   document.getElementById('bulk-dialog-title').textContent = '월간 미신청 경고 일괄 부여';
-  document.getElementById('bulk-dialog-desc').textContent = `${state.maMonth} · 선택된 ${state.maSelected.size}명에게 경고를 부여합니다 (같은 달 중복은 자동 제외)`;
+  document.getElementById('bulk-dialog-desc').textContent = `${state.maMonth} · 선택된 ${state.maSelected.size}명에게 경고를 부여합니다 (같은 주기 중복은 자동 제외)`;
   document.getElementById('bulk-amount-field').style.display = 'none';
   document.getElementById('bulk-category-field').style.display = '';
   document.getElementById('bulk-reason-field').style.display = '';
-  document.getElementById('bulk-reason').value = `${state.maMonth} 월간 이벤트 미신청`;
+  document.getElementById('bulk-reason').value = `${state.maMonth} 이벤트 미신청 (의무 신청 미이행)`;
   document.getElementById('bulk-category').value = '월간미신청';
   const btn = document.getElementById('bulk-confirm-btn');
   btn.className = 'modal-btn danger';
