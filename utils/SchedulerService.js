@@ -41,31 +41,49 @@ const resetWarningCounts = schedule.scheduleJob('0 1 1 1,7 *', async () => {
   }
 });
 
-// 매분기(1, 4, 7, 10월) 1일 정각(00:00)에 실행되는 정기 참가 횟수(regularCount) 초기화 스케줄러
-const resetRegularCounts = schedule.scheduleJob('0 0 1 1,4,7,10 *', async () => {
+/**
+ * 분기별 정기 참가 횟수(regularCount) 리셋 및 총 참가 횟수(totalCount) 이관 함수
+ */
+async function transferQuarterlyParticipationCounts() {
   try {
-    console.log(`[${new Date()}] 분기별 정기 참가 횟수(regularCount) 리셋 및 totalCount 이관 시작.`);
-    
-    const users = await User.find({});
-    let updatedCount = 0;
-    
-    for (const user of users) {
-      if (!user.participationCount) {
-        user.participationCount = { totalCount: 0, regularCount: 0 };
-      }
-      
-      const regular = user.participationCount.regularCount || 0;
-      user.participationCount.totalCount = (user.participationCount.totalCount || 0) + regular;
-      user.participationCount.regularCount = 0;
-      
-      await user.save();
-      updatedCount++;
+    console.log(`[${new Date().toISOString()}] 분기별 정기 참가 횟수(regularCount) 리셋 및 totalCount 이관 시작.`);
+
+    // regularCount > 0 인 유저들 조회
+    const usersToUpdate = await User.find({ 'participationCount.regularCount': { $gt: 0 } });
+
+    if (usersToUpdate.length > 0) {
+      const bulkOps = usersToUpdate.map(user => {
+        const regular = (user.participationCount && user.participationCount.regularCount) || 0;
+        const currentTotal = (user.participationCount && user.participationCount.totalCount) || 0;
+        return {
+          updateOne: {
+            filter: { _id: user._id },
+            update: {
+              $set: {
+                'participationCount.totalCount': currentTotal + regular,
+                'participationCount.regularCount': 0
+              }
+            }
+          }
+        };
+      });
+
+      await User.bulkWrite(bulkOps);
+      console.log(`[${new Date().toISOString()}] 분기별 정기 참가 횟수 리셋 완료. 총 ${usersToUpdate.length}명 이관 처리됨.`);
+      return { success: true, processedCount: usersToUpdate.length };
+    } else {
+      console.log(`[${new Date().toISOString()}] 분기별 정기 참가 횟수 리셋: 이관 대상(regularCount > 0) 회원이 없습니다.`);
+      return { success: true, processedCount: 0 };
     }
-    
-    console.log(`[${new Date()}] 분기별 정기 참가 횟수 리셋 완료. 총 ${updatedCount}명 처리됨.`);
   } catch (error) {
     console.error('Error resetting regular counts:', error);
+    throw error;
   }
+}
+
+// 매분기(1, 4, 7, 10월) 1일 정각(00:00)에 실행되는 정기 참가 횟수(regularCount) 초기화 및 totalCount 이관 스케줄러
+const resetRegularCounts = schedule.scheduleJob('0 0 1 1,4,7,10 *', async () => {
+  await transferQuarterlyParticipationCounts();
 });
 
 // ============== 새로 추가: 이벤트 자동 참가자 확정 스케줄러 ==============
@@ -251,9 +269,10 @@ const getSchedulerStatus = () => {
 };
 
 module.exports = {
-  // 기존 스케줄러들
+  // 기존 스케줄러 및 함수들
   resetWarningCounts,
   resetRegularCounts,
+  transferQuarterlyParticipationCounts,
 
   getSchedulerStatus,
 

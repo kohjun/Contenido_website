@@ -192,4 +192,23 @@ router.post('/lightning-monthly/trigger',
     }
   });
 
+/* =========================================================================
+   POST — 분기별 정기 참가 횟수(regularCount) -> 총 참가 횟수(totalCount) 이관 수동 실행 (관리자/운영진 전용)
+   ========================================================================= */
+
+const { transferQuarterlyParticipationCounts } = require('../../utils/SchedulerService');
+
+router.post('/quarterly-participation/trigger',
+  authenticateToken,
+  authorizeRoles('officer', 'admin'),
+  async (req, res) => {
+    try {
+      const result = await transferQuarterlyParticipationCounts();
+      res.json({ message: `분기별 정기 참가 횟수 이관이 성공적으로 완료되었습니다. (처리: ${result.processedCount}명)`, result });
+    } catch (error) {
+      console.error('Error triggering quarterly participation transfer:', error);
+      res.status(500).json({ message: '분기별 참가 횟수 이관 처리 중 오류가 발생했습니다.', error: error.message });
+    }
+  });
+
 module.exports = router;
