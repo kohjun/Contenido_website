@@ -72,18 +72,41 @@ router.post('/:id/report',
         return res.status(404).json({ message: 'Event not found' });
       }
 
-      event.finalParticipants = participants.map(String);
+      const newFinalParticipants = participants.map(String);
+      const prevFinalParticipants = (event.finalParticipants || []).map(String);
+
+      event.finalParticipants = newFinalParticipants;
       event.isEnded = true;
+
+      if (!event.participationCountAwarded) {
+        // 아직 활동횟수가 지급되지 않은 경우
+        if (newFinalParticipants.length > 0) {
+          await User.updateMany(
+            { _id: { $in: newFinalParticipants } },
+            { $inc: { 'participationCount.regularCount': 1 } }
+          );
+        }
+        event.participationCountAwarded = true;
+      } else {
+        // 이미 자동종료 등으로 활동횟수가 지급되었는데 보고서로 최종 참가자 명단이 수정된 경우
+        const removed = prevFinalParticipants.filter(id => !newFinalParticipants.includes(id));
+        const added = newFinalParticipants.filter(id => !prevFinalParticipants.includes(id));
+
+        if (removed.length > 0) {
+          await User.updateMany(
+            { _id: { $in: removed } },
+            { $inc: { 'participationCount.regularCount': -1 } }
+          );
+        }
+        if (added.length > 0) {
+          await User.updateMany(
+            { _id: { $in: added } },
+            { $inc: { 'participationCount.regularCount': 1 } }
+          );
+        }
+      }
+
       await event.save();
-
-      // 참가자들의 participationCount.regularCount 증가
-      const updates = participants.map(participantId =>
-        User.findByIdAndUpdate(participantId, {
-          $inc: { 'participationCount.regularCount': 1 }
-        })
-      );
-      await Promise.all(updates);
-
       res.status(200).json({ message: 'Report submitted and event marked as ended' });
     } catch (error) {
       console.error('Error submitting report:', error);
@@ -106,9 +129,44 @@ router.post('/:id/end',
       }
 
       event.isEnded = true;
+
+      // 승인된 참가자 목록(approved)을 최종 참가자로 자동 확정
+      const approvedParticipants = (event.appliedParticipants || [])
+        .filter(p => p.status === 'approved')
+        .map(p => (p.userId && p.userId._id) ? p.userId._id.toString() : p.userId.toString());
+
+      event.finalParticipants = approvedParticipants;
+
+      // 승인된(확정된) 참가자들의 활동 횟수(participationCount.regularCount) 증가 (중복 방지)
+      if (!event.participationCountAwarded && approvedParticipants.length > 0) {
+        await User.updateMany(
+          { _id: { $in: approvedParticipants } },
+          { $inc: { 'participationCount.regularCount': 1 } }
+        );
+        event.participationCountAwarded = true;
+      } else {
+        event.participationCountAwarded = true;
+      }
+
       await event.save();
 
-      res.json({ message: '이벤트가 종료되었습니다.' });
+      // 확정 참가자들에게 리뷰 작성 알림 일괄 발송
+      if (approvedParticipants.length > 0) {
+        const { createManyNotifications } = require('../../utils/notify');
+        const notifications = approvedParticipants.map(uid => ({
+          userId: uid,
+          type: 'event_review_prompt',
+          title: `[${event.title}] 이벤트가 종료되었습니다. 후기를 남겨주세요! 🌟`,
+          link: `/event-review.html?id=${event._id}`,
+          meta: {
+            eventId: event._id,
+            eventTitle: event.title
+          }
+        }));
+        await createManyNotifications(notifications);
+      }
+
+      res.json({ message: '이벤트가 종료되었으며 승인된 참가자의 활동 횟수가 증가되었습니다.' });
     } catch (error) {
       console.error('Error ending event:', error);
       res.status(500).json({ message: '이벤트 종료 처리 중 오류가 발생했습니다.' });

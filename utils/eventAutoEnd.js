@@ -1,7 +1,8 @@
 // utils/eventAutoEnd.js
-// 이벤트 행사 종료 시간 도달 시 자동 종료(isEnded: true) 및 확정 참가자 대상 리뷰 작성 유도 알림 발송
+// 이벤트 행사 종료 시간 도달 시 자동 종료(isEnded: true) 및 확정 참가자 활동 횟수(participationCount.regularCount) 증가 + 리뷰 작성 유도 알림 발송
 
 const Event = require('../models/Event');
+const User = require('../models/User');
 const { createManyNotifications } = require('./notify');
 
 async function checkAndAutoEndEvents() {
@@ -38,6 +39,19 @@ async function checkAndAutoEndEvents() {
           .map(p => (p.userId && p.userId._id) ? p.userId._id.toString() : p.userId.toString());
 
         event.finalParticipants = approvedParticipants;
+
+        // 승인된(확정된) 참가자들의 활동 횟수(participationCount.regularCount) 증가 (중복 방지)
+        if (!event.participationCountAwarded && approvedParticipants.length > 0) {
+          await User.updateMany(
+            { _id: { $in: approvedParticipants } },
+            { $inc: { 'participationCount.regularCount': 1 } }
+          );
+          event.participationCountAwarded = true;
+          console.log(`[이벤트 자동 종료] "${event.title}" 확정 참가자 ${approvedParticipants.length}명 활동 횟수(+1) 증가 완료`);
+        } else {
+          event.participationCountAwarded = true;
+        }
+
         await event.save();
 
         console.log(`[이벤트 자동 종료] "${event.title}" (종료 시각: ${endDateTime.toLocaleString('ko-KR')}) 자동 종료 처리 완료 (최종 참가자 ${approvedParticipants.length}명)`);

@@ -164,6 +164,10 @@ const eventSchema = new mongoose.Schema({
     type: Boolean,
     default: false,
   },
+  participationCountAwarded: {
+    type: Boolean,
+    default: false,
+  },
   images: [{
     type: String,
     default: []
