@@ -585,7 +585,6 @@ router.get('/monthly-application-status', authenticateToken, requireHRPermission
       windowClosed,
       canWarn,
       warnReason,
-      eventCount: events.length,
       exemptCount,
       supportersCount: exemptSupporterCount,
       starterStaffCount: exemptStarterStaffCount,
@@ -597,19 +596,32 @@ router.get('/monthly-application-status', authenticateToken, requireHRPermission
       applied,
       lateApplied,
       notApplied,
-      events: events.map(ev => ({
-        id: ev._id,
-        title: ev.title,
-        date: ev.date,
-        team: ev.team,
-        place: ev.place,
-        isLightning: ev.isLightning,
-        dutyMonth: ev.dutyMonth,
-        dutyYear: ev.dutyYear,
-        effectiveMonth: (ev.dutyMonth != null) ? Number(ev.dutyMonth) : (new Date(ev.date).getMonth() + 1),
-        isManualDuty: ev.dutyMonth != null,
-        appliedCount: (ev.appliedParticipants || []).filter(p => p.status !== 'cancelled').length
-      }))
+      // 이번 주기(현재월) 인정 이벤트 목록:
+      // (1) 현재월로 dutyMonth가 수동 지정된 이벤트 (예: 11월 1일 행사 등)
+      // (2) 또는 행사일이 현재월이면서 다른 월로 dutyMonth가 이동되지 않은 이벤트
+      // (이전 9월 이벤트 등은 제외하고, 현재 10월 인정 이벤트 및 10월로 포함된 11월 이벤트만 포함)
+      ...(() => {
+        const currentDutyEvents = events.filter(ev => {
+          const effM = (ev.dutyMonth != null) ? Number(ev.dutyMonth) : (new Date(ev.date).getMonth() + 1);
+          return effM === currentMonthNum;
+        });
+        return {
+          eventCount: currentDutyEvents.length,
+          events: currentDutyEvents.map(ev => ({
+            id: ev._id,
+            title: ev.title,
+            date: ev.date,
+            team: ev.team,
+            place: ev.place,
+            isLightning: ev.isLightning,
+            dutyMonth: ev.dutyMonth,
+            dutyYear: ev.dutyYear,
+            effectiveMonth: (ev.dutyMonth != null) ? Number(ev.dutyMonth) : (new Date(ev.date).getMonth() + 1),
+            isManualDuty: ev.dutyMonth != null,
+            appliedCount: (ev.appliedParticipants || []).filter(p => p.status !== 'cancelled').length
+          }))
+        };
+      })()
     });
   } catch (error) {
     console.error('월간 신청 현황 조회 오류:', error);
@@ -618,7 +630,7 @@ router.get('/monthly-application-status', authenticateToken, requireHRPermission
 });
 
 // 4) 월간 의무 인정 이벤트 후보 목록 조회 API (인사팀용)
-// 현재월 및 다음월(예: 10월이면 10월~11월)의 공식 이벤트 중 isEnded === false(진행/예정)인 이벤트 반환
+// 현재월(10월)과 다음월(11월)의 공식 이벤트 중 인정 이벤트 선택 후보 목록 반환
 router.get('/candidate-events', authenticateToken, requireHRPermission, async (req, res) => {
   try {
     const { checkAndAutoEndEvents } = require('../../utils/eventAutoEnd');
@@ -631,6 +643,9 @@ router.get('/candidate-events', authenticateToken, requireHRPermission, async (r
     // 현재월 시작일 (예: 10월 1일 00:00:00)
     const rangeStart = new Date(queryYear, queryMonth - 1, 1, 0, 0, 0, 0);
 
+    // 현재월 종료일 = 다음월 1일 00:00:00 (예: 11월 1일 00:00:00)
+    const currentMonthEnd = new Date(queryYear, queryMonth, 1, 0, 0, 0, 0);
+
     // 다음월 말일의 다음날 = 다다음월 1일 00:00:00 (예: 10월이면 11월 30일까지이므로 12월 1일 미만)
     const nextMonthEnd = new Date(queryYear, queryMonth + 1, 1, 0, 0, 0, 0);
 
@@ -639,13 +654,14 @@ router.get('/candidate-events', authenticateToken, requireHRPermission, async (r
     // 후보 이벤트:
     // (1) 현재월과 다음월(10월~11월)의 행사일 범위 (date >= rangeStart, date < nextMonthEnd)
     // (2) 공식 이벤트 대상 (isLightning != true)
-    // (3) isEnded === false(진행/예정 이벤트) 또는 이미 dutyMonth가 수동 지정된 이벤트
+    // (3) 현재월(10월) 공식 이벤트 전체 + 다음월(11월) 진행/예정 공식 이벤트(isEnded: false) + 수동 지정 이벤트
     const events = await Event.find({
       isLightning: { $ne: true },
       date: { $gte: rangeStart, $lt: nextMonthEnd },
       $or: [
-        { isEnded: false },
-        { dutyMonth: { $ne: null } }
+        { date: { $lt: currentMonthEnd } }, // 현재월(10월) 공식 이벤트
+        { isEnded: false },                  // 다음월(11월) 진행/예정 공식 이벤트
+        { dutyMonth: { $ne: null } }         // 수동 지정된 이벤트
       ]
     }).sort({ date: 1 }).select('title date team place isLightning isEnded dutyMonth dutyYear appliedParticipants').lean();
 

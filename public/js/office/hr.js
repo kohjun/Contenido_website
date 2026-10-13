@@ -370,10 +370,14 @@ async function loadCandidateEvents() {
     container.innerHTML = events.map(ev => {
       const d = new Date(ev.date);
       const dateStr = `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, '0')}.${String(d.getDate()).padStart(2, '0')}`;
-      const isCustom = ev.isManualDuty;
-      const statusBadge = isCustom
-        ? `<span style="background:#e0f2fe;color:#0369a1;padding:2px 8px;border-radius:12px;font-size:0.75rem;font-weight:600;border:1px solid #bae6fd;">${ev.dutyMonth}월 인정으로 지정됨 ⭐</span>`
-        : `<span style="background:#f1f5f9;color:#64748b;padding:2px 8px;border-radius:12px;font-size:0.75rem;">기본 (${ev.originalMonth}월 행사)</span>`;
+      const isThisCycle = (ev.effectiveMonth === curM);
+      const isNextCycle = (ev.effectiveMonth === nextM);
+      const dutyBadge = isThisCycle
+        ? `<span style="background:#ecfdf5;color:#047857;padding:3px 9px;border-radius:12px;font-size:0.75rem;font-weight:700;border:1px solid #a7f3d0;">✅ 이번 주기(${curM}월) 인정</span>`
+        : `<span style="background:#f1f5f9;color:#64748b;padding:3px 9px;border-radius:12px;font-size:0.75rem;font-weight:500;">${nextM}월 이벤트</span>`;
+      const customTag = isCustom
+        ? `<span style="background:#e0f2fe;color:#0369a1;padding:2px 8px;border-radius:12px;font-size:0.73rem;font-weight:600;border:1px solid #bae6fd;">[${ev.dutyMonth}월 수동지정됨 ⭐]</span>`
+        : '';
       const activeBadge = !ev.isEnded
         ? `<span style="background:#ecfdf5;color:#047857;padding:2px 7px;border-radius:10px;font-size:0.72rem;font-weight:600;border:1px solid #a7f3d0;">진행/모집중</span>`
         : `<span style="background:#f1f5f9;color:#94a3b8;padding:2px 7px;border-radius:10px;font-size:0.72rem;">종료됨</span>`;
@@ -384,32 +388,20 @@ async function loadCandidateEvents() {
             <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 4px; flex-wrap: wrap;">
               <span style="font-weight: 700; font-size: 0.9rem; color: #1e293b;">${_maEsc(ev.title)}</span>
               ${activeBadge}
-              ${statusBadge}
+              ${dutyBadge}
+              ${customTag}
             </div>
             <div style="font-size: 0.8rem; color: #64748b;">
               📅 행사일: <b>${dateStr}</b> · 신청자 ${ev.appliedCount || 0}명 · ${ev.team || '동아리'}
             </div>
           </div>
           <div style="display: flex; align-items: center; gap: 6px;">
-            <select id="sel-duty-${ev.id}" style="padding: 5px 8px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.82rem; background: white;">
+            <select id="sel-duty-${ev.id}" style="padding: 6px 10px; border: 1.5px solid #0284c7; border-radius: 6px; font-size: 0.82rem; background: white; font-weight: 600; color: #0f172a;">
+              <option value="${curM}" ${(isCustom ? ev.dutyMonth === curM : ev.originalMonth === curM) ? 'selected' : ''}>⭐ 이번 주기(${curM}월) 인정으로 포함</option>
+              <option value="${nextM}" ${(isCustom ? ev.dutyMonth === nextM : ev.originalMonth === nextM) ? 'selected' : ''}>${nextM}월 이벤트로 분류 (다음 주기)</option>
               <option value="default" ${!isCustom ? 'selected' : ''}>기본값 (${ev.originalMonth}월 행사일 기준)</option>
-              <option value="${curM}" ${isCustom && ev.dutyMonth === curM ? 'selected' : ''}>⭐ ${curM}월 인정 (현재월)</option>
-              <option value="${nextM}" ${isCustom && ev.dutyMonth === nextM ? 'selected' : ''}>${nextM}월 인정 (다음월)</option>
-              <option disabled>──────────</option>
-              <option value="9" ${isCustom && ev.dutyMonth === 9 ? 'selected' : ''}>9월 인정</option>
-              <option value="10" ${isCustom && ev.dutyMonth === 10 ? 'selected' : ''}>10월 인정</option>
-              <option value="11" ${isCustom && ev.dutyMonth === 11 ? 'selected' : ''}>11월 인정</option>
-              <option value="12" ${isCustom && ev.dutyMonth === 12 ? 'selected' : ''}>12월 인정</option>
-              <option value="1" ${isCustom && ev.dutyMonth === 1 ? 'selected' : ''}>1월 인정</option>
-              <option value="2" ${isCustom && ev.dutyMonth === 2 ? 'selected' : ''}>2월 인정</option>
-              <option value="3" ${isCustom && ev.dutyMonth === 3 ? 'selected' : ''}>3월 인정</option>
-              <option value="4" ${isCustom && ev.dutyMonth === 4 ? 'selected' : ''}>4월 인정</option>
-              <option value="5" ${isCustom && ev.dutyMonth === 5 ? 'selected' : ''}>5월 인정</option>
-              <option value="6" ${isCustom && ev.dutyMonth === 6 ? 'selected' : ''}>6월 인정</option>
-              <option value="7" ${isCustom && ev.dutyMonth === 7 ? 'selected' : ''}>7월 인정</option>
-              <option value="8" ${isCustom && ev.dutyMonth === 8 ? 'selected' : ''}>8월 인정</option>
             </select>
-            <button type="button" onclick="saveEventDutyMonth('${ev.id}')" style="background: #0f172a; color: white; border: none; padding: 6px 12px; border-radius: 6px; font-size: 0.8rem; cursor: pointer; font-weight: 600; transition: background 0.2s;">
+            <button type="button" onclick="saveEventDutyMonth('${ev.id}')" style="background: #0284c7; color: white; border: none; padding: 6px 14px; border-radius: 6px; font-size: 0.82rem; cursor: pointer; font-weight: 600; transition: background 0.2s; white-space: nowrap;">
               적용
             </button>
           </div>
