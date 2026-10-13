@@ -408,8 +408,8 @@
           <button type="button" class="modal-close" onclick="closeDutyEventModal()" aria-label="닫기">&times;</button>
         </div>
         <div class="modal-body" style="padding: 16px 20px; overflow-y: auto; flex: 1;">
-          <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 12px 14px; margin-bottom: 14px; font-size: 0.83rem; color: #166534; line-height: 1.5;">
-            💡 <b>안내:</b> 웹사이트에 현재 등록되어 있는 공식 이벤트(진행/예정 이벤트) 목록입니다. 과거 종료된 이전 학기/주기(8월 등) 이벤트는 자동으로 배제되며, 11월 1일 행사 등 원하는 이벤트를 선택하여 해당 월(예: 10월)의 의무 신청으로 지정할 수 있습니다.
+          <div id="duty-events-modal-info" style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 12px 14px; margin-bottom: 14px; font-size: 0.83rem; color: #166534; line-height: 1.5;">
+            💡 <b>안내:</b> 현재월과 다음월(10월~11월)의 공식 이벤트 중 마감/종료되지 않은(진행·모집 중) 이벤트 목록입니다. 11월 1일 등 행사일이 다음월이지만 현재월 의무 신청으로 인정하고자 할 때 <b>[인정 월]</b>을 선택 후 [적용]해주세요.
           </div>
           <div id="duty-events-modal-list" style="display: flex; flex-direction: column; gap: 8px;">
             <div style="text-align: center; color: #64748b; padding: 20px;">이벤트를 불러오는 중…</div>
@@ -424,6 +424,6 @@
     <!-- Toast -->
     <div id="toast" class="toast"></div>
 
-    <script src="/js/office/hr.js?v=20261014"></script>
+    <script src="/js/office/hr.js?v=20261014_2"></script>
 </body>
 </html>

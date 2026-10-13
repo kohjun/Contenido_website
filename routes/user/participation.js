@@ -618,7 +618,7 @@ router.get('/monthly-application-status', authenticateToken, requireHRPermission
 });
 
 // 4) 월간 의무 인정 이벤트 후보 목록 조회 API (인사팀용)
-// 현재 웹사이트에 올라온 진행 중/예정 공식 이벤트(isEnded: false) 및 현재 주기 내 수동 지정 이벤트 반환 (과거 8월 등 종료 이벤트 배제)
+// 현재월 및 다음월(예: 10월이면 10월~11월)의 공식 이벤트 중 isEnded === false(진행/예정)인 이벤트 반환
 router.get('/candidate-events', authenticateToken, requireHRPermission, async (req, res) => {
   try {
     const { checkAndAutoEndEvents } = require('../../utils/eventAutoEnd');
@@ -628,18 +628,21 @@ router.get('/candidate-events', authenticateToken, requireHRPermission, async (r
     const queryYear = parseInt(req.query.year) || now.getFullYear();
     const queryMonth = req.query.month ? parseInt(req.query.month) : (now.getMonth() + 1);
 
-    // 현재 조회 월이 속한 주기 (예: 10월이면 9~10월 주기)
-    const cycle = getApplicationCycleBlock(queryYear, queryMonth);
-    const firstMonthOfCycle = cycle.months[0];
-    const cycleStart = new Date(queryYear, firstMonthOfCycle - 1, 1, 0, 0, 0, 0);
+    // 현재월 시작일 (예: 10월 1일 00:00:00)
+    const rangeStart = new Date(queryYear, queryMonth - 1, 1, 0, 0, 0, 0);
+
+    // 다음월 말일의 다음날 = 다다음월 1일 00:00:00 (예: 10월이면 11월 30일까지이므로 12월 1일 미만)
+    const nextMonthEnd = new Date(queryYear, queryMonth + 1, 1, 0, 0, 0, 0);
+
+    const nextMonth = (queryMonth % 12) + 1;
 
     // 후보 이벤트:
-    // (1) 과거 종료된 이전 주기 이벤트(8월 등)는 배제 (date >= cycleStart)
+    // (1) 현재월과 다음월(10월~11월)의 행사일 범위 (date >= rangeStart, date < nextMonthEnd)
     // (2) 공식 이벤트 대상 (isLightning != true)
-    // (3) 현재 웹사이트에 올라와 있는 진행 중/예정 이벤트(isEnded: false) 또는 이미 dutyMonth가 수동 지정된 이벤트
+    // (3) isEnded === false(진행/예정 이벤트) 또는 이미 dutyMonth가 수동 지정된 이벤트
     const events = await Event.find({
       isLightning: { $ne: true },
-      date: { $gte: cycleStart },
+      date: { $gte: rangeStart, $lt: nextMonthEnd },
       $or: [
         { isEnded: false },
         { dutyMonth: { $ne: null } }
@@ -672,7 +675,12 @@ router.get('/candidate-events', authenticateToken, requireHRPermission, async (r
       };
     });
 
-    res.json({ events: formatted, cycle });
+    res.json({
+      events: formatted,
+      currentMonth: queryMonth,
+      nextMonth,
+      queryYear
+    });
   } catch (error) {
     console.error('인정 후보 이벤트 목록 조회 오류:', error);
     res.status(500).json({ message: '이벤트 목록 조회 중 오류가 발생했습니다.' });

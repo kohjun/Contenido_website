@@ -354,9 +354,16 @@ async function loadCandidateEvents() {
     }
     const data = await res.json();
     const events = data.events || [];
+    const curM = data.currentMonth || (new Date().getMonth() + 1);
+    const nextM = data.nextMonth || ((curM % 12) + 1);
+
+    const infoBox = document.getElementById('duty-events-modal-info');
+    if (infoBox) {
+      infoBox.innerHTML = `💡 <b>안내:</b> 현재월(<b>${curM}월</b>)과 다음월(<b>${nextM}월</b>)의 공식 이벤트 중 마감/종료되지 않은(진행·모집 중) 이벤트 목록입니다. ${nextM}월 1일 등 행사일이 다음월이지만 ${curM}월 의무 신청으로 인정하고자 할 때 <b>[인정 월]</b>을 선택 후 [적용]해주세요.`;
+    }
 
     if (events.length === 0) {
-      container.innerHTML = '<div style="color: #64748b; padding: 20px; text-align: center;">등록된 이벤트가 없습니다.</div>';
+      container.innerHTML = `<div style="color: #64748b; padding: 25px; text-align: center;">현재월 및 다음월(${curM}월~${nextM}월)에 진행/모집 중인(종료되지 않은) 공식 이벤트가 없습니다.</div>`;
       return;
     }
 
@@ -386,10 +393,13 @@ async function loadCandidateEvents() {
           <div style="display: flex; align-items: center; gap: 6px;">
             <select id="sel-duty-${ev.id}" style="padding: 5px 8px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.82rem; background: white;">
               <option value="default" ${!isCustom ? 'selected' : ''}>기본값 (${ev.originalMonth}월 행사일 기준)</option>
-              <option value="9" ${isCustom && ev.dutyMonth === 9 ? 'selected' : ''}>9월 인정 (9~10월 주기)</option>
-              <option value="10" ${isCustom && ev.dutyMonth === 10 ? 'selected' : ''}>10월 인정 (9~10월 주기)</option>
-              <option value="11" ${isCustom && ev.dutyMonth === 11 ? 'selected' : ''}>11월 인정 (11~12월 주기)</option>
-              <option value="12" ${isCustom && ev.dutyMonth === 12 ? 'selected' : ''}>12월 인정 (11~12월 주기)</option>
+              <option value="${curM}" ${isCustom && ev.dutyMonth === curM ? 'selected' : ''}>⭐ ${curM}월 인정 (현재월)</option>
+              <option value="${nextM}" ${isCustom && ev.dutyMonth === nextM ? 'selected' : ''}>${nextM}월 인정 (다음월)</option>
+              <option disabled>──────────</option>
+              <option value="9" ${isCustom && ev.dutyMonth === 9 ? 'selected' : ''}>9월 인정</option>
+              <option value="10" ${isCustom && ev.dutyMonth === 10 ? 'selected' : ''}>10월 인정</option>
+              <option value="11" ${isCustom && ev.dutyMonth === 11 ? 'selected' : ''}>11월 인정</option>
+              <option value="12" ${isCustom && ev.dutyMonth === 12 ? 'selected' : ''}>12월 인정</option>
               <option value="1" ${isCustom && ev.dutyMonth === 1 ? 'selected' : ''}>1월 인정</option>
               <option value="2" ${isCustom && ev.dutyMonth === 2 ? 'selected' : ''}>2월 인정</option>
               <option value="3" ${isCustom && ev.dutyMonth === 3 ? 'selected' : ''}>3월 인정</option>
