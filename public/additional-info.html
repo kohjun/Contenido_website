@@ -150,20 +150,58 @@
     <div id="modalBackdrop" class="modal-backdrop" onclick="closeShareModal()"></div>
 
     <!-- 번개 인증 모달 -->
-    <div id="lightningVerifyModal" class="share-modal" style="display: none; width: 90%; max-width: 500px; padding: 24px; box-sizing: border-box; z-index: 1001;">
-      <h3 style="margin-top: 0; margin-bottom: 16px; font-size: 1.25rem;">⚡ 번개 모임 인증하기</h3>
-      <form id="lightning-verify-form" onsubmit="submitLightningVerification(event)" style="display: flex; flex-direction: column; gap: 16px; text-align: left;">
-        <div id="lightning-verify-questions" style="display: flex; flex-direction: column; gap: 14px;"></div>
-        
+    <div id="lightningVerifyModal" class="share-modal" style="display: none; width: 92%; max-width: 520px; max-height: 88vh; overflow-y: auto; padding: 24px 20px; box-sizing: border-box; z-index: 1001; border-radius: 16px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+        <h3 style="margin: 0; font-size: 1.2rem; font-weight: 700; color: #1e293b;">⚡ 번개 모임 인증하기</h3>
+        <button type="button" onclick="closeLightningVerifyModal()" style="background: none; border: none; font-size: 1.5rem; color: #94a3b8; cursor: pointer; padding: 0 4px; line-height: 1; width: auto; margin: 0;">&times;</button>
+      </div>
+
+      <!-- 인정 기준 및 인증 방법 안내 배너 -->
+      <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 14px; margin-bottom: 16px; font-size: 0.83rem; color: #334155; line-height: 1.55;">
+        <div style="font-weight: 700; color: #0f172a; margin-bottom: 6px;">📌 인정 기준</div>
+        <ul style="margin: 0 0 10px 0; padding-left: 18px; color: #475569;">
+          <li>해당 월 내 실제 진행되었을 것</li>
+          <li>월말까지 인증을 완료할 것</li>
+          <li>최소 참여 인원 기준을 충족할 것(4명)</li>
+        </ul>
+        <div style="font-weight: 700; color: #0f172a; margin-bottom: 4px;">📋 인증 방법</div>
+        <p style="margin: 0; color: #64748b;">번개 종료 후 아래 내용을 제출해 주시기 바랍니다.</p>
+      </div>
+
+      <form id="lightning-verify-form" onsubmit="submitLightningVerification(event)" style="display: flex; flex-direction: column; gap: 14px; text-align: left;">
+        <!-- 1. 사담방에 올린 번개내용 -->
         <div class="field" style="display: flex; flex-direction: column; gap: 6px;">
-          <label class="field-label" style="font-weight: 600; font-size: 0.9rem;">📷 현장 인증 사진 업로드</label>
-          <input type="file" id="lightning-photo" accept="image/*" required style="font-size: 0.9rem; padding: 8px; border: 1px dashed #cbd5e1; border-radius: 8px;">
-          <small class="field-hint" style="color: #64748b; font-size: 0.8rem;">현장 모임을 입증할 수 있는 사진 한 장을 업로드해주세요 (최대 10MB)</small>
+          <label class="field-label" style="font-weight: 600; font-size: 0.88rem; color: #1e293b;">
+            💬 사담방에 올린 번개내용 <span style="color: #ef4444;">*</span>
+          </label>
+          <small class="field-hint" style="color: #64748b; font-size: 0.78rem; margin-top: -2px;">사담방에 올린 번개 제목, 진행 일시, 진행장소를 작성해주세요</small>
+          <textarea id="lightning-content" name="lightning_content" required style="width: 100%; min-height: 80px; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-family: inherit; font-size: 0.88rem; resize: vertical; box-sizing: border-box;" placeholder="예시)&#10;• 번개 제목: 보드게임 카페 번개&#10;• 진행 일시: 10월 15일 18:00&#10;• 진행 장소: 강남역 인근"></textarea>
         </div>
 
-        <div style="display: flex; gap: 8px; margin-top: 8px; justify-content: flex-end;">
-          <button type="button" onclick="closeLightningVerifyModal()" style="padding: 8px 16px; border-radius: 8px; font-size: 0.9rem; cursor: pointer; background: #f1f5f9; border: 1px solid #cbd5e1; color: #475569;">닫기</button>
-          <button type="submit" style="padding: 8px 16px; background: #0A84FE; color: #fff; border: none; border-radius: 8px; font-size: 0.9rem; cursor: pointer;">인증 제출</button>
+        <!-- 2. 참가자 명단 -->
+        <div class="field" style="display: flex; flex-direction: column; gap: 6px;">
+          <label class="field-label" style="font-weight: 600; font-size: 0.88rem; color: #1e293b;">
+            👥 참가자 명단 <span style="color: #ef4444;">*</span>
+          </label>
+          <small class="field-hint" style="color: #64748b; font-size: 0.78rem; margin-top: -2px;">최소 참여 인원(4명) 충족 확인을 위해 본인 포함 참가자 전원을 적어주세요</small>
+          <textarea id="lightning-participants" name="lightning_participants" required style="width: 100%; min-height: 60px; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-family: inherit; font-size: 0.88rem; resize: vertical; box-sizing: border-box;" placeholder="예시) 홍길동(주최자), 김철수, 이영희, 박지성 (총 4명)"></textarea>
+        </div>
+
+        <!-- 커스텀 질문 영역 (추가 질문이 있을 경우) -->
+        <div id="lightning-verify-questions" style="display: flex; flex-direction: column; gap: 14px;"></div>
+        
+        <!-- 3. 활동 사진 또는 결제내역 -->
+        <div class="field" style="display: flex; flex-direction: column; gap: 6px;">
+          <label class="field-label" style="font-weight: 600; font-size: 0.88rem; color: #1e293b;">
+            📷 활동 사진 또는 결제내역 <span style="color: #ef4444;">*</span>
+          </label>
+          <input type="file" id="lightning-photo" accept="image/*" required style="font-size: 0.85rem; padding: 8px; border: 1px dashed #cbd5e1; border-radius: 8px;">
+          <small class="field-hint" style="color: #64748b; font-size: 0.78rem;">번개 활동 사진 또는 결제내역 사진을 업로드해주세요 (최대 10MB)</small>
+        </div>
+
+        <div style="display: flex; gap: 8px; margin-top: 6px; justify-content: flex-end;">
+          <button type="button" onclick="closeLightningVerifyModal()" style="padding: 9px 16px; border-radius: 8px; font-size: 0.88rem; cursor: pointer; background: #f1f5f9; border: 1px solid #cbd5e1; color: #475569; width: auto; margin: 0;">닫기</button>
+          <button type="submit" style="padding: 9px 18px; background: #0A84FE; color: #fff; border: none; border-radius: 8px; font-size: 0.88rem; cursor: pointer; font-weight: 600; width: auto; margin: 0;">인증 제출</button>
         </div>
       </form>
     </div>
@@ -172,7 +210,7 @@
     <!-- 약관 동의 모달 유틸 -->
     <script src="/js/utils/apply-confirm.js"></script>
     <!-- 이벤트 관련 스크립트 -->
-    <script src="/js/modify-event.js?v=20260610"></script>
+    <script src="/js/modify-event.js?v=20261013"></script>
   </div>
 </body>
 </html>

@@ -95,7 +95,11 @@ async function createCurrentMonthLightningEvent(targetDate = new Date()) {
       applicationDeadlineAt: monthEnd,
       confirmationDeadlineAt: monthEnd,
       maxApplicants: 50,
-      feeType: 'fixed'
+      feeType: 'fixed',
+      lightningQuestions: [
+        '사담방에 올린 번개내용 (제목, 진행 일시, 진행장소)',
+        '참가자 명단 (최소 참여 인원 4명 충족)'
+      ]
     });
 
     await newEvent.save();

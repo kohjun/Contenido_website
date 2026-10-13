@@ -1002,7 +1002,7 @@ router.post('/:eventId/verify',
       const photoPath = savedImages.length > 0 ? savedImages[0] : null;
 
       if (!photoPath) {
-        return res.status(400).json({ message: '인증 사진을 업로드해주세요.' });
+        return res.status(400).json({ message: '활동 사진 또는 결제내역 사진을 업로드해주세요.' });
       }
 
       let parsedAnswers = [];
@@ -1015,7 +1015,7 @@ router.post('/:eventId/verify',
       }
 
       if (!Array.isArray(parsedAnswers) || parsedAnswers.length === 0) {
-        return res.status(400).json({ message: '답변을 입력해주세요.' });
+        return res.status(400).json({ message: '사담방 번개내용 및 참가자 명단 등 필수 항목을 입력해주세요.' });
       }
 
       // 저장

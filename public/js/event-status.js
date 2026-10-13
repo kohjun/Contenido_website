@@ -596,15 +596,15 @@ function renderParticipantList() {
     if (hasLightningVerification) {
       lightningVerifyHtml = `
         <div class="pc-answers" id="lightning-verify-${p.userId}" style="border-top: 1px dashed #cbd5e1; padding-top: 10px; margin-top: 10px;">
-          <h4 style="margin: 0 0 8px 0; font-size: 0.9rem; color: #0f766e;">⚡ 번개 모임 현장 인증 내역</h4>
+          <h4 style="margin: 0 0 8px 0; font-size: 0.9rem; color: #0f766e;">⚡ 번개 모임 인증 내역</h4>
           ${(p.verification.textAnswers || []).map((a, idx) => `
             <div class="answer-section" style="margin-bottom: 8px;">
               <p class="question-text" style="font-weight: 600; font-size: 0.8rem; margin: 0; color: #334155;">Q${idx + 1}. ${escapeHtml(a.question)}</p>
-              <div class="answer-text" style="font-size: 0.85rem; color: #475569; background: #f8fafc; padding: 6px 10px; border-radius: 6px; margin-top: 2px;">${escapeHtml(a.answer || '')}</div>
+              <div class="answer-text" style="font-size: 0.85rem; color: #475569; background: #f8fafc; padding: 6px 10px; border-radius: 6px; margin-top: 2px; white-space: pre-wrap; line-height: 1.5;">${escapeHtml(a.answer || '')}</div>
             </div>
           `).join('')}
           <div style="margin-top: 10px;">
-            <p style="font-weight: 600; font-size: 0.8rem; margin: 0 0 4px 0; color: #334155;">📷 현장 인증 사진</p>
+            <p style="font-weight: 600; font-size: 0.8rem; margin: 0 0 4px 0; color: #334155;">📷 활동 사진 또는 결제내역</p>
             <a href="${escapeHtml(p.verification.photo)}" target="_blank" style="display: inline-block;">
               <img src="${escapeHtml(p.verification.photo)}" style="max-width: 150px; border-radius: 8px; border: 1px solid #cbd5e1; cursor: pointer; transition: transform 0.2s;" alt="인증사진" onerror="this.remove()">
             </a>

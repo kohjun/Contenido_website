@@ -279,7 +279,7 @@ async function loadEventContent(eventId) {
             if (verifyStatus === 'none') {
               if (isAppPeriod) {
                 applicationSection.innerHTML = `
-                  <p class="status-text">신청 기간 동안 인증 제출이 가능합니다. 현장 인증을 완료해주세요.</p>
+                  <p class="status-text">신청 기간 동안 번개 모임 인증 제출이 가능합니다. 번개 진행 후 인증을 완료해주세요.</p>
                   <button onclick="openLightningVerifyModal()" class="submit-button" style="background-color: #0A84FE; display: block; width: 100%; margin-top: 10px;">인증하기 (⚡)</button>
                 `;
               } else if (isBeforeApp) {
@@ -1284,16 +1284,36 @@ function openLightningVerifyModal() {
   const modal = document.getElementById('lightningVerifyModal');
   const backdrop = document.getElementById('lightningVerifyBackdrop');
   const questionsContainer = document.getElementById('lightning-verify-questions');
+  const form = document.getElementById('lightning-verify-form');
   
-  if (!modal || !backdrop || !questionsContainer || !currentEvent) return;
+  if (!modal || !backdrop || !currentEvent) return;
 
-  // 인증 질문 렌더링
-  questionsContainer.innerHTML = (currentEvent.lightningQuestions || []).map((q, idx) => `
-    <div class="question-section" style="display: flex; flex-direction: column; gap: 6px;">
-      <p class="question-text" style="font-weight: 600; font-size: 0.9rem; margin: 0; color: #1e293b;">Q${idx + 1}. ${escapeHtml(q)}</p>
-      <textarea class="answer-textarea" name="answer_${idx}" required style="width: 100%; min-height: 80px; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-family: inherit; font-size: 0.9rem; resize: vertical; box-sizing: border-box;" placeholder="답변을 입력하세요"></textarea>
-    </div>
-  `).join('');
+  if (form) {
+    form.reset();
+  }
+
+  // 표준 질문 외에 등록된 추가 커스텀 질문이 있는 경우 렌더링
+  if (questionsContainer) {
+    const customQuestions = (currentEvent.lightningQuestions || []).filter(q => {
+      const trimmed = String(q || '').trim();
+      return !trimmed.includes('사담방') && !trimmed.includes('참가자 명단');
+    });
+
+    if (customQuestions.length > 0) {
+      questionsContainer.innerHTML = customQuestions.map((q, idx) => `
+        <div class="question-section" style="display: flex; flex-direction: column; gap: 6px;">
+          <label class="field-label" style="font-weight: 600; font-size: 0.88rem; color: #1e293b;">
+            Q${idx + 1}. ${escapeHtml(q)}
+          </label>
+          <textarea class="answer-textarea" name="custom_answer_${idx}" style="width: 100%; min-height: 70px; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-family: inherit; font-size: 0.88rem; resize: vertical; box-sizing: border-box;" placeholder="답변을 입력하세요"></textarea>
+        </div>
+      `).join('');
+      questionsContainer.style.display = 'flex';
+    } else {
+      questionsContainer.innerHTML = '';
+      questionsContainer.style.display = 'none';
+    }
+  }
 
   modal.style.display = 'block';
   backdrop.style.display = 'block';
@@ -1311,19 +1331,58 @@ async function submitLightningVerification(e) {
 
   if (!currentEvent) return;
 
-  const answers = (currentEvent.lightningQuestions || []).map((q, idx) => {
-    const textarea = document.querySelector(`#lightning-verify-form textarea[name="answer_${idx}"]`);
-    return {
-      question: q,
-      answer: textarea ? textarea.value : ''
-    };
-  });
-
+  const contentInput = document.getElementById('lightning-content');
+  const participantsInput = document.getElementById('lightning-participants');
   const photoInput = document.getElementById('lightning-photo');
-  if (!photoInput || !photoInput.files || photoInput.files.length === 0) {
-    alert('인증용 사진을 업로드해주세요.');
+
+  const contentVal = (contentInput ? contentInput.value : '').trim();
+  const participantsVal = (participantsInput ? participantsInput.value : '').trim();
+
+  if (!contentVal) {
+    alert('사담방에 올린 번개내용 (제목, 진행 일시, 진행장소)을 입력해주세요.');
+    if (contentInput) contentInput.focus();
     return;
   }
+
+  if (!participantsVal) {
+    alert('참가자 명단을 입력해주세요 (최소 참여 인원 4명 충족).');
+    if (participantsInput) participantsInput.focus();
+    return;
+  }
+
+  if (!photoInput || !photoInput.files || photoInput.files.length === 0) {
+    alert('활동 사진 또는 결제내역 사진을 업로드해주세요.');
+    if (photoInput) photoInput.focus();
+    return;
+  }
+
+  // 필수 표준 답변 구성
+  const answers = [
+    {
+      question: '사담방에 올린 번개내용 (제목, 진행 일시, 진행장소)',
+      answer: contentVal
+    },
+    {
+      question: '참가자 명단',
+      answer: participantsVal
+    }
+  ];
+
+  // 추가 커스텀 질문 수집 (있을 경우)
+  const customQuestions = (currentEvent.lightningQuestions || []).filter(q => {
+    const trimmed = String(q || '').trim();
+    return !trimmed.includes('사담방') && !trimmed.includes('참가자 명단');
+  });
+
+  customQuestions.forEach((q, idx) => {
+    const textarea = document.querySelector(`#lightning-verify-form textarea[name="custom_answer_${idx}"]`);
+    if (textarea && textarea.value.trim()) {
+      answers.push({
+        question: q,
+        answer: textarea.value.trim()
+      });
+    }
+  });
 
   const formData = new FormData();
   formData.append('textAnswers', JSON.stringify(answers));

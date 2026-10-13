@@ -301,8 +301,8 @@ function toggleLightningSection() {
 
     // 기본 인증 질문 2개 자동 생성
     if (lightningQuestionCount === 0) {
-      addLightningQuestionWithText("오늘 진행한 번개 모임의 활동 내용을 자세히 공유해주세요.");
-      addLightningQuestionWithText("오늘 함께 번개에 참여한 부원들의 이름(전화번호 뒷자리)를 모두 적어주세요.");
+      addLightningQuestionWithText("사담방에 올린 번개내용 (제목, 진행 일시, 진행장소)");
+      addLightningQuestionWithText("참가자 명단 (최소 참여 인원 4명 충족)");
     }
   } else {
     // 필수 속성 재부여
