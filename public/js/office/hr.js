@@ -367,12 +367,16 @@ async function loadCandidateEvents() {
       const statusBadge = isCustom
         ? `<span style="background:#e0f2fe;color:#0369a1;padding:2px 8px;border-radius:12px;font-size:0.75rem;font-weight:600;border:1px solid #bae6fd;">${ev.dutyMonth}월 인정으로 지정됨 ⭐</span>`
         : `<span style="background:#f1f5f9;color:#64748b;padding:2px 8px;border-radius:12px;font-size:0.75rem;">기본 (${ev.originalMonth}월 행사)</span>`;
+      const activeBadge = !ev.isEnded
+        ? `<span style="background:#ecfdf5;color:#047857;padding:2px 7px;border-radius:10px;font-size:0.72rem;font-weight:600;border:1px solid #a7f3d0;">진행/모집중</span>`
+        : `<span style="background:#f1f5f9;color:#94a3b8;padding:2px 7px;border-radius:10px;font-size:0.72rem;">종료됨</span>`;
 
       return `
         <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; border: 1px solid #e2e8f0; border-radius: 8px; background: #ffffff; gap: 10px; flex-wrap: wrap;">
           <div style="flex: 1; min-width: 220px;">
             <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 4px; flex-wrap: wrap;">
               <span style="font-weight: 700; font-size: 0.9rem; color: #1e293b;">${_maEsc(ev.title)}</span>
+              ${activeBadge}
               ${statusBadge}
             </div>
             <div style="font-size: 0.8rem; color: #64748b;">

@@ -618,23 +618,33 @@ router.get('/monthly-application-status', authenticateToken, requireHRPermission
 });
 
 // 4) 월간 의무 인정 이벤트 후보 목록 조회 API (인사팀용)
-// 현재 조회 월 기준 전후 2개월 이벤트 목록 및 인정 설정 반환
+// 현재 웹사이트에 올라온 진행 중/예정 공식 이벤트(isEnded: false) 및 현재 주기 내 수동 지정 이벤트 반환 (과거 8월 등 종료 이벤트 배제)
 router.get('/candidate-events', authenticateToken, requireHRPermission, async (req, res) => {
   try {
+    const { checkAndAutoEndEvents } = require('../../utils/eventAutoEnd');
+    await checkAndAutoEndEvents();
+
     const now = new Date();
     const queryYear = parseInt(req.query.year) || now.getFullYear();
     const queryMonth = req.query.month ? parseInt(req.query.month) : (now.getMonth() + 1);
 
-    // queryMonth 기준 전후 2개월 (예: 10월이면 8월 1일 ~ 12월 31일)
-    const rangeStart = new Date(queryYear, queryMonth - 3, 1, 0, 0, 0, 0);
-    const rangeEnd = new Date(queryYear, queryMonth + 2, 0, 23, 59, 59, 999);
+    // 현재 조회 월이 속한 주기 (예: 10월이면 9~10월 주기)
+    const cycle = getApplicationCycleBlock(queryYear, queryMonth);
+    const firstMonthOfCycle = cycle.months[0];
+    const cycleStart = new Date(queryYear, firstMonthOfCycle - 1, 1, 0, 0, 0, 0);
 
+    // 후보 이벤트:
+    // (1) 과거 종료된 이전 주기 이벤트(8월 등)는 배제 (date >= cycleStart)
+    // (2) 공식 이벤트 대상 (isLightning != true)
+    // (3) 현재 웹사이트에 올라와 있는 진행 중/예정 이벤트(isEnded: false) 또는 이미 dutyMonth가 수동 지정된 이벤트
     const events = await Event.find({
+      isLightning: { $ne: true },
+      date: { $gte: cycleStart },
       $or: [
-        { date: { $gte: rangeStart, $lte: rangeEnd } },
+        { isEnded: false },
         { dutyMonth: { $ne: null } }
       ]
-    }).sort({ date: 1 }).select('title date team place isLightning dutyMonth dutyYear appliedParticipants').lean();
+    }).sort({ date: 1 }).select('title date team place isLightning isEnded dutyMonth dutyYear appliedParticipants').lean();
 
     const formatted = events.map(ev => {
       const d = new Date(ev.date);
@@ -650,6 +660,7 @@ router.get('/candidate-events', authenticateToken, requireHRPermission, async (r
         team: ev.team,
         place: ev.place,
         isLightning: ev.isLightning,
+        isEnded: !!ev.isEnded,
         originalMonth,
         originalYear,
         dutyMonth: ev.dutyMonth,
@@ -661,7 +672,7 @@ router.get('/candidate-events', authenticateToken, requireHRPermission, async (r
       };
     });
 
-    res.json({ events: formatted });
+    res.json({ events: formatted, cycle });
   } catch (error) {
     console.error('인정 후보 이벤트 목록 조회 오류:', error);
     res.status(500).json({ message: '이벤트 목록 조회 중 오류가 발생했습니다.' });
