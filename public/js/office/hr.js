@@ -275,6 +275,29 @@ async function loadMonthlyApply() {
       }
     }
 
+    // 인정 이벤트 칩 렌더링
+    const dutyCountEl = document.getElementById('ma-duty-events-count');
+    const dutyListEl = document.getElementById('ma-duty-events-list');
+    if (dutyCountEl) dutyCountEl.textContent = (d.events || []).length;
+    if (dutyListEl) {
+      if ((d.events || []).length === 0) {
+        dutyListEl.innerHTML = '<span style="color: #94a3b8; font-size: 0.8rem;">인정 이벤트 없음</span>';
+      } else {
+        dutyListEl.innerHTML = d.events.map(ev => {
+          const dObj = new Date(ev.date);
+          const dStr = `${dObj.getMonth() + 1}/${dObj.getDate()}`;
+          const isManual = ev.isManualDuty;
+          const bg = isManual ? '#e0f2fe' : '#f8fafc';
+          const color = isManual ? '#0369a1' : '#334155';
+          const border = isManual ? '1px solid #7dd3fc' : '1px solid #cbd5e1';
+          const manualTag = isManual ? ` <b style="color:#0284c7;">[${ev.dutyMonth}월 인정]</b>` : '';
+          return `<span style="background:${bg};color:${color};border:${border};padding:3px 8px;border-radius:6px;font-size:0.78rem;display:inline-flex;align-items:center;gap:3px;">
+            ${_maEsc(ev.title)} (${dStr})${manualTag}
+          </span>`;
+        }).join('');
+      }
+    }
+
     // 재조회 시 선택 초기화
     state.maSelected.clear();
     document.querySelectorAll('.ma-selectall').forEach(c => { c.checked = false; });
@@ -283,6 +306,113 @@ async function loadMonthlyApply() {
   } catch (e) {
     console.error('월간 신청 현황 로드 실패:', e);
     if (summary) summary.textContent = '오류가 발생했습니다.';
+  }
+}
+
+/* =========================================================================
+   의무 신청 인정 이벤트 관리 모달 및 설정 함수
+   ========================================================================= */
+
+async function openDutyEventModal() {
+  const modal = document.getElementById('duty-event-modal');
+  if (modal) modal.style.display = 'flex';
+  await loadCandidateEvents();
+}
+
+function closeDutyEventModal() {
+  const modal = document.getElementById('duty-event-modal');
+  if (modal) modal.style.display = 'none';
+}
+
+async function loadCandidateEvents() {
+  const container = document.getElementById('duty-events-modal-list');
+  if (!container) return;
+
+  container.innerHTML = '<div style="text-align: center; color: #64748b; padding: 20px;">이벤트를 불러오는 중…</div>';
+
+  try {
+    const res = await fetch('/user/candidate-events', { credentials: 'include' });
+    if (!res.ok) {
+      container.innerHTML = '<div style="color: #ef4444; padding: 10px;">이벤트 목록을 불러오지 못했습니다.</div>';
+      return;
+    }
+    const data = await res.json();
+    const events = data.events || [];
+
+    if (events.length === 0) {
+      container.innerHTML = '<div style="color: #64748b; padding: 20px; text-align: center;">등록된 이벤트가 없습니다.</div>';
+      return;
+    }
+
+    container.innerHTML = events.map(ev => {
+      const d = new Date(ev.date);
+      const dateStr = `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, '0')}.${String(d.getDate()).padStart(2, '0')}`;
+      const isCustom = ev.isManualDuty;
+      const statusBadge = isCustom
+        ? `<span style="background:#e0f2fe;color:#0369a1;padding:2px 8px;border-radius:12px;font-size:0.75rem;font-weight:600;border:1px solid #bae6fd;">${ev.dutyMonth}월 인정으로 지정됨 ⭐</span>`
+        : `<span style="background:#f1f5f9;color:#64748b;padding:2px 8px;border-radius:12px;font-size:0.75rem;">기본 (${ev.originalMonth}월 행사)</span>`;
+
+      return `
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; border: 1px solid #e2e8f0; border-radius: 8px; background: #ffffff; gap: 10px; flex-wrap: wrap;">
+          <div style="flex: 1; min-width: 220px;">
+            <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 4px; flex-wrap: wrap;">
+              <span style="font-weight: 700; font-size: 0.9rem; color: #1e293b;">${_maEsc(ev.title)}</span>
+              ${statusBadge}
+            </div>
+            <div style="font-size: 0.8rem; color: #64748b;">
+              📅 행사일: <b>${dateStr}</b> · 신청자 ${ev.appliedCount || 0}명 · ${ev.team || '동아리'}
+            </div>
+          </div>
+          <div style="display: flex; align-items: center; gap: 6px;">
+            <select id="sel-duty-${ev.id}" style="padding: 5px 8px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.82rem; background: white;">
+              <option value="default" ${!isCustom ? 'selected' : ''}>기본값 (${ev.originalMonth}월 행사일 기준)</option>
+              <option value="9" ${isCustom && ev.dutyMonth === 9 ? 'selected' : ''}>9월 인정 (9~10월 주기)</option>
+              <option value="10" ${isCustom && ev.dutyMonth === 10 ? 'selected' : ''}>10월 인정 (9~10월 주기)</option>
+              <option value="11" ${isCustom && ev.dutyMonth === 11 ? 'selected' : ''}>11월 인정 (11~12월 주기)</option>
+              <option value="12" ${isCustom && ev.dutyMonth === 12 ? 'selected' : ''}>12월 인정 (11~12월 주기)</option>
+              <option value="1" ${isCustom && ev.dutyMonth === 1 ? 'selected' : ''}>1월 인정</option>
+              <option value="2" ${isCustom && ev.dutyMonth === 2 ? 'selected' : ''}>2월 인정</option>
+              <option value="3" ${isCustom && ev.dutyMonth === 3 ? 'selected' : ''}>3월 인정</option>
+              <option value="4" ${isCustom && ev.dutyMonth === 4 ? 'selected' : ''}>4월 인정</option>
+              <option value="5" ${isCustom && ev.dutyMonth === 5 ? 'selected' : ''}>5월 인정</option>
+              <option value="6" ${isCustom && ev.dutyMonth === 6 ? 'selected' : ''}>6월 인정</option>
+              <option value="7" ${isCustom && ev.dutyMonth === 7 ? 'selected' : ''}>7월 인정</option>
+              <option value="8" ${isCustom && ev.dutyMonth === 8 ? 'selected' : ''}>8월 인정</option>
+            </select>
+            <button type="button" onclick="saveEventDutyMonth('${ev.id}')" style="background: #0f172a; color: white; border: none; padding: 6px 12px; border-radius: 6px; font-size: 0.8rem; cursor: pointer; font-weight: 600; transition: background 0.2s;">
+              적용
+            </button>
+          </div>
+        </div>
+      `;
+    }).join('');
+  } catch (err) {
+    console.error('이벤트 후보 로드 실패:', err);
+    container.innerHTML = '<div style="color: #ef4444; padding: 10px;">이벤트 목록 로드 중 오류가 발생했습니다.</div>';
+  }
+}
+
+async function saveEventDutyMonth(eventId) {
+  const sel = document.getElementById(`sel-duty-${eventId}`);
+  if (!sel) return;
+
+  const dutyMonth = sel.value;
+  try {
+    const res = await fetch('/user/event-duty-month', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ eventId, dutyMonth })
+    });
+    const result = await res.json();
+    alert(result.message || '인정 월이 설정되었습니다.');
+    if (res.ok) {
+      await loadCandidateEvents();
+      await loadMonthlyApply(); // 현황 통계 및 리스트 즉시 갱신
+    }
+  } catch (err) {
+    console.error('인정 월 저장 실패:', err);
+    alert('저장 중 오류가 발생했습니다.');
   }
 }
 

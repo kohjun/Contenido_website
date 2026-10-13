@@ -180,7 +180,9 @@ async function updateMonthHeader(events, currentUser) {
   const queryMonths = cycle.months || [monthNum];
   const cycleEvents = (events || []).filter(e => {
     const d = new Date(e.date);
-    return d.getFullYear() === year && queryMonths.includes(d.getMonth() + 1);
+    const effMonth = (e.dutyMonth != null) ? Number(e.dutyMonth) : (d.getMonth() + 1);
+    const effYear = (e.dutyYear != null) ? Number(e.dutyYear) : d.getFullYear();
+    return effYear === year && queryMonths.includes(effMonth);
   });
 
   const uid = currentUser && (currentUser.id || currentUser._id);

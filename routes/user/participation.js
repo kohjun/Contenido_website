@@ -406,8 +406,24 @@ router.get('/monthly-application-status', authenticateToken, requireHRPermission
     const overallStart = monthRanges[0].start;
     const overallEnd = monthRanges[monthRanges.length - 1].nextStart;
 
-    const events = await Event.find({ date: { $gte: overallStart, $lt: overallEnd } })
-      .select('title date appliedParticipants isLightning').lean();
+    // 해당 주기에 속하는 이벤트 조회:
+    // (1) dutyMonth가 수동으로 queryMonths 중 하나로 지정된 이벤트 (dutyYear가 일치하거나 없는 경우)
+    // (2) dutyMonth가 지정되지 않았고(null), date가 이 주기 범위(overallStart ~ overallEnd)인 이벤트
+    const events = await Event.find({
+      $or: [
+        {
+          dutyMonth: { $in: queryMonths },
+          $or: [
+            { dutyYear: year },
+            { dutyYear: null }
+          ]
+        },
+        {
+          dutyMonth: null,
+          date: { $gte: overallStart, $lt: overallEnd }
+        }
+      ]
+    }).select('title date appliedParticipants isLightning dutyMonth dutyYear place team applicationStartAt applicationDeadlineAt').lean();
 
     // 유저별 온타임 신청 여부 및 지각 신청 정보 수집
     const onTimeSet = new Set();
@@ -415,10 +431,10 @@ router.get('/monthly-application-status', authenticateToken, requireHRPermission
 
     for (const ev of events) {
       const evDate = new Date(ev.date);
-      const evMonthNum = evDate.getMonth() + 1;
+      const evMonthNum = (ev.dutyMonth != null) ? Number(ev.dutyMonth) : (evDate.getMonth() + 1);
       const evMonthRange = monthRanges.find(r => r.mNum === evMonthNum) || {
-        wEnd: new Date(evDate.getFullYear(), evDate.getMonth(), endDay + 1, 0, 0, 0, 0),
-        nextStart: new Date(evDate.getFullYear(), evDate.getMonth() + 1, 1, 0, 0, 0, 0)
+        wEnd: new Date(year, evMonthNum - 1, endDay + 1, 0, 0, 0, 0),
+        nextStart: new Date(year, evMonthNum, 1, 0, 0, 0, 0)
       };
 
       for (const p of (ev.appliedParticipants || [])) {
@@ -436,9 +452,16 @@ router.get('/monthly-application-status', authenticateToken, requireHRPermission
           }
         }
 
-        if (at < evMonthRange.wEnd) {
+        // 수동으로 dutyMonth가 지정된 경우, 신청이 월초(wEnd) 이후 오픈되었을 수도 있음
+        const customAppStart = ev.applicationStartAt ? new Date(ev.applicationStartAt) : null;
+        const openedLate = customAppStart && customAppStart >= evMonthRange.wEnd;
+
+        if (at < evMonthRange.wEnd || openedLate) {
           onTimeSet.add(uid);
         } else if (at < evMonthRange.nextStart) {
+          const prev = lateMap.get(uid);
+          if (!prev || at < prev) lateMap.set(uid, at);
+        } else {
           const prev = lateMap.get(uid);
           if (!prev || at < prev) lateMap.set(uid, at);
         }
@@ -573,11 +596,121 @@ router.get('/monthly-application-status', authenticateToken, requireHRPermission
       totalNotAppliedCount: notApplied.length,
       applied,
       lateApplied,
-      notApplied
+      notApplied,
+      events: events.map(ev => ({
+        id: ev._id,
+        title: ev.title,
+        date: ev.date,
+        team: ev.team,
+        place: ev.place,
+        isLightning: ev.isLightning,
+        dutyMonth: ev.dutyMonth,
+        dutyYear: ev.dutyYear,
+        effectiveMonth: (ev.dutyMonth != null) ? Number(ev.dutyMonth) : (new Date(ev.date).getMonth() + 1),
+        isManualDuty: ev.dutyMonth != null,
+        appliedCount: (ev.appliedParticipants || []).filter(p => p.status !== 'cancelled').length
+      }))
     });
   } catch (error) {
     console.error('월간 신청 현황 조회 오류:', error);
     res.status(500).json({ message: '월간 신청 현황 조회 중 오류가 발생했습니다.' });
+  }
+});
+
+// 4) 월간 의무 인정 이벤트 후보 목록 조회 API (인사팀용)
+// 현재 조회 월 기준 전후 2개월 이벤트 목록 및 인정 설정 반환
+router.get('/candidate-events', authenticateToken, requireHRPermission, async (req, res) => {
+  try {
+    const now = new Date();
+    const queryYear = parseInt(req.query.year) || now.getFullYear();
+    const queryMonth = req.query.month ? parseInt(req.query.month) : (now.getMonth() + 1);
+
+    // queryMonth 기준 전후 2개월 (예: 10월이면 8월 1일 ~ 12월 31일)
+    const rangeStart = new Date(queryYear, queryMonth - 3, 1, 0, 0, 0, 0);
+    const rangeEnd = new Date(queryYear, queryMonth + 2, 0, 23, 59, 59, 999);
+
+    const events = await Event.find({
+      $or: [
+        { date: { $gte: rangeStart, $lte: rangeEnd } },
+        { dutyMonth: { $ne: null } }
+      ]
+    }).sort({ date: 1 }).select('title date team place isLightning dutyMonth dutyYear appliedParticipants').lean();
+
+    const formatted = events.map(ev => {
+      const d = new Date(ev.date);
+      const originalMonth = d.getMonth() + 1;
+      const originalYear = d.getFullYear();
+      const effectiveMonth = (ev.dutyMonth != null) ? Number(ev.dutyMonth) : originalMonth;
+      const effectiveYear = (ev.dutyYear != null) ? Number(ev.dutyYear) : originalYear;
+
+      return {
+        id: ev._id,
+        title: ev.title,
+        date: ev.date,
+        team: ev.team,
+        place: ev.place,
+        isLightning: ev.isLightning,
+        originalMonth,
+        originalYear,
+        dutyMonth: ev.dutyMonth,
+        dutyYear: ev.dutyYear,
+        effectiveMonth,
+        effectiveYear,
+        isManualDuty: ev.dutyMonth != null,
+        appliedCount: (ev.appliedParticipants || []).filter(p => p.status !== 'cancelled').length
+      };
+    });
+
+    res.json({ events: formatted });
+  } catch (error) {
+    console.error('인정 후보 이벤트 목록 조회 오류:', error);
+    res.status(500).json({ message: '이벤트 목록 조회 중 오류가 발생했습니다.' });
+  }
+});
+
+// 5) 이벤트의 월간 의무 인정 월 변경 API (인사팀용)
+// 특정 이벤트(예: 11월 1일 이벤트)를 10월 의무 인정 이벤트로 수동 지정하거나 기본값으로 복원
+router.post('/event-duty-month', authenticateToken, requireHRPermission, async (req, res) => {
+  try {
+    const { eventId, dutyMonth, dutyYear } = req.body;
+    if (!eventId) {
+      return res.status(400).json({ message: '이벤트 ID가 필요합니다.' });
+    }
+
+    const event = await Event.findById(eventId);
+    if (!event) {
+      return res.status(404).json({ message: '이벤트를 찾을 수 없습니다.' });
+    }
+
+    // null, 0, 'default', 'none' 이면 기본값(null)으로 복원
+    if (!dutyMonth || dutyMonth === 'default' || dutyMonth === 'none' || dutyMonth === 0) {
+      event.dutyMonth = null;
+      event.dutyYear = null;
+    } else {
+      const m = parseInt(dutyMonth);
+      if (isNaN(m) || m < 1 || m > 12) {
+        return res.status(400).json({ message: '올바른 월(1~12)을 입력해주세요.' });
+      }
+      event.dutyMonth = m;
+      event.dutyYear = dutyYear ? parseInt(dutyYear) : (event.date ? (new Date(event.date)).getFullYear() : new Date().getFullYear());
+    }
+
+    await event.save();
+
+    const targetDesc = event.dutyMonth ? `${event.dutyYear}년 ${event.dutyMonth}월` : '행사 진행일자 기준(기본값)';
+    res.json({
+      message: `"${event.title}" 이벤트의 의무 신청 인정 월이 [${targetDesc}]로 설정되었습니다.`,
+      event: {
+        id: event._id,
+        title: event.title,
+        date: event.date,
+        dutyMonth: event.dutyMonth,
+        dutyYear: event.dutyYear
+      }
+    });
+  } catch (error) {
+    console.error('이벤트 인정 월 설정 오류:', error);
+    res.status(500).json({ message: '이벤트 인정 월 설정 중 오류가 발생했습니다.' });
   }
 });
 

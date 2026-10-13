@@ -252,6 +252,17 @@ const eventSchema = new mongoose.Schema({
   participation_fee_max: {
     type: Number,
     default: null
+  },
+
+  // ===== 월간 의무 신청 대상 월 수동 지정 =====
+  // null이면 행사일(date)의 월 기준. 수동 지정 시(예: 11월 1일 행사를 10월 이벤트로 인정) 해당 월 기준
+  dutyMonth: {
+    type: Number,
+    default: null
+  },
+  dutyYear: {
+    type: Number,
+    default: null
   }
 });
 eventSchema.pre('save', async function(next) {
