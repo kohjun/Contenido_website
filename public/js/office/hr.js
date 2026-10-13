@@ -370,6 +370,7 @@ async function loadCandidateEvents() {
     container.innerHTML = events.map(ev => {
       const d = new Date(ev.date);
       const dateStr = `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, '0')}.${String(d.getDate()).padStart(2, '0')}`;
+      const isCustom = !!ev.isManualDuty;
       const isThisCycle = (ev.effectiveMonth === curM);
       const isNextCycle = (ev.effectiveMonth === nextM);
       const dutyBadge = isThisCycle
