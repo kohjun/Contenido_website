@@ -330,33 +330,47 @@ const Sidebar = (function() {
 
       //3. 인사팀
       if (pageId === 'HumanResourceTeam') {
-        // CSS도 함께 보장
-        if (!document.querySelector('link[href^="/css/hr.css"]')) {
-          const cssLink = document.createElement('link');
-          cssLink.rel = 'stylesheet';
-          cssLink.href = '/css/hr.css?v=' + Date.now();
-          document.head.appendChild(cssLink);
+        try {
+          // CSS도 함께 보장
+          if (!document.querySelector('link[href^="/css/hr.css"]')) {
+            const cssLink = document.createElement('link');
+            cssLink.rel = 'stylesheet';
+            cssLink.href = '/css/hr.css?v=' + Date.now();
+            document.head.appendChild(cssLink);
+          }
+
+          // 기존 hr.js 스크립트 제거 (버전 query 포함된 것도 포함)
+          document.querySelectorAll('script[src^="/js/office/hr.js"]').forEach(s => s.remove());
+
+          // hr.js 새로 로드 — 항상 fresh
+          await new Promise((resolve, reject) => {
+            const hrScript = document.createElement('script');
+            hrScript.src = '/js/office/hr.js?t=' + Date.now();
+            hrScript.onload = resolve;
+            hrScript.onerror = reject;
+            document.body.appendChild(hrScript);
+          });
+
+          // hr.js는 IIFE로 자동 부팅하지만,
+          // 안전을 위해 노출된 bootHR도 한 번 더 호출 (idempotent하게 동작하도록 DOM 체크 포함됨)
+          if (typeof window.bootHR === 'function') {
+            window.bootHR();
+          } else if (typeof window.loadUsers === 'function') {
+            window.loadUsers();
+          }
+        } catch (error) {
+          console.error('Error loading Human Resource page:', error);
+          const mainContent = document.getElementById('main-content');
+          if (mainContent) {
+            mainContent.innerHTML = `
+              <div class="error-message">
+                <h3>인사팀 페이지 로드 중 오류가 발생했습니다</h3>
+                <p>${error.message}</p>
+              </div>
+            `;
+          }
         }
-
-        // 기존 hr.js 스크립트 제거 (버전 query 포함된 것도 포함)
-        document.querySelectorAll('script[src^="/js/office/hr.js"]').forEach(s => s.remove());
-
-        // hr.js 새로 로드 — 항상 fresh
-        await new Promise((resolve, reject) => {
-          const hrScript = document.createElement('script');
-          hrScript.src = '/js/office/hr.js?t=' + Date.now();
-          hrScript.onload = resolve;
-          hrScript.onerror = reject;
-          document.body.appendChild(hrScript);
-        });
-
-        // hr.js는 IIFE로 자동 부팅하지만,
-        // 안전을 위해 노출된 bootHR도 한 번 더 호출 (idempotent하게 동작하도록 DOM 체크 포함됨)
-        if (typeof window.bootHR === 'function') {
-          window.bootHR();
-        } else if (typeof window.loadUsers === 'function') {
-          window.loadUsers();
-        }
+        return;
       }
 
 

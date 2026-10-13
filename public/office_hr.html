@@ -41,7 +41,7 @@
                         </span>
                         <div id="ma-duty-events-list" style="display: flex; flex-wrap: wrap; gap: 6px;"></div>
                     </div>
-                    <button type="button" onclick="openDutyEventModal()" style="background-color: #0284c7; color: white; padding: 6px 14px; font-size: 0.8rem; border-radius: 6px; cursor: pointer; border: none; font-weight: 600; display: inline-flex; align-items: center; gap: 5px; transition: background-color 0.2s;">
+                    <button type="button" id="open-duty-event-modal-btn" onclick="openDutyEventModal()" style="background-color: #0284c7; color: white; padding: 6px 14px; font-size: 0.8rem; border-radius: 6px; cursor: pointer; border: none; font-weight: 600; display: inline-flex; align-items: center; gap: 5px; transition: background-color 0.2s;">
                         ⚙️ 인정 이벤트 관리 (11월 이벤트 등 포함/변경)
                     </button>
                 </div>
@@ -401,13 +401,13 @@
     </div>
 
     <!-- 의무 신청 인정 이벤트 관리 모달 -->
-    <div id="duty-event-modal" class="modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center;">
-      <div style="background: white; border-radius: 14px; width: 92%; max-width: 680px; max-height: 85vh; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
-        <div style="padding: 16px 20px; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; background: #f8fafc;">
-          <h3 style="margin: 0; font-size: 1.1rem; color: #0f172a; font-weight: 700;">⚙️ 월간 의무 신청 인정 이벤트 관리</h3>
-          <button type="button" onclick="closeDutyEventModal()" style="background: none; border: none; font-size: 1.5rem; color: #64748b; cursor: pointer; padding: 0; line-height: 1;">&times;</button>
+    <div id="duty-event-modal" class="modal-overlay" style="display: none;">
+      <div class="modal large" style="max-height: 85vh; display: flex; flex-direction: column; overflow: hidden;">
+        <div class="modal-head" style="border-bottom: 1px solid #e2e8f0; padding: 16px 20px;">
+          <h3 style="margin: 0; font-size: 1.05rem; color: #0f172a; font-weight: 700;">⚙️ 월간 의무 신청 인정 이벤트 관리</h3>
+          <button type="button" class="modal-close" onclick="closeDutyEventModal()" aria-label="닫기">&times;</button>
         </div>
-        <div style="padding: 16px 20px; overflow-y: auto; flex: 1;">
+        <div class="modal-body" style="padding: 16px 20px; overflow-y: auto; flex: 1;">
           <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 12px 14px; margin-bottom: 14px; font-size: 0.83rem; color: #166534; line-height: 1.5;">
             💡 <b>안내:</b> 행사 일자가 11월 1일 등 월초여서 10월 이벤트로 인정하고자 하거나, 특정 이벤트를 원하는 월의 의무 신청으로 지정하고자 할 때 아래에서 해당 이벤트의 <b>[인정 월]</b>을 선택 후 [적용]해주세요.
           </div>
@@ -415,8 +415,8 @@
             <div style="text-align: center; color: #64748b; padding: 20px;">이벤트를 불러오는 중…</div>
           </div>
         </div>
-        <div style="padding: 12px 20px; border-top: 1px solid #e2e8f0; background: #f8fafc; text-align: right;">
-          <button type="button" onclick="closeDutyEventModal()" style="padding: 7px 16px; border-radius: 6px; border: 1px solid #cbd5e1; background: white; color: #334155; font-size: 0.85rem; cursor: pointer;">닫기</button>
+        <div class="modal-foot" style="padding: 12px 20px; border-top: 1px solid #e2e8f0; background: #f8fafc; text-align: right;">
+          <button type="button" class="modal-btn ghost" onclick="closeDutyEventModal()">닫기</button>
         </div>
       </div>
     </div>
@@ -424,6 +424,6 @@
     <!-- Toast -->
     <div id="toast" class="toast"></div>
 
-    <script src="/js/office/hr.js?v=20261013"></script>
+    <script src="/js/office/hr.js?v=20261014"></script>
 </body>
 </html>

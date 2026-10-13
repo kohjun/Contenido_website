@@ -157,6 +157,16 @@ function initMonthlyApply() {
       if (chev) chev.textContent = '▾';
     }
   });
+
+  // 인정 이벤트 관리 모달 버튼 리스너 바인딩 보장
+  const dutyBtn = document.getElementById('open-duty-event-modal-btn');
+  if (dutyBtn && !dutyBtn.dataset.maDutyBound) {
+    dutyBtn.dataset.maDutyBound = '1';
+    dutyBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      openDutyEventModal();
+    });
+  }
 }
 async function loadMonthlyApply() {
   const summary = document.getElementById('ma-summary');
@@ -315,13 +325,19 @@ async function loadMonthlyApply() {
 
 async function openDutyEventModal() {
   const modal = document.getElementById('duty-event-modal');
-  if (modal) modal.style.display = 'flex';
+  if (modal) {
+    modal.classList.add('is-open');
+    modal.style.display = 'flex';
+  }
   await loadCandidateEvents();
 }
 
 function closeDutyEventModal() {
   const modal = document.getElementById('duty-event-modal');
-  if (modal) modal.style.display = 'none';
+  if (modal) {
+    modal.classList.remove('is-open');
+    modal.style.display = 'none';
+  }
 }
 
 async function loadCandidateEvents() {
@@ -1545,13 +1561,17 @@ function closeDialog(id) {
 document.addEventListener('click', e => {
   if (e.target.classList && e.target.classList.contains('modal-overlay')) {
     e.target.classList.remove('is-open');
+    e.target.style.display = 'none';
   }
 });
 
 // ESC로 닫기
 document.addEventListener('keydown', e => {
   if (e.key === 'Escape') {
-    document.querySelectorAll('.modal-overlay.is-open').forEach(o => o.classList.remove('is-open'));
+    document.querySelectorAll('.modal-overlay.is-open, .modal-overlay[style*="display: flex"]').forEach(o => {
+      o.classList.remove('is-open');
+      o.style.display = 'none';
+    });
   }
 });
 
@@ -1612,5 +1632,10 @@ window.maToggleOne = maToggleOne;
 window.maToggleAll = maToggleAll;
 window.openMonthlyWarning = openMonthlyWarning;
 window.savePeriodSettings = savePeriodSettings;
+window.openDutyEventModal = openDutyEventModal;
+window.closeDutyEventModal = closeDutyEventModal;
+window.loadCandidateEvents = loadCandidateEvents;
+window.saveEventDutyMonth = saveEventDutyMonth;
+window.loadMonthlyApply = loadMonthlyApply;
 
 })();
