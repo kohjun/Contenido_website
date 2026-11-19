@@ -5,15 +5,16 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Contenido · 멤버십 특별 혜택</title>
   <link rel="icon" href="/images/Contenido_Logo.ico" type="image/x-icon">
-  <link rel="stylesheet" href="/css/benefit-detail.css?v=20260712_1">
-  <script src="/js/utils/nav-injector.js?v=20260602" defer></script>
+  <link rel="stylesheet" href="/css/design-system.css?v=20261119">
+  <link rel="stylesheet" href="/css/benefit-detail.css?v=20261119">
+  <script src="/js/utils/nav-injector.js?v=20261119" defer></script>
 </head>
 <body class="benefit-detail-page">
   <div class="benefit-container">
     <header class="benefit-header">
-      <div class="badge-promo">SPECIAL BENEFIT ✨</div>
+      <div class="badge-promo">SPECIAL BENEFIT</div>
       <h1 id="benefit-title">혜택 상세 정보</h1>
-      <div class="benefit-period" id="benefit-period">노출 기간: -</div>
+      <div class="benefit-period c-tabular" id="benefit-period">노출 기간: -</div>
     </header>
 
     <main class="benefit-main">
@@ -28,11 +29,12 @@
       <section class="benefit-cta-area" id="benefit-cta-section" style="display: none;">
         <div class="cta-card">
           <div class="cta-text">
-            <h3>🎁 이벤트를 신청해 혜택을 받아보세요!</h3>
+            <h3>이벤트를 신청해 혜택을 받아보세요</h3>
             <p id="cta-event-desc">이 혜택은 특정 이벤트에 참여하는 부원 대상입니다. 지금 바로 확인해보세요.</p>
           </div>
           <button type="button" class="btn-cta" id="btn-cta-link">
-            이벤트 바로가기 ➔
+            <span>이벤트 바로가기</span>
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
           </button>
         </div>
       </section>
@@ -40,7 +42,8 @@
 
     <footer class="benefit-footer">
       <button type="button" class="btn-back" onclick="window.history.back() || (window.location.href='/events.html')">
-        이전 페이지로 돌아가기
+        <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+        <span>이전 페이지로 돌아가기</span>
       </button>
     </footer>
   </div>

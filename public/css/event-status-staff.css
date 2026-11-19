@@ -1,21 +1,27 @@
 /* =========================================================================
-   event-status-staff.css — 신청자 관리 페이지 (self-contained)
-   styles.css 의존 없음
+   event-status-staff.css — 신청자 관리 페이지 (Tone-on-Tone Signature Azure)
    ========================================================================= */
 
-@font-face {
-  font-family: 'GmarketSansMedium';
-  src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_2001@1.1/GmarketSansMedium.woff') format('woff');
-  font-weight: normal;
-  font-style: normal;
+:root {
+  --c-success:      var(--c-ok, #0E9F6E);
+  --c-success-soft: var(--c-ok-bg, #ECFDF5);
+  --c-success-text: #065F46;
+  --c-warning:      var(--c-warn, #D97706);
+  --c-warning-soft: var(--c-warn-bg, #FFFBEB);
+  --c-warning-text: #92400E;
+  --c-danger-soft:  var(--c-danger-bg, #FFF1F2);
+  --c-danger-text:  #BE123C;
+  --c-border-soft:  var(--brand-200, #BBDDFD);
+  --sh-1:           var(--sh-xs);
+  --sh-2:           var(--sh-sm);
 }
 
-* { box-sizing: border-box; }
-
 body {
-  font-family: 'GmarketSansMedium', sans-serif;
-  background-color: #F0F6FF;
-  color: #1F2937;
+  font-family: var(--ff-base, 'GmarketSansMedium', sans-serif);
+  background:
+    radial-gradient(640px 380px at 8% 0%, var(--brand-100, #DEEEFF) 0%, transparent 65%),
+    var(--c-bg, #F3F7FD);
+  color: var(--c-text, #0C1E38);
   margin: 0;
   padding: 0;
   line-height: 1.55;
@@ -24,62 +30,18 @@ body {
 
 button { font-family: inherit; }
 
-:root {
-  --c-brand:        #0A84FE;
-  --c-brand-strong: #0875E0;
-  --c-brand-soft:   #E8F2FF;
-  --c-brand-tint:   #F2F8FF;
-
-  --c-surface:   #FFFFFF;
-  --c-surface-2: rgba(10, 132, 254, 0.05);
-  --c-surface-3: rgba(10, 132, 254, 0.10);
-
-  --c-text:       #1F2937;
-  --c-text-soft:  #4B5563;
-  --c-text-muted: #6B7280;
-  --c-text-faint: #9CA3AF;
-
-  --c-border:        #E5E7EB;
-  --c-border-soft:   rgba(10, 132, 254, 0.15);
-  --c-border-strong: #D1D5DB;
-
-  --c-success:      #10B981;
-  --c-success-soft: #D1FAE5;
-  --c-success-text: #065F46;
-  --c-warning:      #F59E0B;
-  --c-warning-soft: #FEF3C7;
-  --c-warning-text: #92400E;
-  --c-danger:       #EF4444;
-  --c-danger-soft:  #FEE2E2;
-  --c-danger-text:  #B91C1C;
-
-  --r-sm:  8px;
-  --r-md: 12px;
-  --r-lg: 16px;
-  --r-xl: 20px;
-  --r-pill: 999px;
-
-  --sh-1: 0 1px 2px rgba(15,23,42,0.04), 0 1px 1px rgba(15,23,42,0.03);
-  --sh-2: 0 4px 12px rgba(15,23,42,0.06), 0 2px 4px rgba(15,23,42,0.04);
-  --sh-brand: 0 4px 12px rgba(10,132,254,0.25);
-
-  --ease:   cubic-bezier(0.4, 0, 0.2, 1);
-  --t-fast: 120ms;
-  --t-base: 180ms;
-
-  --ff-base: 'GmarketSansMedium', system-ui, -apple-system, sans-serif;
-}
-
 /* ========= Container ========= */
 
 .container {
-  width: 100%;
-  max-width: 880px;
-  margin: 88px auto;
-  padding: clamp(16px, 3vw, 28px);
+  width: min(calc(100% - 28px), 900px);
+  max-width: 900px;
+  margin: calc(var(--nav-top-h, 64px) + 20px) auto calc(var(--nav-bottom-h, 66px) + 28px);
+  padding: clamp(18px, 3vw, 30px);
   background: var(--c-surface);
-  border-radius: var(--r-xl);
-  box-shadow: var(--sh-2);
+  border: 1px solid var(--c-border);
+  border-radius: var(--r-xl, 24px);
+  box-shadow: var(--sh-md);
+  min-height: auto;
 }
 
 /* ========= Page header ========= */
@@ -661,11 +623,14 @@ button { font-family: inherit; }
 
 @media (max-width: 768px) {
   .container {
-    margin: 80px 0;
-    padding: 14px 12px;
-    border-radius: 0;
-    box-shadow: none;
+    width: 100%;
     max-width: 100%;
+    margin: var(--nav-top-h, 60px) 0 var(--nav-bottom-h, 62px);
+    padding: 18px 14px 28px;
+    border-radius: 0;
+    border-left: none;
+    border-right: none;
+    box-shadow: none;
   }
 
   .ess-header { gap: 8px; }

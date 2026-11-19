@@ -1,20 +1,53 @@
-/* GmarketSansMedium 폰트 추가 */
+/* Contenido Frontend SPA — Signature Azure (#0A84FE) Tone-on-Tone + modern-web-guidance */
+
 @font-face {
   font-family: 'GmarketSansMedium';
   src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_2001@1.1/GmarketSansMedium.woff') format('woff');
   font-weight: normal;
   font-style: normal;
+  font-display: swap;
+}
+
+@view-transition {
+  navigation: auto;
 }
 
 :root {
-  font-family: 'GmarketSansMedium', sans-serif;
+  /* Signature Azure Scale */
+  --brand-50:  #EEF6FF;
+  --brand-100: #D8ECFF;
+  --brand-200: #B4D9FF;
+  --brand-300: #80BEFF;
+  --brand-400: #419EFF;
+  --brand-500: #0A84FE;
+  --brand-600: #0068D6;
+  --brand-700: #005EC4;
+  --brand-800: #004799;
+  --brand-900: #0B2A5B;
+  --brand-950: #071A38;
+
+  /* Surfaces & Ink */
+  --surface-canvas: #F4F8FE;
+  --surface-card:   #FFFFFF;
+  --surface-muted:  #EEF5FD;
+  --ink-900:        #0B192C;
+  --ink-700:        #2E3F54;
+  --ink-600:        #516278;
+  --ink-500:        #64748B;
+  --ink-400:        #8A9BB0;
+  --border-subtle:  #E5EFFB;
+  --border-default: #D2E3F7;
+
+  /* Motion */
+  --ease-spring: cubic-bezier(0.22, 1, 0.36, 1);
+
+  font-family: 'GmarketSansMedium', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
   line-height: 1.5;
   font-weight: 400;
-
-  /* 항상 라이트 모드만 사용 */
-  color-scheme: light !important;
-  color: #213547 !important;
-  background-color: #ffffff !important;
+  color-scheme: light;
+  color: var(--ink-900);
+  background-color: var(--surface-canvas);
+  accent-color: var(--brand-500);
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -22,101 +55,97 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* 다크 모드 강제 비활성화 */
-@media (prefers-color-scheme: dark) {
+@supports (color: color-mix(in oklch, #0A84FE 50%, white)) {
   :root {
-    color-scheme: light !important;
-    color: #213547 !important;
-    background-color: #ffffff !important;
-  }
-
-  body {
-    color: #213547 !important;
-    background-color: #ffffff !important;
+    --brand-50:  color-mix(in oklch, #0A84FE 7%, white);
+    --brand-100: color-mix(in oklch, #0A84FE 16%, white);
+    --brand-200: color-mix(in oklch, #0A84FE 30%, white);
+    --brand-600: color-mix(in oklch, #0A84FE 84%, #002352);
+    --brand-900: color-mix(in oklch, #0A84FE 36%, #050F24);
   }
 }
 
-a {
-  font-weight: 500;
-  color: #646cff;
-  text-decoration: inherit;
-}
-
-a:hover {
-  color: #535bf2;
-}
-
-body {
-  margin: 0;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-width: 320px;
-  min-height: 100vh;
-  font-family: 'GmarketSansMedium', sans-serif;
-  color: #213547 !important;
-  background-color: #ffffff !important;
-}
-
-h1 {
-  font-size: 3.2em;
-  line-height: 1.1;
-  color: #213547;
-}
-
-h2, h3, h4, h5, h6 {
-  color: #213547;
-}
-
-button {
-  border-radius: 8px;
-  border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: 500;
-  font-family: 'GmarketSansMedium', sans-serif;
-  background-color: #f9f9f9;
-  cursor: pointer;
-  transition: border-color 0.25s;
-}
-
-button:hover {
-  border-color: #646cff;
-}
-
-button:focus,
-button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
+@supports (animation-timing-function: linear(0, 1)) {
+  :root {
+    --ease-spring: linear(
+      0, 0.009, 0.035 2.1%, 0.141, 0.281 6.7%, 0.723 12.9%, 0.938 16.7%,
+      1.017, 1.077, 1.121, 1.149 24.3%, 1.159, 1.163, 1.161, 1.154 29.9%,
+      1.129 32.8%, 1.051 39.6%, 1.017 43.1%, 0.991, 0.977 51%, 0.974 53.8%,
+      0.975 57.1%, 0.997 69.8%, 1.003 76.9%, 1.004 83.8%, 1
+    );
+  }
 }
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* Tailwind에서도 GmarketSansMedium 사용하도록 설정 */
 @layer base {
-  * {
-    font-family: 'GmarketSansMedium', sans-serif;
+  html {
+    color-scheme: light;
+    background-color: var(--surface-canvas);
+    scrollbar-color: #B4D9FF #EEF6FF;
+    scrollbar-width: thin;
   }
-  
-  /* 모든 요소에 기본 텍스트 색상 강제 적용 */
-  html,
-  body,
-  div:not([class*="text-white"]),
-  span:not([class*="text-white"]),
-  p:not([class*="text-white"]),
-  h1:not([class*="text-white"]),
-  h2:not([class*="text-white"]),
-  h3:not([class*="text-white"]),
-  h4:not([class*="text-white"]),
-  h5:not([class*="text-white"]),
-  h6:not([class*="text-white"]) {
-    color: #1f2937;
+
+  body {
+    margin: 0;
+    min-width: 320px;
+    min-height: 100vh;
+    font-family: 'GmarketSansMedium', system-ui, -apple-system, sans-serif;
+    color: var(--ink-900);
+    background-color: var(--surface-canvas);
+  }
+
+  #root {
+    width: 100%;
+    min-height: 100vh;
+  }
+
+  * {
+    box-sizing: border-box;
+    font-family: 'GmarketSansMedium', system-ui, -apple-system, sans-serif;
+  }
+
+  h1, h2, h3 {
+    text-wrap: balance;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+
+  a {
+    color: var(--brand-600);
+    text-decoration: none;
+  }
+
+  a:hover {
+    color: var(--brand-700);
+  }
+
+  button:focus-visible,
+  a:focus-visible,
+  input:focus-visible,
+  select:focus-visible,
+  textarea:focus-visible {
+    outline: 2.5px solid var(--brand-500);
+    outline-offset: 2px;
   }
 }
 
-@media (max-width: 768px) {
-  body {
-    padding: 0 8px;
+@media (prefers-contrast: more) {
+  html {
+    scrollbar-color: auto;
+    scrollbar-width: auto;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }

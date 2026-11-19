@@ -1,16 +1,85 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ko">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>스타터팀 페이지</title>
-  <link rel="stylesheet" href="./css/regular.css">
+  <title>스타터팀 페이지 · Contenido</title>
+  <link rel="stylesheet" href="/css/design-system.css?v=20261119">
+  <style>
+    .starter-hub {
+      max-width: 680px;
+      margin: 28px auto;
+      padding: 28px 24px;
+      background: var(--surface-card, #FFFFFF);
+      border-radius: 20px;
+      border: 1px solid var(--border-subtle, #E5EFFB);
+      box-shadow: 0 6px 22px rgba(10, 48, 102, 0.06);
+      font-family: 'GmarketSansMedium', system-ui, sans-serif;
+    }
+    .starter-hub-badge {
+      display: inline-flex;
+      padding: 4px 12px;
+      border-radius: 999px;
+      background: var(--brand-50, #EEF6FF);
+      color: var(--brand-700, #005EC4);
+      font-size: 0.76rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      margin-bottom: 10px;
+    }
+    .starter-hub h2 {
+      margin: 0 0 8px;
+      font-size: 1.45rem;
+      color: var(--brand-900, #0B2A5B);
+    }
+    .starter-hub p {
+      margin: 0 0 22px;
+      font-size: 0.9rem;
+      color: var(--ink-600, #516278);
+    }
+    .navigation-buttons {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 12px;
+    }
+    .navigation-buttons button {
+      padding: 15px 20px;
+      border-radius: 14px;
+      border: 1.5px solid var(--brand-200, #B4D9FF);
+      background: var(--brand-50, #EEF6FF);
+      color: var(--brand-800, #004799);
+      font-family: inherit;
+      font-size: 0.96rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform 0.16s ease, box-shadow 0.16s ease, background-color 0.16s ease;
+    }
+    .navigation-buttons button:hover {
+      transform: translateY(-2px);
+      background: var(--brand-100, #D8ECFF);
+      box-shadow: 0 6px 16px rgba(10, 132, 254, 0.14);
+    }
+    .navigation-buttons .event-manage-button {
+      background: linear-gradient(135deg, var(--brand-500, #0A84FE) 0%, var(--brand-600, #0068D6) 100%);
+      border-color: transparent;
+      color: #FFFFFF;
+      box-shadow: 0 4px 12px rgba(10, 132, 254, 0.24);
+    }
+    .navigation-buttons .event-manage-button:hover {
+      background: linear-gradient(135deg, var(--brand-600, #0068D6) 0%, var(--brand-700, #005EC4) 100%);
+      box-shadow: 0 8px 18px rgba(10, 132, 254, 0.32);
+    }
+  </style>
 </head>
 <body>
-  <div class="navigation-buttons">
-    <button onclick="window.location.href='events.html'">진행중인 이벤트</button><br><br><br>
-    <button class="event-manage-button" style="display: block;" onclick="window.location.href='event-staff.html'">이벤트 관리</button>
+  <div class="starter-hub">
+    <span class="starter-hub-badge">STARTER TEAM</span>
+    <h2>스타터팀 바로가기</h2>
+    <p>진행 중인 이벤트를 확인하거나 스태프 이벤트 관리 페이지로 빠르게 이동하세요.</p>
+    <div class="navigation-buttons">
+      <button type="button" onclick="window.location.href='/events.html'">진행중인 이벤트</button>
+      <button type="button" class="event-manage-button" style="display: block;" onclick="window.location.href='/event-staff.html'">이벤트 관리</button>
+    </div>
   </div>
-  
 </body>
 </html>

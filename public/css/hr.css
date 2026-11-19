@@ -7,34 +7,35 @@
   src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_2001@1.1/GmarketSansMedium.woff') format('woff');
   font-weight: normal;
   font-style: normal;
+  font-display: swap;
 }
 
-/* ───────── tokens ───────── */
+/* ───────── tokens (Tone-on-Tone Azure #0A84FE) ───────── */
 :root {
-  --c-brand:        #0A84FE;
-  --c-brand-strong: #0875E0;
-  --c-brand-soft:   #E8F2FF;
-  --c-brand-tint:   #F2F8FF;
+  --c-brand:        var(--brand-500, #0A84FE);
+  --c-brand-strong: var(--brand-600, #0068D6);
+  --c-brand-soft:   var(--brand-100, #D8ECFF);
+  --c-brand-tint:   var(--brand-50, #EEF6FF);
 
-  --c-bg:           #F0F6FF;
-  --c-surface:      #FFFFFF;
-  --c-surface-2:    #F5F8FC;
+  --c-bg:           var(--surface-canvas, #F4F8FE);
+  --c-surface:      var(--surface-card, #FFFFFF);
+  --c-surface-2:    var(--surface-muted, #EEF5FD);
 
-  --c-text:         #1F2937;
-  --c-text-muted:   #5A6B7C;
-  --c-text-soft:    #94A3B8;
+  --c-text:         var(--ink-900, #0B192C);
+  --c-text-muted:   var(--ink-600, #516278);
+  --c-text-soft:    var(--ink-400, #8A9BB0);
 
-  --c-border:       #E2E8F0;
-  --c-border-soft:  #EEF2F7;
+  --c-border:       var(--border-default, #D2E3F7);
+  --c-border-soft:  var(--border-subtle, #E5EFFB);
 
-  --c-success:      #10B981;
-  --c-success-soft: #D1FAE5;
-  --c-warn:         #F59E0B;
-  --c-warn-soft:    #FEF3C7;
-  --c-danger:       #EF4444;
-  --c-danger-soft:  #FEE2E2;
-  --c-info:         #3B82F6;
-  --c-info-soft:    #DBEAFE;
+  --c-success:      var(--status-success, #0E9F6E);
+  --c-success-soft: var(--status-success-bg, #E6F8F1);
+  --c-warn:         var(--status-warn, #D97706);
+  --c-warn-soft:    var(--status-warn-bg, #FEF6E4);
+  --c-danger:       var(--status-danger, #DC2626);
+  --c-danger-soft:  var(--status-danger-bg, #FEECEC);
+  --c-info:         var(--brand-500, #0A84FE);
+  --c-info-soft:    var(--brand-100, #D8ECFF);
 
   --r-sm: 8px;
   --r-md: 12px;
@@ -50,12 +51,12 @@
   --sp-6: 24px;
   --sp-7: 32px;
 
-  --sh-sm: 0 1px 2px rgba(15, 23, 42, .06);
-  --sh-md: 0 4px 12px rgba(15, 23, 42, .08);
-  --sh-lg: 0 10px 24px rgba(15, 23, 42, .12);
+  --sh-sm: 0 2px 6px rgba(10, 48, 102, .05);
+  --sh-md: 0 6px 18px rgba(10, 48, 102, .08);
+  --sh-lg: 0 14px 32px rgba(10, 48, 102, .14);
 
-  --t-fast: 120ms ease;
-  --t-base: 200ms ease;
+  --t-fast: 140ms ease;
+  --t-base: 220ms ease;
 }
 
 /* ───────── base ───────── */
@@ -67,14 +68,16 @@
 html, body {
   margin: 0;
   padding: 0;
+  color-scheme: light;
 }
 
 body {
-  background: var(--c-bg);
+  background: linear-gradient(180deg, var(--c-bg) 0%, #FAFCFF 100%);
   color: var(--c-text);
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   font-size: 16px;
+  accent-color: var(--c-brand);
 }
 
 button {
@@ -1130,6 +1133,10 @@ input, select, textarea {
   gap: var(--sp-2);
 }
 
+#role-option-grid {
+  grid-template-columns: repeat(2, 1fr);
+}
+
 .option-grid button {
   padding: 10px 8px;
   border: 1.5px solid var(--c-border);
@@ -1199,16 +1206,11 @@ input, select, textarea {
   /* ─────────── 헤더 (감성 강화) ─────────── */
   .hr-header { margin-bottom: 14px; }
   .hr-header h1 {
-    font-size: 1.5rem;
+    font-size: 1.45rem;
     letter-spacing: -0.02em;
     display: flex;
     align-items: center;
     gap: 8px;
-  }
-  .hr-header h1::before {
-    content: "👥";
-    font-size: 1.4rem;
-    -webkit-text-stroke: 0;
   }
   .hr-header p {
     font-size: 0.78rem;
@@ -1598,11 +1600,145 @@ input, select, textarea {
 @media (max-width: 860px) { .ma-cols { grid-template-columns: 1fr; } }
 /* 월간 신청 현황 — 선택 체크박스 / 일괄 경고 바 */
 .ma-list li { gap: 8px; }
-.ma-check { width: 15px; height: 15px; cursor: pointer; accent-color: #0A84FE; flex-shrink: 0; }
-.ma-selectall-label { font-size: 0.72rem; color: #64748B; font-weight: 500; margin-left: auto; display: inline-flex; align-items: center; gap: 3px; cursor: pointer; white-space: nowrap; }
-.ma-selectall { width: 14px; height: 14px; cursor: pointer; accent-color: #F59E0B; }
-.ma-bulk-bar { align-items: center; justify-content: space-between; gap: 12px; margin-top: 14px; padding: 10px 14px; background: #FEF2F2; border: 1px solid #FECACA; border-radius: 12px; font-size: 0.88rem; color: #991B1B; }
-.ma-bulk-bar b { color: #EF4444; }
-.ma-warn-btn { border: none; background: #EF4444; color: #fff; font-weight: 700; font-size: 0.85rem; padding: 8px 16px; border-radius: 10px; cursor: pointer; transition: background .15s ease; }
-.ma-warn-btn:hover { background: #DC2626; }
+.ma-check { width: 15px; height: 15px; cursor: pointer; accent-color: var(--c-brand); flex-shrink: 0; }
+.ma-selectall-label { font-size: 0.72rem; color: var(--c-text-muted); font-weight: 500; margin-left: auto; display: inline-flex; align-items: center; gap: 3px; cursor: pointer; white-space: nowrap; }
+.ma-selectall { width: 14px; height: 14px; cursor: pointer; accent-color: var(--c-brand); }
+.ma-bulk-bar { align-items: center; justify-content: space-between; gap: 12px; margin-top: 14px; padding: 10px 14px; background: var(--c-danger-soft); border: 1px solid #FECACA; border-radius: 12px; font-size: 0.88rem; color: #991B1B; }
+.ma-bulk-bar b { color: var(--c-danger); }
+.ma-warn-btn { border: none; background: var(--c-danger); color: #fff; font-weight: 700; font-size: 0.85rem; padding: 8px 16px; border-radius: 10px; cursor: pointer; transition: background .15s ease; }
+.ma-warn-btn:hover { background: #B91C1C; }
 .ma-warn-btn:disabled { background: #E5E7EB; color: #9CA3AF; cursor: not-allowed; }
+
+/* ───────── 월간 의무 신청 기간 & 인정 이벤트 설정 (Tone-on-Tone Azure) ───────── */
+.ma-period-settings,
+.ma-events-settings {
+  margin-bottom: 14px;
+  padding: 12px 16px;
+  background: var(--c-brand-tint);
+  border-radius: 12px;
+  border: 1px solid var(--c-border-soft);
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.ma-events-settings {
+  justify-content: space-between;
+}
+
+.ma-events-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.ma-duty-events-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.ma-setting-label {
+  font-weight: 700;
+  font-size: 0.86rem;
+  color: var(--brand-900, #0B2A5B);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.ma-period-field {
+  font-size: 0.84rem;
+  color: var(--c-text-muted);
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.ma-period-field input {
+  width: 54px;
+  padding: 5px 6px;
+  border: 1.5px solid var(--c-border);
+  border-radius: 8px;
+  background: var(--c-surface);
+  color: var(--c-text);
+  font-size: 0.85rem;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.ma-period-field input:focus {
+  outline: none;
+  border-color: var(--c-brand);
+  box-shadow: 0 0 0 3px rgba(10, 132, 254, 0.14);
+}
+
+.ma-action-btn {
+  padding: 7px 14px;
+  font-size: 0.8rem;
+  border-radius: 9px;
+  cursor: pointer;
+  border: none;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  transition: background-color 0.18s ease, transform 0.14s ease, box-shadow 0.18s ease;
+}
+
+.ma-action-btn.primary {
+  background: linear-gradient(135deg, var(--c-brand) 0%, var(--c-brand-strong) 100%);
+  color: #fff;
+  box-shadow: 0 3px 10px rgba(10, 132, 254, 0.22);
+}
+
+.ma-action-btn.primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 5px 14px rgba(10, 132, 254, 0.3);
+}
+
+.ma-action-btn.secondary {
+  background: var(--brand-900, #0B2A5B);
+  color: #fff;
+}
+
+.ma-action-btn.secondary:hover {
+  background: var(--brand-800, #004799);
+}
+
+.duty-info-banner {
+  background: var(--c-brand-tint);
+  border: 1px solid var(--brand-200, #B4D9FF);
+  border-radius: 12px;
+  padding: 12px 14px;
+  margin-bottom: 14px;
+  font-size: 0.84rem;
+  color: var(--brand-900, #0B2A5B);
+  line-height: 1.55;
+}
+
+.duty-events-modal-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.duty-loading-msg {
+  text-align: center;
+  color: var(--c-text-muted);
+  padding: 20px;
+  font-size: 0.88rem;
+}
+
+.hr-stat-value,
+.chip-count,
+.ma-badge {
+  font-variant-numeric: tabular-nums;
+}
+
+.modal-overlay,
+.warning-modal-overlay {
+  overscroll-behavior: contain;
+}

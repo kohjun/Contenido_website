@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ChevronRight, ChevronLeft, Star } from 'lucide-react';
+import { ChevronRight, ChevronLeft, Star, ArrowLeft } from 'lucide-react';
 import _ from 'lodash';
 
 const RankingPage = () => {
@@ -8,19 +8,18 @@ const RankingPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [currentIndex, setCurrentIndex] = useState(0);
-  const cardsToShow = 3; // 항상 3개 표시로 고정
+  const cardsToShow = 3;
 
-  // 분기 정보를 계산하는 함수 추가
   const getQuarterInfo = () => {
     const now = new Date();
     const year = now.getFullYear();
     const month = now.getMonth() + 1;
     const quarter = Math.ceil(month / 3);
     const quarterRanges = {
-      1: "1-3",
-      2: "4-6",
-      3: "7-9",
-      4: "10-12"
+      1: '1-3',
+      2: '4-6',
+      3: '7-9',
+      4: '10-12'
     };
     return `${year}년 ${quarterRanges[quarter]}월`;
   };
@@ -30,7 +29,7 @@ const RankingPage = () => {
       try {
         const eventsResponse = await fetch('/events/ended');
         const events = await eventsResponse.json();
-        
+
         if (!Array.isArray(events)) {
           console.error('Events data is not an array:', events);
           throw new Error('Invalid events data format');
@@ -40,40 +39,42 @@ const RankingPage = () => {
           id: index + 1,
           eventId: event._id,
           title: event.title,
-          date: new Date(event.date).toLocaleDateString('ko-KR', { year: 'numeric', month: '2-digit', day: '2-digit' }).replace(/\. /g, '.'),
+          date: new Date(event.date)
+            .toLocaleDateString('ko-KR', { year: 'numeric', month: '2-digit', day: '2-digit' })
+            .replace(/\. /g, '.'),
           participationRate: (event.finalParticipants?.length || 0) / event.participants,
-          participation: `${Math.round((event.finalParticipants?.length || 0) / event.participants * 100)}%(${event.finalParticipants?.length || 0}/${event.participants})`,
+          participation: `${Math.round(((event.finalParticipants?.length || 0) / event.participants) * 100)}% (${event.finalParticipants?.length || 0}/${event.participants})`,
           participantsCount: event.participants,
           rating: event.rating || 0,
           ratingCount: event.ratingCount || 0,
-          ratingScore: (event.rating || 0) * (event.ratingCount || 0), // 평점 점수 추가
+          ratingScore: (event.rating || 0) * (event.ratingCount || 0),
           description: event.contents,
-          price: `${event.participation_fee.toLocaleString()}원`,
-          image: event.images?.[0] ? event.images[0] : '/images/Basic_Event_Image.png',
+          price: `${(event.participation_fee || 0).toLocaleString()}원`,
+          image: event.images?.[0] ? event.images[0] : '/images/Basic_Event_Image.png'
         }));
 
         const sortedEvents = _.orderBy(
-          processedEvents, 
-          ['ratingScore', 'participationRate'], 
+          processedEvents,
+          ['ratingScore', 'participationRate'],
           ['desc', 'desc']
-        );
+        ).map((event, idx) => ({ ...event, id: idx + 1 }));
         setEventRankings(sortedEvents);
 
         const usersResponse = await fetch('/user/participants/users');
         const users = await usersResponse.json();
         const processedUsers = users
-          .filter(user => user.active)
-          .map(user => ({
+          .filter((user) => user.active)
+          .map((user) => ({
             name: user.name,
             count: user.participationCount?.regularCount || 0,
-            image: user.profileImage || '/api/placeholder/200/280'
+            image: user.profileImage || '/images/basic_Image.png'
           }));
 
         const sortedUsers = _.orderBy(processedUsers, ['count'], ['desc'])
-          .slice(0, 20) // 상위 20명으로 제한
+          .slice(0, 20)
           .map((user, index) => ({
             ...user,
-            id: index + 1 // 순위를 정렬 후 인덱스 기준으로 부여
+            id: index + 1
           }));
 
         setParticipantRankings(sortedUsers);
@@ -102,65 +103,104 @@ const RankingPage = () => {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center h-screen">
-        <div className="w-8 h-8 border-4 border-blue-500 rounded-full border-t-transparent animate-spin"></div>
+      <div className="min-h-screen flex flex-col justify-center items-center gap-3 bg-[#F4F8FE]">
+        <div className="w-9 h-9 border-4 border-[#D8ECFF] rounded-full border-t-[#0A84FE] animate-spin" />
+        <p className="text-sm text-[#516278]">랭킹 데이터를 불러오는 중...</p>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="p-4 text-red-500 text-center">{error}</div>
+      <div className="min-h-screen flex justify-center items-center p-6 bg-[#F4F8FE]">
+        <div className="bg-white border border-[#FECACA] text-[#DC2626] rounded-2xl px-6 py-4 text-sm shadow-sm">
+          {error}
+        </div>
+      </div>
     );
   }
 
   return (
-    <div className="w-full max-w-[95%] md:max-w-2xl mx-auto px-2 md:px-4 py-4 md:py-6 space-y-6">
-      {/* 참여 랭킹 섹션 */}
-      <div className="mb-6 bg-white rounded-xl p-3 md:p-6 shadow-sm">
-        <div className="flex justify-between items-center mb-2">
-          <h1 className="text-2xl md:text-3xl">참여 랭킹</h1>
-          <button className="text-sm md:text-base text-gray-500 hover:text-gray-700" onClick={() => window.location.href = 'index.html'}>돌아가기</button>
-        </div>
-        <p className="text-gray-500 mb-4">상위 활동부원 20위까지 표시됩니다.</p>
-        
-        <div className="relative">
-          <h2 className="text-xl font-medium mb-2">
-            {getQuarterInfo()} 기준
-          </h2>
-          
+    <div
+      className="min-h-screen w-full py-6 md:py-10 px-3 md:px-6"
+      style={{
+        background:
+          'radial-gradient(1100px 520px at 50% -10%, #DCEBFF 0%, #EEF5FE 42%, #F6FAFF 100%)'
+      }}
+    >
+      <div className="w-full max-w-3xl mx-auto space-y-6">
+        {/* 상단 브랜드 헤더 */}
+        <header className="flex items-center justify-between gap-3">
+          <div>
+            <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold tracking-wider bg-[#D8ECFF] text-[#005EC4] mb-1.5">
+              CONTENIDO RANKING
+            </span>
+            <h1 className="text-2xl md:text-3xl font-bold text-[#0B2A5B] tracking-tight">
+              참여 · 이벤트 랭킹
+            </h1>
+          </div>
+          <button
+            type="button"
+            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-white border border-[#D2E3F7] text-sm font-semibold text-[#0B2A5B] hover:border-[#0A84FE] hover:text-[#0A84FE] hover:bg-[#EEF6FF] transition-colors shadow-sm"
+            onClick={() => (window.location.href = '/index.html')}
+          >
+            <ArrowLeft className="w-4 h-4" />
+            <span>홈으로</span>
+          </button>
+        </header>
+
+        {/* 참여 랭킹 섹션 */}
+        <section className="bg-white rounded-3xl p-4 md:p-7 border border-[#E5EFFB] shadow-[0_8px_28px_rgba(10,48,102,0.06)]">
+          <div className="flex flex-wrap justify-between items-baseline gap-2 mb-1">
+            <h2 className="text-xl md:text-2xl font-bold text-[#0B2A5B]">참여 랭킹</h2>
+            <span className="text-xs md:text-sm font-semibold px-3 py-1 rounded-full bg-[#EEF6FF] text-[#005EC4] border border-[#D2E3F7]">
+              {getQuarterInfo()} 기준
+            </span>
+          </div>
+          <p className="text-[#516278] text-xs md:text-sm mb-5">
+            상위 활동부원 20위까지 표시됩니다.
+          </p>
+
           {/* 카드 캐러셀 */}
-          <div className="relative">
-            <div className="overflow-hidden">
-              <div 
-                className="flex transition-transform duration-300"
+          <div className="relative px-1">
+            <div className="overflow-hidden rounded-2xl">
+              <div
+                className="flex transition-transform duration-300 ease-out"
                 style={{ transform: `translateX(-${currentIndex * (100 / cardsToShow)}%)` }}
               >
                 {participantRankings.map((user) => (
-                  <div 
-                    key={user.id} 
-                    className="flex-none w-1/3 px-1 md:px-2"
-                  >
-                    <div className="relative rounded-lg overflow-hidden shadow-md bg-white">
-                      <div className="absolute top-0 left-0 z-10">
+                  <div key={user.id} className="flex-none w-1/3 px-1.5 md:px-2">
+                    <div className="relative rounded-2xl overflow-hidden border border-[#E5EFFB] bg-[#EEF6FF] shadow-sm">
+                      <div className="absolute top-0 left-2 z-10">
                         <div className="relative">
-                          <svg width="40" height="55" viewBox="0 0 60 80" className="fill-[#0A84FE]">
+                          <svg width="36" height="48" viewBox="0 0 60 80" className="fill-[#0A84FE] drop-shadow">
                             <polygon points="0,0 60,0 60,60 30,80 0,60" />
                           </svg>
-                          <div className="absolute top-0 left-0 w-full h-full flex justify-center items-center text-white font-medium text-lg" style={{paddingBottom: "10px"}}>
+                          <div
+                            className="absolute inset-0 flex justify-center items-center text-white font-bold text-base tabular-nums"
+                            style={{ paddingBottom: '10px' }}
+                          >
                             {user.id}
                           </div>
                         </div>
                       </div>
-                      <img 
-                        src={user.image} 
+                      <img
+                        src={user.image}
                         alt={user.name}
-                        className="w-full h-48 md:h-64 object-cover" // 모바일에서 높이 조정
+                        onError={(e) => {
+                          e.currentTarget.src = '/images/basic_Image.png';
+                        }}
+                        className="w-full h-44 md:h-64 object-cover block"
                       />
-                      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black to-transparent p-2 md:p-4">
-                        <div className="flex justify-between items-end">
-                          <h3 className="text-white text-base md:text-2xl truncate mr-2">{user.name}</h3>
-                          <div className="text-white text-xl md:text-4xl whitespace-nowrap">{user.count}<span className="text-xs md:text-sm ml-1">회</span></div>
+                      <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-[#071A38]/90 via-[#071A38]/45 to-transparent p-2.5 md:p-4">
+                        <div className="flex justify-between items-end gap-1">
+                          <h3 className="text-white text-sm md:text-lg font-bold truncate">
+                            {user.name}
+                          </h3>
+                          <div className="text-white text-lg md:text-2xl font-bold whitespace-nowrap tabular-nums">
+                            {user.count}
+                            <span className="text-xs ml-0.5 font-normal opacity-90">회</span>
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -168,87 +208,115 @@ const RankingPage = () => {
                 ))}
               </div>
             </div>
-            
+
             {/* 좌우 이동 버튼 */}
-            <button 
-              onClick={handlePrevCards} 
-              className={`absolute top-1/2 left-0 -translate-y-1/2 -translate-x-1/2 bg-white p-2 rounded-full shadow-lg ${currentIndex === 0 ? 'opacity-50 cursor-not-allowed' : ''}`}
+            <button
+              type="button"
+              aria-label="이전 참여자 보기"
+              onClick={handlePrevCards}
+              className={`absolute top-1/2 left-0 -translate-y-1/2 -translate-x-2 md:-translate-x-4 w-9 h-9 md:w-10 md:h-10 flex items-center justify-center bg-white border border-[#D2E3F7] text-[#0B2A5B] rounded-full shadow-md transition-all ${
+                currentIndex === 0
+                  ? 'opacity-40 cursor-not-allowed'
+                  : 'hover:bg-[#0A84FE] hover:text-white hover:border-[#0A84FE]'
+              }`}
               disabled={currentIndex === 0}
             >
-              <ChevronLeft className="w-6 h-6" />
+              <ChevronLeft className="w-5 h-5" />
             </button>
-            
-            <button 
-              onClick={handleNextCards} 
-              className={`absolute top-1/2 right-0 -translate-y-1/2 translate-x-1/2 bg-white p-2 rounded-full shadow-lg ${currentIndex >= participantRankings.length - cardsToShow ? 'opacity-50 cursor-not-allowed' : ''}`}
+
+            <button
+              type="button"
+              aria-label="다음 참여자 보기"
+              onClick={handleNextCards}
+              className={`absolute top-1/2 right-0 -translate-y-1/2 translate-x-2 md:translate-x-4 w-9 h-9 md:w-10 md:h-10 flex items-center justify-center bg-white border border-[#D2E3F7] text-[#0B2A5B] rounded-full shadow-md transition-all ${
+                currentIndex >= participantRankings.length - cardsToShow
+                  ? 'opacity-40 cursor-not-allowed'
+                  : 'hover:bg-[#0A84FE] hover:text-white hover:border-[#0A84FE]'
+              }`}
               disabled={currentIndex >= participantRankings.length - cardsToShow}
             >
-              <ChevronRight className="w-6 h-6" />
+              <ChevronRight className="w-5 h-5" />
             </button>
           </div>
-        </div>
-      </div>
-      <br></br>
-      {/* 이벤트 랭킹 섹션 */}
-      <div className="bg-white rounded-xl p-3 md:p-6 shadow-sm">
-        <div className="flex justify-between items-center mb-2">
-          <h1 className="text-3xl font-medium">이벤트 랭킹</h1>
-        </div>
-        <p className="text-gray-500 mb-4">
-          종료된 이벤트를 정렬하여 상위 20개만 표시됩니다.
-        </p>
-        <br></br>
-        <div className="space-y-4 md:space-y-6"> {/* 간격 늘림 */}
-          {eventRankings.slice(0, 20).map((event) => (
-            <div 
-              key={event.id} 
-              className="border border-gray-200 rounded-lg overflow-hidden bg-white cursor-pointer hover:border-[#0A84FE] transition-colors shadow-sm text-sm md:text-base" 
-              onClick={() => window.location.href = `/ranking/${event.eventId}`}
-            >
-              <div className="relative">
-                {/* 랭킹 번호 - 리본 스타일 */}
-                <div className="absolute top-0 left-0 z-10">
-                  <div className="relative">
-                    <svg width="35" height="50" viewBox="0 0 60 80" className="fill-[#0A84FE]">
-                      <polygon points="0,0 60,0 60,60 30,80 0,60" />
-                    </svg>
-                    <div className="absolute top-0 left-0 w-full h-3/4 flex justify-center items-center text-white font-medium text-lg">
-                      {event.id} {/* 랭킹 표시용 id 사용 */}
+        </section>
+
+        {/* 이벤트 랭킹 섹션 */}
+        <section className="bg-white rounded-3xl p-4 md:p-7 border border-[#E5EFFB] shadow-[0_8px_28px_rgba(10,48,102,0.06)]">
+          <div className="mb-5">
+            <h2 className="text-xl md:text-2xl font-bold text-[#0B2A5B] mb-1">이벤트 랭킹</h2>
+            <p className="text-[#516278] text-xs md:text-sm">
+              종료된 이벤트를 평점과 참가율 기준으로 정렬하여 상위 20개를 표시합니다.
+            </p>
+          </div>
+
+          <div className="space-y-4 md:space-y-5">
+            {eventRankings.slice(0, 20).map((event) => (
+              <article
+                key={event.eventId || event.id}
+                className="group border border-[#E5EFFB] rounded-2xl overflow-hidden bg-white cursor-pointer hover:border-[#0A84FE] hover:-translate-y-0.5 hover:shadow-[0_12px_28px_rgba(10,132,254,0.14)] transition-all"
+                onClick={() => (window.location.href = `/ranking/${event.eventId}`)}
+              >
+                <div className="relative bg-[#EEF6FF]">
+                  {/* 랭킹 번호 리본 */}
+                  <div className="absolute top-0 left-3 z-10">
+                    <div className="relative">
+                      <svg width="36" height="48" viewBox="0 0 60 80" className="fill-[#0A84FE] drop-shadow">
+                        <polygon points="0,0 60,0 60,60 30,80 0,60" />
+                      </svg>
+                      <div className="absolute inset-0 flex justify-center items-center text-white font-bold text-base tabular-nums pb-2">
+                        {event.id}
+                      </div>
                     </div>
                   </div>
+
+                  <img
+                    src={event.image}
+                    alt={event.title}
+                    onError={(e) => {
+                      e.currentTarget.src = '/images/Basic_Event_Image.png';
+                    }}
+                    className="w-full h-40 md:h-52 object-cover block group-hover:scale-[1.02] transition-transform duration-300"
+                  />
                 </div>
-                
-                <img 
-                  src={event.image} 
-                  alt={event.title}
-                  className="w-full h-32 md:h-48 object-cover" // 모바일에서 높이 조정
-                />
-              </div>
-              
-              <div className="p-3 md:p-5"> {/* 패딩 증가 */}
-                <div className="flex flex-col md:flex-row justify-between items-start gap-1 md:gap-2">
-                  <h3 className="text-lg md:text-2xl font-bold line-clamp-1">{event.title}</h3>
-                  <p className="text-gray-500 text-xs md:text-base">{event.date}</p>
-                </div>
-                
-                <div className="flex justify-between items-center my-1 md:my-2">
-                  <p className="text-black-600 text-xs md:text-base">참가율 : {event.participation}</p>
-                  <div className="flex items-center">
-                    <Star className="w-4 h-4 md:w-5 md:h-5 fill-yellow-400 stroke-yellow-400" />
-                    <span className="font-medium mx-1 text-xs md:text-base">{event.rating}</span>
-                    <span className="text-gray-500 text-xs md:text-sm">({event.ratingCount})</span>
+
+                <div className="p-4 md:p-5">
+                  <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-1 mb-2">
+                    <h3 className="text-lg md:text-xl font-bold text-[#0B192C] line-clamp-1 group-hover:text-[#0A84FE] transition-colors">
+                      {event.title}
+                    </h3>
+                    <span className="text-[#64748B] text-xs md:text-sm whitespace-nowrap tabular-nums">
+                      {event.date}
+                    </span>
+                  </div>
+
+                  <div className="flex justify-between items-center gap-2 mb-3">
+                    <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-[#EEF6FF] text-[#005EC4] text-xs md:text-sm font-semibold tabular-nums">
+                      참가율 {event.participation}
+                    </span>
+                    <div className="flex items-center gap-1 tabular-nums">
+                      <Star className="w-4 h-4 fill-amber-400 stroke-amber-400" />
+                      <span className="font-bold text-sm md:text-base text-[#0B192C]">
+                        {Number(event.rating).toFixed(1)}
+                      </span>
+                      <span className="text-[#64748B] text-xs md:text-sm">({event.ratingCount})</span>
+                    </div>
+                  </div>
+
+                  <p className="text-[#516278] text-xs md:text-sm leading-relaxed line-clamp-2 mb-3">
+                    {event.description}
+                  </p>
+
+                  <div className="flex justify-end items-baseline gap-2 pt-2.5 border-t border-[#EEF5FD]">
+                    <span className="text-xs md:text-sm text-[#64748B] font-medium">참가비</span>
+                    <span className="text-lg md:text-2xl font-bold text-[#0A84FE] tabular-nums">
+                      {event.price}
+                    </span>
                   </div>
                 </div>
-                
-                <p className="text-gray-700 my-1 md:my-3 line-clamp-2 text-xs md:text-base">{event.description}</p>
-                
-                <div className="flex justify-end mt-2">
-                  <p className="text-lg md:text-xl font-medium">참가비 <span className="text-2xl md:text-3xl ml-2">{event.price}</span></p>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
+              </article>
+            ))}
+          </div>
+        </section>
       </div>
     </div>
   );

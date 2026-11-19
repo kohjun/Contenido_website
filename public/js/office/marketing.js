@@ -108,8 +108,8 @@
         const name = escapeHtml(m.name || m.displayName || '이름없음');
         const phoneTail = m.phonenumber ? String(m.phonenumber).slice(-4) : '';
         return `
-          <span style="display: inline-flex; align-items: center; gap: 4px; padding: 6px 12px; background: #ffffff; color: #be185d; border: 1px solid #f472b6; border-radius: 20px; font-size: 0.85rem; font-weight: 600; box-shadow: 0 2px 6px rgba(236,72,153,0.12);">
-            🌟 ${name} ${phoneTail ? `<small style="color:#ec4899; font-weight:normal;">(${phoneTail})</small>` : ''}
+          <span style="display: inline-flex; align-items: center; gap: 4px; padding: 6px 12px; background: #ffffff; color: #005EC4; border: 1px solid #8AC5FF; border-radius: 999px; font-size: 0.84rem; font-weight: 600; box-shadow: 0 2px 6px rgba(10,132,254,0.10);">
+            ${name} ${phoneTail ? `<small style="color:#0A84FE; font-weight:normal;">(${phoneTail})</small>` : ''}
           </span>
         `;
       }).join('');
@@ -141,13 +141,13 @@
         const mId = (m._id || m.id).toString();
         const isChecked = selectedSupporterIds.has(mId);
         const name = escapeHtml(m.name || m.displayName || '이름없음');
-        const team = m.team ? `<span style="font-size: 0.76rem; color: #be185d; background: #fce7f3; padding: 2px 6px; border-radius: 4px; margin-left: 4px;">${escapeHtml(m.team)}</span>` : '';
+        const team = m.team ? `<span style="font-size: 0.76rem; color: #005EC4; background: #D8ECFF; padding: 2px 6px; border-radius: 4px; margin-left: 4px;">${escapeHtml(m.team)}</span>` : '';
         const phoneTail = m.phonenumber ? String(m.phonenumber).slice(-4) : '';
 
         return `
-          <label style="display: flex; align-items: center; gap: 8px; padding: 8px 12px; background: ${isChecked ? '#fdf2f8' : '#f8fafc'}; border: 1px solid ${isChecked ? '#f472b6' : '#e2e8f0'}; border-radius: 10px; cursor: pointer; transition: all 0.15s ease;">
-            <input type="checkbox" value="${mId}" ${isChecked ? 'checked' : ''} onchange="window.MarketingDashboard.toggleSupporterMember('${mId}', this.checked)" style="accent-color: #ec4899; width: 16px; height: 16px; cursor: pointer;">
-            <span style="font-size: 0.9rem; font-weight: 600; color: #1e293b;">${name}</span>
+          <label style="display: flex; align-items: center; gap: 8px; padding: 8px 12px; background: ${isChecked ? '#EEF6FF' : '#F8FBFF'}; border: 1px solid ${isChecked ? '#0A84FE' : '#D2E3F7'}; border-radius: 10px; cursor: pointer; transition: all 0.15s ease;">
+            <input type="checkbox" value="${mId}" ${isChecked ? 'checked' : ''} onchange="window.MarketingDashboard.toggleSupporterMember('${mId}', this.checked)" style="accent-color: #0A84FE; width: 16px; height: 16px; cursor: pointer;">
+            <span style="font-size: 0.9rem; font-weight: 600; color: #0B192C;">${name}</span>
             ${phoneTail ? `<span style="font-size: 0.8rem; color: #94a3b8;">(${phoneTail})</span>` : ''}
             ${team}
           </label>
@@ -571,14 +571,14 @@
         summaryEl.innerHTML = '<span style="font-size: 0.88rem; color: #94a3b8;">등록된 활성 부원이 없습니다.</span>';
       } else {
         let pillsHtml = `
-          <button type="button" onclick="window.MarketingDashboard.selectUnivFilter('all')" class="univ-pill-btn active" data-univ="all" style="padding: 4px 12px; border-radius: 20px; border: 1px solid #ec4899; background: #ec4899; color: #fff; font-size: 0.82rem; font-weight: 700; cursor: pointer;">
+          <button type="button" onclick="window.MarketingDashboard.selectUnivFilter('all')" class="univ-pill-btn active" data-univ="all" style="padding: 5px 12px; border-radius: 999px; border: 1px solid #0A84FE; background: #0A84FE; color: #fff; font-size: 0.82rem; font-weight: 700; cursor: pointer;">
             전체 (${activeMembers.length}명)
           </button>
         `;
         sortedUnivs.forEach(u => {
           const count = univCounts[u];
           pillsHtml += `
-            <button type="button" onclick="window.MarketingDashboard.selectUnivFilter('${escapeHtml(u)}')" class="univ-pill-btn" data-univ="${escapeHtml(u)}" style="padding: 4px 12px; border-radius: 20px; border: 1px solid #fbcfe8; background: #ffffff; color: #9d174d; font-size: 0.82rem; font-weight: 600; cursor: pointer;">
+            <button type="button" onclick="window.MarketingDashboard.selectUnivFilter('${escapeHtml(u)}')" class="univ-pill-btn" data-univ="${escapeHtml(u)}" style="padding: 5px 12px; border-radius: 999px; border: 1px solid #B4D9FF; background: #ffffff; color: #0B2A5B; font-size: 0.82rem; font-weight: 600; cursor: pointer;">
               ${escapeHtml(u)} (${count}명)
             </button>
           `;
@@ -714,13 +714,13 @@
     document.querySelectorAll('.univ-pill-btn').forEach(btn => {
       const u = btn.dataset.univ;
       if (u === univName) {
-        btn.style.background = '#ec4899';
+        btn.style.background = '#0A84FE';
         btn.style.color = '#ffffff';
-        btn.style.borderColor = '#ec4899';
+        btn.style.borderColor = '#0A84FE';
       } else {
         btn.style.background = '#ffffff';
-        btn.style.color = '#9d174d';
-        btn.style.borderColor = '#fbcfe8';
+        btn.style.color = '#0B2A5B';
+        btn.style.borderColor = '#B4D9FF';
       }
     });
 

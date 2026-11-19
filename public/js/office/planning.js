@@ -457,8 +457,8 @@
         const name = escapeHTML(m.name || m.displayName || '이름없음');
         const phoneTail = m.phonenumber ? String(m.phonenumber).slice(-4) : '';
         return `
-          <span style="display: inline-flex; align-items: center; gap: 4px; padding: 6px 12px; background: #ffffff; color: #b45309; border: 1px solid #f59e0b; border-radius: 20px; font-size: 0.85rem; font-weight: 600; box-shadow: 0 2px 6px rgba(245,158,11,0.12);">
-            ⭐ ${name} ${phoneTail ? `<small style="color:#d97706; font-weight:normal;">(${phoneTail})</small>` : ''}
+          <span style="display: inline-flex; align-items: center; gap: 4px; padding: 6px 12px; background: #ffffff; color: #005EC4; border: 1px solid #8AC5FF; border-radius: 999px; font-size: 0.84rem; font-weight: 600; box-shadow: 0 2px 6px rgba(10,132,254,0.10);">
+            ${name} ${phoneTail ? `<small style="color:#0A84FE; font-weight:normal;">(${phoneTail})</small>` : ''}
           </span>
         `;
       }).join('');
@@ -488,13 +488,13 @@
         const mId = (m._id || m.id).toString();
         const isChecked = selectedStarterStaffIds.has(mId);
         const name = escapeHTML(m.name || m.displayName || '이름없음');
-        const team = m.team ? `<span style="font-size: 0.76rem; color: #b45309; background: #fef3c7; padding: 2px 6px; border-radius: 4px; margin-left: 4px;">${escapeHTML(m.team)}</span>` : '';
+        const team = m.team ? `<span style="font-size: 0.76rem; color: #005EC4; background: #D8ECFF; padding: 2px 6px; border-radius: 4px; margin-left: 4px;">${escapeHTML(m.team)}</span>` : '';
         const phoneTail = m.phonenumber ? String(m.phonenumber).slice(-4) : '';
 
         return `
-          <label style="display: flex; align-items: center; gap: 8px; padding: 8px 12px; background: ${isChecked ? '#fffbeb' : '#f8fafc'}; border: 1px solid ${isChecked ? '#f59e0b' : '#e2e8f0'}; border-radius: 10px; cursor: pointer; transition: all 0.15s ease;">
-            <input type="checkbox" value="${mId}" ${isChecked ? 'checked' : ''} onchange="window.PlanningDashboard.toggleStarterMember('${mId}', this.checked)" style="accent-color: #f59e0b; width: 16px; height: 16px; cursor: pointer;">
-            <span style="font-size: 0.9rem; font-weight: 600; color: #1e293b;">${name}</span>
+          <label style="display: flex; align-items: center; gap: 8px; padding: 8px 12px; background: ${isChecked ? '#EEF6FF' : '#F8FBFF'}; border: 1px solid ${isChecked ? '#0A84FE' : '#D2E3F7'}; border-radius: 10px; cursor: pointer; transition: all 0.15s ease;">
+            <input type="checkbox" value="${mId}" ${isChecked ? 'checked' : ''} onchange="window.PlanningDashboard.toggleStarterMember('${mId}', this.checked)" style="accent-color: #0A84FE; width: 16px; height: 16px; cursor: pointer;">
+            <span style="font-size: 0.9rem; font-weight: 600; color: #0B192C;">${name}</span>
             ${phoneTail ? `<span style="font-size: 0.8rem; color: #94a3b8;">(${phoneTail})</span>` : ''}
             ${team}
           </label>

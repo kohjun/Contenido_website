@@ -242,7 +242,7 @@ const Archives = () => {
             <span className="badge-today">TODAY</span>
           </div>
           {loadingInitial && recentEvents.length === 0 ? (
-            <div style={{ padding: '20px', color: 'rgba(255,255,255,0.6)', fontSize: '13px', textAlign: 'center' }}>
+            <div style={{ padding: '20px', color: C.soft, fontSize: '13px', textAlign: 'center' }}>
               불러오는 중...
             </div>
           ) : (

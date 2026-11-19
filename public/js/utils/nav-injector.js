@@ -1,1286 +1,1319 @@
+// public/js/utils/nav-injector.js
 // 인증 모듈 — 실인증 (AUTH_MODE=real 일 때 백엔드와 연동, dummy 모드에서도 /user/info가 더미를 반환하므로 호환)
 const AuthModule = {
-    /** 토큰/세션 유효성 검사 (/user/info 200 여부) */
-    verifyToken: async function() {
-      try {
-        const res = await fetch('/user/info', { credentials: 'include' });
-        return res.ok;
-      } catch (e) {
-        return false;
-      }
-    },
-
-    /** 로그인 페이지(/login.html)로 이동 — ID/PW + 카카오 둘 다 제공 */
-    redirectToLogin: function(showAlert = true) {
-      if (showAlert) {
-        try { alert('로그인이 필요합니다.'); } catch (e) {}
-      }
-      window.location.href = '/login.html';
-    },
-
-    /** 로그인 페이지로 이동 (nav 로그인 버튼용) */
-    goToLogin: function() {
-      window.location.href = '/login.html';
-    },
-
-    /** 인증 확인 — 미인증이면 로그인 페이지로 리다이렉트 */
-    checkAuthentication: async function() {
-      const ok = await this.verifyToken();
-      if (!ok) {
-        this.redirectToLogin(false);
-        return false;
-      }
-      return true;
-    },
-
-    /** 현재 로그인 사용자 정보 (/user/info) */
-    loadUserInfo: async function() {
-      try {
-        const res = await fetch('/user/info', { credentials: 'include' });
-        if (!res.ok) return null;
-        return await res.json();
-      } catch (e) {
-        console.error('사용자 정보 로드 실패:', e);
-        return null;
-      }
-    },
-
-    /** 로그아웃 — refresh 폐기 + 쿠키/세션 정리 후 로그인 페이지로 */
-    logout: async function(redirect = true) {
-      try {
-        await fetch('/auth/logout', { method: 'POST', credentials: 'include' });
-      } catch (e) {
-        console.error('로그아웃 요청 실패:', e);
-      }
-      try { localStorage.clear(); sessionStorage.clear(); } catch (e) {}
-      if (redirect) {
-        window.location.href = '/login.html';
-      }
-      return true;
-    },
-
-    /** 카카오 로그인 시작 (현재 페이지로 복귀) */
-    loginWithKakao: function() {
-      const ret = encodeURIComponent(window.location.origin + '/events.html');
-      window.location.href = '/auth/kakao?state=' + ret;
+  /** 토큰/세션 유효성 검사 (/user/info 200 여부) */
+  verifyToken: async function () {
+    try {
+      const res = await fetch('/user/info', { credentials: 'include' });
+      return res.ok;
+    } catch (e) {
+      return false;
     }
-  };
+  },
 
-  
-// public/js/utils/nav-injector.js
+  /** 로그인 페이지(/login.html)로 이동 — ID/PW + 카카오 둘 다 제공 */
+  redirectToLogin: function (showAlert = true) {
+    if (showAlert) {
+      try { alert('로그인이 필요합니다.'); } catch (e) {}
+    }
+    window.location.href = '/login.html';
+  },
 
-//인증 모듈 먼저 정의
-// const AuthModule = {
-//     /**
-//      * 인증 토큰 유효성 검사
-//      * @returns {Promise<boolean>} 토큰 유효 여부
-//      */
-//     verifyToken: async function() {
-//       try {
-//         console.log('토큰 유효성 검사');
-//         const response = await fetch('/auth/check-token');
-//         const data = await response.json();
-        
-//         if (!data.isValid) {
-//           console.log('인증 토큰이 유효하지 않음');
-          
-//           if (data.reason === 'session_mismatch') {
-//             console.log('세션과 토큰 불일치, 세션 초기화 필요');
-//             // 세션 초기화를 위한 로그아웃 처리
-//             await this.logout(false); // 페이지 리다이렉트 없이 로그아웃만 처리
-//           }
-          
-//           return false;
-//         }
-//         console.log('토큰 유효성 확인 완료');
-//         return true;
-//       } catch (error) {
-//         console.error('토큰 검증 실패:', error);
-//         return false;
-//       }
-//     },
-  
-//     /**
-//      * 로그인 필요 시 로그인 페이지로 리다이렉트
-//      * @param {boolean} showAlert 알림 표시 여부 (선택사항, 기본값: true)
-//      */
-//     redirectToLogin: function(showAlert = true) {
-//       if (showAlert) {
-//         alert('로그인이 필요합니다.');
-//       }
-//       // 현재 URL을 state 파라미터로 전달하여 카카오 로그인으로 리디렉션
-//       const currentUrl = encodeURIComponent(window.location.href);
-//       window.location.href = `/auth/kakao?state=${currentUrl}`;
-//     },
-  
-//     /**
-//      * 인증 상태 확인 및 미인증 시 로그인 페이지로 리다이렉트
-//      * @returns {Promise<boolean>} 인증 여부
-//      */
-//     checkAuthentication: async function() {
-//       const isTokenValid = await this.verifyToken();
-//       if (!isTokenValid) {
-//         this.redirectToLogin();
-//         return false;
-//       }
-//       return true;
-//     },
-  
-//     /**
-//      * 현재 로그인한 사용자 정보 로드
-//      * @returns {Promise<Object|null>} 사용자 정보 객체 또는 실패 시 null
-//      */
-//     loadUserInfo: async function() {
-//       try {
-//         console.log('사용자 정보 로드 시도');
-//         const response = await fetch('/user/info');
-//         if (!response.ok) {
-//           throw new Error('사용자 정보를 가져올 수 없습니다.');
-//         }
-        
-//         const user = await response.json();
-//         console.log(`로그인된 사용자: ${user.nickname}, ID: ${user.id}`);
-//         return user;
-//       } catch (error) {
-//         console.error('사용자 정보 로드 실패:', error);
-//         return null;
-//       }
-//     },
-  
-//     /**
-//      * 사용자 로그아웃 처리
-//      * @param {boolean} redirect 로그아웃 후 메인 페이지로 리다이렉트 여부 (선택사항, 기본값: true)
-//      * @returns {Promise<boolean>} 로그아웃 성공 여부
-//      */
-//     logout: async function(redirect = true) {
-//       try {
-//         console.log('로그아웃 시도');
-//         const response = await fetch('/auth/logout', {
-//           method: 'GET',
-//           credentials: 'include'
-//         });
-  
-//         if (response.ok) {
-//           // 로컬 스토리지/세션 스토리지 클리어
-//           localStorage.clear();
-//           sessionStorage.clear();
-          
-//           console.log('로그아웃 성공');
-          
-//           if (redirect) {
-//             window.location.href = '/index.html';
-//           }
-//           return true;
-//         } else {
-//           console.error('로그아웃 실패');
-//           if (redirect) {
-//             alert('로그아웃 처리 중 오류가 발생했습니다.');
-//           }
-//           return false;
-//         }
-//       } catch (error) {
-//         console.error('로그아웃 에러:', error);
-//         if (redirect) {
-//           alert('로그아웃 처리 중 오류가 발생했습니다.');
-//         }
-//         return false;
-//       }
-//     },
-  
-//     /**
-//      * 카카오 로그인 실행
-//      */
-//     loginWithKakao: async function() {
-//         try {
-//           console.log('카카오 로그인 시도');
-          
-//           // 서버의 TokenService를 이용한 토큰 검증 요청
-//           const response = await fetch('/auth/check-token', {
-//             method: 'GET',
-//             credentials: 'include', // 쿠키 포함
-//             headers: {
-//                 'Accept': 'application/json',
-//                 'Content-Type': 'application/json'
-//             }
-//           });
-      
-//           const data = await response.json();
-          
-//           if (data.isValid) {
-//             // 토큰이 유효하면 메인 페이지로 리디렉션
-//             console.log('유효한 토큰이 있음, 메인 페이지로 이동');
-//             window.location.href = '/';
-//           } else {
-//             // 토큰/세션 불일치 감지 시 로그아웃 처리 후 로그인
-//             if (data.reason === 'session_mismatch') {
-//               console.log('세션과 토큰 불일치 감지, 재로그인 필요');
-//               // 로그아웃 처리 (리디렉션 없이)
-//               await fetch('/auth/logout', {
-//                 method: 'GET',
-//                 credentials: 'include'
-//               });
-//             }
-            
-//             // 카카오 로그인으로 리디렉션
-//             console.log('카카오 로그인으로 이동');
-//             const currentUrl = encodeURIComponent(window.location.pathname + window.location.search);
-//             window.location.href = `/auth/kakao?state=${currentUrl}`;
-//           }
-//         } catch (error) {
-//           console.error('토큰 검증 실패:', error);
-//           // 오류 발생 시 카카오 로그인으로 리디렉션
-//           const currentUrl = encodeURIComponent(window.location.pathname + window.location.search);
-//           window.location.href = `/auth/kakao?state=${currentUrl}`;
-//         }
-//       }
-//   };
+  /** 로그인 페이지로 이동 (nav 로그인 버튼용) */
+  goToLogin: function () {
+    window.location.href = '/login.html';
+  },
 
+  /** 인증 확인 — 미인증이면 로그인 페이지로 리다이렉트 */
+  checkAuthentication: async function () {
+    const ok = await this.verifyToken();
+    if (!ok) {
+      this.redirectToLogin(false);
+      return false;
+    }
+    return true;
+  },
 
+  /** 현재 로그인 사용자 정보 (/user/info) */
+  loadUserInfo: async function () {
+    try {
+      const res = await fetch('/user/info', { credentials: 'include' });
+      if (!res.ok) return null;
+      return await res.json();
+    } catch (e) {
+      console.error('사용자 정보 로드 실패:', e);
+      return null;
+    }
+  },
 
+  /** 로그아웃 — refresh 폐기 + 쿠키/세션 정리 후 로그인 페이지로 */
+  logout: async function (redirect = true) {
+    try {
+      await fetch('/auth/logout', { method: 'POST', credentials: 'include' });
+    } catch (e) {
+      console.error('로그아웃 요청 실패:', e);
+    }
+    try { localStorage.clear(); sessionStorage.clear(); } catch (e) {}
+    if (redirect) {
+      window.location.href = '/login.html';
+    }
+    return true;
+  },
 
-
-
-  // 다른 페이지에서 import할 수 있도록 전역 객체에 등록
-  window.AuthModule = AuthModule;
-  
-  const navStyles = `
-  .container {
-      position: relative;
-      width: 100%;
-      max-width: 750px;
-      margin: 0 auto;
-      padding: 1rem;
-      background: #fff;
-      border-radius: 12px;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-      min-height: calc(100vh - 70px - 65px);
-      box-sizing: border-box;
-      padding-bottom: 60px;
-      padding-top: 70px;
+  /** 카카오 로그인 시작 (현재 페이지로 복귀) */
+  loginWithKakao: function () {
+    const ret = encodeURIComponent(window.location.origin + '/events.html');
+    window.location.href = '/auth/kakao?state=' + ret;
   }
-  
-  .sidebar {
-      position: fixed;
-      top: 0;
-      left: -290px;
-      width: 260px;
-      height: 100%;
-      background-color: white;
-      box-shadow: 2px 0 16px rgba(15, 23, 42, 0.12);
-      transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      z-index: 1001;
-      padding: 56px 24px 24px;
-      overflow-y: auto;
-      box-sizing: border-box;
+};
+
+window.AuthModule = AuthModule;
+
+/* ── Ensure global Design System & Speculation Rules (modern-web-guidance) ── */
+(function bootstrapModernPlatform() {
+  if (!document.querySelector('link[href*="design-system.css"]')) {
+    const ds = document.createElement('link');
+    ds.rel = 'stylesheet';
+    ds.href = '/css/design-system.css?v=20261119';
+    document.head.prepend(ds);
   }
 
-  /* 닫기 버튼 (우상단) */
-  .sidebar-close {
-      position: absolute;
-      top: 12px;
-      right: 12px;
-      width: 36px;
-      height: 36px;
-      border-radius: 50%;
-      border: none;
-      background: rgba(10, 132, 254, 0.08);
-      color: #0A84FE;
-      font-size: 22px;
-      line-height: 1;
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      transition: background 0.18s ease, transform 0.18s ease;
+  if (
+    typeof HTMLScriptElement !== 'undefined' &&
+    HTMLScriptElement.supports &&
+    HTMLScriptElement.supports('speculationrules') &&
+    !document.querySelector('script[type="speculationrules"]')
+  ) {
+    const spec = document.createElement('script');
+    spec.type = 'speculationrules';
+    spec.textContent = JSON.stringify({
+      prefetch: [
+        {
+          where: {
+            and: [
+              { href_matches: '/*' },
+              { not: { href_matches: '/auth/*' } },
+              { not: { href_matches: '/office*' } },
+              { not: { href_matches: '/logout*' } },
+              { not: { selector_matches: '[data-no-prefetch]' } }
+            ]
+          },
+          eagerness: 'moderate'
+        }
+      ]
+    });
+    document.head.appendChild(spec);
   }
-  .sidebar-close:hover {
-      background: #0A84FE;
-      color: #fff;
-      transform: scale(1.05);
-  }
-  .sidebar-close:active { transform: scale(0.95); }
+})();
 
-  /* 배경 dim (사이드바 열렸을 때) */
-  .sidebar-backdrop {
-      position: fixed;
-      inset: 0;
-      background: rgba(15, 23, 42, 0.4);
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 0.3s ease;
-      z-index: 1000;
-  }
-  .sidebar.is-open ~ .sidebar-backdrop,
-  body.sidebar-open .sidebar-backdrop {
-      opacity: 1;
-      pointer-events: auto;
-  }
+const NAV_ICONS = {
+  bell: '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>',
+  menu: '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="4" y1="7" x2="20" y2="7"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="17" x2="20" y2="17"/></svg>',
+  home: '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10.5L12 3l9 7.5"/><path d="M5 9.5V20a1 1 0 0 0 1 1h4.5v-6h3v6H18a1 1 0 0 0 1-1V9.5"/></svg>',
+  user: '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4.5 20.5a7.5 7.5 0 0 1 15 0"/></svg>',
+  close: '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>',
+  chevronDown: '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>',
+  office: '<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/></svg>',
+  events: '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2l2.4 4.86L20 7.7l-4 3.9.94 5.5L12 14.5l-4.94 2.6.94-5.5-4-3.9 5.6-.84L12 2z"/></svg>',
+  ended: '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15.5 14"/></svg>',
+  calendar: '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2.5"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>',
+  ranking: '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2z"/></svg>',
+  manage: '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>',
+  community: '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>',
+  rules: '<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>',
+  partner: '<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>',
+  logout: '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>'
+};
 
-  .sidebar-content {
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-  }
+const navStyles = `
+/* Zero-specificity fallback for pages without custom .container styling */
+:where(.container) {
+  position: relative;
+  width: 100%;
+  max-width: 780px;
+  margin: 0 auto;
+  padding: calc(var(--nav-top-h, 64px) + 16px) 20px calc(var(--nav-bottom-h, 66px) + 28px);
+  background: var(--c-surface, #FFFFFF);
+  border-radius: 0;
+  min-height: 100dvh;
+  box-sizing: border-box;
+}
 
-  .sidebar h3 {
-      font-size: 17px;
-      margin: 18px 0 8px;
-      font-weight: 700;
-      color: #0A84FE;
-      letter-spacing: -0.01em;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-  }
-  .sidebar h3::before {
-      content: '';
-      width: 3px;
-      height: 16px;
-      background: #0A84FE;
-      border-radius: 2px;
-  }
+/* ── Top Navigation Bar ── */
+.custom-top-nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: var(--nav-top-h, 64px);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
+  background: var(--c-surface-glass, rgba(255, 255, 255, 0.88));
+  backdrop-filter: blur(16px) saturate(1.4);
+  -webkit-backdrop-filter: blur(16px) saturate(1.4);
+  border-bottom: 1px solid var(--c-border, #DCE7F5);
+  box-shadow: 0 1px 10px rgba(12, 30, 56, 0.04);
+  z-index: 1000;
+  view-transition-name: contenido-top-nav;
+}
 
-  .sidebar ul {
-      list-style: none;
-      padding: 0;
-      margin: 4px 0 12px;
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
-  }
+.nav-title {
+  font-family: var(--ff-base, 'GmarketSansMedium', sans-serif);
+  font-size: 1.35rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: var(--c-brand, #0A84FE);
+  cursor: pointer;
+  margin: 0;
+  padding: 6px 4px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  line-height: 1;
+  user-select: none;
+  transition: opacity var(--t-fast, 150ms) var(--ease, ease), translate var(--t-fast, 150ms) var(--ease, ease);
+}
 
-  .sidebar li {
-      margin: 0;
-      font-size: 14.5px;
-      padding-left: 11px;
-  }
+.nav-title::before {
+  content: '';
+  width: 9px;
+  height: 9px;
+  border-radius: 3px;
+  background: linear-gradient(135deg, var(--brand-400, #4AA4FE), var(--brand-600, #056DE0));
+  box-shadow: 0 2px 6px rgba(10, 132, 254, 0.35);
+  flex-shrink: 0;
+}
 
-  .sidebar a {
-      text-decoration: none;
-      color: #0875E0 !important;
-      transition: color 0.18s ease, background-color 0.18s ease, transform 0.18s ease;
-      display: inline-block;
-      padding: 7px 12px;
-      border-radius: 8px;
-      font-weight: 500;
-  }
-  .sidebar a:hover {
-      color: #ffffff !important;
-      background-color: #0A84FE;
-      transform: translateX(2px);
-  }
-  /* h3를 감싼 a는 padding/배경 제거 */
-  .sidebar-content > a {
-      padding: 0;
-      background: none !important;
-  }
-  .sidebar-content > a:hover {
-      background: none !important;
-      transform: none;
-  }
-  .sidebar-content > a:hover h3 {
-      color: #0875E0;
-      opacity: 0.85;
-  }
+.nav-title:hover {
+  opacity: 0.84;
+}
 
-  @media (max-width: 480px) {
-      .sidebar {
-          width: min(82vw, 280px);
-          padding: 56px 18px 20px;
-      }
-      .sidebar h3 { font-size: 16px; margin: 14px 0 6px; }
-      .sidebar li { font-size: 14px; padding-left: 8px; }
-      .sidebar a { padding: 8px 12px; }
-  }
-  
-  .custom-top-nav {
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 10px 18px;
-      height: 64px;
-      background-color: rgba(255, 255, 255, 0.92);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      border-bottom: 1px solid rgba(10, 132, 254, 0.08);
-      box-shadow: 0 1px 8px rgba(15, 23, 42, 0.04);
-      z-index: 1000;
-  }
+.nav-title:active {
+  scale: 0.98;
+}
 
-  .top-right-actions {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-  }
+.top-right-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
 
-  .top-icon-btn {
-      background: rgba(10, 132, 254, 0.08);
-      color: #0A84FE;
-      border: none;
-      width: 40px;
-      height: 40px;
-      border-radius: 10px;
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      padding: 0;
-      transition: background-color 0.18s ease, transform 0.18s ease;
-  }
-  .top-icon-btn:hover {
-      background-color: rgba(10, 132, 254, 0.18);
-      transform: scale(1.05);
-  }
-  .top-icon-btn:active {
-      transform: scale(0.96);
-  }
-  .top-icon-btn .custom-nav-icon {
-      font-size: 20px;
-      line-height: 1;
-  }
+.top-icon-btn {
+  background: var(--brand-50, #F0F7FF);
+  color: var(--c-brand, #0A84FE);
+  border: 1px solid var(--brand-100, #DEEEFF);
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  position: relative;
+  transition: background-color var(--t-fast, 150ms) var(--ease, ease),
+              border-color var(--t-fast, 150ms) var(--ease, ease),
+              scale var(--t-fast, 150ms) var(--ease-spring, ease);
+}
 
-  /* ===== 알림 (종 + 뱃지 + 드롭다운) ===== */
-  .notif-wrap { position: relative; display: inline-flex; }
-  .notif-wrap .top-icon-btn { position: relative; }
-  .notif-badge {
-      position: absolute; top: -3px; right: -3px;
-      min-width: 16px; height: 16px; padding: 0 4px; box-sizing: border-box;
-      background: #EF4444; color: #fff;
-      font-size: 10px; font-weight: 700; line-height: 16px; text-align: center;
-      border-radius: 999px; box-shadow: 0 0 0 2px #fff;
-  }
-  .notif-panel {
-      position: absolute; top: calc(100% + 8px); right: 0;
-      width: 320px; max-height: 440px; overflow-y: auto;
-      background: #fff; border: 1px solid #E5E7EB; border-radius: 14px;
-      box-shadow: 0 12px 32px rgba(15,23,42,0.16);
-      display: none; z-index: 2000;
-  }
-  .notif-panel.show { display: block; }
-  .notif-panel-header {
-      display: flex; justify-content: space-between; align-items: center;
-      padding: 13px 16px; border-bottom: 1px solid #F1F1F1;
-      font-weight: 700; font-size: 0.92rem; color: #1F2937;
-      position: sticky; top: 0; background: #fff;
-  }
-  .notif-readall { background: none; border: none; color: #0A84FE; font-size: 12px; font-weight: 600; cursor: pointer; }
-  .notif-list { list-style: none; margin: 0; padding: 0; }
-  .notif-item { padding: 12px 16px; border-bottom: 1px solid #F4F4F5; cursor: pointer; transition: background .15s; }
-  .notif-item:last-child { border-bottom: none; }
-  .notif-item:hover { background: #F8FAFC; }
-  .notif-item.unread { background: rgba(10,132,254,0.06); }
-  .notif-item.unread .notif-title { font-weight: 700; }
-  .notif-title { font-size: 0.88rem; color: #1F2937; line-height: 1.4; }
-  .notif-time { font-size: 11px; color: #9CA3AF; margin-top: 4px; }
-  .notif-empty { padding: 32px 16px; text-align: center; color: #9CA3AF; font-size: 0.85rem; }
-  /* 모바일: 화면에 잘리지 않도록 뷰포트 고정 시트로 — 상단 네비 아래 가로 꽉 채움 */
-  @media (max-width: 480px) {
-      .notif-panel {
-          position: fixed;
-          top: 66px; left: 12px; right: 12px;
-          width: auto; max-width: none;
-          max-height: calc(100vh - 84px);
-          border-radius: 16px;
-      }
-  }
+.top-icon-btn:hover {
+  background: var(--brand-100, #DEEEFF);
+  border-color: var(--brand-200, #BBDDFD);
+  scale: 1.04;
+}
 
-  /* (legacy) 옛 .toggle-btn은 더 이상 top nav에서 사용 안 함 */
-  .toggle-btn {
-      display: none;
-  }
+.top-icon-btn:active {
+  scale: 0.95;
+}
 
-  .custom-bottom-nav {
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      height: 64px;
-      background-color: rgba(255, 255, 255, 0.94);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      display: flex;
-      justify-content: space-around;
-      align-items: center;
-      border-top: 1px solid rgba(10, 132, 254, 0.08);
-      box-shadow: 0 -2px 14px rgba(15, 23, 42, 0.05);
-      z-index: 1000;
-      padding-bottom: env(safe-area-inset-bottom);
-  }
+.top-icon-btn .custom-nav-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-style: normal;
+  line-height: 1;
+}
 
-  .custom-nav-button {
-      flex: 1;
-      height: 100%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border: none;
-      background: none;
-      padding: 0;
-      cursor: pointer;
-      position: relative;
-      transition: transform 0.18s ease;
-  }
-  .custom-nav-button::before {
-      content: '';
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%) scale(0);
-      width: 44px;
-      height: 44px;
-      border-radius: 50%;
-      background: rgba(10, 132, 254, 0.08);
-      transition: transform 0.18s ease, background-color 0.18s ease;
-      z-index: 0;
-  }
-  .custom-nav-button:hover::before {
-      transform: translate(-50%, -50%) scale(1);
-  }
-  .custom-nav-button:active::before {
-      background: rgba(10, 132, 254, 0.18);
-  }
-  .custom-nav-button:active .custom-nav-icon {
-      transform: scale(0.92);
-  }
+/* ── Notifications Popover ── */
+.notif-wrap {
+  position: relative;
+  display: inline-flex;
+}
 
-  .custom-nav-icon {
-      font-size: 26px;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      position: relative;
-      z-index: 1;
-      transition: transform 0.18s ease;
-      line-height: 1;
-  }
+.notif-badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  box-sizing: border-box;
+  background: var(--c-danger, #E11D48);
+  color: #FFFFFF;
+  font-size: 10px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  line-height: 18px;
+  text-align: center;
+  border-radius: 999px;
+  box-shadow: 0 0 0 2px #FFFFFF;
+}
 
-  /* 하단 네비 메뉴(햄버거) — 3개 바를 가지런하게, 시그니처색(#0A84FE) 고정 */
-  .custom-nav-icon--menu {
-      width: 26px; height: 26px;
-  }
-  .custom-nav-icon--menu .hamburger {
-      position: relative; display: block;
-      width: 22px; height: 2.5px; border-radius: 2px;
-      background: #0A84FE;
-  }
-  .custom-nav-icon--menu .hamburger::before,
-  .custom-nav-icon--menu .hamburger::after {
-      content: ''; position: absolute; left: 0;
-      width: 22px; height: 2.5px; border-radius: 2px;
-      background: #0A84FE;
-  }
-  .custom-nav-icon--menu .hamburger::before { top: -6.5px; }
-  .custom-nav-icon--menu .hamburger::after  { top: 6.5px; }
+.notif-panel {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  width: 332px;
+  max-height: 440px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  background: var(--c-surface, #FFFFFF);
+  border: 1px solid var(--c-border, #DCE7F5);
+  border-radius: var(--r-lg, 18px);
+  box-shadow: var(--sh-lg, 0 20px 44px rgba(12, 30, 56, 0.16));
+  z-index: 2000;
+  display: none;
+  opacity: 0;
+  translate: 0 -6px;
+  scale: 0.98;
+  transition: opacity 180ms var(--ease, ease),
+              translate 180ms var(--ease, ease),
+              scale 180ms var(--ease, ease),
+              display 180ms allow-discrete;
+}
 
-  .custom-nav-icon img {
-      width: 26px;
-      height: 26px;
-      object-fit: contain;
-  }
+.notif-panel.show {
+  display: block;
+  opacity: 1;
+  translate: 0 0;
+  scale: 1;
+}
 
-  /* 텍스트 라벨 제거 — span은 더 이상 사용 안 함 (혹시 남아있어도 숨김) */
-  .custom-nav-button span {
-      display: none;
+@starting-style {
+  .notif-panel.show {
+    opacity: 0;
+    translate: 0 -8px;
+    scale: 0.97;
   }
+}
 
-  /* CONTENIDO 텍스트 로고 (왼쪽 상단) */
-  .nav-title {
-      font-family: 'GmarketSansMedium', sans-serif;
-      font-size: 1.55rem;
-      font-weight: 700;
-      letter-spacing: 0.04em;
-      color: #0A84FE;
-      cursor: pointer;
-      margin: 0;
-      padding: 0;
-      display: inline-flex;
-      align-items: center;
-      line-height: 1;
-      transition: transform 0.18s ease, opacity 0.18s ease;
-  }
-  .nav-title:hover {
-      transform: scale(1.02);
-      opacity: 0.85;
-  }
-  .nav-title:active {
-      transform: scale(0.98);
-  }
-  @media (max-width: 768px) {
-      .top-right-actions { gap: 24px; }
-      .user-dropdown-button {
-          padding: 6px 12px;
-          font-size: 12px;
-          max-width: 180px;
-      }
-      .user-dropdown-button > span:first-child {
-          overflow: hidden;
-          text-overflow: ellipsis;
-          white-space: nowrap;
-          max-width: 140px;
-      }
-  }
-  @media (max-width: 480px) {
-      .nav-title { font-size: 1.15rem; letter-spacing: 0.03em; }
-      .custom-top-nav { padding: 10px 10px; height: 60px; }
-      .top-right-actions { gap: 20px; }
-      .top-icon-btn { width: 32px; height: 32px; }
-      .top-icon-btn .custom-nav-icon { font-size: 16px; }
+.notif-panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--c-border-subtle, #EAF1FA);
+  font-weight: 700;
+  font-size: 0.92rem;
+  color: var(--c-text, #0C1E38);
+  position: sticky;
+  top: 0;
+  background: var(--c-surface, #FFFFFF);
+  z-index: 2;
+}
 
-      .user-dropdown-button {
-          padding: 5px 10px;
-          font-size: 11px;
-          gap: 4px;
-          max-width: 140px;
-      }
-      .user-dropdown-button > span:first-child {
-          max-width: 110px;
-      }
-      .user-dropdown-button .arrow { font-size: 9px; }
+.notif-readall {
+  background: var(--brand-50, #F0F7FF);
+  border: 1px solid var(--brand-100, #DEEEFF);
+  color: var(--c-brand, #0A84FE);
+  font-size: 11.5px;
+  font-weight: 600;
+  padding: 5px 10px;
+  border-radius: var(--r-pill, 999px);
+  cursor: pointer;
+  transition: background-color 150ms ease, color 150ms ease;
+}
 
-      .user-dropdown-menu {
-          min-width: 200px;
-          max-width: calc(100vw - 24px);
-      }
-  }
-  @media (max-width: 360px) {
-      .nav-title { font-size: 1rem; }
-      .top-right-actions { gap: 16px; }
-      .top-icon-btn { width: 30px; height: 30px; }
-      .user-dropdown-button > span:first-child {
-          max-width: 90px;
-      }
-  }
-  
-  /* 로그인 영역 스타일 */
-  .auth-area {
-      position: static;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-  }
-  
-  .login-button {
-      padding: 8px 15px;
-      background-color: #0A84FE;
-      color: white;
-      width: 100px;
-      border: none;
-      border-radius: 20px;
-      font-size: 14px;
-      cursor: pointer;
-      transition: background-color 0.3s;
-  }
-  
-  .login-button:hover {
-      background-color: #0875e0;
-  }
-  
-  /* 드롭다운 관련 스타일 */
-  .user-dropdown {
-      position: relative;
-      display: inline-block;
-  }
-  
-  .user-dropdown-button {
-      display: flex;
-      align-items: center;
-      gap: 5px;
-      padding: 8px 15px;
-      background-color: #f8f9fa;
-      color: #333;
-      border: 1px solid #ddd;
-      border-radius: 20px;
-      font-size: 14px;
-      cursor: pointer;
-      transition: all 0.3s;
-      white-space: nowrap;
-  }
-  
-  .user-dropdown-button:hover {
-      background-color: #e9ecef;
-      border-color: #0A84FE;
-  }
-  
-  .user-dropdown-button .arrow {
-      font-size: 10px;
-      transition: transform 0.3s;
-  }
-  
-  .user-dropdown-button.active .arrow {
-      transform: rotate(180deg);
-  }
-  
-  .user-dropdown-menu {
-      position: absolute;
-      top: calc(100% + 5px);
-      right: 0;
-      background-color: white;
-      border: 1px solid #ddd;
-      border-radius: 12px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-      min-width: 200px;
-      display: none;
-      z-index: 1002;
-      overflow: hidden;
-  }
-  
+.notif-readall:hover {
+  background: var(--c-brand, #0A84FE);
+  color: #FFFFFF;
+}
+
+.notif-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.notif-item {
+  padding: 13px 16px;
+  border-bottom: 1px solid var(--c-border-subtle, #EAF1FA);
+  cursor: pointer;
+  transition: background-color 150ms ease;
+  position: relative;
+}
+
+.notif-item:last-child { border-bottom: none; }
+.notif-item:hover { background: var(--c-surface-2, #F2F6FC); }
+
+.notif-item.unread {
+  background: var(--brand-50, #F0F7FF);
+  padding-left: 24px;
+}
+
+.notif-item.unread::before {
+  content: '';
+  position: absolute;
+  left: 11px;
+  top: 19px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--c-brand, #0A84FE);
+}
+
+.notif-item.unread .notif-title { font-weight: 700; }
+
+.notif-title {
+  font-size: 0.86rem;
+  color: var(--c-text, #0C1E38);
+  line-height: 1.45;
+}
+
+.notif-time {
+  font-size: 11px;
+  color: var(--c-text-faint, #8CA1BC);
+  margin-top: 4px;
+  font-variant-numeric: tabular-nums;
+}
+
+.notif-empty {
+  padding: 36px 16px;
+  text-align: center;
+  color: var(--c-text-faint, #8CA1BC);
+  font-size: 0.85rem;
+}
+
+/* ── Auth Area & User Dropdown ── */
+.auth-area {
+  position: static;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.login-button {
+  height: 38px;
+  padding: 0 18px;
+  background: var(--c-brand, #0A84FE);
+  color: #FFFFFF;
+  border: none;
+  border-radius: var(--r-pill, 999px);
+  font-size: 0.86rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  box-shadow: 0 4px 12px rgba(10, 132, 254, 0.28);
+  transition: background-color 150ms ease, translate 150ms ease, box-shadow 150ms ease;
+}
+
+.login-button:hover {
+  background: var(--c-brand-strong, #056DE0);
+  translate: 0 -1px;
+  box-shadow: 0 6px 16px rgba(10, 132, 254, 0.36);
+}
+
+.user-dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+.user-dropdown-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 38px;
+  padding: 0 13px 0 14px;
+  background: var(--c-surface, #FFFFFF);
+  color: var(--c-text, #0C1E38);
+  border: 1px solid var(--c-border, #DCE7F5);
+  border-radius: var(--r-pill, 999px);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  box-shadow: var(--sh-xs, 0 1px 2px rgba(12, 30, 56, 0.04));
+  transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease;
+}
+
+.user-dropdown-button:hover,
+.user-dropdown-button.active {
+  background: var(--brand-50, #F0F7FF);
+  border-color: var(--brand-200, #BBDDFD);
+  color: var(--c-brand-deep, #0755B3);
+}
+
+.user-dropdown-button > span:first-child {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 140px;
+}
+
+.user-dropdown-button .arrow {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--c-brand, #0A84FE);
+  transition: rotate 200ms var(--ease, ease);
+}
+
+.user-dropdown-button.active .arrow {
+  rotate: 180deg;
+}
+
+.user-dropdown-menu {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  background: var(--c-surface, #FFFFFF);
+  border: 1px solid var(--c-border, #DCE7F5);
+  border-radius: var(--r-lg, 18px);
+  box-shadow: var(--sh-lg, 0 20px 44px rgba(12, 30, 56, 0.16));
+  min-width: 236px;
+  z-index: 1002;
+  overflow: hidden;
+  display: none;
+  opacity: 0;
+  translate: 0 -6px;
+  scale: 0.98;
+  transition: opacity 180ms var(--ease, ease),
+              translate 180ms var(--ease, ease),
+              scale 180ms var(--ease, ease),
+              display 180ms allow-discrete;
+}
+
+.user-dropdown-menu.show {
+  display: block;
+  opacity: 1;
+  translate: 0 0;
+  scale: 1;
+}
+
+@starting-style {
   .user-dropdown-menu.show {
-      display: block;
-      animation: fadeIn 0.2s ease;
+    opacity: 0;
+    translate: 0 -8px;
+    scale: 0.97;
   }
-  
-  @keyframes fadeIn {
-      from {
-          opacity: 0;
-          transform: translateY(-10px);
-      }
-      to {
-          opacity: 1;
-          transform: translateY(0);
-      }
-  }
-  
-  .user-dropdown-header {
-      padding: 15px;
-      border-bottom: 1px solid #eee;
-      background-color: #f8f9fa;
-  }
-  
-  .user-dropdown-name {
-      font-size: 16px;
-      font-weight: 600;
-      color: #333;
-      margin-bottom: 8px;
-  }
-  
-  .user-dropdown-stats {
-      display: flex;
-      gap: 15px;
-      font-size: 13px;
-      color: #666;
-  }
-  
-  .stat-item {
-      display: flex;
-      align-items: center;
-      gap: 5px;
-  }
-  
-  .stat-label {
-      color: #888;
-  }
-  
-  .stat-value {
-      font-weight: 600;
-      color: #0A84FE;
-  }
-  
-  .stat-value.warning {
-      color: #dc3545;
-  }
-  
-  .user-dropdown-actions {
-      padding: 8px;
-  }
-  
-  .dropdown-action-button {
-      width: 100%;
-      padding: 10px 15px;
-      background: none;
-      border: none;
-      text-align: left;
-      font-size: 14px;
-      color: #333;
-      cursor: pointer;
-      border-radius: 8px;
-      transition: background-color 0.2s;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-  }
-  
-  .dropdown-action-button:hover {
-      background-color: #f8f9fa;
-  }
-  
-  .dropdown-action-button.logout {
-      color: #dc3545;
-  }
-  
-  .dropdown-action-button.logout:hover {
-      background-color: #fff5f5;
-  }
-  
-  .user-info-nav {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-  }
-  
-  .user-name {
-      font-size: 14px;
-      width:100px;
-      font-weight: 500;
-      color: #333;
-  }
-  
-  .logout-button {
-      padding: 5px 10px;
-      background-color: #f1f1f1;
-      color: #333;
-      border: none;
-      border-radius: 15px;
-      font-size: 12px;
-      cursor: pointer;
-      transition: background-color 0.3s;
-  }
-  
-  .logout-button:hover {
-      background-color: #e0e0e0;
-  }
-  
-  .ad-banner-wrapper {
-      position: relative;
-      width: 100%;
-      height: 0;
-      z-index: 999;
-  }
-  
-  .ad-banner {
-      position: fixed;
-      top: 50%;
-      width: 160px;
-      height: 600px;
-      background: #fff;
-      border-radius: 12px;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-      padding: 1rem;
-      transform: translateY(-50%);
-      -webkit-transform: translateY(-50%);
-      -moz-transform: translateY(-50%);
-      -ms-transform: translateY(-50%);
-  }
-  
-  
-  @media (max-width: 768px) {
-      .custom-top-nav {
-          padding: 10px;
-      }
-      
-      .container {
-          padding-top: 60px;
-          padding-bottom: 55px;
-      }
-  
-      .custom-nav-icon {
-          font-size: 20px;
-      }
-      .custom-nav-icon img {
-          width: 20px;
-          height: 20px;
-      }
-      .custom-nav-button span {
-          font-size: 11px;
-      }
-      .custom-bottom-nav {
-          height: 55px;
-      }
-      .nav-title {
-          margin-top: 0;
-      }
-      .toggle-btn {
-          top: 0.5rem;
-          left: 0.5rem;
-          padding: 0.3rem;
-          width: 40px;
-          height: 35px;
-      }
-      
-      .auth-area {
-          flex-direction: row;
-          align-items: center;
-          height: 40px;
-      }
-      
-      .login-button {
-          padding: 6px 12px;
-          width: auto;
-          min-width: 70px;
-          font-size: 13px;
-          white-space: nowrap;
-      }
-      
-      .user-dropdown-button {
-          padding: 6px 12px;
-          font-size: 13px;
-      }
-      
-      .user-dropdown-menu {
-          min-width: 180px;
-      }
-      
-      .user-dropdown-name {
-          font-size: 14px;
-      }
-      
-      .user-dropdown-stats {
-          font-size: 12px;
-          gap: 10px;
-      }
-      
-      .dropdown-action-button {
-          font-size: 13px;
-          padding: 8px 12px;
-      }
-  }
-  `;
-  
-  // 사이드바 HTML
-  const sidebarHTML = `
-  <aside>
-      <div id="sidebar" class="sidebar">
-          <button class="sidebar-close" onclick="toggleSidebar()" aria-label="메뉴 닫기">×</button>
-          <div class="sidebar-content">
-              <a href="/office.html" id="staffPageLink"><h3>운영진 페이지</h3></a>
-              <a><h3>동아리 활동</h3></a>
-              <ul>
-                  <li><a href="mypage.html">마이페이지</a></li>
-                  <li><a href="events.html">진행중인 이벤트</a></li>
-                  <li><a href="ended-events.html">종료된 이벤트</a></li>
-                  <li><a href="/calendar.html">이벤트 캘린더</a></li>
-                  <li><a href="/ranking">활동 랭킹</a></li>
-                  <li><a href="/event-staff.html" id="eventStaffLink" style="display: none;">이벤트 관리</a></li>
-                  <li><a href="community.html">커뮤니티</a></li>
-              </ul>
-              <a href="/rules.html"><h3>동아리회칙 및  메뉴얼</h3></a>
-              <a href="/partnerships"><h3>협찬 및 제휴</h3></a>
-          </div>
-      </div>
-      <div class="sidebar-backdrop" onclick="toggleSidebar()"></div>
-  </aside>
-  `;
-  
-  // 상단 네비게이션 HTML — 왼쪽: CONTENIDO 텍스트 / 오른쪽: 🔔 알림 + 유저 드롭다운
-  const topNavHTML = `
-  <nav class="custom-top-nav">
-      <span class="nav-title" onclick="goHome()">CONTENIDO</span>
-      <div class="top-right-actions">
-          <div class="notif-wrap">
-              <button class="top-icon-btn" onclick="handleNotifications(event)" aria-label="알림">
-                  <i class="custom-nav-icon">🔔</i>
-                  <span class="notif-badge" id="notif-badge" hidden>0</span>
-              </button>
-              <div class="notif-panel" id="notif-panel">
-                  <div class="notif-panel-header">
-                      <span>알림</span>
-                      <button class="notif-readall" type="button" onclick="markAllNotificationsRead()">모두 읽음</button>
-                  </div>
-                  <ul class="notif-list" id="notif-list"></ul>
-                  <div class="notif-empty" id="notif-empty" hidden>새 알림이 없습니다</div>
-              </div>
-          </div>
-          <div class="auth-area" id="auth-area">
-              <!-- 로그인 버튼 또는 드롭다운은 자바스크립트로 동적 삽입 -->
-          </div>
-      </div>
-  </nav>
-  `;
+}
 
-  // 하단 네비게이션 HTML — 토글(메뉴) + 홈 + 마이
-  const bottomNavHTML = `
-  <nav class="custom-bottom-nav">
-      <button class="custom-nav-button" onclick="toggleSidebar()" aria-label="메뉴">
-          <i class="custom-nav-icon custom-nav-icon--menu"><span class="hamburger"></span></i>
-      </button>
-      <button class="custom-nav-button" onclick="goHome()" aria-label="홈">
-          <i class="custom-nav-icon"><img src="./images/Home.jpeg" alt=""></i>
-      </button>
-      <button class="custom-nav-button" onclick="handleMyPageClick(event)" aria-label="마이페이지">
-          <i class="custom-nav-icon"><img src="./images/mypage.jpeg" alt=""></i>
-      </button>
-  </nav>
-  `;
-  
-  
-  
-  // 드롭다운 토글 함수
-  function toggleUserDropdown() {
-      const button = document.querySelector('.user-dropdown-button');
-      const menu = document.querySelector('.user-dropdown-menu');
-      
-      if (button && menu) {
-          button.classList.toggle('active');
-          menu.classList.toggle('show');
-      }
+.user-dropdown-header {
+  padding: 16px;
+  border-bottom: 1px solid var(--c-border-subtle, #EAF1FA);
+  background: linear-gradient(180deg, var(--brand-50, #F0F7FF) 0%, #FFFFFF 100%);
+}
+
+.user-dropdown-top-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.user-dropdown-name {
+  font-size: 0.98rem;
+  font-weight: 700;
+  color: var(--c-text, #0C1E38);
+  margin: 0;
+}
+
+.user-dropdown-role {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 9px;
+  border-radius: var(--r-pill, 999px);
+  background: var(--brand-100, #DEEEFF);
+  color: var(--brand-700, #0755B3);
+  font-size: 0.72rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.user-dropdown-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.stat-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px 10px;
+  border-radius: var(--r-sm, 10px);
+  background: var(--c-surface, #FFFFFF);
+  border: 1px solid var(--c-border-subtle, #EAF1FA);
+}
+
+.stat-label {
+  font-size: 0.72rem;
+  color: var(--c-text-muted, #5A708D);
+}
+
+.stat-value {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--c-brand, #0A84FE);
+  font-variant-numeric: tabular-nums;
+}
+
+.stat-value.warning {
+  color: var(--c-danger, #E11D48);
+}
+
+.user-dropdown-actions {
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.dropdown-action-button {
+  width: 100%;
+  padding: 10px 12px;
+  background: none;
+  border: none;
+  text-align: left;
+  font-size: 0.86rem;
+  font-weight: 600;
+  color: var(--c-text-soft, #304765);
+  cursor: pointer;
+  border-radius: var(--r-sm, 10px);
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  transition: background-color 150ms ease, color 150ms ease;
+}
+
+.dropdown-action-button:hover {
+  background: var(--brand-50, #F0F7FF);
+  color: var(--c-brand-deep, #0755B3);
+}
+
+.dropdown-action-button.logout {
+  color: var(--c-danger, #E11D48);
+}
+
+.dropdown-action-button.logout:hover {
+  background: var(--c-danger-bg, #FFF1F2);
+  color: #BE123C;
+}
+
+/* ── Slide-in Sidebar Drawer (GPU translate + overscroll containment) ── */
+.sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: min(82vw, 290px);
+  height: 100dvh;
+  background: var(--c-surface, #FFFFFF);
+  border-right: 1px solid var(--c-border, #DCE7F5);
+  box-shadow: 12px 0 36px rgba(8, 28, 59, 0.16);
+  translate: -105% 0;
+  transition: translate 280ms var(--ease, cubic-bezier(0.22, 1, 0.36, 1));
+  z-index: 1010;
+  padding: 18px 18px 28px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebar.is-open {
+  translate: 0 0;
+}
+
+.sidebar-top-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 4px 16px;
+  margin-bottom: 8px;
+  border-bottom: 1px solid var(--c-border-subtle, #EAF1FA);
+}
+
+.sidebar-brand {
+  font-size: 1.08rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: var(--c-brand, #0A84FE);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sidebar-brand::before {
+  content: '';
+  width: 8px;
+  height: 8px;
+  border-radius: 3px;
+  background: var(--c-brand, #0A84FE);
+}
+
+.sidebar-close {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  border: 1px solid var(--brand-100, #DEEEFF);
+  background: var(--brand-50, #F0F7FF);
+  color: var(--c-brand, #0A84FE);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  transition: background-color 160ms ease, color 160ms ease, scale 160ms ease;
+}
+
+.sidebar-close:hover {
+  background: var(--c-brand, #0A84FE);
+  color: #FFFFFF;
+}
+
+.sidebar-close:active {
+  scale: 0.94;
+}
+
+.sidebar-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(8, 28, 59, 0.44);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 240ms var(--ease, ease);
+  z-index: 1005;
+}
+
+.sidebar.is-open ~ .sidebar-backdrop,
+body.sidebar-open .sidebar-backdrop {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.sidebar-content {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+}
+
+.sidebar-section-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--c-text-faint, #8CA1BC);
+  padding: 12px 10px 4px;
+  margin: 0;
+}
+
+.sidebar h3 {
+  font-size: 0.92rem;
+  margin: 0;
+  font-weight: 700;
+  color: var(--c-text, #0C1E38);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.sidebar ul {
+  list-style: none;
+  padding: 0;
+  margin: 2px 0 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.sidebar li {
+  margin: 0;
+  padding: 0;
+}
+
+.sidebar a {
+  text-decoration: none;
+  color: var(--c-text-soft, #304765);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: var(--r-md, 14px);
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: background-color 160ms ease, color 160ms ease, translate 160ms ease;
+}
+
+.sidebar a .c-nav-ico {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  background: var(--brand-50, #F0F7FF);
+  color: var(--c-brand, #0A84FE);
+  flex-shrink: 0;
+  transition: background-color 160ms ease, color 160ms ease;
+}
+
+.sidebar a:hover {
+  background: var(--brand-50, #F0F7FF);
+  color: var(--c-brand-deep, #0755B3);
+  translate: 2px 0;
+}
+
+.sidebar a.is-current {
+  background: var(--c-brand, #0A84FE);
+  color: #FFFFFF;
+  font-weight: 700;
+  box-shadow: 0 6px 14px rgba(10, 132, 254, 0.25);
+}
+
+.sidebar a.is-current .c-nav-ico {
+  background: rgba(255, 255, 255, 0.2);
+  color: #FFFFFF;
+}
+
+.sidebar a.is-current h3 {
+  color: #FFFFFF;
+}
+
+.sidebar-staff-card {
+  background: linear-gradient(135deg, var(--brand-50, #F0F7FF) 0%, var(--brand-100, #DEEEFF) 100%);
+  border: 1px solid var(--brand-200, #BBDDFD);
+  margin-bottom: 4px;
+}
+
+.sidebar-staff-card h3 {
+  color: var(--brand-700, #0755B3);
+}
+
+.sidebar-divider {
+  height: 1px;
+  background: var(--c-border-subtle, #EAF1FA);
+  margin: 6px 8px;
+}
+
+/* ── Bottom Navigation Bar ── */
+.custom-bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: calc(var(--nav-bottom-h, 66px) + env(safe-area-inset-bottom, 0px));
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  background: var(--c-surface-glass-strong, rgba(255, 255, 255, 0.94));
+  backdrop-filter: blur(16px) saturate(1.4);
+  -webkit-backdrop-filter: blur(16px) saturate(1.4);
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  border-top: 1px solid var(--c-border, #DCE7F5);
+  box-shadow: 0 -4px 18px rgba(12, 30, 56, 0.05);
+  z-index: 1000;
+  view-transition-name: contenido-bottom-nav;
+}
+
+.custom-nav-button {
+  flex: 1;
+  max-width: 140px;
+  height: 52px;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  border: none;
+  background: transparent;
+  color: var(--c-text-muted, #5A708D);
+  padding: 4px 10px;
+  border-radius: var(--r-md, 14px);
+  cursor: pointer;
+  position: relative;
+  transition: color 160ms ease, background-color 160ms ease, scale 140ms var(--ease-spring, ease);
+}
+
+.custom-nav-button:hover {
+  color: var(--c-brand, #0A84FE);
+  background: var(--brand-50, #F0F7FF);
+}
+
+.custom-nav-button:active {
+  scale: 0.94;
+}
+
+.custom-nav-button.active {
+  color: var(--c-brand, #0A84FE);
+  background: var(--brand-50, #F0F7FF);
+}
+
+.custom-nav-button.active::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 50%;
+  translate: -50% 0;
+  width: 24px;
+  height: 3px;
+  border-radius: 0 0 4px 4px;
+  background: var(--c-brand, #0A84FE);
+}
+
+.custom-nav-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-style: normal;
+  line-height: 1;
+}
+
+.custom-nav-label {
+  font-size: 0.68rem;
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: -0.01em;
+}
+
+/* Legacy helpers kept neutral */
+.toggle-btn { display: none; }
+
+@media (max-width: 768px) {
+  .custom-top-nav {
+    padding: 0 14px;
+    height: 60px;
   }
-  
-  // 외부 클릭 시 드롭다운 닫기
-  document.addEventListener('click', function(event) {
-      const dropdown = document.querySelector('.user-dropdown');
-      if (dropdown && !dropdown.contains(event.target)) {
-          const button = document.querySelector('.user-dropdown-button');
-          const menu = document.querySelector('.user-dropdown-menu');
-          if (button && menu) {
-              button.classList.remove('active');
-              menu.classList.remove('show');
-          }
-      }
-      // 알림 패널 바깥 클릭 시 닫기
-      const notifWrap = document.querySelector('.notif-wrap');
+  :root {
+    --nav-top-h: 60px;
+    --nav-bottom-h: 62px;
+  }
+  .top-right-actions { gap: 8px; }
+  .user-dropdown-button {
+    height: 35px;
+    padding: 0 11px;
+    font-size: 0.8rem;
+  }
+  .user-dropdown-button > span:first-child { max-width: 112px; }
+}
+
+@media (max-width: 480px) {
+  .nav-title { font-size: 1.12rem; letter-spacing: 0.03em; }
+  .top-icon-btn { width: 36px; height: 36px; border-radius: 10px; }
+  .login-button { height: 34px; padding: 0 14px; font-size: 0.8rem; }
+  .user-dropdown-button > span:first-child { max-width: 96px; }
+  .notif-panel {
+    position: fixed;
+    top: 66px;
+    left: 12px;
+    right: 12px;
+    width: auto;
+    max-width: none;
+    max-height: calc(100dvh - 88px);
+    border-radius: var(--r-lg, 18px);
+  }
+  .user-dropdown-menu {
+    min-width: 214px;
+    max-width: calc(100vw - 24px);
+  }
+}
+`;
+
+// 사이드바 HTML (Root-relative URLs + crisp SVG icons)
+const sidebarHTML = `
+<aside>
+  <div id="sidebar" class="sidebar" inert aria-label="사이트 메뉴">
+    <div class="sidebar-top-bar">
+      <span class="sidebar-brand">CONTENIDO</span>
+      <button type="button" class="sidebar-close" onclick="toggleSidebar()" aria-label="메뉴 닫기">${NAV_ICONS.close}</button>
+    </div>
+    <div class="sidebar-content">
+      <a href="/office.html" id="staffPageLink" class="sidebar-staff-card" style="display: none;">
+        <span class="c-nav-ico">${NAV_ICONS.office}</span>
+        <h3>운영진 페이지</h3>
+      </a>
+
+      <p class="sidebar-section-label">동아리 활동</p>
+      <ul>
+        <li><a href="/mypage.html"><span class="c-nav-ico">${NAV_ICONS.user}</span><span>마이페이지</span></a></li>
+        <li><a href="/events.html"><span class="c-nav-ico">${NAV_ICONS.events}</span><span>진행중인 이벤트</span></a></li>
+        <li><a href="/ended-events.html"><span class="c-nav-ico">${NAV_ICONS.ended}</span><span>종료된 이벤트</span></a></li>
+        <li><a href="/calendar.html"><span class="c-nav-ico">${NAV_ICONS.calendar}</span><span>이벤트 캘린더</span></a></li>
+        <li><a href="/ranking"><span class="c-nav-ico">${NAV_ICONS.ranking}</span><span>활동 랭킹</span></a></li>
+        <li><a href="/event-staff.html" id="eventStaffLink" style="display: none;"><span class="c-nav-ico">${NAV_ICONS.manage}</span><span>이벤트 관리</span></a></li>
+        <li><a href="/community.html"><span class="c-nav-ico">${NAV_ICONS.community}</span><span>커뮤니티</span></a></li>
+      </ul>
+
+      <div class="sidebar-divider"></div>
+      <p class="sidebar-section-label">안내 및 혜택</p>
+      <ul>
+        <li><a href="/rules.html"><span class="c-nav-ico">${NAV_ICONS.rules}</span><span>동아리 회칙 및 매뉴얼</span></a></li>
+        <li><a href="/partnerships"><span class="c-nav-ico">${NAV_ICONS.partner}</span><span>협찬 및 제휴</span></a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="sidebar-backdrop" onclick="toggleSidebar()"></div>
+</aside>
+`;
+
+// 상단 네비게이션 HTML
+const topNavHTML = `
+<div class="c-scroll-progress" aria-hidden="true"></div>
+<nav class="custom-top-nav" aria-label="상단 내비게이션">
+  <span class="nav-title" onclick="goHome()" role="button" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' ')goHome()">CONTENIDO</span>
+  <div class="top-right-actions">
+    <div class="notif-wrap">
+      <button type="button" class="top-icon-btn" id="notif-toggle-btn" onclick="handleNotifications(event)" aria-label="알림" aria-expanded="false">
+        <i class="custom-nav-icon">${NAV_ICONS.bell}</i>
+        <span class="notif-badge" id="notif-badge" hidden>0</span>
+      </button>
+      <div class="notif-panel" id="notif-panel" role="region" aria-label="알림 목록">
+        <div class="notif-panel-header">
+          <span>알림</span>
+          <button class="notif-readall" type="button" onclick="markAllNotificationsRead()">모두 읽음</button>
+        </div>
+        <ul class="notif-list" id="notif-list"></ul>
+        <div class="notif-empty" id="notif-empty" hidden>새 알림이 없습니다</div>
+      </div>
+    </div>
+    <div class="auth-area" id="auth-area"></div>
+  </div>
+</nav>
+`;
+
+// 하단 네비게이션 HTML — 메뉴 + 홈 + 마이
+const bottomNavHTML = `
+<nav class="custom-bottom-nav" aria-label="하단 내비게이션">
+  <button type="button" class="custom-nav-button" id="nav-btn-menu" onclick="toggleSidebar()" aria-label="메뉴" aria-expanded="false">
+    <i class="custom-nav-icon">${NAV_ICONS.menu}</i>
+    <span class="custom-nav-label">메뉴</span>
+  </button>
+  <button type="button" class="custom-nav-button" id="nav-btn-home" onclick="goHome()" aria-label="홈">
+    <i class="custom-nav-icon">${NAV_ICONS.home}</i>
+    <span class="custom-nav-label">홈</span>
+  </button>
+  <button type="button" class="custom-nav-button" id="nav-btn-mypage" onclick="handleMyPageClick(event)" aria-label="마이페이지">
+    <i class="custom-nav-icon">${NAV_ICONS.user}</i>
+    <span class="custom-nav-label">마이</span>
+  </button>
+</nav>
+`;
+
+// 드롭다운 토글 함수
+function toggleUserDropdown() {
+  const button = document.querySelector('.user-dropdown-button');
+  const menu = document.querySelector('.user-dropdown-menu');
+
+  if (button && menu) {
+    const isOpening = !menu.classList.contains('show');
+    button.classList.toggle('active', isOpening);
+    menu.classList.toggle('show', isOpening);
+    button.setAttribute('aria-expanded', String(isOpening));
+    if (isOpening) {
       const notifPanel = document.getElementById('notif-panel');
-      if (notifWrap && notifPanel && !notifWrap.contains(event.target)) {
-          notifPanel.classList.remove('show');
-      }
-  });
-  
-  // 인증 영역 업데이트 함수
-  async function updateAuthArea() {
-    const authArea = document.getElementById('auth-area');
-    if (!authArea) return;
-    
-    try {
-      const response = await fetch('/user/info_database');
-      
-      if (response.status === 200) {
-        // 로그인된 상태
-        const userData = await response.json();
-        
-        // 정기참여 횟수와 경고횟수 (User 모델에서 가져옴)
-        const regularAttendance = userData.participationCount?.regularCount || 0;
-        const warningCount = userData.warningCount || 0;
-        
-        authArea.innerHTML = `
-          <div class="user-dropdown">
-            <button class="user-dropdown-button" onclick="toggleUserDropdown()">
-              <span>${userData.name || userData.displayName || '회원'}</span>
-              <span class="arrow">▼</span>
-            </button>
-            <div class="user-dropdown-menu">
-              <div class="user-dropdown-header">
-            <div class="user-dropdown-name">${userData.name || userData.displayName || '회원'}</div>
-            <div style="font-size: 13px; color: #666; margin-bottom: 8px;">역할 : ${
-              userData.role === 'admin' ? '관리자' :
-              userData.role === 'starter' ? '스타터' :
-              userData.role === 'participant' ? '참가자' :
-              userData.role === 'officer' ? '운영진' :
-              userData.role
-            }</div>
-            
-            <div class="user-dropdown-stats">
-              <div class="stat-item">
-            <span class="stat-label">정기참여</span>
-            <span class="stat-value">${regularAttendance}회</span>
+      if (notifPanel) notifPanel.classList.remove('show');
+    }
+  }
+}
+
+// 외부 클릭 및 Escape 키로 팝오버/사이드바 닫기
+document.addEventListener('click', function (event) {
+  const dropdown = document.querySelector('.user-dropdown');
+  if (dropdown && !dropdown.contains(event.target)) {
+    const button = document.querySelector('.user-dropdown-button');
+    const menu = document.querySelector('.user-dropdown-menu');
+    if (button && menu) {
+      button.classList.remove('active');
+      menu.classList.remove('show');
+      button.setAttribute('aria-expanded', 'false');
+    }
+  }
+
+  const notifWrap = document.querySelector('.notif-wrap');
+  const notifPanel = document.getElementById('notif-panel');
+  const notifBtn = document.getElementById('notif-toggle-btn');
+  if (notifWrap && notifPanel && !notifWrap.contains(event.target)) {
+    notifPanel.classList.remove('show');
+    if (notifBtn) notifBtn.setAttribute('aria-expanded', 'false');
+  }
+});
+
+document.addEventListener('keydown', function (event) {
+  if (event.key !== 'Escape') return;
+  const sidebar = document.getElementById('sidebar');
+  if (sidebar && sidebar.classList.contains('is-open')) {
+    toggleSidebar(false);
+  }
+  const notifPanel = document.getElementById('notif-panel');
+  if (notifPanel && notifPanel.classList.contains('show')) {
+    notifPanel.classList.remove('show');
+    const notifBtn = document.getElementById('notif-toggle-btn');
+    if (notifBtn) notifBtn.setAttribute('aria-expanded', 'false');
+  }
+  const menu = document.querySelector('.user-dropdown-menu');
+  const button = document.querySelector('.user-dropdown-button');
+  if (menu && menu.classList.contains('show')) {
+    menu.classList.remove('show');
+    if (button) {
+      button.classList.remove('active');
+      button.setAttribute('aria-expanded', 'false');
+    }
+  }
+});
+
+// 인증 영역 업데이트 함수
+async function updateAuthArea() {
+  const authArea = document.getElementById('auth-area');
+  if (!authArea) return;
+
+  try {
+    const response = await fetch('/user/info_database');
+
+    if (response.status === 200) {
+      const userData = await response.json();
+      const regularAttendance = userData.participationCount?.regularCount || 0;
+      const warningCount = userData.warningCount || 0;
+      const safeName = notifEscape(userData.name || userData.displayName || '회원');
+      const roleLabel =
+        userData.role === 'admin' ? '관리자' :
+        userData.role === 'starter' ? '스타터' :
+        userData.role === 'participant' ? '부원' :
+        userData.role === 'officer' ? '운영진' :
+        notifEscape(userData.role || '회원');
+
+      authArea.innerHTML = `
+        <div class="user-dropdown">
+          <button type="button" class="user-dropdown-button" onclick="toggleUserDropdown()" aria-expanded="false">
+            <span>${safeName}</span>
+            <span class="arrow">${NAV_ICONS.chevronDown}</span>
+          </button>
+          <div class="user-dropdown-menu">
+            <div class="user-dropdown-header">
+              <div class="user-dropdown-top-row">
+                <div class="user-dropdown-name">${safeName}</div>
+                <span class="user-dropdown-role">${roleLabel}</span>
               </div>
-              <div class="stat-item">
-            <span class="stat-label">경고</span>
-            <span class="stat-value ${warningCount > 0 ? 'warning' : ''}">${warningCount}회</span>
+              <div class="user-dropdown-stats">
+                <div class="stat-item">
+                  <span class="stat-label">정기참여</span>
+                  <span class="stat-value">${regularAttendance}회</span>
+                </div>
+                <div class="stat-item">
+                  <span class="stat-label">경고</span>
+                  <span class="stat-value ${warningCount > 0 ? 'warning' : ''}">${warningCount}회</span>
+                </div>
               </div>
             </div>
-              </div>
-              <div class="user-dropdown-actions">
-            <button class="dropdown-action-button" onclick="goToMyPage()">
-              
-              <span>마이페이지</span>
-            </button>
-            <button class="dropdown-action-button logout" onclick="AuthModule.logout()">
-            
-              <span>로그아웃</span>
-            </button>
-              </div>
+            <div class="user-dropdown-actions">
+              <button type="button" class="dropdown-action-button" onclick="goToMyPage()">
+                ${NAV_ICONS.user}
+                <span>마이페이지</span>
+              </button>
+              <button type="button" class="dropdown-action-button logout" onclick="AuthModule.logout()">
+                ${NAV_ICONS.logout}
+                <span>로그아웃</span>
+              </button>
             </div>
           </div>
-        `;
-
-        // 운영진 페이지 및 이벤트 관리 메뉴 노출 권한 체크
-        const isOfficerOrAdmin = userData.role === 'officer' || userData.role === 'admin';
-        const isPlanningOrAdmin = userData.role === 'admin' || (userData.role === 'officer' && userData.department === 'planning');
-
-        const officeLink = document.getElementById('staffPageLink');
-        if (officeLink) {
-          officeLink.style.display = isOfficerOrAdmin ? '' : 'none';
-        }
-
-        const eventStaffLink = document.getElementById('eventStaffLink');
-        if (eventStaffLink) {
-          eventStaffLink.style.display = isOfficerOrAdmin ? '' : 'none';
-        }
-      } else {
-        // 로그인되지 않은 상태
-        authArea.innerHTML = `
-          <button class="login-button" onclick="AuthModule.goToLogin()">로그인</button>
-        `;
-      }
-    } catch (error) {
-      console.error('인증 상태 확인 오류:', error);
-      // 오류 시 로그인 버튼 표시
-      authArea.innerHTML = `
-        <button class="login-button" onclick="AuthModule.goToLogin()">로그인</button>
+        </div>
       `;
+
+      const isOfficerOrAdmin = userData.role === 'officer' || userData.role === 'admin';
+      const officeLink = document.getElementById('staffPageLink');
+      if (officeLink) officeLink.style.display = isOfficerOrAdmin ? '' : 'none';
+
+      const eventStaffLink = document.getElementById('eventStaffLink');
+      if (eventStaffLink) eventStaffLink.style.display = isOfficerOrAdmin ? '' : 'none';
+    } else {
+      authArea.innerHTML = `<button type="button" class="login-button" onclick="AuthModule.goToLogin()">로그인</button>`;
     }
+  } catch (error) {
+    console.error('인증 상태 확인 오류:', error);
+    authArea.innerHTML = `<button type="button" class="login-button" onclick="AuthModule.goToLogin()">로그인</button>`;
   }
-  
-  // 마이페이지로 이동
-  function goToMyPage() {
-      window.location.href = '/mypage.html';
-  }
-  
-  // 사이드바 토글 함수
-  function toggleSidebar() {
-      const sidebar = document.getElementById("sidebar");
-      if (sidebar) {
-          const isOpen = sidebar.style.left === "0px";
-          if (isOpen) {
-              sidebar.style.left = "-290px";
-              document.body.classList.remove("sidebar-open");
-          } else {
-              sidebar.style.left = "0px";
-              document.body.classList.add("sidebar-open");
-          }
-      }
-  }
-  
-  // ===== 알림 =====
-  async function handleNotifications(e) {
-      if (e) e.stopPropagation();
-      
-      const isLoggedIn = await AuthModule.verifyToken();
-      if (!isLoggedIn) {
-          AuthModule.redirectToLogin(false);
-          return;
-      }
+}
 
-      const panel = document.getElementById('notif-panel');
-      if (!panel) return;
-      const willOpen = !panel.classList.contains('show');
-      panel.classList.toggle('show');
-      if (willOpen) loadNotifications();
-  }
+function goToMyPage() {
+  window.location.href = '/mypage.html';
+}
 
-  async function refreshNotifBadge() {
-      try {
-          const res = await fetch('/notifications/unread-count', { credentials: 'include' });
-          if (!res.ok) return;
-          const { count } = await res.json();
-          const badge = document.getElementById('notif-badge');
-          if (!badge) return;
-          if (count > 0) { badge.textContent = count > 99 ? '99+' : count; badge.hidden = false; }
-          else { badge.hidden = true; }
-      } catch (_) {}
+// 사이드바 토글 함수 (GPU translate + inert + aria-expanded)
+function toggleSidebar(forceState) {
+  const sidebar = document.getElementById('sidebar');
+  const menuBtn = document.getElementById('nav-btn-menu');
+  if (!sidebar) return;
+
+  const isOpen = sidebar.classList.contains('is-open');
+  const nextOpen = typeof forceState === 'boolean' ? forceState : !isOpen;
+
+  sidebar.classList.toggle('is-open', nextOpen);
+  document.body.classList.toggle('sidebar-open', nextOpen);
+  if (nextOpen) {
+    sidebar.removeAttribute('inert');
+  } else {
+    sidebar.setAttribute('inert', '');
+  }
+  if (menuBtn) menuBtn.setAttribute('aria-expanded', String(nextOpen));
+}
+
+// ===== 알림 =====
+async function handleNotifications(e) {
+  if (e) e.stopPropagation();
+
+  const isLoggedIn = await AuthModule.verifyToken();
+  if (!isLoggedIn) {
+    AuthModule.redirectToLogin(false);
+    return;
   }
 
-  function notifEscape(s) {
-      return String(s == null ? '' : s)
-          .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-          .replace(/"/g, '&quot;').replace(/'/g, '&#039;');
-  }
-  function notifTimeAgo(d) {
-      const t = new Date(d).getTime();
-      if (isNaN(t)) return '';
-      const diff = Math.floor((Date.now() - t) / 1000);
-      if (diff < 60) return '방금';
-      if (diff < 3600) return Math.floor(diff / 60) + '분 전';
-      if (diff < 86400) return Math.floor(diff / 3600) + '시간 전';
-      if (diff < 7 * 86400) return Math.floor(diff / 86400) + '일 전';
-      return new Date(d).toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' });
-  }
+  const panel = document.getElementById('notif-panel');
+  const btn = document.getElementById('notif-toggle-btn');
+  if (!panel) return;
 
-  async function loadNotifications() {
-      const list = document.getElementById('notif-list');
-      const empty = document.getElementById('notif-empty');
-      if (!list) return;
-      try {
-          const res = await fetch('/notifications', { credentials: 'include' });
-          if (!res.ok) return;
-          const items = await res.json();
-          list.innerHTML = '';
-          if (empty) empty.hidden = items.length > 0;
-          items.forEach(n => {
-              const li = document.createElement('li');
-              li.className = 'notif-item' + (n.isRead ? ' read' : ' unread');
-              li.innerHTML = '<div class="notif-title">' + notifEscape(n.title) + '</div>' +
-                             '<div class="notif-time">' + notifTimeAgo(n.createdAt) + '</div>';
-              li.addEventListener('click', () => onNotificationClick(n));
-              list.appendChild(li);
-          });
-      } catch (_) {}
-  }
+  const willOpen = !panel.classList.contains('show');
+  panel.classList.toggle('show', willOpen);
+  if (btn) btn.setAttribute('aria-expanded', String(willOpen));
 
-  async function onNotificationClick(n) {
-      try {
-          if (!n.isRead) {
-              await fetch('/notifications/' + n._id + '/read', { method: 'POST', credentials: 'include' });
-              refreshNotifBadge();
-          }
-      } catch (_) {}
-      if (n.link) window.location.href = n.link;
+  if (willOpen) {
+    const userMenu = document.querySelector('.user-dropdown-menu');
+    const userBtn = document.querySelector('.user-dropdown-button');
+    if (userMenu) userMenu.classList.remove('show');
+    if (userBtn) userBtn.classList.remove('active');
+    loadNotifications();
   }
+}
 
-  async function markAllNotificationsRead() {
-      try {
-          await fetch('/notifications/read-all', { method: 'POST', credentials: 'include' });
-          refreshNotifBadge();
-          loadNotifications();
-      } catch (_) {}
-  }
-  
-  function goHome() {
-      window.location.href = '/';
-  }
-  
-  // 마이페이지 클릭 핸들러
-  async function handleMyPageClick(event) {
-    event.preventDefault();
-    try {
-      const response = await fetch('/user/info');
-      if (!response.ok) {
-          AuthModule.redirectToLogin(true);
-          return;
-      }
-      window.location.href = '/mypage.html';
-    } catch (error) {
-      console.error('Error:', error);
+async function refreshNotifBadge() {
+  try {
+    const res = await fetch('/notifications/unread-count', { credentials: 'include' });
+    if (!res.ok) return;
+    const { count } = await res.json();
+    const badge = document.getElementById('notif-badge');
+    if (!badge) return;
+    if (count > 0) {
+      badge.textContent = count > 99 ? '99+' : count;
+      badge.hidden = false;
+    } else {
+      badge.hidden = true;
+    }
+  } catch (_) {}
+}
+
+function notifEscape(s) {
+  return String(s == null ? '' : s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
+function notifTimeAgo(d) {
+  const t = new Date(d).getTime();
+  if (isNaN(t)) return '';
+  const diff = Math.floor((Date.now() - t) / 1000);
+  if (diff < 60) return '방금';
+  if (diff < 3600) return Math.floor(diff / 60) + '분 전';
+  if (diff < 86400) return Math.floor(diff / 3600) + '시간 전';
+  if (diff < 7 * 86400) return Math.floor(diff / 86400) + '일 전';
+  return new Date(d).toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' });
+}
+
+async function loadNotifications() {
+  const list = document.getElementById('notif-list');
+  const empty = document.getElementById('notif-empty');
+  if (!list) return;
+  try {
+    const res = await fetch('/notifications', { credentials: 'include' });
+    if (!res.ok) return;
+    const items = await res.json();
+    list.innerHTML = '';
+    if (empty) empty.hidden = items.length > 0;
+    items.forEach((n) => {
+      const li = document.createElement('li');
+      li.className = 'notif-item' + (n.isRead ? ' read' : ' unread');
+      li.innerHTML =
+        '<div class="notif-title">' + notifEscape(n.title) + '</div>' +
+        '<div class="notif-time">' + notifTimeAgo(n.createdAt) + '</div>';
+      li.addEventListener('click', () => onNotificationClick(n));
+      list.appendChild(li);
+    });
+  } catch (_) {}
+}
+
+async function onNotificationClick(n) {
+  try {
+    if (!n.isRead) {
+      await fetch('/notifications/' + n._id + '/read', { method: 'POST', credentials: 'include' });
+      refreshNotifBadge();
+    }
+  } catch (_) {}
+  if (n.link) window.location.href = n.link;
+}
+
+async function markAllNotificationsRead() {
+  try {
+    await fetch('/notifications/read-all', { method: 'POST', credentials: 'include' });
+    refreshNotifBadge();
+    loadNotifications();
+  } catch (_) {}
+}
+
+function goHome() {
+  window.location.href = '/';
+}
+
+async function handleMyPageClick(event) {
+  event.preventDefault();
+  try {
+    const response = await fetch('/user/info');
+    if (!response.ok) {
       AuthModule.redirectToLogin(true);
+      return;
     }
+    window.location.href = '/mypage.html';
+  } catch (error) {
+    console.error('Error:', error);
+    AuthModule.redirectToLogin(true);
   }
-  
-  
-  // 스타일과 네비게이션 삽입
-  document.addEventListener('DOMContentLoaded', function() {
-      // 스타일 삽입
-      const styleSheet = document.createElement('style');
-      styleSheet.textContent = navStyles;
-      document.head.appendChild(styleSheet);
-  
-      // body에 사이드바 삽입
-      document.body.insertAdjacentHTML('afterbegin', sidebarHTML);
-  
-      // 네비게이션 바 삽입
-      const container = document.querySelector('.container');
-      if (container) {
-          container.insertAdjacentHTML('afterbegin', topNavHTML);
-          container.insertAdjacentHTML('beforeend', bottomNavHTML);
-          
-          // 인증 영역 초기화
-          updateAuthArea();
+}
 
-          // 알림 뱃지 (로드 시 + 60초 폴링)
-          refreshNotifBadge();
-          setInterval(refreshNotifBadge, 60 * 1000);
-  
-          // 현재 페이지에 따라 active 클래스 추가
-          const currentPath = window.location.pathname;
-          const buttons = document.querySelectorAll('.custom-nav-button');
-          
-          if (currentPath === '/') {
-              buttons[1].classList.add('active');
-          } else if (currentPath === '/mypage.html') {
-              buttons[2].classList.add('active');
-          }
-      } else {
-          console.error('Container element not found');
-      }
+// 스타일과 네비게이션 삽입 (body 기준 — .container 유무와 무관하게 모든 페이지 동작)
+document.addEventListener('DOMContentLoaded', function () {
+  const styleSheet = document.createElement('style');
+  styleSheet.id = 'contenido-nav-styles';
+  styleSheet.textContent = navStyles;
+  document.head.appendChild(styleSheet);
+
+  document.body.classList.add('has-global-nav');
+  document.body.insertAdjacentHTML('afterbegin', sidebarHTML);
+  document.body.insertAdjacentHTML('afterbegin', topNavHTML);
+  document.body.insertAdjacentHTML('beforeend', bottomNavHTML);
+
+  updateAuthArea();
+  refreshNotifBadge();
+  setInterval(refreshNotifBadge, 60 * 1000);
+
+  // 현재 경로 활성 상태 표시 (하단 네비 + 사이드바)
+  const currentPath = window.location.pathname;
+  const homeBtn = document.getElementById('nav-btn-home');
+  const myBtn = document.getElementById('nav-btn-mypage');
+
+  if (currentPath === '/' || currentPath === '/index.html') {
+    if (homeBtn) homeBtn.classList.add('active');
+  } else if (currentPath === '/mypage.html') {
+    if (myBtn) myBtn.classList.add('active');
+  }
+
+  document.querySelectorAll('#sidebar a[href]').forEach((link) => {
+    const href = link.getAttribute('href');
+    if (href && (currentPath === href || (currentPath.endsWith(href) && href !== '/'))) {
+      link.classList.add('is-current');
+      link.setAttribute('aria-current', 'page');
+    }
   });
+});

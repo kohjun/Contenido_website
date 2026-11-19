@@ -1,86 +1,77 @@
-/* public/css/benefit-detail.css */
-@font-face {
-  font-family: 'GmarketSansMedium';
-  src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_2001@1.1/GmarketSansMedium.woff') format('woff');
-  font-weight: normal;
-  font-style: normal;
-}
+/* public/css/benefit-detail.css — Tone-on-Tone Signature Azure */
 
 body.benefit-detail-page {
-  font-family: 'GmarketSansMedium', system-ui, -apple-system, sans-serif;
-  background: linear-gradient(135deg, #f5f3ff 0%, #e0f2fe 100%);
-  margin: 0;
-  padding: 0;
-  color: #0f172a;
-  min-height: 100vh;
+  font-family: var(--ff-base, 'GmarketSansMedium', sans-serif);
+  background:
+    radial-gradient(640px 420px at 14% 4%, var(--brand-100, #DEEEFF) 0%, transparent 65%),
+    radial-gradient(560px 380px at 88% 12%, var(--brand-50, #F0F7FF) 0%, transparent 65%),
+    var(--c-bg, #F3F7FD);
+  color: var(--c-text, #0C1E38);
+  min-height: 100dvh;
   display: flex;
   justify-content: center;
   align-items: flex-start;
 }
 
 .benefit-container {
-  width: 100%;
-  max-width: 720px;
-  margin: 40px 20px 80px;
-  background: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border-radius: 32px;
-  box-shadow: 0 20px 60px rgba(15, 23, 42, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.6);
-  padding: 40px;
-  box-sizing: border-box;
-  animation: fadeIn 0.4s ease-out;
+  width: min(calc(100% - 28px), 740px);
+  max-width: 740px;
+  margin: calc(var(--nav-top-h, 64px) + 22px) auto calc(var(--nav-bottom-h, 66px) + 32px);
+  background: var(--c-surface);
+  border-radius: var(--r-xl, 24px);
+  box-shadow: var(--sh-md);
+  border: 1px solid var(--c-border);
+  padding: clamp(22px, 4vw, 38px);
 }
 
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-/* 헤더 */
 .benefit-header {
   text-align: center;
-  margin-bottom: 35px;
+  margin-bottom: 28px;
 }
+
 .badge-promo {
-  display: inline-block;
-  background-color: #0A84FE;
-  color: white;
-  padding: 6px 14px;
-  border-radius: 20px;
-  font-size: 0.8rem;
-  font-weight: bold;
-  letter-spacing: 1px;
-  box-shadow: 0 4px 10px rgba(168, 85, 247, 0.25);
-  margin-bottom: 15px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, var(--brand-500) 0%, var(--brand-600) 100%);
+  color: #FFFFFF;
+  padding: 6px 15px;
+  border-radius: var(--r-pill);
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  box-shadow: var(--sh-brand);
+  margin-bottom: 14px;
 }
+
 .benefit-header h1 {
-  font-size: 1.85rem;
-  margin: 0 0 10px;
-  color: #1e1b4b;
+  font-size: clamp(1.42rem, 2.4vw + 0.8rem, 1.85rem);
+  margin: 0 0 8px;
+  color: var(--c-text);
   line-height: 1.35;
-  font-weight: bold;
+  font-weight: 700;
+  letter-spacing: -0.02em;
 }
+
 .benefit-period {
-  font-size: 0.88rem;
-  color: #64748b;
+  font-size: 0.86rem;
+  color: var(--c-text-muted);
   font-weight: 500;
 }
 
-/* 메인 이미지 - 짤림 없는 반응형 렌더링 */
 .benefit-image-wrapper {
   width: 100%;
   max-height: 520px;
-  border-radius: 20px;
+  border-radius: var(--r-lg);
   overflow: hidden;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06);
-  background-color: #f8fafc;
-  margin-bottom: 35px;
+  border: 1px solid var(--c-border-subtle);
+  background-color: var(--c-surface-2);
+  margin-bottom: 28px;
   display: flex;
   justify-content: center;
   align-items: center;
 }
+
 .benefit-image-wrapper img {
   width: 100%;
   height: auto;
@@ -89,122 +80,91 @@ body.benefit-detail-page {
   display: block;
 }
 
-/* 본문 내용 - 줄바꿈 보존 */
 .benefit-content {
-  font-size: 1rem;
-  line-height: 1.7;
-  color: #334155;
-  margin-bottom: 40px;
-  padding: 0 5px;
+  font-size: 0.96rem;
+  line-height: 1.75;
+  color: var(--c-text-soft);
+  margin-bottom: 32px;
+  padding: 18px 20px;
+  background: var(--c-surface-2);
+  border: 1px solid var(--c-border-subtle);
+  border-radius: var(--r-lg);
   white-space: pre-wrap;
   word-break: break-word;
 }
-.benefit-content h2, .benefit-content h3 {
-  color: #1e1b4b;
-  margin-top: 25px;
-  margin-bottom: 12px;
-}
-.benefit-content p {
-  margin-bottom: 16px;
-}
-.benefit-content ul, .benefit-content ol {
-  margin-bottom: 16px;
-  padding-left: 24px;
-}
-.benefit-content li {
-  margin-bottom: 8px;
-}
-.placeholder-text {
-  text-align: center;
-  color: #94a3b8;
-  padding: 30px 0;
-}
+.benefit-content h2,
+.benefit-content h3 { color: var(--brand-800); margin: 20px 0 10px; }
+.benefit-content p { margin: 0 0 14px; }
+.benefit-content ul,
+.benefit-content ol { margin: 0 0 14px; padding-left: 22px; }
+.benefit-content li { margin-bottom: 6px; }
+.placeholder-text { text-align: center; color: var(--c-text-faint); padding: 24px 0; }
 
-/* CTA 카드 */
-.benefit-cta-area {
-  margin-bottom: 40px;
-}
+.benefit-cta-area { margin-bottom: 28px; }
 .cta-card {
-  background: linear-gradient(135deg, #e0f2fe 0%, #f0fdf4 100%);
-  border: 1px solid #bae6fd;
-  border-radius: 24px;
-  padding: 24px;
+  background: linear-gradient(135deg, var(--brand-50) 0%, var(--brand-100) 100%);
+  border: 1px solid var(--brand-200);
+  border-radius: var(--r-lg);
+  padding: 22px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 20px;
-  box-shadow: 0 10px 25px rgba(56, 189, 248, 0.08);
+  gap: 18px;
 }
-.cta-text h3 {
-  margin: 0 0 6px;
-  font-size: 1.05rem;
-  color: #0369a1;
-}
-.cta-text p {
-  margin: 0;
-  font-size: 0.86rem;
-  color: #0c4a6e;
-  line-height: 1.45;
-}
-.btn-cta {
-  background-color: #0A84FE;
-  color: white;
-  border: none;
-  border-radius: 12px;
-  padding: 12px 24px;
-  font-size: 0.92rem;
-  font-weight: bold;
-  cursor: pointer;
-  box-shadow: 0 4px 12px rgba(10, 132, 254, 0.25);
-  transition: all 0.2s ease;
-  font-family: inherit;
-  white-space: nowrap;
-}
-.btn-cta:hover {
-  background-color: #0975e2;
-  transform: translateY(-1px);
-  box-shadow: 0 6px 16px rgba(10, 132, 254, 0.4);
-}
+.cta-text h3 { margin: 0 0 5px; font-size: 1.02rem; color: var(--brand-800); }
+.cta-text p { margin: 0; font-size: 0.85rem; color: var(--c-text-soft); line-height: 1.5; }
 
-/* 푸터 및 버튼 */
+.btn-cta {
+  background: linear-gradient(135deg, var(--brand-500) 0%, var(--brand-600) 100%);
+  color: #FFFFFF;
+  border: none;
+  border-radius: var(--r-md);
+  padding: 13px 20px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  box-shadow: var(--sh-brand);
+  white-space: nowrap;
+  transition: translate 160ms ease, box-shadow 160ms ease;
+}
+.btn-cta:hover { translate: 0 -1px; box-shadow: 0 10px 24px rgba(10, 132, 254, 0.4); }
+
 .benefit-footer {
   text-align: center;
-  border-top: 1px solid #e2e8f0;
-  padding-top: 30px;
+  border-top: 1px solid var(--c-border-subtle);
+  padding-top: 22px;
 }
 .btn-back {
-  background-color: #f1f5f9;
-  color: #475569;
-  border: 1px solid #cbd5e1;
-  border-radius: 12px;
-  padding: 10px 24px;
-  font-size: 0.9rem;
-  font-weight: bold;
+  background: var(--c-surface);
+  color: var(--c-text-soft);
+  border: 1px solid var(--c-border);
+  border-radius: var(--r-pill);
+  padding: 11px 22px;
+  font-size: 0.88rem;
+  font-weight: 600;
   cursor: pointer;
-  transition: all 0.15s ease;
-  font-family: inherit;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease;
 }
-.btn-back:hover {
-  background-color: #e2e8f0;
-  color: #0f172a;
-}
+.btn-back:hover { background: var(--brand-50); border-color: var(--brand-200); color: var(--brand-700); }
 
 @media (max-width: 640px) {
   .benefit-container {
-    margin: 20px 10px 60px;
-    padding: 24px;
+    width: 100%;
+    margin: var(--nav-top-h, 60px) 0 var(--nav-bottom-h, 62px);
+    padding: 20px 14px 28px;
+    border-radius: 0;
+    border-left: none;
+    border-right: none;
+    box-shadow: none;
   }
-  .benefit-header h1 { font-size: 1.5rem; }
-  .benefit-image-wrapper {
-    max-height: 380px;
-  }
-  .benefit-image-wrapper img {
-    max-height: 380px;
-  }
-  .cta-card {
-    flex-direction: column;
-    align-items: stretch;
-    text-align: center;
-  }
-  .btn-cta { width: 100%; }
+  .cta-card { flex-direction: column; align-items: stretch; text-align: center; }
+  .btn-cta, .btn-back { width: 100%; }
 }

@@ -3,9 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>콘테니도 이벤트 초대장</title>
+  <title>콘테니도 이벤트 초대장 · Contenido</title>
+  <link rel="icon" href="/images/Contenido_Logo.ico" type="image/x-icon">
 
-  <!-- Open Graph / KakaoTalk Link Preview Meta Tags -->
   <meta property="og:type" content="website">
   <meta property="og:title" content="콘테니도 이벤트 초대장">
   <meta property="og:description" content="콘테니도 이벤트 지인 동반 초대장입니다. 링크를 눌러 참가 신청을 완료해 주세요!">
@@ -15,32 +15,18 @@
   <meta property="og:image:height" content="630">
   <meta property="og:site_name" content="CONTENIDO">
 
-  <!-- Twitter Meta Tags -->
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="콘테니도 이벤트 초대장">
   <meta name="twitter:description" content="콘테니도 이벤트 지인 동반 초대장입니다.">
   <meta name="twitter:image" content="https://contenido.kr/images/invitation_cover.png">
 
-  <!-- Google Fonts -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;600;700;800&display=swap" rel="stylesheet">
-
+  <link rel="stylesheet" href="/css/design-system.css?v=20261119">
   <style>
-    @font-face {
-      font-family: 'GmarketSansMedium';
-      src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_2001@1.1/GmarketSansMedium.woff') format('woff');
-      font-weight: normal;
-      font-style: normal;
-    }
-
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-
     body {
-      background: linear-gradient(180deg, #F2F8FF 0%, #E8F2FF 100%);
-      font-family: 'GmarketSansMedium', 'Pretendard', system-ui, -apple-system, sans-serif;
-      color: #0F172A;
-      min-height: 100vh;
+      background:
+        radial-gradient(760px 440px at 50% -10%, var(--brand-100) 0%, var(--c-bg) 55%, #FFFFFF 100%);
+      color: var(--c-text);
+      min-height: 100dvh;
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -48,42 +34,40 @@
       padding: 24px 16px 48px;
     }
 
-    /* 액자형 초대장 카드 외곽 틀 */
     .invite-card-frame {
       width: 100%;
-      max-width: 500px;
-      background: #FFFFFF;
+      max-width: 504px;
+      background: var(--c-surface);
       border-radius: 28px;
-      border: 2px solid #0A84FE;
-      box-shadow: 0 24px 50px rgba(10, 132, 254, 0.15), inset 0 0 0 6px #F2F8FF;
+      border: 2px solid var(--c-brand);
+      box-shadow: var(--sh-lg), inset 0 0 0 6px var(--brand-50);
       padding: 10px;
       position: relative;
     }
 
-    /* 초대장 카드 내부 영역 */
     .invite-card-inner {
-      border: 1px solid rgba(10, 132, 254, 0.3);
+      border: 1px solid var(--brand-200);
       border-radius: 20px;
       overflow: hidden;
-      background: #FFFFFF;
+      background: var(--c-surface);
     }
 
     .invite-banner {
-      background: linear-gradient(135deg, #0A84FE 0%, #0875E0 100%);
+      background: linear-gradient(135deg, var(--brand-500) 0%, var(--brand-700) 100%);
       color: #FFFFFF;
       padding: 32px 24px 24px;
       text-align: center;
-      position: relative;
     }
 
     .invite-badge {
       display: inline-block;
-      background: rgba(255, 255, 255, 0.2);
+      background: rgba(255, 255, 255, 0.18);
+      border: 1px solid rgba(255, 255, 255, 0.25);
       color: #FFFFFF;
       padding: 5px 14px;
-      border-radius: 20px;
-      font-size: 0.76rem;
-      letter-spacing: 1.5px;
+      border-radius: var(--r-pill);
+      font-size: 0.72rem;
+      letter-spacing: 0.12em;
       font-weight: 700;
       margin-bottom: 10px;
       text-transform: uppercase;
@@ -91,14 +75,15 @@
 
     .invite-title {
       font-size: 1.35rem;
-      font-weight: 800;
+      font-weight: 700;
       margin: 0;
       line-height: 1.35;
-      letter-spacing: -0.3px;
+      letter-spacing: -0.02em;
+      color: #FFFFFF;
     }
 
     .invitation-divider {
-      width: 60px;
+      width: 56px;
       height: 2px;
       background: rgba(255, 255, 255, 0.35);
       margin: 14px auto 0;
@@ -106,78 +91,61 @@
     }
 
     .inviter-badge-box {
-      margin: 16px 20px 0;
-      background: #E8F2FF;
-      border: 1px solid rgba(10, 132, 254, 0.25);
-      border-radius: 14px;
-      padding: 14px 16px;
+      margin: 18px 20px 0;
+      background: var(--brand-50);
+      border: 1px solid var(--brand-200);
+      border-radius: var(--r-md);
+      padding: 13px 16px;
       text-align: center;
     }
 
     .inviter-badge-label {
-      font-size: 0.78rem;
-      color: #0A84FE;
+      font-size: 0.76rem;
+      color: var(--c-brand);
       font-weight: 700;
-      letter-spacing: 0.5px;
-      margin-bottom: 2px;
+      margin-bottom: 3px;
     }
 
     .inviter-badge-name {
-      color: #0F172A;
-      font-size: 1.05rem;
-      font-weight: 800;
+      color: var(--c-text);
+      font-size: 1.04rem;
+      font-weight: 700;
     }
 
-    .invite-body {
-      padding: 24px 20px;
-    }
+    .invite-body { padding: 22px 20px 24px; }
 
     .section-heading {
-      font-size: 0.95rem;
-      font-weight: 800;
-      color: #0F172A;
-      margin-bottom: 10px;
-      letter-spacing: -0.2px;
+      font-size: 0.94rem;
+      font-weight: 700;
+      color: var(--c-text);
+      margin: 0 0 10px;
     }
 
     .info-card {
-      background: #F8FAFC;
-      border: 1px solid #E2E8F0;
-      border-radius: 16px;
-      padding: 16px 18px;
-      margin-bottom: 20px;
+      background: var(--c-surface-2);
+      border: 1px solid var(--c-border);
+      border-radius: var(--r-md);
+      padding: 15px 16px;
+      margin-bottom: 18px;
     }
 
     .info-row {
       display: flex;
-      align-items: flex-start;
+      align-items: baseline;
       gap: 12px;
-      margin-bottom: 10px;
-      font-size: 0.88rem;
+      margin-bottom: 9px;
+      font-size: 0.87rem;
     }
-
     .info-row:last-child { margin-bottom: 0; }
+    .info-label { color: var(--brand-700); font-weight: 700; min-width: 52px; flex-shrink: 0; }
+    .info-val { color: var(--c-text-soft); flex: 1; font-weight: 500; word-break: break-word; font-variant-numeric: tabular-nums; }
 
-    .info-label {
-      color: #0A84FE;
-      font-weight: 700;
-      min-width: 52px;
-    }
-
-    .info-val {
-      color: #334155;
-      flex: 1;
-      font-weight: 500;
-      word-break: break-word;
-    }
-
-    /* 이벤트 상세 안내 접기/펼치기 카드 */
     .contents-card {
-      background: #FFFFFF;
-      border: 1px solid #E2E8F0;
-      border-radius: 16px;
-      padding: 16px 18px;
-      margin-bottom: 24px;
+      background: var(--c-surface);
+      border: 1px solid var(--c-border);
+      border-radius: var(--r-md);
+      padding: 15px 16px;
+      margin-bottom: 22px;
     }
 
     .contents-header-row {
@@ -189,136 +157,142 @@
     }
 
     .contents-toggle-btn {
-      background: #E8F2FF;
-      color: #0A84FE;
-      border: none;
-      border-radius: 20px;
+      background: var(--brand-50);
+      color: var(--brand-700);
+      border: 1px solid var(--brand-200);
+      border-radius: var(--r-pill);
       padding: 5px 12px;
       font-size: 0.78rem;
       font-weight: 700;
-      font-family: inherit;
       cursor: pointer;
-      display: flex;
+      display: inline-flex;
       align-items: center;
       gap: 4px;
-      transition: background 0.15s ease;
+      transition: background-color 150ms ease;
     }
-
-    .contents-toggle-btn:hover {
-      background: #DBEAFE;
-    }
+    .contents-toggle-btn:hover { background: var(--brand-100); }
 
     .contents-body {
       display: none;
-      font-size: 0.88rem;
-      color: #334155;
+      font-size: 0.87rem;
+      color: var(--c-text-soft);
       line-height: 1.65;
       word-break: break-word;
       white-space: pre-wrap;
       margin-top: 14px;
       padding-top: 14px;
-      border-top: 1px solid #F1F5F9;
+      border-top: 1px solid var(--c-border-subtle);
     }
+    .contents-body.is-open { display: block; }
+    .contents-body img { max-width: 100%; height: auto; border-radius: var(--r-sm); margin: 10px 0; }
 
-    .contents-body.is-open {
-      display: block;
-    }
-
-    .contents-body img {
-      max-width: 100%;
-      height: auto;
-      border-radius: 10px;
-      margin: 10px 0;
-    }
-
-    .form-group {
-      margin-bottom: 16px;
-    }
-
-    .form-group label {
-      display: block;
-      font-size: 0.84rem;
-      font-weight: 700;
-      color: #475569;
-      margin-bottom: 6px;
-    }
-
+    .form-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .form-group { margin-bottom: 14px; }
+    .form-group label { display: block; font-size: 0.82rem; font-weight: 700; color: var(--c-text-soft); margin-bottom: 6px; }
     .form-control {
       width: 100%;
       padding: 12px 14px;
-      border-radius: 12px;
-      border: 1.5px solid #CBD5E1;
-      font-size: 0.88rem;
-      font-family: inherit;
-      background: #FFFFFF;
-      color: #0F172A;
-      transition: border-color 0.15s ease, box-shadow 0.15s ease;
+      border-radius: var(--r-md);
+      border: 1.5px solid var(--c-border);
+      font-size: 0.9rem;
+      background: var(--c-surface-2);
+      color: var(--c-text);
+      transition: border-color 150ms ease, background-color 150ms ease, box-shadow 150ms ease;
     }
-
     .form-control:focus {
       outline: none;
-      border-color: #0A84FE;
-      box-shadow: 0 0 0 3px rgba(10, 132, 254, 0.15);
+      background: var(--c-surface);
+      border-color: var(--c-brand);
+      box-shadow: 0 0 0 3.5px var(--c-focus-ring);
     }
+
+    /* 약관 동의 박스 */
+    .terms-container {
+      margin-top: 16px;
+      padding: 16px;
+      background: var(--c-surface-2);
+      border: 1px solid var(--c-border);
+      border-radius: var(--r-md);
+      text-align: left;
+    }
+    .terms-top-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+    .terms-heading { font-size: 0.9rem; color: var(--c-text); font-weight: 700; }
+    .terms-all-label {
+      font-size: 0.8rem;
+      color: var(--c-brand);
+      cursor: pointer;
+      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .terms-item {
+      margin-bottom: 10px;
+      background: var(--c-surface);
+      border: 1px solid var(--c-border-subtle);
+      border-radius: var(--r-sm);
+      padding: 12px;
+    }
+    .terms-item:last-child { margin-bottom: 0; }
+    .terms-item-title { font-size: 0.8rem; font-weight: 700; color: var(--c-text); margin-bottom: 5px; }
+    .terms-scroll-box {
+      font-size: 0.77rem;
+      color: var(--c-text-muted);
+      line-height: 1.5;
+      max-height: 76px;
+      overflow-y: auto;
+      overscroll-behavior: contain;
+      background: var(--c-surface-2);
+      padding: 8px 10px;
+      border-radius: 6px;
+      margin-bottom: 8px;
+    }
+    .terms-chk-label {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      font-size: 0.8rem;
+      color: var(--c-text-soft);
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .terms-chk-label input { width: 16px; height: 16px; accent-color: var(--c-brand); cursor: pointer; }
 
     .submit-btn {
       width: 100%;
-      background: linear-gradient(135deg, #0A84FE 0%, #0875E0 100%);
+      background: linear-gradient(135deg, var(--brand-500) 0%, var(--brand-600) 100%);
       color: #FFFFFF;
       border: none;
-      border-radius: 14px;
+      border-radius: var(--r-md);
       padding: 15px;
-      font-size: 0.98rem;
-      font-weight: 800;
-      font-family: inherit;
+      font-size: 0.96rem;
+      font-weight: 700;
       cursor: pointer;
-      box-shadow: 0 8px 20px rgba(10, 132, 254, 0.25);
-      transition: transform 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
-      margin-top: 10px;
+      box-shadow: var(--sh-brand);
+      transition: translate 150ms ease, box-shadow 150ms ease;
+      margin-top: 16px;
     }
+    .submit-btn:hover:not(:disabled) { translate: 0 -1px; box-shadow: 0 12px 24px rgba(10, 132, 254, 0.36); }
+    .submit-btn:disabled { background: var(--c-surface-3); color: var(--c-text-faint); box-shadow: none; cursor: not-allowed; }
 
-    .submit-btn:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 10px 24px rgba(10, 132, 254, 0.35);
-    }
+    .success-container { text-align: center; padding: 32px 18px; }
+    .success-title { font-size: 1.24rem; font-weight: 700; color: var(--brand-700); margin: 0 0 10px; }
+    .success-text { color: var(--c-text-soft); font-size: 0.9rem; line-height: 1.6; margin: 0; }
+    .loading-spinner { text-align: center; padding: 40px 20px; color: var(--c-text-muted); font-size: 0.9rem; }
+    .error-box { text-align: center; color: var(--c-danger); padding: 24px; font-weight: 700; font-size: 0.92rem; }
 
-    .submit-btn:disabled {
-      background: #CBD5E1;
-      box-shadow: none;
-      cursor: not-allowed;
-      transform: none;
-    }
-
-    .success-container {
-      text-align: center;
-      padding: 32px 20px;
-    }
-
-    .success-title {
-      font-size: 1.3rem;
-      font-weight: 800;
-      color: #0F172A;
-      margin-bottom: 10px;
-    }
-
-    .success-text {
-      color: #475569;
-      font-size: 0.9rem;
-      line-height: 1.6;
-    }
-
-    .loading-spinner {
-      text-align: center;
-      padding: 40px 20px;
-      color: #64748b;
-      font-size: 0.9rem;
+    @media (max-width: 480px) {
+      .form-control { font-size: 16px; }
     }
   </style>
 </head>
 <body>
-
-  <!-- 초대장 모양 외곽 카드리플렛 프레임 -->
-  <div class="invite-card-frame">
+  <main class="invite-card-frame">
     <div class="invite-card-inner">
       <div class="invite-banner">
         <span class="invite-badge">CONTENIDO INVITATION</span>
@@ -332,16 +306,13 @@
       </div>
 
       <div class="invite-body">
-        <div id="loading-view" class="loading-spinner">
-          초대장 정보를 불러오고 있습니다...
-        </div>
+        <div id="loading-view" class="loading-spinner">초대장 정보를 불러오고 있습니다...</div>
 
-        <div id="error-view" style="display: none; text-align: center; color: #EF4444; padding: 24px;">
-          <p id="error-msg" style="font-weight: 700; font-size: 0.95rem;">초대장 링크를 확인해 주세요.</p>
+        <div id="error-view" class="error-box" style="display: none;">
+          <p id="error-msg">초대장 링크를 확인해 주세요.</p>
         </div>
 
         <div id="content-view" style="display: none;">
-          <!-- 이벤트 핵심 정보 -->
           <h2 class="section-heading">이벤트 정보</h2>
           <div class="info-card">
             <div class="info-row">
@@ -358,7 +329,6 @@
             </div>
           </div>
 
-          <!-- 이벤트 본문 상세 내용 (접기/펼치기 토글) -->
           <div class="contents-card" id="inv-contents-card" style="display: none;">
             <div class="contents-header-row" id="inv-contents-toggle">
               <h2 class="section-heading" style="margin-bottom: 0;">이벤트 상세 안내</h2>
@@ -370,88 +340,83 @@
             <div class="contents-body" id="inv-contents"></div>
           </div>
 
-          <!-- 지인 신청서 작성 폼 -->
           <h2 class="section-heading">지인 참가 신청서</h2>
-          <form id="invite-form">
+          <form id="invite-form" autocomplete="on">
             <div class="form-group">
               <label for="ga-name">성함</label>
-              <input type="text" id="ga-name" class="form-control" placeholder="성함 입력" required>
+              <input type="text" id="ga-name" class="form-control" placeholder="성함 입력" autocomplete="name" required>
             </div>
 
             <div class="form-group">
               <label for="ga-phone">연락처</label>
-              <input type="tel" id="ga-phone" class="form-control" placeholder="010-XXXX-XXXX" required>
+              <input type="tel" id="ga-phone" class="form-control" placeholder="010-XXXX-XXXX" autocomplete="tel" inputmode="tel" required>
             </div>
 
-            <div style="display: flex; gap: 10px;">
-              <div class="form-group" style="flex: 1;">
+            <div class="form-row-2">
+              <div class="form-group">
                 <label for="ga-gender">성별</label>
                 <select id="ga-gender" class="form-control">
                   <option value="male">남성</option>
                   <option value="female">여성</option>
                 </select>
               </div>
-              <div class="form-group" style="flex: 1;">
+              <div class="form-group">
                 <label for="ga-age">나이</label>
-                <input type="number" id="ga-age" class="form-control" placeholder="나이(세)" min="10" max="100" required>
+                <input type="number" id="ga-age" class="form-control" placeholder="나이(세)" inputmode="numeric" min="10" max="100" required>
               </div>
             </div>
 
             <div id="questions-container"></div>
 
-            <!-- 약관 및 참가 동의서 -->
-            <div style="margin-top: 18px; padding: 16px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 14px; text-align: left;">
-              <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
-                <span style="font-size: 0.92rem; color: #0f172a; font-weight: 700;">약관 및 참가 동의서</span>
-                <label style="font-size: 0.8rem; color: #0284c7; cursor: pointer; font-weight: 600; display: flex; align-items: center; gap: 4px;">
-                  <input type="checkbox" id="chk-agree-all" onchange="const chks = document.querySelectorAll('.guest-term-chk'); chks.forEach(c => c.checked = this.checked);" style="accent-color: #0284c7; cursor: pointer;">
-                  전체 동의
+            <div class="terms-container">
+              <div class="terms-top-row">
+                <span class="terms-heading">약관 및 참가 동의서</span>
+                <label class="terms-all-label">
+                  <input type="checkbox" id="chk-agree-all" onchange="const chks = document.querySelectorAll('.guest-term-chk'); chks.forEach(c => c.checked = this.checked);">
+                  <span>전체 동의</span>
                 </label>
               </div>
 
-              <!-- 1. 개인정보 동의 -->
-              <div style="margin-bottom: 12px; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 12px;">
-                <div style="font-size: 0.82rem; font-weight: 700; color: #1e293b; margin-bottom: 4px;">1. 개인정보 수집 및 이용 동의 [필수]</div>
-                <div style="font-size: 0.78rem; color: #64748b; line-height: 1.45; max-height: 70px; overflow-y: auto; background: #f8fafc; padding: 8px; border-radius: 6px; margin-bottom: 8px;">
+              <div class="terms-item">
+                <div class="terms-item-title">1. 개인정보 수집 및 이용 동의 [필수]</div>
+                <div class="terms-scroll-box">
                   • 수집 항목: 성함, 연락처, 성별, 나이<br>
                   • 이용 목적: 이벤트 참가자 본인 확인, 안전 및 비상 연락망 운용, 행사 진행 안내<br>
                   • 보유 및 이용 기간: 이벤트 종료 후 30일 이내 안전하게 파기
                 </div>
-                <label style="display: flex; align-items: center; gap: 6px; font-size: 0.82rem; color: #334155; font-weight: 600; cursor: pointer;">
-                  <input type="checkbox" id="chk-privacy" class="guest-term-chk" required style="accent-color: #0284c7; width: 16px; height: 16px; cursor: pointer;">
-                  개인정보 수집 및 이용에 동의합니다.
+                <label class="terms-chk-label">
+                  <input type="checkbox" id="chk-privacy" class="guest-term-chk" required>
+                  <span>개인정보 수집 및 이용에 동의합니다.</span>
                 </label>
               </div>
 
-              <!-- 2. 풍기문란 방지 및 행동 수칙 동의 -->
-              <div style="margin-bottom: 12px; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 12px;">
-                <div style="font-size: 0.82rem; font-weight: 700; color: #1e293b; margin-bottom: 4px;">2. 풍기문란 방지 및 행동 수칙 동의 [필수]</div>
-                <div style="font-size: 0.78rem; color: #64748b; line-height: 1.45; max-height: 80px; overflow-y: auto; background: #f8fafc; padding: 8px; border-radius: 6px; margin-bottom: 8px;">
+              <div class="terms-item">
+                <div class="terms-item-title">2. 풍기문란 방지 및 행동 수칙 동의 [필수]</div>
+                <div class="terms-scroll-box">
                   • 불쾌감, 위협, 성적 수치심을 주는 언행(성희롱, 강요, 과도한 스킨십 등) 엄금<br>
                   • 과도한 음주 강권, 시비 및 비신사적인 행동 절대 금지<br>
                   • 수칙 위반 시 현장에서 즉시 퇴장 조치되며, 향후 콘테니도 모임 및 행사에 영구 참가 제한 조치가 취해집니다.
                 </div>
-                <label style="display: flex; align-items: center; gap: 6px; font-size: 0.82rem; color: #334155; font-weight: 600; cursor: pointer;">
-                  <input type="checkbox" id="chk-conduct" class="guest-term-chk" required style="accent-color: #0284c7; width: 16px; height: 16px; cursor: pointer;">
-                  풍기문란 방지 및 행동 수칙을 확인하였으며 동의합니다.
+                <label class="terms-chk-label">
+                  <input type="checkbox" id="chk-conduct" class="guest-term-chk" required>
+                  <span>풍기문란 방지 및 행동 수칙을 확인하였으며 동의합니다.</span>
                 </label>
               </div>
 
-              <!-- 3. 이벤트 참가 규칙 및 환불·노쇼 규정 동의 -->
-              <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 12px;">
-                <div style="font-size: 0.82rem; font-weight: 700; color: #1e293b; margin-bottom: 4px;">3. 이벤트 참가 규칙 및 환불·노쇼 규정 동의 [필수]</div>
-                <div style="font-size: 0.78rem; color: #64748b; line-height: 1.45; max-height: 80px; overflow-y: auto; background: #f8fafc; padding: 8px; border-radius: 6px; margin-bottom: 8px;">
+              <div class="terms-item">
+                <div class="terms-item-title">3. 이벤트 참가 규칙 및 환불·노쇼 규정 동의 [필수]</div>
+                <div class="terms-scroll-box">
                   • 참가 규칙: 행사 진행 및 안전을 위해 담당 운영진 및 스태프의 안내에 협조해야 합니다.<br>
-                  • 환불 & 노쇼(No-Show) 규정: 당일 무단 불참 및 일정 임박 취소 시 참가비 환불이 불가합니다. 무단 불참 시 타 참가자에게 피해를 주므로 영구 지인 동반 신청이 제한될 수 있습니다.
+                  • 환불 &amp; 노쇼(No-Show) 규정: 당일 무단 불참 및 일정 임박 취소 시 참가비 환불이 불가합니다. 무단 불참 시 타 참가자에게 피해를 주므로 영구 지인 동반 신청이 제한될 수 있습니다.
                 </div>
-                <label style="display: flex; align-items: center; gap: 6px; font-size: 0.82rem; color: #334155; font-weight: 600; cursor: pointer;">
-                  <input type="checkbox" id="chk-rules" class="guest-term-chk" required style="accent-color: #0284c7; width: 16px; height: 16px; cursor: pointer;">
-                  이벤트 참가 규칙 및 환불·노쇼 규정에 동의합니다.
+                <label class="terms-chk-label">
+                  <input type="checkbox" id="chk-rules" class="guest-term-chk" required>
+                  <span>이벤트 참가 규칙 및 환불·노쇼 규정에 동의합니다.</span>
                 </label>
               </div>
             </div>
 
-            <button type="submit" id="submit-btn" class="submit-btn" style="margin-top: 16px;">지인 참가 신청 완료하기</button>
+            <button type="submit" id="submit-btn" class="submit-btn">지인 참가 신청 완료하기</button>
           </form>
         </div>
 
@@ -463,7 +428,7 @@
         </div>
       </div>
     </div>
-  </div>
+  </main>
 
   <script src="/js/invite.js"></script>
 </body>

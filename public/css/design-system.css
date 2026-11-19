@@ -1,0 +1,533 @@
+/* =====================================================================
+   Contenido Design System — Tone-on-Tone Signature Azure (#0A84FE)
+   Aligned with Google Chrome modern-web-guidance (progressive enhancement)
+   ===================================================================== */
+
+@font-face {
+  font-family: 'GmarketSansMedium';
+  src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_2001@1.1/GmarketSansMedium.woff') format('woff');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Cross-document smooth view transitions (progressive enhancement) */
+@view-transition {
+  navigation: auto;
+}
+
+::view-transition-old(root) {
+  animation: c-vt-fade-out 160ms cubic-bezier(0.4, 0, 1, 1) both;
+}
+
+::view-transition-new(root) {
+  animation: c-vt-fade-in 220ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes c-vt-fade-out {
+  from { opacity: 1; }
+  to   { opacity: 0; }
+}
+
+@keyframes c-vt-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+:root {
+  color-scheme: light;
+
+  /* ── Signature Azure Tone-on-Tone Scale (#0A84FE) ── */
+  --brand-50:  #F0F7FF;
+  --brand-100: #DEEEFF;
+  --brand-200: #BBDDFD;
+  --brand-300: #87C3FC;
+  --brand-400: #4AA4FE;
+  --brand-500: #0A84FE;
+  --brand-600: #056DE0;
+  --brand-700: #0755B3;
+  --brand-800: #0B4087;
+  --brand-900: #0D2D5E;
+  --brand-950: #081C3B;
+
+  /* ── Core Brand Tokens ── */
+  --c-brand:        var(--brand-500);
+  --c-brand-strong: var(--brand-600);
+  --c-brand-deep:   var(--brand-700);
+  --c-brand-soft:   var(--brand-100);
+  --c-brand-tint:   var(--brand-50);
+  --c-brand-border: var(--brand-200);
+  --c-brand-glow:   rgba(10, 132, 254, 0.22);
+
+  /* ── Tone-on-Tone Surfaces (Azure-Tinted Cool Neutrals) ── */
+  --c-bg:            #F3F7FD;
+  --c-bg-subtle:     #EBF2FC;
+  --c-surface:       #FFFFFF;
+  --c-surface-2:     #F2F6FC;
+  --c-surface-3:     #E5EFFB;
+  --c-surface-glass: rgba(255, 255, 255, 0.88);
+  --c-surface-glass-strong: rgba(255, 255, 255, 0.94);
+
+  /* ── Ink Hierarchy (Deep Navy-Slate — WCAG AA/AAA) ── */
+  --c-text:       #0C1E38;
+  --c-text-soft:  #304765;
+  --c-text-muted: #5A708D;
+  --c-text-faint: #8CA1BC;
+
+  /* ── Hairlines & Focus ── */
+  --c-border:        #DCE7F5;
+  --c-border-subtle: #EAF1FA;
+  --c-border-strong: #C0D4EE;
+  --c-focus-ring:    rgba(10, 132, 254, 0.28);
+
+  /* ── Harmonized Semantic Tokens ── */
+  --c-ok:          #0E9F6E;
+  --c-ok-bg:       #ECFDF5;
+  --c-ok-border:   #A7F3D0;
+  --c-warn:        #D97706;
+  --c-warn-bg:     #FFFBEB;
+  --c-warn-border: #FDE68A;
+  --c-danger:      #E11D48;
+  --c-danger-bg:   #FFF1F2;
+  --c-danger-border: #FECDD3;
+  --c-info:        var(--brand-500);
+  --c-info-bg:     var(--brand-50);
+  --c-info-border: var(--brand-200);
+
+  /* ── Tone-on-Tone Department Tokens (Office & Teams) ── */
+  --c-dept-president:  #0B2A5B;
+  --c-dept-operation:  #0A84FE;
+  --c-dept-promotion:  #2B9BFF;
+  --c-dept-planning:   #195CD2;
+
+  /* ── Brand External Tokens (Kakao Official) ── */
+  --c-kakao-bg:    #FEE500;
+  --c-kakao-hover: #F5DC00;
+  --c-kakao-ink:   #191600;
+
+  /* ── Radius Scale ── */
+  --r-xs:   6px;
+  --r-sm:   10px;
+  --r-md:   14px;
+  --r-lg:   18px;
+  --r-xl:   24px;
+  --r-2xl:  30px;
+  --r-pill: 9999px;
+
+  /* ── Spacing Scale ── */
+  --sp-1: 4px;
+  --sp-2: 8px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+  --sp-5: 20px;
+  --sp-6: 24px;
+  --sp-8: 32px;
+  --sp-10: 40px;
+
+  /* ── Navigation Dimensions ── */
+  --nav-top-h:    64px;
+  --nav-bottom-h: 66px;
+
+  /* ── Layered Azure-Tinted Elevation ── */
+  --sh-xs:    0 1px 2px rgba(12, 30, 56, 0.04);
+  --sh-sm:    0 2px 8px -1px rgba(12, 30, 56, 0.06), 0 1px 3px rgba(10, 132, 254, 0.04);
+  --sh-md:    0 10px 26px -6px rgba(12, 30, 56, 0.10), 0 3px 10px -2px rgba(10, 132, 254, 0.06);
+  --sh-lg:    0 22px 48px -12px rgba(12, 30, 56, 0.16), 0 6px 18px -4px rgba(10, 132, 254, 0.10);
+  --sh-brand: 0 8px 22px -4px rgba(10, 132, 254, 0.34);
+
+  /* ── Motion & Spring Easing ── */
+  --ease:        cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-out:    cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --t-fast: 150ms;
+  --t-base: 220ms;
+  --t-slow: 360ms;
+
+  /* ── Typography ── */
+  --ff-base: 'GmarketSansMedium', 'Pretendard Variable', 'Pretendard', -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+}
+
+/* Perceptually uniform OKLCH tone-on-tone derivation in modern browsers */
+@supports (color: color-mix(in oklch, red, blue)) {
+  :root {
+    --brand-50:  color-mix(in oklch, #0A84FE 7%,  #FFFFFF);
+    --brand-100: color-mix(in oklch, #0A84FE 15%, #FFFFFF);
+    --brand-200: color-mix(in oklch, #0A84FE 30%, #FFFFFF);
+    --brand-300: color-mix(in oklch, #0A84FE 52%, #FFFFFF);
+    --brand-400: color-mix(in oklch, #0A84FE 76%, #FFFFFF);
+    --brand-600: color-mix(in oklch, #0A84FE 86%, #041A3B);
+    --brand-700: color-mix(in oklch, #0A84FE 70%, #041A3B);
+    --brand-800: color-mix(in oklch, #0A84FE 50%, #041A3B);
+    --brand-900: color-mix(in oklch, #0A84FE 32%, #041A3B);
+    --c-bg:            color-mix(in oklch, #0A84FE 4.5%, #FFFFFF);
+    --c-bg-subtle:     color-mix(in oklch, #0A84FE 8%,   #FFFFFF);
+    --c-surface-2:     color-mix(in oklch, #0A84FE 5.5%, #FFFFFF);
+    --c-surface-3:     color-mix(in oklch, #0A84FE 11%,  #FFFFFF);
+    --c-border:        color-mix(in oklch, #0A84FE 14%,  #E6ECF4);
+    --c-border-subtle: color-mix(in oklch, #0A84FE 7%,   #EFF3F8);
+    --c-border-strong: color-mix(in oklch, #0A84FE 26%,  #D7E1EE);
+    --c-brand-glow:    color-mix(in oklch, #0A84FE 24%,  transparent);
+  }
+}
+
+/* Physics-based spring timing via CSS linear() where supported */
+@supports (transition-timing-function: linear(0, 1)) {
+  :root {
+    --ease-spring: linear(
+      0, 0.009, 0.035 2.1%, 0.141, 0.281 6.7%, 0.723 12.9%, 0.938 16.7%,
+      1.017, 1.077, 1.121, 1.149 24.3%, 1.159, 1.163, 1.161, 1.154 29.9%,
+      1.129 32.8%, 1.051 39.6%, 1.017 43.1%, 0.991, 0.977 51%,
+      0.974 53.8%, 0.975 57.1%, 0.997 69.8%, 1.003 76.9%, 1.004 83.8%, 1
+    );
+  }
+}
+
+/* ── Global Ergonomics (Zero-Specificity :where() Defaults) ── */
+html {
+  box-sizing: border-box;
+  scroll-behavior: smooth;
+  interpolate-size: allow-keywords;
+  scrollbar-color: var(--brand-200) transparent;
+  scrollbar-width: thin;
+  -webkit-text-size-adjust: 100%;
+  -webkit-tap-highlight-color: rgba(10, 132, 254, 0.14);
+}
+
+@media (prefers-contrast: more) {
+  html {
+    scrollbar-color: auto;
+    scrollbar-width: auto;
+  }
+  :root {
+    --c-border: #8EB2DF;
+    --c-border-strong: #4A82C6;
+    --c-text-muted: #2B415C;
+  }
+}
+
+:where(*, *::before, *::after) {
+  box-sizing: border-box;
+}
+
+:where(body) {
+  margin: 0;
+  font-family: var(--ff-base);
+  background-color: var(--c-bg);
+  color: var(--c-text);
+  line-height: 1.55;
+  accent-color: var(--c-brand);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: clip;
+}
+
+/* Balanced headings & pretty paragraphs */
+:where(h1, h2, h3, h4) {
+  text-wrap: balance;
+  color: var(--c-text);
+}
+
+:where(p, li, dd) {
+  text-wrap: pretty;
+}
+
+:where(button, input, select, textarea) {
+  font-family: inherit;
+}
+
+/* Accessible unified focus ring */
+:where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+  outline: 2.5px solid var(--c-brand);
+  outline-offset: 2px;
+}
+
+/* Modern Form Controls */
+:where(input, select, textarea) {
+  accent-color: var(--c-brand);
+}
+
+:where(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]), select, textarea):user-invalid {
+  border-color: var(--c-danger);
+  box-shadow: 0 0 0 3px rgba(225, 29, 72, 0.12);
+}
+
+:where(input, select, textarea):autofill,
+:where(input, select, textarea):-webkit-autofill {
+  -webkit-box-shadow: 0 0 0 1000px var(--brand-50) inset;
+  -webkit-text-fill-color: var(--c-text);
+  transition: background-color 5000s ease-in-out 0s;
+}
+
+@supports (field-sizing: content) {
+  :where(textarea):not(.no-autosize) {
+    field-sizing: content;
+    min-height: 88px;
+    max-height: 360px;
+  }
+}
+
+/* Optical text alignment for GmarketSansMedium pills, badges & buttons */
+@supports (text-box-trim: trim-both) {
+  :where(.c-pill, .c-badge, .c-btn, .c-chip, .notif-badge) {
+    text-box-trim: trim-both;
+    text-box-edge: cap alphabetic;
+  }
+}
+
+/* ── Shared Icon & Utility Primitives ── */
+.c-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  line-height: 1;
+  vertical-align: middle;
+}
+
+.c-icon svg {
+  display: block;
+  width: 1em;
+  height: 1em;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.c-tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+.c-cv-auto {
+  content-visibility: auto;
+  contain-intrinsic-size: 0 280px;
+}
+
+/* ── Scroll-Driven Reading Progress Hairline (progressive enhancement) ── */
+.c-scroll-progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 2.5px;
+  background: linear-gradient(90deg, var(--brand-400) 0%, var(--brand-500) 60%, var(--brand-600) 100%);
+  transform-origin: 0 50%;
+  scale: 0 1;
+  z-index: 1200;
+  pointer-events: none;
+  opacity: 0;
+}
+
+@supports (animation-timeline: scroll()) {
+  .c-scroll-progress {
+    opacity: 1;
+    animation: c-scroll-progress-grow linear both;
+    animation-timeline: scroll(root block);
+  }
+}
+
+@keyframes c-scroll-progress-grow {
+  from { scale: 0 1; }
+  to   { scale: 1 1; }
+}
+
+/* ── Shared Toast & Confirm Dialog (for ui.js across ALL pages) ── */
+#toast-container.toast-container {
+  position: fixed;
+  left: 50%;
+  bottom: calc(var(--nav-bottom-h, 66px) + 18px);
+  translate: -50% 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  z-index: 10050;
+  pointer-events: none;
+  width: min(92vw, 420px);
+}
+
+#toast-container .toast {
+  pointer-events: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  max-width: 100%;
+  padding: 12px 18px;
+  border-radius: var(--r-pill);
+  background: var(--brand-950);
+  color: #FFFFFF;
+  font-family: var(--ff-base);
+  font-size: 0.88rem;
+  line-height: 1.4;
+  letter-spacing: -0.01em;
+  box-shadow: var(--sh-lg);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  animation: c-toast-in 240ms var(--ease-spring) both;
+}
+
+#toast-container .toast.is-success,
+#toast-container .toast.is-ok {
+  background: #065F46;
+  border-color: rgba(167, 243, 208, 0.25);
+}
+
+#toast-container .toast.is-error,
+#toast-container .toast.is-danger {
+  background: #9F1239;
+  border-color: rgba(254, 205, 211, 0.25);
+}
+
+#toast-container .toast.is-warning,
+#toast-container .toast.is-warn {
+  background: #92400E;
+  border-color: rgba(253, 230, 138, 0.25);
+}
+
+#toast-container .toast.is-leaving {
+  animation: c-toast-out 220ms ease forwards;
+}
+
+@keyframes c-toast-in {
+  from { opacity: 0; translate: 0 12px; scale: 0.96; }
+  to   { opacity: 1; translate: 0 0; scale: 1; }
+}
+
+@keyframes c-toast-out {
+  from { opacity: 1; translate: 0 0; scale: 1; }
+  to   { opacity: 0; translate: 0 8px; scale: 0.96; }
+}
+
+.modal-backdrop-v2 {
+  position: fixed;
+  inset: 0;
+  background: rgba(8, 28, 59, 0.48);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  opacity: 0;
+  transition: opacity var(--t-base) var(--ease);
+  z-index: 10040;
+}
+
+.modal-backdrop-v2.is-open {
+  opacity: 1;
+}
+
+.modal-dialog {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  translate: -50% -48%;
+  scale: 0.96;
+  opacity: 0;
+  width: min(92vw, 420px);
+  max-height: 88dvh;
+  overflow: hidden;
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  border-radius: var(--r-xl);
+  box-shadow: var(--sh-lg);
+  z-index: 10045;
+  font-family: var(--ff-base);
+  overscroll-behavior: contain;
+  transition: opacity var(--t-base) var(--ease), translate var(--t-base) var(--ease-spring), scale var(--t-base) var(--ease-spring);
+}
+
+.modal-dialog.is-open {
+  opacity: 1;
+  translate: -50% -50%;
+  scale: 1;
+}
+
+.modal-dialog .modal-header {
+  padding: 20px 22px 12px;
+  border-bottom: 1px solid var(--c-border-subtle);
+}
+
+.modal-dialog .modal-title {
+  margin: 0;
+  font-size: 1.05rem;
+  color: var(--c-text);
+  line-height: 1.35;
+}
+
+.modal-dialog .modal-body {
+  padding: 16px 22px;
+  font-size: 0.92rem;
+  color: var(--c-text-soft);
+  line-height: 1.6;
+  max-height: 60dvh;
+  overflow-y: auto;
+}
+
+.modal-dialog .modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 12px 22px 18px;
+  border-top: 1px solid var(--c-border-subtle);
+  background: var(--c-surface-2);
+}
+
+.modal-dialog .btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 40px;
+  padding: 0 18px;
+  border-radius: var(--r-md);
+  border: 1px solid transparent;
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color var(--t-fast) var(--ease), border-color var(--t-fast) var(--ease), translate var(--t-fast) var(--ease), box-shadow var(--t-fast) var(--ease);
+}
+
+.modal-dialog .btn-ghost {
+  background: var(--c-surface);
+  color: var(--c-text-soft);
+  border-color: var(--c-border);
+}
+
+.modal-dialog .btn-ghost:hover {
+  background: var(--brand-50);
+  color: var(--c-brand-strong);
+  border-color: var(--brand-200);
+}
+
+.modal-dialog .btn-primary {
+  background: var(--c-brand);
+  color: #FFFFFF;
+  box-shadow: var(--sh-brand);
+}
+
+.modal-dialog .btn-primary:hover {
+  background: var(--c-brand-strong);
+  translate: 0 -1px;
+}
+
+.modal-dialog .btn-danger {
+  background: var(--c-danger);
+  color: #FFFFFF;
+  box-shadow: 0 6px 16px rgba(225, 29, 72, 0.28);
+}
+
+.modal-dialog .btn-danger:hover {
+  background: #BE123C;
+  translate: 0 -1px;
+}
+
+/* ── Reduced Motion ── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation: none !important;
+  }
+}

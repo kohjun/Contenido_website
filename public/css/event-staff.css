@@ -1,25 +1,8 @@
 /* =========================================================================
-   event-staff.css — 기획부 이벤트 관리 페이지 전용 스타일
-   (modern.css 의 토큰/컴포넌트를 사용한다고 가정)
+   event-staff.css — 기획부 이벤트 관리 페이지 (Tone-on-Tone Signature Azure)
    ========================================================================= */
 
-/* -------- Page header -------------------------------------------------- *
-/* Global Styles */
-@font-face {
-  font-family: 'GmarketSansMedium';
-  src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_2001@1.1/GmarketSansMedium.woff') format('woff');
-  font-weight: normal;
-  font-style: normal;
-}
-body {
-  font-family: 'GmarketSansMedium', sans-serif;
-  background-color: #f4f4f4;
-  color: #333;
-  margin: 0;
-  padding: 0;
-  line-height: 1.6;
-}
-
+/* -------- Page header -------------------------------------------------- */
 .es-header {
   display: flex;
   flex-direction: column;
@@ -491,6 +474,18 @@ body {
 .fee-mode-toggle .radio:has(input:checked) .radio-body {
   color: #fff;
   font-weight: 600;
+}
+
+.es-companion-box {
+  background: var(--brand-50);
+  border-color: var(--brand-200);
+}
+.es-companion-sub {
+  margin-top: 6px;
+  padding-left: 30px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
 
 /* -------- Responsive -------------------------------------------------- */

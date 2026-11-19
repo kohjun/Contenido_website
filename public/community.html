@@ -4,48 +4,50 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>커뮤니티 자유게시판 · Contenido</title>
+  <link rel="icon" href="/images/Contenido_Logo.ico" type="image/x-icon">
+  <link rel="stylesheet" href="/css/design-system.css?v=20261119" />
   <link rel="stylesheet" href="/css/styles.css" />
-  <link rel="stylesheet" href="/css/modern.css?v=20260533" />
-  <link rel="stylesheet" href="/css/community.css?v=20260615" />
+  <link rel="stylesheet" href="/css/modern.css?v=20261119" />
+  <link rel="stylesheet" href="/css/community.css?v=20261119" />
   <script src="https://t1.kakaocdn.net/kakao_js_sdk/2.5.0/kakao.min.js"></script>
 </head>
 <body class="modern">
 
-  <div class="container modern">
+  <main class="container modern">
     <!-- 페이지 헤더 -->
-    <div class="page-header">
-      <br>
+    <header class="page-header">
       <h1 class="page-title">콘테니도 자유게시판</h1>
       <p class="page-subtitle">콘테니도 부원들과 자유롭게 일상과 취미를 공유하고 이야기를 나누는 공간입니다.</p>
-    </div>
+    </header>
 
-    <!-- 글 작성 카드 (활성 회원만 정상 작성 가능) -->
-    <div class="write-card" id="write-card-container">
+    <!-- 글 작성 카드 -->
+    <section class="write-card" id="write-card-container" aria-label="새 게시글 작성">
       <form id="post-create-form" enctype="multipart/form-data">
         <div class="form-group">
-          <input type="text" id="post-title" class="input" placeholder="글 제목을 입력하세요" required style="font-size: 15px; font-weight: 600;" />
+          <input type="text" id="post-title" class="input" placeholder="글 제목을 입력하세요" required />
         </div>
-        <div class="form-group" style="margin-top: 8px;">
-          <textarea id="post-content" class="input" placeholder="이곳에 자유롭게 내용을 작성해보세요. (바르고 고운 말을 사용합시다)" required style="min-height: 120px; font-family: inherit; font-size: 14px; resize: vertical;"></textarea>
+        <div class="form-group write-body-group">
+          <textarea id="post-content" class="input" placeholder="이곳에 자유롭게 내용을 작성해보세요. (바르고 고운 말을 사용합시다)" required></textarea>
         </div>
-        
+
         <!-- 이미지 업로드 미리보기 -->
         <div class="image-preview-container" id="write-image-preview-container">
-          <img id="write-image-preview" src="#" alt="Preview" />
-          <button type="button" class="image-preview-cancel" id="btn-cancel-write-image" aria-label="취소">×</button>
+          <img id="write-image-preview" src="#" alt="업로드 이미지 미리보기" />
+          <button type="button" class="image-preview-cancel" id="btn-cancel-write-image" aria-label="이미지 제거">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
         </div>
-        
+
         <div class="write-actions">
           <div class="write-actions-left">
-            <!-- 파일 업로드 라벨 -->
             <label class="file-upload-btn" for="post-image-file">
-              <span>📷 사진 첨부</span>
+              <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8.5" cy="10.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+              <span>사진 첨부</span>
               <input type="file" id="post-image-file" accept="image/*" />
             </label>
             <span class="file-name-preview" id="post-file-name">선택된 파일 없음</span>
 
-            <!-- 익명 체크박스 -->
-            <label class="check" style="cursor: pointer; display: inline-flex; align-items: center; gap: 6px; font-size: 13.5px; color: var(--c-text-soft);">
+            <label class="check write-anon-check">
               <input type="checkbox" id="post-anonymous" checked />
               <span>익명</span>
             </label>
@@ -56,24 +58,25 @@
           </button>
         </div>
       </form>
-    </div>
+    </section>
 
     <!-- 검색 및 필터 정렬 탭 -->
     <div class="board-header-row">
       <div class="board-search-bar">
-        <input type="text" id="board-search-input" class="input" placeholder="글 제목, 내용 검색..." />
-        <button type="button" class="board-search-btn" id="btn-board-search" aria-label="검색">🔍</button>
+        <input type="search" id="board-search-input" class="input" placeholder="글 제목, 내용 검색..." enterkeyhint="search" />
+        <button type="button" class="board-search-btn" id="btn-board-search" aria-label="검색">
+          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        </button>
       </div>
-      <div class="board-filter-tabs">
-        <button type="button" class="filter-tab active" id="tab-recent">최신순</button>
-        <button type="button" class="filter-tab" id="tab-popular">인기순</button>
+      <div class="board-filter-tabs" role="tablist" aria-label="정렬 기준">
+        <button type="button" class="filter-tab active" id="tab-recent" role="tab" aria-selected="true">최신순</button>
+        <button type="button" class="filter-tab" id="tab-popular" role="tab" aria-selected="false">인기순</button>
       </div>
     </div>
 
     <!-- 게시글 피드 -->
     <div id="posts-feed" class="posts-feed">
-      <!-- 동적 로드 예정 -->
-      <div style="text-align: center; color: var(--c-text-muted); padding: 40px 0;">게시글을 불러오는 중입니다...</div>
+      <div class="feed-loading">게시글을 불러오는 중입니다...</div>
     </div>
 
     <!-- 페이지네이션 -->
@@ -81,37 +84,37 @@
       <button type="button" class="icon-btn" id="prev-page" aria-label="이전 페이지" disabled>
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
       </button>
-      <span class="page-info" id="page-info">페이지 1</span>
+      <span class="page-info c-tabular" id="page-info">페이지 1</span>
       <button type="button" class="icon-btn" id="next-page" aria-label="다음 페이지">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
       </button>
     </nav>
-  </div>
+  </main>
 
   <!-- 상세 페이지 모달 -->
   <div class="modal-overlay" id="detail-modal-overlay">
-    <div class="detail-modal">
+    <div class="detail-modal" role="dialog" aria-modal="true" aria-label="게시글 상세">
       <div class="detail-modal-header">
         <span class="detail-modal-title">자유게시판</span>
-        <button class="modal-close-btn" id="detail-modal-close" aria-label="닫기">×</button>
-      </div>
-      
-      <!-- 스크롤 가능한 본문 및 댓글 영역 -->
-      <div class="detail-modal-body" id="detail-modal-body">
-        <!-- 동적으로 본문과 댓글 렌더링 -->
+        <button type="button" class="modal-close-btn" id="detail-modal-close" aria-label="닫기">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
       </div>
 
-      <!-- 고정 댓글 입력 폼 -->
+      <div class="detail-modal-body" id="detail-modal-body"></div>
+
       <div class="detail-modal-footer">
         <form id="comment-create-form" class="comment-input-form">
           <input type="hidden" id="current-post-id" value="" />
           <div class="comment-input-row">
-            <input type="text" class="comment-input-field" id="comment-content" placeholder="댓글을 입력하세요..." required />
+            <input type="text" class="comment-input-field" id="comment-content" placeholder="댓글을 입력하세요..." enterkeyhint="send" required />
             <label class="comment-anon-label">
               <input type="checkbox" id="comment-anonymous" checked />
               <span>익명</span>
             </label>
-            <button type="submit" class="comment-submit-btn" aria-label="등록">✏️</button>
+            <button type="submit" class="comment-submit-btn" aria-label="댓글 등록">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+            </button>
           </div>
         </form>
       </div>
@@ -122,7 +125,7 @@
   <div class="toast-container" id="toast-container"></div>
 
   <script src="/js/utils/ui.js"></script>
-  <script src="/js/utils/nav-injector.js?v=20260602"></script>
+  <script src="/js/utils/nav-injector.js?v=20261119"></script>
   <script src="/js/community.js?v=20260615"></script>
 </body>
 </html>

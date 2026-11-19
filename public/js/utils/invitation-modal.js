@@ -1,5 +1,5 @@
 /* =====================================================================
-   invitation-modal.js — 이벤트 지인 초대장 생성 & 공유 모달 (고급 시그니처 디자인)
+   invitation-modal.js — 이벤트 지인 초대장 생성 & 공유 모달 (Tone-on-Tone Azure)
    ===================================================================== */
 (function () {
   if (window.showInvitationModal) return;
@@ -13,186 +13,215 @@
     style.id = STYLE_ID;
     style.textContent = `
       .inv-overlay {
-        position: fixed; inset: 0;
-        background: rgba(11, 19, 43, 0.78);
-        display: flex; align-items: center; justify-content: center;
+        position: fixed;
+        inset: 0;
+        background: rgba(8, 28, 59, 0.58);
+        display: flex;
+        align-items: center;
+        justify-content: center;
         z-index: 100000;
         backdrop-filter: blur(8px);
         -webkit-backdrop-filter: blur(8px);
-        opacity: 0; pointer-events: none;
-        transition: opacity 250ms ease;
-        padding: 20px;
-        font-family: 'GmarketSansMedium', 'Pretendard', system-ui, sans-serif;
+        opacity: 0;
+        pointer-events: none;
+        overscroll-behavior: contain;
+        transition: opacity 220ms var(--ease, ease);
+        padding: 18px;
+        font-family: var(--ff-base, 'GmarketSansMedium', system-ui, sans-serif);
       }
       .inv-overlay.is-open { opacity: 1; pointer-events: auto; }
 
       .inv-card {
-        background: #ffffff;
-        border: 1px solid #e2e8f0;
+        background: var(--c-surface, #FFFFFF);
+        border: 1px solid var(--c-border, #DCE7F5);
         border-radius: 24px;
         width: 100%;
         max-width: 440px;
-        box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.25);
+        box-shadow: var(--sh-lg, 0 25px 50px -12px rgba(8, 28, 59, 0.28));
         overflow: hidden;
-        display: flex; flex-direction: column;
-        transform: translateY(16px) scale(0.98);
-        transition: transform 250ms cubic-bezier(0.16, 1, 0.3, 1);
+        display: flex;
+        flex-direction: column;
+        translate: 0 16px;
+        scale: 0.97;
+        transition: translate 260ms var(--ease-spring, cubic-bezier(0.34, 1.56, 0.64, 1)),
+                    scale 260ms var(--ease-spring, cubic-bezier(0.34, 1.56, 0.64, 1));
         position: relative;
-        color: #0f172a;
+        color: var(--c-text, #0C1E38);
       }
-      .inv-overlay.is-open .inv-card { transform: translateY(0) scale(1); }
+      .inv-overlay.is-open .inv-card { translate: 0 0; scale: 1; }
 
       .inv-header {
-        background: linear-gradient(135deg, #0A84FE 0%, #0056B3 100%);
-        color: #ffffff;
-        padding: 24px 24px 20px;
+        background: linear-gradient(135deg, var(--brand-500, #0A84FE) 0%, var(--brand-700, #0755B3) 100%);
+        color: #FFFFFF;
+        padding: 24px 48px 20px;
         text-align: center;
         position: relative;
-        box-shadow: 0 4px 20px rgba(10, 132, 254, 0.25);
       }
       .inv-header .inv-badge {
         display: inline-block;
-        background: rgba(255, 255, 255, 0.18);
-        border: 1px solid rgba(255, 255, 255, 0.25);
-        padding: 3px 12px;
-        border-radius: 20px;
-        font-size: 0.72rem;
-        letter-spacing: 1.5px;
+        background: rgba(255, 255, 255, 0.16);
+        border: 1px solid rgba(255, 255, 255, 0.26);
+        padding: 4px 12px;
+        border-radius: 999px;
+        font-size: 0.7rem;
+        letter-spacing: 0.12em;
         font-weight: 700;
         text-transform: uppercase;
-        margin-bottom: 8px;
-        color: #ffffff;
+        margin-bottom: 10px;
+        color: #FFFFFF;
       }
       .inv-header h3 {
         margin: 0;
-        font-size: 1.3rem;
-        font-weight: 800;
+        font-size: 1.24rem;
+        font-weight: 700;
         line-height: 1.35;
-        letter-spacing: -0.3px;
-        color: #ffffff;
+        letter-spacing: -0.02em;
+        color: #FFFFFF;
       }
 
       .inv-close-btn {
         position: absolute;
-        top: 16px; right: 18px;
-        background: rgba(255, 255, 255, 0.15);
-        border: none;
-        width: 32px; height: 32px;
-        border-radius: 50%;
-        color: #ffffff; font-size: 1.2rem;
-        cursor: pointer; opacity: 0.85;
-        display: flex; align-items: center; justify-content: center;
-        transition: all 150ms ease;
+        top: 14px;
+        right: 14px;
+        background: rgba(255, 255, 255, 0.16);
+        border: 1px solid rgba(255, 255, 255, 0.22);
+        width: 32px;
+        height: 32px;
+        border-radius: 10px;
+        color: #FFFFFF;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        transition: background-color 150ms ease, scale 150ms ease;
       }
-      .inv-close-btn:hover { opacity: 1; background: rgba(255, 255, 255, 0.28); transform: rotate(90deg); }
+      .inv-close-btn:hover { background: rgba(255, 255, 255, 0.28); scale: 1.05; }
 
       .inv-body {
-        padding: 24px;
-        color: #0f172a;
+        padding: 22px 24px 24px;
+        color: var(--c-text, #0C1E38);
       }
 
       .inv-inviter-tag {
-        background: #eff6ff;
-        border: 1px solid #bfdbfe;
+        background: var(--brand-50, #F0F7FF);
+        border: 1px solid var(--brand-200, #BBDDFD);
         border-radius: 14px;
         padding: 12px 16px;
         text-align: center;
         font-size: 0.88rem;
-        color: #1d4ed8;
+        color: var(--brand-700, #0755B3);
         font-weight: 600;
-        margin-bottom: 20px;
+        margin-bottom: 16px;
       }
       .inv-inviter-tag strong {
-        color: #0056b3;
-        font-weight: 800;
+        color: var(--brand-900, #0D2D5E);
+        font-weight: 700;
       }
 
       .inv-info-box {
-        background: #f8fafc;
-        border-radius: 18px;
-        padding: 18px;
-        border: 1px solid #e2e8f0;
-        margin-bottom: 20px;
+        background: var(--c-surface-2, #F2F6FC);
+        border-radius: 16px;
+        padding: 16px 18px;
+        border: 1px solid var(--c-border, #DCE7F5);
+        margin-bottom: 16px;
       }
       .inv-info-row {
         display: flex;
-        align-items: flex-start;
+        align-items: baseline;
         gap: 12px;
-        margin-bottom: 12px;
-        font-size: 0.88rem;
+        margin-bottom: 10px;
+        font-size: 0.86rem;
       }
       .inv-info-row:last-child { margin-bottom: 0; }
       .inv-info-label {
-        color: #64748b;
+        color: var(--c-text-muted, #5A708D);
         font-weight: 600;
-        width: 55px;
+        width: 52px;
         flex-shrink: 0;
-        font-size: 0.82rem;
+        font-size: 0.8rem;
       }
       .inv-info-val {
-        color: #0f172a;
+        color: var(--c-text, #0C1E38);
         font-weight: 700;
         flex: 1;
-        word-break: break-all;
-        line-height: 1.4;
+        word-break: break-word;
+        line-height: 1.45;
       }
 
       .inv-link-input-group {
-        display: flex; gap: 8px; margin-bottom: 16px;
+        display: flex;
+        gap: 8px;
+        margin-bottom: 16px;
       }
       .inv-link-input {
         flex: 1;
-        padding: 12px 14px;
+        padding: 11px 13px;
         border-radius: 12px;
-        border: 1px solid #cbd5e1;
-        font-size: 0.82rem;
-        background: #f8fafc;
-        color: #334155;
+        border: 1px solid var(--c-border-strong, #C0D4EE);
+        font-size: 0.8rem;
+        background: var(--c-surface-2, #F2F6FC);
+        color: var(--c-text-soft, #304765);
         outline: none;
-        transition: border-color 150ms ease;
+        transition: border-color 150ms ease, box-shadow 150ms ease;
       }
       .inv-link-input:focus {
-        border-color: #0A84FE;
+        border-color: var(--c-brand, #0A84FE);
+        box-shadow: 0 0 0 3px var(--c-focus-ring, rgba(10, 132, 254, 0.2));
       }
 
       .inv-actions {
-        display: flex; gap: 10px; flex-wrap: wrap;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
       }
       .inv-btn {
-        flex: 1; min-width: 130px;
-        padding: 13px 16px;
-        border: none; border-radius: 14px;
-        font-size: 0.92rem; font-weight: 700;
+        padding: 13px 14px;
+        border: 1px solid transparent;
+        border-radius: 14px;
+        font-size: 0.88rem;
+        font-weight: 700;
         cursor: pointer;
-        transition: all 180ms ease;
+        transition: background-color 160ms ease, border-color 160ms ease, translate 160ms ease, box-shadow 160ms ease;
         text-align: center;
-        display: flex; align-items: center; justify-content: center; gap: 6px;
-        letter-spacing: -0.2px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 7px;
       }
       .inv-btn-copy {
-        background: linear-gradient(135deg, #0A84FE 0%, #0056B3 100%);
-        color: #ffffff;
-        box-shadow: 0 4px 16px rgba(10, 132, 254, 0.35);
+        background: var(--brand-50, #F0F7FF);
+        color: var(--brand-700, #0755B3);
+        border-color: var(--brand-200, #BBDDFD);
       }
       .inv-btn-copy:hover {
-        transform: translateY(-1px);
-        box-shadow: 0 6px 20px rgba(10, 132, 254, 0.45);
+        background: var(--brand-100, #DEEEFF);
+        translate: 0 -1px;
       }
       .inv-btn-share {
-        background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
-        color: #ffffff;
-        box-shadow: 0 4px 16px rgba(245, 158, 11, 0.35);
+        background: linear-gradient(135deg, var(--brand-500, #0A84FE) 0%, var(--brand-600, #056DE0) 100%);
+        color: #FFFFFF;
+        box-shadow: var(--sh-brand, 0 6px 16px rgba(10, 132, 254, 0.32));
       }
       .inv-btn-share:hover {
-        transform: translateY(-1px);
-        box-shadow: 0 6px 20px rgba(245, 158, 11, 0.45);
+        translate: 0 -1px;
+        box-shadow: 0 8px 22px rgba(10, 132, 254, 0.42);
+      }
+
+      @media (max-width: 420px) {
+        .inv-actions { grid-template-columns: 1fr; }
       }
     `;
     document.head.appendChild(style);
   }
 
+  let activeCleanup = null;
+
   function showInvitationModal(eventData, inviterUser, inviteToken) {
     injectStyleOnce();
+    if (activeCleanup) {
+      activeCleanup();
+      activeCleanup = null;
+    }
 
     let overlay = document.getElementById(MODAL_ID);
     if (!overlay) {
@@ -217,16 +246,20 @@
 
     const inviteUrl = `${window.location.origin}/invite.html?id=${eventData._id}&invite=${inviteToken}`;
 
+    const closeSvg = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>';
+    const copySvg = '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>';
+    const shareSvg = '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>';
+
     overlay.innerHTML = `
       <div class="inv-card" role="dialog" aria-modal="true">
         <div class="inv-header">
           <span class="inv-badge">CONTENIDO INVITATION</span>
           <h3>${escapeHtml(title)}</h3>
-          <button type="button" class="inv-close-btn" id="inv-close" aria-label="닫기">&times;</button>
+          <button type="button" class="inv-close-btn" id="inv-close" aria-label="닫기">${closeSvg}</button>
         </div>
         <div class="inv-body">
           <div class="inv-inviter-tag">
-            초대 부원 : <strong>${escapeHtml(inviterLabel)}</strong>
+            초대 부원 · <strong>${escapeHtml(inviterLabel)}</strong>
           </div>
           <div class="inv-info-box">
             <div class="inv-info-row">
@@ -243,11 +276,11 @@
             </div>
           </div>
           <div class="inv-link-input-group">
-            <input type="text" class="inv-link-input" id="inv-link-text" value="${escapeHtml(inviteUrl)}" readonly>
+            <input type="text" class="inv-link-input" id="inv-link-text" value="${escapeHtml(inviteUrl)}" readonly aria-label="초대장 링크">
           </div>
           <div class="inv-actions">
-            <button type="button" class="inv-btn inv-btn-copy" id="inv-btn-copy">초대장 링크 복사</button>
-            <button type="button" class="inv-btn inv-btn-share" id="inv-btn-share">초대장 공유하기</button>
+            <button type="button" class="inv-btn inv-btn-copy" id="inv-btn-copy">${copySvg}<span>링크 복사</span></button>
+            <button type="button" class="inv-btn inv-btn-share" id="inv-btn-share">${shareSvg}<span>초대장 공유</span></button>
           </div>
         </div>
       </div>
@@ -260,19 +293,36 @@
     const shareBtn = document.getElementById('inv-btn-share');
     const linkInput = document.getElementById('inv-link-text');
 
-    const close = () => overlay.classList.remove('is-open');
+    const close = () => {
+      overlay.classList.remove('is-open');
+      if (activeCleanup) {
+        activeCleanup();
+        activeCleanup = null;
+      }
+    };
+
+    const onOverlayClick = (e) => { if (e.target === overlay) close(); };
+    const onKeyDown = (e) => { if (e.key === 'Escape') close(); };
+
+    activeCleanup = () => {
+      overlay.removeEventListener('click', onOverlayClick);
+      document.removeEventListener('keydown', onKeyDown);
+    };
 
     closeBtn.addEventListener('click', close);
-    overlay.addEventListener('click', (e) => { if (e.target === overlay) close(); });
+    overlay.addEventListener('click', onOverlayClick);
+    document.addEventListener('keydown', onKeyDown);
 
     copyBtn.addEventListener('click', () => {
       if (linkInput) {
         linkInput.select();
         navigator.clipboard.writeText(inviteUrl).then(() => {
-          alert('초대장 링크가 클립보드에 복사되었습니다!\n원하는 지인에게 공유해 주세요.');
+          if (window.showToast) window.showToast('초대장 링크가 클립보드에 복사되었습니다!', { type: 'success' });
+          else alert('초대장 링크가 클립보드에 복사되었습니다!\n원하는 지인에게 공유해 주세요.');
         }).catch(() => {
           document.execCommand('copy');
-          alert('초대장 링크가 복사되었습니다!');
+          if (window.showToast) window.showToast('초대장 링크가 복사되었습니다!', { type: 'success' });
+          else alert('초대장 링크가 복사되었습니다!');
         });
       }
     });
@@ -289,18 +339,12 @@
               imageUrl: coverImageUrl,
               imageWidth: 1200,
               imageHeight: 630,
-              link: {
-                mobileWebUrl: inviteUrl,
-                webUrl: inviteUrl
-              }
+              link: { mobileWebUrl: inviteUrl, webUrl: inviteUrl }
             },
             buttons: [
               {
                 title: '초대장 확인 & 신청하기',
-                link: {
-                  mobileWebUrl: inviteUrl,
-                  webUrl: inviteUrl
-                }
+                link: { mobileWebUrl: inviteUrl, webUrl: inviteUrl }
               }
             ]
           });

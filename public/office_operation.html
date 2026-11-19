@@ -4,7 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>운영팀 대시보드 · Contenido</title>
-    <link rel="stylesheet" href="/css/operation.css">
+    <link rel="stylesheet" href="/css/design-system.css?v=20261119">
+    <link rel="stylesheet" href="/css/operation.css?v=20261119">
 </head>
 <body>
     <div class="dashboard">
@@ -46,7 +47,7 @@
         <section class="op-cards-grid">
             <!-- 월별 회원가입 추이 (full width) -->
             <div class="chart-card span-12">
-                <h3 class="chart-card-title"> 월별 회원가입 추이 <span class="badge">전체 기간</span></h3>
+                <h3 class="chart-card-title">월별 회원가입 추이 <span class="badge">전체 기간</span></h3>
                 <div class="chart-body tall">
                     <canvas id="growthChart"></canvas>
                 </div>
@@ -54,19 +55,19 @@
 
             <!-- 활동성 분포 (CSS bars) -->
             <div class="chart-card span-6">
-                <h3 class="chart-card-title"> 회원 활동성 분포</h3>
+                <h3 class="chart-card-title">회원 활동성 분포</h3>
                 <div class="dist-list" id="activityHistogram"></div>
             </div>
 
             <!-- 평균 연령 -->
             <div class="chart-card span-6">
-                <h3 class="chart-card-title"> 연령 분포</h3>
+                <h3 class="chart-card-title">연령 분포</h3>
                 <div class="dist-list" id="ageDistribution"></div>
             </div>
 
             <!-- 역할 분포 -->
             <div class="chart-card span-6">
-                <h3 class="chart-card-title"> 역할 구성</h3>
+                <h3 class="chart-card-title">역할 구성</h3>
                 <div class="chart-body">
                     <canvas id="roleChart"></canvas>
                 </div>
@@ -74,7 +75,7 @@
 
             <!-- 성별 분포 -->
             <div class="chart-card span-6">
-                <h3 class="chart-card-title">⚧ 성별 분포</h3>
+                <h3 class="chart-card-title">성별 분포</h3>
                 <div class="chart-body">
                     <canvas id="genderChart"></canvas>
                 </div>
@@ -82,7 +83,7 @@
 
             <!-- 선호 활동지역 -->
             <div class="chart-card span-8">
-                <h3 class="chart-card-title"> 선호 활동지역 TOP 7</h3>
+                <h3 class="chart-card-title">선호 활동지역 TOP 7</h3>
                 <div class="dist-list" id="topRegions"></div>
             </div>
 

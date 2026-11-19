@@ -1,112 +1,114 @@
 <!DOCTYPE html>
-<html>
+<html lang="ko">
 <head>
-    <meta charset="UTF-8">
-    <title>콘테니도 운영진 페이지</title>
-    <link rel="stylesheet" href="/css/office.css" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8">
+  <title>콘테니도 운영진 페이지 · Contenido Office</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" href="/images/Contenido_Logo.ico" type="image/x-icon">
+  <link rel="stylesheet" href="/css/design-system.css?v=20261119" />
+  <link rel="stylesheet" href="/css/office.css?v=20261119" />
 </head>
 <body>
-    <!-- 사이드바 컨테이너 -->
-    <div id="sidebar-container"></div>
+  <!-- 사이드바 컨테이너 -->
+  <div id="sidebar-container"></div>
 
-    <!-- 메인 컨텐츠 -->
-    <main class="main-content" id="main-content">
-        <div class="header-controls">
-            <div class="header-title-area">
-                <h1>CONTENIDO 운영진 조직도</h1>
-                <p class="header-subtitle">동아리를 움직이는 빛나는 주역들! ✨</p>
-            </div>
-        </div>
-        
-        <div class="org-chart">
-            <!-- 회장단 -->
-            <div class="department president">
-                <div class="dept-header">
-                    <h2>회장단 <span class="member-count"></span></h2>
-                    <span class="dept-tag">우리의 중심 👑</span>
-                </div>
-                <div class="member-list" id="administration"></div>
-            </div>
-            
-            <div class="departments">
-                <!-- 운영부 -->
-                <div class="department dept-operation">
-                    <div class="dept-header">
-                        <h2>운영부 <span class="member-count"></span></h2>
-                        <span class="dept-tag">든든한 살림꾼 💼</span>
-                    </div>
-                    <div class="teams">
-                        <div class="team">
-                            <h3>운영팀 ⚙️ <span class="member-count"></span></h3>
-                            <div class="member-list" id="operationTeam"></div>
-                        </div>
-                        <div class="team">
-                            <h3>대외협력팀 🤝 <span class="member-count"></span></h3>
-                            <div class="member-list" id="cooperationTeam"></div>
-                        </div>
-                        <div class="team">
-                            <h3>인사팀 👥 <span class="member-count"></span></h3>
-                            <div class="member-list" id="HumanResourceTeam"></div>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- 홍보부 -->
-                <div class="department dept-promotion">
-                    <div class="dept-header">
-                        <h2>홍보부 <span class="member-count"></span></h2>
-                        <span class="dept-tag">동아리의 매력 알리미 📣</span>
-                    </div>
-                    <div class="teams">
-                        <div class="team">
-                            <h3>홍보팀 📢 <span class="member-count"></span></h3>
-                            <div class="member-list" id="marketingTeam"></div>
-                        </div>
-                        <div class="team">
-                            <h3>디자인팀 🎨 <span class="member-count"></span></h3>
-                            <div class="member-list" id="designTeam"></div>
-                        </div>
-                        <div class="team">
-                            <h3>영상제작팀 🎬 <span class="member-count"></span></h3>
-                            <div class="member-list" id="videoTeam"></div>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- 기획부 -->
-                <div class="department dept-planning">
-                    <div class="dept-header">
-                        <h2>기획부 <span class="member-count"></span></h2>
-                        <span class="dept-tag">아이디어 뱅크 💡</span>
-                    </div>
-                    <div class="teams">
-                        <div class="team">
-                            <h3>기획팀 💡 <span class="member-count"></span></h3>
-                            <div class="member-list" id="PlanningTeam"></div>
-                        </div>
-                        <div class="team">
-                            <h3>정기모임팀 📅 <span class="member-count"></span></h3>
-                            <div class="member-list" id="regularTeam"></div>
-                        </div>
-                        <div class="team">
-                            <h3>스태프팀 🌟 <span class="member-count"></span></h3>
-                            <div class="member-list" id="staffTeam"></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </main>
+  <!-- 메인 컨텐츠 -->
+  <main class="main-content" id="main-content">
+    <div class="header-controls">
+      <div class="header-title-area">
+        <span class="header-eyebrow">CONTENIDO OFFICE</span>
+        <h1>CONTENIDO 운영진 조직도</h1>
+        <p class="header-subtitle">동아리를 움직이는 운영진 구성과 팀별 역할을 한눈에 확인하세요</p>
+      </div>
+    </div>
 
-    <!-- 스크립트 -->
-    <script src="/js/office/sidebar.js?v=20261014_1"></script>
-    <script src="/js/office/organization.js"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const container = document.getElementById('sidebar-container');
-            Sidebar.init(container);
-        });
-    </script>
+    <div class="org-chart">
+      <!-- 회장단 -->
+      <div class="department president">
+        <div class="dept-header">
+          <h2>회장단 <span class="member-count"></span></h2>
+          <span class="dept-tag">EXECUTIVE</span>
+        </div>
+        <div class="member-list" id="administration"></div>
+      </div>
+
+      <div class="departments">
+        <!-- 운영부 -->
+        <div class="department dept-operation">
+          <div class="dept-header">
+            <h2>운영부 <span class="member-count"></span></h2>
+            <span class="dept-tag">OPERATION</span>
+          </div>
+          <div class="teams">
+            <div class="team">
+              <h3>운영팀 <span class="member-count"></span></h3>
+              <div class="member-list" id="operationTeam"></div>
+            </div>
+            <div class="team">
+              <h3>대외협력팀 <span class="member-count"></span></h3>
+              <div class="member-list" id="cooperationTeam"></div>
+            </div>
+            <div class="team">
+              <h3>인사팀 <span class="member-count"></span></h3>
+              <div class="member-list" id="HumanResourceTeam"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 홍보부 -->
+        <div class="department dept-promotion">
+          <div class="dept-header">
+            <h2>홍보부 <span class="member-count"></span></h2>
+            <span class="dept-tag">PROMOTION</span>
+          </div>
+          <div class="teams">
+            <div class="team">
+              <h3>홍보팀 <span class="member-count"></span></h3>
+              <div class="member-list" id="marketingTeam"></div>
+            </div>
+            <div class="team">
+              <h3>디자인팀 <span class="member-count"></span></h3>
+              <div class="member-list" id="designTeam"></div>
+            </div>
+            <div class="team">
+              <h3>영상제작팀 <span class="member-count"></span></h3>
+              <div class="member-list" id="videoTeam"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 기획부 -->
+        <div class="department dept-planning">
+          <div class="dept-header">
+            <h2>기획부 <span class="member-count"></span></h2>
+            <span class="dept-tag">PLANNING</span>
+          </div>
+          <div class="teams">
+            <div class="team">
+              <h3>기획팀 <span class="member-count"></span></h3>
+              <div class="member-list" id="PlanningTeam"></div>
+            </div>
+            <div class="team">
+              <h3>정기모임팀 <span class="member-count"></span></h3>
+              <div class="member-list" id="regularTeam"></div>
+            </div>
+            <div class="team">
+              <h3>스태프팀 <span class="member-count"></span></h3>
+              <div class="member-list" id="staffTeam"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script src="/js/office/sidebar.js?v=20261119"></script>
+  <script src="/js/office/organization.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const container = document.getElementById('sidebar-container');
+      Sidebar.init(container);
+    });
+  </script>
 </body>
 </html>

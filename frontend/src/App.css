@@ -1,23 +1,24 @@
-@import url('https://font.elice.io/css?family=Elice+DX+Neolli');
+/* App.css — Contenido SPA Shared Layout Helpers (Tone-on-Tone Azure #0A84FE) */
+
 #root {
-  font-family: "Elice DX Neolli",sans-serif;
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
+  width: 100%;
+  min-height: 100vh;
+  font-family: 'GmarketSansMedium', system-ui, -apple-system, sans-serif;
 }
+
 .container {
-  font-family: 'Elice DX Neolli',sans-serif;
-  max-width: 700px;
+  max-width: 760px;
   margin: 2rem auto;
   padding: 2rem;
-  background: #fff;
-  border-radius: 12px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-  position: relative; /* Ensure the button is positioned relative to this container */
+  background: var(--surface-card, #FFFFFF);
+  border: 1px solid var(--border-subtle, #E5EFFB);
+  border-radius: 20px;
+  box-shadow: 0 8px 24px rgba(10, 48, 102, 0.07);
+  position: relative;
 }
+
 .dashboard {
-  padding: 20px;
+  padding: 24px 20px;
   max-width: 1200px;
   margin: 0 auto;
 }
@@ -29,65 +30,22 @@
   margin-top: 20px;
 }
 
-.chart-container {
-  background: white;
-  padding: 20px;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
-
+.chart-container,
 .stats-container {
-  background: white;
+  background: var(--surface-card, #FFFFFF);
   padding: 20px;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  border-radius: 16px;
+  border: 1px solid var(--border-subtle, #E5EFFB);
+  box-shadow: 0 4px 14px rgba(10, 48, 102, 0.05);
 }
 
 .chart-container h3,
 .stats-container h3 {
-  margin-bottom: 15px;
-  color: #333;
+  margin-bottom: 14px;
+  color: var(--brand-900, #0B2A5B);
 }
 
-/* app.css */
 .content {
-  height: 300px; /* 고정된 높이 */
-  overflow-y: auto; /* 스크롤 가능 */
-}
-
-
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
-}
-
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
-  }
-}
-
-.card {
-  padding: 2em;
-}
-
-.read-the-docs {
-  color: #888;
+  max-height: 320px;
+  overflow-y: auto;
 }

@@ -4,21 +4,23 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>진행중인 이벤트 · Contenido</title>
+  <link rel="icon" href="/images/Contenido_Logo.ico" type="image/x-icon">
+  <link rel="stylesheet" href="/css/design-system.css?v=20261119" />
   <link rel="stylesheet" href="/css/styles.css" />
-  <link rel="stylesheet" href="/css/modern.css?v=20260533" />
+  <link rel="stylesheet" href="/css/modern.css?v=20261119" />
   <script src="https://t1.kakaocdn.net/kakao_js_sdk/2.5.0/kakao.min.js"></script>
   <style>
     .month-header {
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 4px;
-      margin-bottom: var(--sp-3);
+      gap: 6px;
+      margin: 4px 0 var(--sp-3);
     }
     .month-meta {
       font-size: 13px;
       color: var(--c-text-muted);
-      margin: 0 0 16px;
+      margin: 0 0 12px;
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -36,31 +38,37 @@
     }
     .month-meta .meta-line-status { margin-top: 2px; }
     .month-meta b {
-      font-weight: 600;
+      font-weight: 700;
       color: var(--c-text);
+      font-variant-numeric: tabular-nums;
     }
     .month-meta .pill {
-      font-size: 16px;
+      font-size: 14px;
       font-weight: 700;
-      padding: 5px 12px;
+      padding: 5px 13px;
       border-radius: var(--r-pill);
-      letter-spacing: 0.02em;
+      letter-spacing: 0.01em;
       margin-left: 4px;
-      background: var(--c-danger-soft);
-      color: #B91C1C;
-      display: inline-block;
+      background: var(--c-danger-bg);
+      color: #BE123C;
+      border: 1px solid var(--c-danger-border);
+      display: inline-flex;
+      align-items: center;
     }
     .month-meta .pill.pill-success {
-      background: var(--c-success-soft);
+      background: var(--c-ok-bg);
       color: #065F46;
+      border-color: var(--c-ok-border);
     }
     .month-meta .pill.pill-warning {
-      background: var(--c-warning-soft);
+      background: var(--c-warn-bg);
       color: #92400E;
+      border-color: var(--c-warn-border);
     }
     .month-meta .pill.pill-closed {
       background: var(--c-surface-3);
       color: var(--c-text-muted);
+      border-color: var(--c-border);
     }
     .month-meta.is-hidden { display: none; }
     @media (max-width: 480px) {
@@ -70,7 +78,7 @@
 
     /* 부채꼴 프리뷰 */
     .fan-preview {
-      padding: 56px 0 12px;
+      padding: 46px 0 14px;
       overflow-x: auto;
       overflow-y: visible;
       margin-bottom: var(--sp-3);
@@ -82,11 +90,11 @@
       align-items: flex-end;
       gap: 18px;
       min-width: max-content;
-      padding: 0 60px;
+      padding: 0 56px;
     }
     .fan-card {
-      width: 110px;
-      height: 175px;
+      width: 112px;
+      height: 176px;
       flex-shrink: 0;
       background: var(--c-surface);
       border: 1px solid var(--c-border);
@@ -95,17 +103,17 @@
       cursor: pointer;
       text-align: left;
       transform-origin: 50% 100%;
-      transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1),
-                  border-color 0.3s,
-                  box-shadow 0.3s;
-      box-shadow: var(--sh-1);
+      transition: transform 0.36s var(--ease-spring),
+                  border-color 0.24s ease,
+                  box-shadow 0.24s ease;
+      box-shadow: var(--sh-sm);
       text-decoration: none;
     }
     .fan-card:hover {
-      transform: rotate(0deg) translateY(-30px) scale(1.1) !important;
+      transform: rotate(0deg) translateY(-28px) scale(1.09) !important;
       z-index: 100 !important;
       border-color: var(--c-brand) !important;
-      box-shadow: var(--sh-pop);
+      box-shadow: var(--sh-lg);
     }
     .fan-card .thumb {
       height: 100px;
@@ -115,50 +123,48 @@
       position: relative;
       background: var(--c-surface-3);
       color: var(--c-text-soft);
-      font-size: 28px;
+      font-size: 26px;
       font-weight: 700;
       letter-spacing: -0.02em;
     }
     .fan-card .thumb .thumb-img {
       position: absolute;
       inset: 0;
-      width: 100%; height: 100%;
+      width: 100%;
+      height: 100%;
       object-fit: cover;
     }
-    .fan-card .thumb .thumb-text {
-      position: relative;
-      z-index: 0;
-    }
+    .fan-card .thumb .thumb-text { position: relative; z-index: 0; }
     .fan-card .thumb[data-team="S"] { background: var(--c-team-s); color: #78350F; }
-    .fan-card .thumb[data-team="R"] { background: var(--c-team-r); color: #4C1D95; }
-    .fan-card .thumb[data-team="A"] { background: var(--c-team-a); color: #1E3A8A; }
+    .fan-card .thumb[data-team="R"] { background: var(--c-team-r); color: #3730A3; }
+    .fan-card .thumb[data-team="A"] { background: var(--c-team-a); color: #0755B3; }
     .fan-card .thumb[data-team="B"] { background: var(--c-team-b); color: #065F46; }
-    .fan-card .thumb[data-team="C"] { background: var(--c-team-c); color: #991B1B; }
+    .fan-card .thumb[data-team="C"] { background: var(--c-team-c); color: #9F1239; }
     .fan-card .thumb[data-team="D"] { background: var(--c-team-d); color: #9A3412; }
     .fan-card .thumb[data-team="P"] { background: var(--c-team-p); color: #0C4A6E; }
     .fan-card .fc-badge {
       position: absolute;
-      top: 8px;
-      left: 8px;
+      top: 7px;
+      left: 7px;
       font-size: 10px;
       font-weight: 700;
       padding: 2px 8px;
       border-radius: var(--r-pill);
-      background: rgba(255, 255, 255, 0.85);
+      background: rgba(255, 255, 255, 0.9);
       color: var(--c-text);
       letter-spacing: 0.02em;
     }
     .fan-card .body {
-      padding: 10px 12px;
+      padding: 9px 11px;
       display: flex;
       flex-direction: column;
       gap: 4px;
     }
     .fan-card .name {
-      font-size: 12px;
+      font-size: 11.5px;
       font-weight: 600;
       margin: 0;
-      line-height: 1.3;
+      line-height: 1.32;
       color: var(--c-text);
       display: -webkit-box;
       -webkit-line-clamp: 2;
@@ -169,15 +175,16 @@
       font-size: 10px;
       color: var(--c-text-muted);
       margin: 0;
+      font-variant-numeric: tabular-nums;
     }
     .fan-empty {
-      padding: 36px 16px;
+      padding: 32px 16px;
       color: var(--c-text-muted);
       font-size: 0.9rem;
       text-align: center;
       background: var(--c-surface-2);
       border-radius: var(--r-md);
-      border: 1px dashed var(--c-border);
+      border: 1px dashed var(--c-border-strong);
     }
 
     /* 액션 영역 */
@@ -188,52 +195,56 @@
       gap: var(--sp-3);
       margin-bottom: var(--sp-5);
     }
-    .header-actions .btn-kakao { min-width: 240px; }
+    .header-actions .btn-kakao { min-width: 236px; border-radius: var(--r-pill); }
 
-    /* nav-row — 페이지 어디에 놓여도 가운데 정렬 */
     .nav-row {
       display: flex;
-      gap: var(--sp-3);
+      gap: 10px;
       flex-wrap: wrap;
       justify-content: center;
       align-items: center;
       width: 100%;
       margin: 0 0 var(--sp-5);
     }
-    .nav-row .btn { min-width: 140px; }
+    .nav-row .btn { min-width: 148px; border-radius: var(--r-pill); }
     @media (max-width: 480px) {
       .nav-row .btn { flex: 1; min-width: 0; }
     }
 
-    /* 팀 약어 / 안내 */
+    /* 팀 약어 */
     .legend {
       display: flex;
       flex-wrap: wrap;
-      gap: var(--sp-2);
+      align-items: center;
+      gap: 6px;
       justify-content: center;
-      margin: 0 0 var(--sp-3);
+      margin: 0 0 var(--sp-6);
+      padding: 12px 14px;
+      background: var(--c-surface-2);
+      border: 1px solid var(--c-border-subtle);
+      border-radius: var(--r-lg);
     }
-    .legend .chip { background: var(--c-surface-2); }
+    .legend .chip { background: var(--c-surface); border: 1px solid var(--c-border); padding: 4px 10px; }
 
     .notice-row {
       display: flex;
       justify-content: center;
-      margin-bottom: var(--sp-6);
+      margin-bottom: var(--sp-4);
     }
-    .notice-row .notice { max-width: 520px; }
+    .notice-row .notice { max-width: 540px; width: 100%; justify-content: center; text-align: center; }
 
-    /* 섹션 헤딩 — 가운데 정렬 (양쪽 라인) */
+    /* 섹션 헤딩 */
     .section-heading {
       display: flex;
       align-items: center;
       justify-content: center;
       gap: var(--sp-3);
-      margin: var(--sp-3) 0 var(--sp-4);
+      margin: var(--sp-4) 0 var(--sp-4);
     }
     .section-heading h1,
     .section-heading h2 {
-      font-size: 1.15rem;
-      font-weight: 600;
+      font-size: 1.18rem;
+      font-weight: 700;
       color: var(--c-text);
       margin: 0;
       white-space: nowrap;
@@ -243,158 +254,165 @@
     .section-heading::after {
       content: '';
       flex: 1;
-      max-width: 80px;
-      height: 1px;
-      background: var(--c-border);
+      max-width: 84px;
+      height: 1.5px;
+      background: linear-gradient(90deg, transparent, var(--brand-200), transparent);
     }
 
-    /* 카카오 공유 모달 스타일 */
+    /* 카카오 공유 모달 (Tone-on-Tone Azure) */
     .kakao-modal {
       position: fixed;
       inset: 0;
-      z-index: 1000;
+      z-index: 1050;
       display: flex;
       align-items: center;
       justify-content: center;
       padding: var(--sp-4);
+      overscroll-behavior: contain;
     }
     .kakao-modal-overlay {
       position: absolute;
       inset: 0;
-      background: rgba(15, 23, 42, 0.6);
-      backdrop-filter: blur(4px);
+      background: rgba(8, 28, 59, 0.54);
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
     }
     .kakao-modal-content {
       position: relative;
       z-index: 1;
       width: 100%;
-      max-width: 480px;
-      background: #ffffff;
-      border-radius: var(--r-lg);
+      max-width: 468px;
+      background: var(--c-surface);
+      border-radius: var(--r-xl);
       border: 1px solid var(--c-border);
-      box-shadow: var(--sh-pop);
+      box-shadow: var(--sh-lg);
       display: flex;
       flex-direction: column;
-      max-height: 85vh;
-      animation: kakaoModalShow 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      max-height: 85dvh;
+      overflow: hidden;
+      animation: kakaoModalShow 240ms var(--ease-spring) both;
     }
     @keyframes kakaoModalShow {
-      from { transform: scale(0.95); opacity: 0; }
-      to { transform: scale(1); opacity: 1; }
+      from { scale: 0.96; translate: 0 12px; opacity: 0; }
+      to   { scale: 1; translate: 0 0; opacity: 1; }
     }
     .kakao-modal-header {
-      padding: var(--sp-4);
-      border-bottom: 1px solid var(--c-border);
+      padding: 18px 20px;
+      border-bottom: 1px solid var(--c-border-subtle);
+      background: linear-gradient(180deg, var(--brand-50) 0%, #FFFFFF 100%);
       display: flex;
       align-items: center;
       justify-content: space-between;
     }
     .kakao-modal-header h2 {
-      font-size: 1.1rem;
-      font-weight: 600;
-      color: #0f172a;
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--c-text);
       margin: 0;
     }
     .kakao-modal-close {
-      background: none;
-      border: none;
-      color: var(--c-text-muted);
-      font-size: 1.5rem;
+      width: 32px;
+      height: 32px;
+      border-radius: 10px;
+      background: var(--brand-50);
+      border: 1px solid var(--brand-100);
+      color: var(--c-brand);
       cursor: pointer;
-      padding: 0;
-      line-height: 1;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: background-color 150ms ease, color 150ms ease;
     }
-    .kakao-modal-close:hover {
-      color: #0f172a;
-    }
+    .kakao-modal-close:hover { background: var(--c-brand); color: #FFFFFF; }
     .kakao-modal-body {
-      padding: var(--sp-4);
+      padding: 18px 20px;
       overflow-y: auto;
+      overscroll-behavior: contain;
       flex: 1;
     }
     .kakao-modal-desc {
-      font-size: 0.85rem;
-      color: #64748b;
-      margin: 0 0 var(--sp-4);
-      line-height: 1.4;
+      font-size: 0.84rem;
+      color: var(--c-text-muted);
+      margin: 0 0 14px;
+      line-height: 1.5;
     }
     .kakao-share-list {
       display: flex;
       flex-direction: column;
-      gap: var(--sp-2);
+      gap: 8px;
     }
     .kakao-share-item {
       display: flex;
       align-items: center;
-      gap: var(--sp-3);
-      padding: var(--sp-3);
-      background: #f8fafc;
-      border: 1px solid var(--c-border);
+      gap: 12px;
+      padding: 12px 14px;
+      background: var(--c-surface-2);
+      border: 1.5px solid var(--c-border);
       border-radius: var(--r-md);
       cursor: pointer;
-      transition: background 0.2s, border-color 0.2s;
+      transition: background-color 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
     }
     .kakao-share-item:hover {
-      background: #f1f5f9;
+      background: var(--brand-50);
+      border-color: var(--brand-200);
     }
     .kakao-share-item.is-selected {
       border-color: var(--c-brand);
-      background: rgba(99, 102, 241, 0.08);
+      background: var(--brand-50);
+      box-shadow: 0 0 0 3px rgba(10, 132, 254, 0.12);
     }
     .kakao-share-item input[type="checkbox"] {
       width: 18px;
       height: 18px;
       accent-color: var(--c-brand);
       cursor: pointer;
+      flex-shrink: 0;
     }
     .kakao-share-item-info {
       flex: 1;
       display: flex;
       flex-direction: column;
       gap: 2px;
+      min-width: 0;
     }
     .kakao-share-item-title {
       font-size: 0.9rem;
-      font-weight: 600;
-      color: #0f172a;
+      font-weight: 700;
+      color: var(--c-text);
     }
     .kakao-share-item-date {
-      font-size: 0.75rem;
-      color: #64748b;
+      font-size: 0.76rem;
+      color: var(--c-text-muted);
+      font-variant-numeric: tabular-nums;
     }
     .kakao-modal-footer {
-      padding: var(--sp-4);
-      border-top: 1px solid var(--c-border);
+      padding: 14px 20px;
+      border-top: 1px solid var(--c-border-subtle);
+      background: var(--c-surface-2);
       display: flex;
       justify-content: flex-end;
-      gap: var(--sp-2);
+      gap: 8px;
     }
     .btn-kakao-confirm {
-      background: #FEE500;
-      color: #191919;
-      font-weight: 600;
+      background: var(--c-kakao-bg);
+      color: var(--c-kakao-ink);
+      font-weight: 700;
       display: inline-flex;
       align-items: center;
       justify-content: center;
       border: none;
       border-radius: var(--r-md);
-      padding: var(--sp-2) var(--sp-4);
+      padding: 10px 16px;
       cursor: pointer;
-      font-size: 0.9rem;
-      transition: opacity 0.2s;
+      font-size: 0.88rem;
+      transition: background-color 160ms ease, translate 160ms ease;
     }
-    .btn-kakao-confirm:hover {
-      opacity: 0.9;
-    }
-    .btn-kakao-confirm:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
+    .btn-kakao-confirm:hover:not(:disabled) { background: var(--c-kakao-hover); translate: 0 -1px; }
+    .btn-kakao-confirm:disabled { opacity: 0.5; cursor: not-allowed; }
   </style>
 </head>
 <body class="modern">
-  <div class="container modern">
-    <br>
+  <main class="container modern">
     <!-- 1) 월 타이틀 + 신청기간 메타 -->
     <header class="month-header">
       <h1 class="page-title is-month" id="page-month-title"></h1>
@@ -406,18 +424,16 @@
       <div class="fan-cards" id="fan-cards"></div>
     </section>
 
-    <!-- 3) 카카오 공유 + 네비 -->
+    <!-- 3) 카카오 공유 -->
     <div class="header-actions">
       <button type="button" class="btn btn-kakao" onclick="shareEventsListToKakao()">
         <img src="/images/kakao-icon.png" alt="">
-        카카오톡으로 공유하기
+        <span>카카오톡으로 공유하기</span>
       </button>
-
-      
     </div>
 
     <!-- 4) 팀 약어 -->
-    <div class="legend">
+    <div class="legend" aria-label="주관 팀 약어 안내">
       <span class="badge badge-team" data-team="P">P</span>
       <span class="chip">기획팀</span>
       <span class="badge badge-team" data-team="R">R</span>
@@ -429,13 +445,12 @@
       <span class="chip">스태프팀 (A~D)</span>
     </div>
 
-    
-    <br><br>
-    <!-- 6) 진행중인 이벤트 섹션 -->
+    <!-- 5) 진행중인 이벤트 섹션 -->
     <div class="section-heading">
-      <h1>진행중인 이벤트</h1>
+      <h2>진행중인 이벤트</h2>
     </div>
-    <!-- 5) 활동부원 안내 -->
+
+    <!-- 활동부원 안내 -->
     <div class="notice-row">
       <div class="notice">
         <span>활동부원만 신청 가능합니다. (마이페이지에서 확인)</span>
@@ -443,19 +458,21 @@
     </div>
 
     <div class="nav-row">
-        <button type="button" class="btn btn-ghost"
-                onclick="window.location.href='calendar.html'">
-          이벤트 캘린더
-        </button>
-        <button type="button" class="btn btn-ghost"
-                onclick="window.location.href='ended-events.html'">
-          종료된 이벤트
-        </button>
-      </div>
+      <button type="button" class="btn btn-ghost" onclick="window.location.href='/calendar.html'">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2.5"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        <span>이벤트 캘린더</span>
+      </button>
+      <button type="button" class="btn btn-ghost" onclick="window.location.href='/ended-events.html'">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15.5 14"/></svg>
+        <span>종료된 이벤트</span>
+      </button>
+    </div>
 
     <!-- 참가자 규칙 안내 (조건부) -->
-    <div id="participant-rules-notice" class="notice is-warning is-hidden">
-      <span class="ic" aria-hidden="true">⚠️</span>
+    <div id="participant-rules-notice" class="notice is-warning is-hidden" style="margin-bottom: 16px;">
+      <span class="ic c-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      </span>
       <span>참가자 규칙 적용: 활동부원은 참가가 확정된 이후에 취소 시 경고 1회</span>
     </div>
 
@@ -467,29 +484,29 @@
       <button type="button" class="icon-btn" id="prev-page" aria-label="이전 페이지" disabled>
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
       </button>
-      <span class="page-info" id="page-info">페이지 1</span>
+      <span class="page-info c-tabular" id="page-info">페이지 1</span>
       <button type="button" class="icon-btn" id="next-page" aria-label="다음 페이지">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
       </button>
     </nav>
-
-  </div>
+  </main>
 
   <!-- 카카오톡 공유 이벤트 선택 모달 -->
   <div id="kakao-share-modal" class="kakao-modal" style="display: none;">
     <div class="kakao-modal-overlay" onclick="closeKakaoShareModal()"></div>
-    <div class="kakao-modal-content">
+    <div class="kakao-modal-content" role="dialog" aria-modal="true" aria-label="공유할 이벤트 선택">
       <div class="kakao-modal-header">
         <h2>공유할 이벤트 선택 (최대 3개)</h2>
+        <button type="button" class="kakao-modal-close" onclick="closeKakaoShareModal()" aria-label="닫기">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
       </div>
       <div class="kakao-modal-body">
         <p class="kakao-modal-desc">카카오톡 리스트형 공유는 최대 3개의 이벤트만 담아 전송할 수 있습니다. 공유할 이벤트를 선택해 주세요.</p>
-        <div id="kakao-share-events-list" class="kakao-share-list">
-          <!-- JS에서 동적으로 바인딩 -->
-        </div>
+        <div id="kakao-share-events-list" class="kakao-share-list"></div>
       </div>
       <div class="kakao-modal-footer">
-        <button type="button" class="btn btn-secondary" onclick="closeKakaoShareModal()">취소</button>
+        <button type="button" class="btn btn-ghost" onclick="closeKakaoShareModal()">취소</button>
         <button type="button" class="btn btn-kakao-confirm" id="confirm-kakao-share-btn" onclick="confirmKakaoShare()">
           <img src="/images/kakao-icon.png" alt="" style="width:16px;height:16px;margin-right:6px;">
           선택한 이벤트 공유
@@ -502,7 +519,6 @@
   <div class="toast-container" id="toast-container"></div>
 
   <script>
-    // 상단 월 표시 (events.js의 updateMonthHeader가 데이터 로드 후 재설정)
     (function () {
       const t = document.getElementById('page-month-title');
       if (t) {
@@ -513,10 +529,10 @@
   </script>
 
   <script src="/js/utils/ui.js"></script>
-  <script src="/js/utils/apply-confirm.js"></script>
+  <script src="/js/utils/apply-confirm.js?v=20261119"></script>
   <script src="/js/events.js?v=20260614"></script>
   <script src="/js/events-kakao-share.js?v=20260605"></script>
-  <script src="/js/utils/nav-injector.js?v=20260602"></script>
-  <script src="/js/utils/promotion-modal.js?v=20260726" defer></script>
+  <script src="/js/utils/nav-injector.js?v=20261119"></script>
+  <script src="/js/utils/promotion-modal.js?v=20261119" defer></script>
 </body>
 </html>

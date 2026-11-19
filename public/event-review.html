@@ -4,32 +4,30 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>이벤트 후기 · Contenido</title>
-  <link rel="stylesheet" href="/css/event-review.css?v=20260530">
+  <link rel="icon" href="/images/Contenido_Logo.ico" type="image/x-icon">
+  <link rel="stylesheet" href="/css/design-system.css?v=20261119">
+  <link rel="stylesheet" href="/css/event-review.css?v=20261119">
 </head>
 <body>
-  <div class="container">
-    <!-- 이벤트 헤더 -->
-    <div class="event-header">
+  <main class="container">
+    <header class="event-header">
       <h1>이벤트 후기</h1>
       <div id="event-details" class="event-summary"></div>
-    </div>
+    </header>
 
-    <!-- 리뷰 섹션 -->
-    <div class="review-section">
-      <!-- 비참가자 안내 메시지 -->
+    <section class="review-section">
       <div id="review-notice" class="notice-message" style="display: none;"></div>
-      
-      <!-- 리뷰 작성 폼 -->
+
       <form id="review-form" class="review-form" style="display: none;">
         <div class="rating-container">
           <label>별점을 선택해주세요</label>
           <div class="star-rating">
-            <div class="stars">
-              <span class="star" data-rating="1">★</span>
-              <span class="star" data-rating="2">★</span>
-              <span class="star" data-rating="3">★</span>
-              <span class="star" data-rating="4">★</span>
-              <span class="star" data-rating="5">★</span>
+            <div class="stars" role="radiogroup" aria-label="별점 선택">
+              <span class="star" data-rating="1" role="radio" tabindex="0" aria-label="1점">★</span>
+              <span class="star" data-rating="2" role="radio" tabindex="0" aria-label="2점">★</span>
+              <span class="star" data-rating="3" role="radio" tabindex="0" aria-label="3점">★</span>
+              <span class="star" data-rating="4" role="radio" tabindex="0" aria-label="4점">★</span>
+              <span class="star" data-rating="5" role="radio" tabindex="0" aria-label="5점">★</span>
             </div>
             <input type="hidden" id="rating" name="rating" required>
           </div>
@@ -37,10 +35,10 @@
 
         <div class="comment-container">
           <label for="comment">후기를 작성해주세요</label>
-          <textarea 
-            id="comment" 
-            name="comment" 
-            placeholder="이벤트에 대한 솔직한 후기를 남겨주세요." 
+          <textarea
+            id="comment"
+            name="comment"
+            placeholder="이벤트에 대한 솔직한 후기를 남겨주세요."
             required
           ></textarea>
         </div>
@@ -56,22 +54,21 @@
         </div>
       </form>
 
-      <!-- 리뷰 목록 -->
       <div class="reviews-container">
         <h2>후기 목록</h2>
         <div id="reviews-list" class="reviews-list"></div>
       </div>
-    </div>
+    </section>
 
-    <!-- 네비게이션 -->
     <div class="navigation">
-      <button onclick="window.location.href='ended-events.html'" class="back-button">
-        <span class="button-text">돌아가기</span>
+      <button type="button" onclick="window.location.href='/ended-events.html'" class="back-button">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+        <span class="button-text">종료된 이벤트로 돌아가기</span>
       </button>
     </div>
-  </div>
+  </main>
 
-  <script src="./js/event-review.js"></script>
-  <script src="./js/utils/nav-injector.js?v=20260602"></script>
+  <script src="/js/event-review.js"></script>
+  <script src="/js/utils/nav-injector.js?v=20261119"></script>
 </body>
 </html>

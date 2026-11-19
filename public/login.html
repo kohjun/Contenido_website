@@ -4,93 +4,203 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>로그인 · Contenido</title>
+  <link rel="icon" href="/images/Contenido_Logo.ico" type="image/x-icon">
+  <link rel="stylesheet" href="/css/design-system.css?v=20261119">
   <style>
-    @font-face {
-      font-family: 'GmarketSansMedium';
-      src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_2001@1.1/GmarketSansMedium.woff') format('woff');
-      font-weight: normal; font-style: normal;
-    }
-    :root {
-      --c-brand:#0A84FE; --c-brand-strong:#0875E0; --c-brand-soft:#E8F2FF; --c-brand-tint:#F2F8FF;
-      --c-bg:#EEF4FF; --c-surface:#FFFFFF;
-      --c-text:#1F2937; --c-text-muted:#5A6B7C; --c-text-soft:#94A3B8; --c-border:#E6ECF5;
-      --c-success:#10B981; --c-danger:#EF4444;
-      --r-md:14px; --r-lg:18px; --r-xl:26px; --r-pill:999px;
-      --sh-md:0 10px 30px rgba(15,23,42,.08); --sh-lg:0 18px 50px rgba(10,132,254,.18);
-      --t-fast:130ms ease; --t-base:220ms cubic-bezier(.4,0,.2,1);
-    }
-    * { box-sizing:border-box; font-family:'GmarketSansMedium',system-ui,sans-serif; }
-    html,body { margin:0; padding:0; }
     body {
-      position:relative; overflow-x:hidden;
-      background:radial-gradient(1200px 600px at 50% -10%, #DCEBFF 0%, var(--c-bg) 45%, #F7FAFF 100%);
-      color:var(--c-text); min-height:100dvh; font-size:16px;
-      display:flex; align-items:center; justify-content:center; padding:24px;
-      -webkit-font-smoothing:antialiased;
+      position: relative;
+      overflow-x: clip;
+      background:
+        radial-gradient(900px 520px at 50% -12%, var(--brand-100) 0%, var(--c-bg) 52%, #FFFFFF 100%);
+      color: var(--c-text);
+      min-height: 100dvh;
+      font-size: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px 18px;
     }
-    /* 장식용 그라데이션 오브 */
+    /* Tone-on-tone Azure ambient glow orbs */
     body::before, body::after {
-      content:""; position:fixed; border-radius:50%; filter:blur(60px); z-index:0;
+      content: "";
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(72px);
+      z-index: 0;
+      pointer-events: none;
     }
-    body::before { width:320px; height:320px; background:#9CC4FF; opacity:.5; top:-80px; left:-80px; }
-    body::after  { width:280px; height:280px; background:#FFE08A; opacity:.4; bottom:-90px; right:-70px; }
+    body::before { width: 340px; height: 340px; background: var(--brand-300); opacity: 0.42; top: -90px; left: -90px; }
+    body::after  { width: 300px; height: 300px; background: var(--brand-200); opacity: 0.52; bottom: -100px; right: -80px; }
 
     .auth-card {
-      position:relative; z-index:1;
-      width:100%; max-width:430px; background:var(--c-surface);
-      border-radius:var(--r-xl); padding:38px 30px 30px; box-shadow:var(--sh-md);
-      border:1px solid rgba(255,255,255,.7);
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      max-width: 432px;
+      background: rgba(255, 255, 255, 0.94);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-radius: var(--r-2xl);
+      padding: 36px 30px 28px;
+      box-shadow: var(--sh-lg);
+      border: 1px solid var(--c-border);
     }
-    .auth-hero { text-align:center; margin-bottom:26px; }
-    .auth-emoji { font-size:2.4rem; display:inline-block; margin-bottom:6px; animation:floaty 3s ease-in-out infinite; }
-    @keyframes floaty { 0%,100%{ transform:translateY(0); } 50%{ transform:translateY(-6px); } }
-    .auth-hero .logo { font-size:1.05rem; font-weight:700; color:var(--c-brand); letter-spacing:.12em; }
-    .auth-hero h1 { margin:8px 0 6px; font-size:1.5rem; letter-spacing:-0.01em; }
-    .auth-hero p { margin:0; color:var(--c-text-muted); font-size:0.9rem; line-height:1.55; }
-    .field { margin-bottom:15px; }
-    .field label { display:block; font-size:0.84rem; color:var(--c-text-muted); font-weight:600; margin-bottom:7px; padding-left:4px; }
+
+    .auth-hero { text-align: center; margin-bottom: 26px; }
+    .auth-emblem {
+      width: 54px;
+      height: 54px;
+      margin: 0 auto 12px;
+      border-radius: 16px;
+      background: linear-gradient(135deg, var(--brand-400) 0%, var(--brand-600) 100%);
+      color: #FFFFFF;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: var(--sh-brand);
+    }
+    .auth-hero .logo {
+      font-size: 0.84rem;
+      font-weight: 700;
+      color: var(--c-brand);
+      letter-spacing: 0.14em;
+    }
+    .auth-hero h1 {
+      margin: 8px 0 6px;
+      font-size: 1.48rem;
+      letter-spacing: -0.02em;
+      color: var(--c-text);
+    }
+    .auth-hero p {
+      margin: 0;
+      color: var(--c-text-muted);
+      font-size: 0.88rem;
+      line-height: 1.55;
+    }
+
+    .field { margin-bottom: 15px; }
+    .field label {
+      display: block;
+      font-size: 0.82rem;
+      color: var(--c-text-soft);
+      font-weight: 700;
+      margin-bottom: 7px;
+      padding-left: 2px;
+    }
     .input {
-      width:100%; padding:14px 16px; border:1.5px solid var(--c-border);
-      border-radius:var(--r-md); background:#FBFCFE; color:var(--c-text);
-      outline:none; transition:var(--t-fast);
+      width: 100%;
+      padding: 13px 15px;
+      border: 1.5px solid var(--c-border);
+      border-radius: var(--r-md);
+      background: var(--c-surface-2);
+      color: var(--c-text);
+      font-size: 0.96rem;
+      outline: none;
+      transition: border-color 150ms ease, background-color 150ms ease, box-shadow 150ms ease;
     }
-    .input:focus { border-color:var(--c-brand); background:#fff; box-shadow:0 0 0 4px var(--c-brand-soft); }
-    .input::placeholder { color:var(--c-text-soft); }
+    .input:focus {
+      border-color: var(--c-brand);
+      background: var(--c-surface);
+      box-shadow: 0 0 0 4px var(--c-focus-ring);
+    }
+    .input::placeholder { color: var(--c-text-faint); }
+
     .submit-btn {
-      width:100%; padding:15px; margin-top:8px; border:none; border-radius:var(--r-md);
-      background:linear-gradient(135deg,#3B9BFF,var(--c-brand)); color:#fff; font-size:1.02rem; font-weight:700;
-      cursor:pointer; transition:var(--t-base); box-shadow:0 8px 20px rgba(10,132,254,.28);
+      width: 100%;
+      padding: 15px;
+      margin-top: 8px;
+      border: none;
+      border-radius: var(--r-md);
+      background: linear-gradient(135deg, var(--brand-500) 0%, var(--brand-600) 100%);
+      color: #FFFFFF;
+      font-size: 0.98rem;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: var(--sh-brand);
+      transition: translate 160ms ease, box-shadow 160ms ease;
     }
-    .submit-btn:hover { transform:translateY(-2px); box-shadow:var(--sh-lg); }
-    .submit-btn:active { transform:translateY(0); }
-    .submit-btn:disabled { opacity:0.6; cursor:not-allowed; transform:none; }
-    .divider { display:flex; align-items:center; gap:12px; margin:22px 0; color:var(--c-text-soft); font-size:0.8rem; }
-    .divider::before, .divider::after { content:""; flex:1; height:1px; background:var(--c-border); }
+    .submit-btn:hover:not(:disabled) {
+      translate: 0 -1.5px;
+      box-shadow: 0 12px 26px rgba(10, 132, 254, 0.38);
+    }
+    .submit-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+    .divider {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 20px 0;
+      color: var(--c-text-faint);
+      font-size: 0.78rem;
+    }
+    .divider::before, .divider::after { content: ""; flex: 1; height: 1px; background: var(--c-border); }
+
     .kakao-btn {
-      width:100%; padding:15px; border:none; border-radius:var(--r-md);
-      background:#FEE500; color:#3C1E1E; font-size:1rem; font-weight:700;
-      cursor:pointer; transition:var(--t-base); display:flex; align-items:center; justify-content:center; gap:8px;
-      box-shadow:0 6px 16px rgba(254,229,0,.35);
+      width: 100%;
+      padding: 14px 16px;
+      border: none;
+      border-radius: var(--r-md);
+      background: var(--c-kakao-bg);
+      color: var(--c-kakao-ink);
+      font-size: 0.96rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 9px;
+      box-shadow: 0 6px 16px rgba(254, 229, 0, 0.34);
+      transition: background-color 160ms ease, translate 160ms ease;
     }
-    .kakao-btn:hover { transform:translateY(-2px); filter:brightness(0.98); }
-    .auth-foot { margin-top:22px; text-align:center; font-size:0.88rem; color:var(--c-text-muted); }
-    .auth-foot a { color:var(--c-brand); font-weight:700; text-decoration:none; }
-    .auth-foot a:hover { text-decoration:underline; }
+    .kakao-btn:hover { background: var(--c-kakao-hover); translate: 0 -1.5px; }
+
+    .auth-foot {
+      margin-top: 22px;
+      text-align: center;
+      font-size: 0.86rem;
+      color: var(--c-text-muted);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .auth-foot a { color: var(--c-brand); font-weight: 700; text-decoration: none; }
+    .auth-foot a:hover { text-decoration: underline; }
+    .auth-home-link { font-size: 0.8rem; color: var(--c-text-faint) !important; font-weight: 500 !important; }
+    .auth-home-link:hover { color: var(--c-brand) !important; }
+
     .toast {
-      position:fixed; bottom:32px; left:50%; transform:translateX(-50%) translateY(20px);
-      background:var(--c-text); color:#fff; padding:13px 22px; border-radius:var(--r-pill);
-      font-size:0.9rem; box-shadow:var(--sh-lg); opacity:0; pointer-events:none;
-      transition:var(--t-base); z-index:1100; max-width:90vw;
+      position: fixed;
+      bottom: 28px;
+      left: 50%;
+      translate: -50% 18px;
+      background: var(--brand-950);
+      color: #FFFFFF;
+      padding: 13px 22px;
+      border-radius: var(--r-pill);
+      font-size: 0.88rem;
+      box-shadow: var(--sh-lg);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 200ms ease, translate 200ms var(--ease-spring);
+      z-index: 1100;
+      max-width: 90vw;
     }
-    .toast.is-show { opacity:1; transform:translateX(-50%) translateY(0); }
-    .toast.error { background:var(--c-danger); } .toast.success { background:var(--c-success); }
-    @media (max-width:480px){ .auth-card{ padding:30px 22px 24px; } }
+    .toast.is-show { opacity: 1; translate: -50% 0; }
+    .toast.error { background: var(--c-danger); }
+    .toast.success { background: var(--c-ok); }
+
+    @media (max-width: 480px) {
+      .auth-card { padding: 30px 22px 24px; border-radius: var(--r-xl); }
+      .input { font-size: 16px; }
+    }
   </style>
 </head>
 <body>
-  <div class="auth-card">
+  <main class="auth-card">
     <div class="auth-hero">
-      <span class="auth-emoji">👋</span>
+      <div class="auth-emblem" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+      </div>
       <div class="logo">CONTENIDO</div>
       <h1>다시 만나서 반가워요</h1>
       <p>이메일로 로그인하거나<br>카카오로 간편하게 시작하세요</p>
@@ -99,11 +209,11 @@
     <form id="login-form" autocomplete="on">
       <div class="field">
         <label for="email">이메일</label>
-        <input class="input" type="email" id="email" name="email" placeholder="you@example.com" required>
+        <input class="input" type="email" id="email" name="email" placeholder="you@example.com" autocomplete="email" inputmode="email" enterkeyhint="next" required>
       </div>
       <div class="field">
         <label for="password">비밀번호</label>
-        <input class="input" type="password" id="password" name="password" placeholder="비밀번호" required>
+        <input class="input" type="password" id="password" name="password" placeholder="비밀번호를 입력하세요" autocomplete="current-password" enterkeyhint="done" required>
       </div>
       <button type="submit" class="submit-btn" id="submit-btn">로그인</button>
     </form>
@@ -111,21 +221,24 @@
     <div class="divider">또는</div>
 
     <button type="button" class="kakao-btn" onclick="window.location.href='/auth/kakao?state=' + encodeURIComponent(location.origin + '/events.html')">
-      카카오로 로그인
+      <svg viewBox="0 0 24 24" width="19" height="19" fill="currentColor" aria-hidden="true"><path d="M12 3C6.48 3 2 6.48 2 10.77c0 2.77 1.84 5.2 4.61 6.57-.2.73-.73 2.66-.84 3.07-.13.5.18.5.39.36.16-.11 2.55-1.73 3.59-2.43.73.11 1.48.17 2.25.17 5.52 0 10-3.48 10-7.74C22 6.48 17.52 3 12 3z"/></svg>
+      <span>카카오로 로그인</span>
     </button>
 
     <div class="auth-foot">
-      아직 계정이 없으신가요? <a href="/register.html">회원가입</a>
+      <div>아직 계정이 없으신가요? <a href="/register.html">회원가입</a></div>
+      <a href="/" class="auth-home-link">홈으로 돌아가기</a>
     </div>
-  </div>
+  </main>
 
-  <div id="toast" class="toast"></div>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
   <script>
     let toastTimer;
-    function toast(msg, type='') {
+    function toast(msg, type = '') {
       const el = document.getElementById('toast');
-      el.textContent = msg; el.className = 'toast is-show ' + type;
+      el.textContent = msg;
+      el.className = 'toast is-show ' + type;
       clearTimeout(toastTimer);
       toastTimer = setTimeout(() => el.classList.remove('is-show'), 2600);
     }
@@ -135,11 +248,13 @@
       const email = document.getElementById('email').value.trim();
       const password = document.getElementById('password').value;
       const btn = document.getElementById('submit-btn');
-      btn.disabled = true; btn.textContent = '로그인 중…';
+      btn.disabled = true;
+      btn.textContent = '로그인 중…';
       try {
         const res = await fetch('/auth/login', {
-          method:'POST', credentials:'include',
-          headers:{ 'Content-Type':'application/json' },
+          method: 'POST',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ email, password })
         });
         const data = await res.json();
@@ -148,11 +263,13 @@
           setTimeout(() => { window.location.href = data.redirectUrl || '/events.html'; }, 600);
         } else {
           toast(data.message || '로그인에 실패했습니다', 'error');
-          btn.disabled = false; btn.textContent = '로그인';
+          btn.disabled = false;
+          btn.textContent = '로그인';
         }
       } catch (err) {
         toast('네트워크 오류가 발생했습니다', 'error');
-        btn.disabled = false; btn.textContent = '로그인';
+        btn.disabled = false;
+        btn.textContent = '로그인';
       }
     });
   </script>

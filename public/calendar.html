@@ -1,37 +1,43 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ko">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta http-equiv="ScreenOrientation" content="autoRotate:disabled">
-  <!-- 화면 회전 잠금을 위한 메타태그 추가 -->
-  <meta name="screen-orientation" content="landscape">
-  <meta name="orientation" content="landscape">
-  <title>이벤트 캘린더</title>
+  <title>이벤트 캘린더 · Contenido</title>
+  <link rel="icon" href="/images/Contenido_Logo.ico" type="image/x-icon">
   <link rel="stylesheet" href="https://uicdn.toast.com/calendar/latest/toastui-calendar.min.css">
-  <link rel="stylesheet" href="/css/calendar.css?v=20260531">
+  <link rel="stylesheet" href="/css/design-system.css?v=20261119">
+  <link rel="stylesheet" href="/css/calendar.css?v=20261119">
+  <script src="/js/utils/nav-injector.js?v=20261119" defer></script>
 </head>
 <body>
-  <div class="calendar-container">
+  <main class="calendar-container">
     <h1>이벤트 캘린더</h1>
-    
-    
+
     <div class="controls">
-      <button id="prev-week" class="nav-button"> < </button>
-      <div id="current-date"></div>
-      <button id="next-week" class="nav-button"> > </button>
+      <button type="button" id="prev-week" class="nav-button" aria-label="이전 기간">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+      </button>
+      <div id="current-date" class="c-tabular"></div>
+      <button type="button" id="next-week" class="nav-button" aria-label="다음 기간">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+      </button>
     </div>
+
     <div id="calendar"></div>
+
     <div class="extra-controls">
-      <button id="change-view">주/월</button>
-      <button id="this-week">Today</button>
+      <button type="button" id="change-view">주 / 월 전환</button>
+      <button type="button" id="this-week">오늘로 이동</button>
     </div>
-  </div>
+  </main>
+
   <div class="navigation-buttons">
-    <button onclick="window.location.href='events.html'">진행중인 이벤트</button>
-    <button class="event-manage-button" style="display: none;" onclick="window.location.href='event-staff.html'">이벤트 관리</button>
-    <button onclick="window.location.href='index.html'">Home</button>
+    <button type="button" onclick="window.location.href='/events.html'">진행중인 이벤트</button>
+    <button type="button" class="event-manage-button" style="display: none;" onclick="window.location.href='/event-staff.html'">이벤트 관리</button>
+    <button type="button" onclick="window.location.href='/index.html'">홈으로</button>
   </div>
+
   <script src="https://uicdn.toast.com/calendar/latest/toastui-calendar.min.js"></script>
   <script src="/js/calendar.js?v=20260533"></script>
 </body>

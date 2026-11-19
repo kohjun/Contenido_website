@@ -1,20 +1,39 @@
-const Sidebar = (function() {
+// public/js/office/sidebar.js — Office Shell Navigation & Scoped Team Asset Loader
+const Sidebar = (function () {
+  const ICONS = {
+    operation: '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>',
+    promotion: '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l18-5v12L3 13v-2z"/><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/></svg>',
+    planning: '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18h6"/><path d="M10 22h4"/><path d="M12 2a7 7 0 0 0-4 12.7V17h8v-2.3A7 7 0 0 0 12 2z"/></svg>',
+    org: '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/></svg>',
+    home: '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10.5L12 3l9 7.5"/><path d="M5 9.5V20a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V9.5"/></svg>',
+    menu: '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="4" y1="7" x2="20" y2="7"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="17" x2="20" y2="17"/></svg>'
+  };
+
   const template = `
     <div class="org-sidebar" id="org-sidebar">
       <div class="org-header">
-        <a href="index.html"> <h1>CONTENIDO</h1> </a>
+        <a href="/office.html" class="org-header-brand">
+          <span class="org-header-dot" aria-hidden="true"></span>
+          <h1>CONTENIDO</h1>
+        </a>
+        <span class="org-header-sub">OFFICE WORKSPACE</span>
       </div>
-      
+
+      <div class="org-quick-links">
+        <a href="/office.html" class="org-quick-btn">${ICONS.org}<span>조직도</span></a>
+        <a href="/index.html" class="org-quick-btn">${ICONS.home}<span>메인 홈</span></a>
+      </div>
+
       <div class="org-menu">
         <!-- 운영부 -->
-        <a href="#" class="org-menu-item">
-          <i>⚙️</i>
+        <div class="org-menu-item org-dept-heading">
+          <i>${ICONS.operation}</i>
           <div class="org-menu-item-content">
             <div class="org-menu-item-label">운영부</div>
             <div class="org-menu-item-description">조직 운영 및 관리</div>
           </div>
-        </a>
-        
+        </div>
+
         <div class="org-submenu">
           <a href="#" class="org-menu-item" data-team="operationTeam">
             <div class="org-menu-item-content">
@@ -37,14 +56,14 @@ const Sidebar = (function() {
         </div>
 
         <!-- 홍보부 -->
-        <a href="#" class="org-menu-item">
-          <i>📣</i>
+        <div class="org-menu-item org-dept-heading">
+          <i>${ICONS.promotion}</i>
           <div class="org-menu-item-content">
             <div class="org-menu-item-label">홍보부</div>
             <div class="org-menu-item-description">대외 홍보 및 동아리 모집</div>
           </div>
-        </a>
-        
+        </div>
+
         <div class="org-submenu">
           <a href="#" class="org-menu-item" data-team="marketingTeam">
             <div class="org-menu-item-content">
@@ -67,14 +86,14 @@ const Sidebar = (function() {
         </div>
 
         <!-- 기획부 -->
-        <a href="#" class="org-menu-item">
-          <i>💡</i>
+        <div class="org-menu-item org-dept-heading">
+          <i>${ICONS.planning}</i>
           <div class="org-menu-item-content">
             <div class="org-menu-item-label">기획부</div>
             <div class="org-menu-item-description">이벤트 및 정기모임 기획</div>
           </div>
-        </a>
-        
+        </div>
+
         <div class="org-submenu">
           <a href="#" class="org-menu-item" data-team="planningTeam">
             <div class="org-menu-item-content">
@@ -99,7 +118,6 @@ const Sidebar = (function() {
     </div>
   `;
 
-  // 팀별 페이지 설정
   const pageConfigs = {
     operationTeam: { url: '/office_operation.html' },
     cooperationTeam: { url: '/office_cooperation.html' },
@@ -110,7 +128,7 @@ const Sidebar = (function() {
     planningTeam: { url: '/office_planning.html' },
     regularTeam: { url: '/office_regular.html' },
     staffTeam: { url: '/office_staff.html' },
-    announcement: { url: '/office_announcement.html' }  // Add this line
+    announcement: { url: '/office_announcement.html' }
   };
 
   const departmentTeams = {
@@ -119,7 +137,35 @@ const Sidebar = (function() {
     planning: ['planningTeam', 'regularTeam', 'staffTeam']
   };
 
-  // 현재 사용자의 권한 정보를 가져오는 함수
+  /**
+   * 이전 팀 페이지의 CSS를 모두 제거해 팀 간 스타일/스크롤 오염(leak)을 원천 차단
+   */
+  function clearPreviousTeamStyles() {
+    document.querySelectorAll('link[data-office-team-css]').forEach((l) => l.remove());
+  }
+
+  function loadTeamCss(href, teamId) {
+    const cssLink = document.createElement('link');
+    cssLink.rel = 'stylesheet';
+    cssLink.href = href + (href.includes('?') ? '&' : '?') + 't=' + Date.now();
+    cssLink.dataset.officeTeamCss = teamId;
+    document.head.appendChild(cssLink);
+    return cssLink;
+  }
+
+  function loadFreshScript(src, matchPrefix) {
+    if (matchPrefix) {
+      document.querySelectorAll(`script[src^="${matchPrefix}"]`).forEach((s) => s.remove());
+    }
+    return new Promise((resolve, reject) => {
+      const s = document.createElement('script');
+      s.src = src + (src.includes('?') ? '&' : '?') + 't=' + Date.now();
+      s.onload = resolve;
+      s.onerror = reject;
+      document.body.appendChild(s);
+    });
+  }
+
   async function getCurrentUserRole() {
     try {
       const response = await fetch('/user/info');
@@ -136,31 +182,24 @@ const Sidebar = (function() {
     }
   }
 
-  // 사용자의 페이지 접근 권한을 확인하는 함수
   function hasAccessToPage(userRole, teamId) {
     if (!userRole) return false;
-    
-    // 1. 관리자는 모든 접근 가능
     if (userRole.role === 'admin') return true;
-    
-    // 2. 운영진 권한이 아니면 접근 불가
     if (userRole.role !== 'officer') return false;
 
     const normalizedTarget = (teamId || '').toLowerCase();
     const normalizedUserTeam = (userRole.team || '').toLowerCase();
 
-    // 3. 부장은 자신의 부서의 모든 팀 페이지에 접근 가능
     if (userRole.isDepartmentHead) {
       let userDept = (userRole.department || '').toLowerCase();
       if (userDept.includes('기획') || userDept === 'planning') userDept = 'planning';
       else if (userDept.includes('운영') || userDept === 'operation') userDept = 'operation';
       else if (userDept.includes('홍보') || userDept === 'promotion') userDept = 'promotion';
 
-      const allowedTeams = (departmentTeams[userDept] || []).map(t => t.toLowerCase());
+      const allowedTeams = (departmentTeams[userDept] || []).map((t) => t.toLowerCase());
       if (allowedTeams.includes(normalizedTarget)) return true;
     }
-    
-    // 4. 일반 팀원은 자신의 팀 페이지만 접근 가능 (대소문자 무관 매칭)
+
     if (normalizedUserTeam && normalizedUserTeam === normalizedTarget) {
       return true;
     }
@@ -168,7 +207,6 @@ const Sidebar = (function() {
     return false;
   }
 
-  // 페이지 로드 함수
   async function loadPage(pageId) {
     try {
       const userRole = await getCurrentUserRole();
@@ -184,43 +222,23 @@ const Sidebar = (function() {
         return;
       }
 
-      
+      // 이전 팀 CSS를 완전히 해제하여 전역 스타일 누수 방지
+      clearPreviousTeamStyles();
 
-      // 기존 페이지 로드 로직
       const mainContent = document.getElementById('main-content');
       const response = await fetch(pageConfig.url);
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
       const html = await response.text();
       mainContent.innerHTML = html;
+      window.scrollTo({ top: 0, behavior: 'instant' });
 
-      // 운영부
-      //1. 운영팀
+      // 1. 운영팀
       if (pageId === 'operationTeam') {
         try {
           window.dashboardInitialized = false;
+          loadTeamCss('/css/operation.css', pageId);
+          await loadFreshScript('/js/office/dashboard.js', '/js/office/dashboard.js');
 
-          // CSS — 항상 fresh 보장
-          document.querySelectorAll('link[href^="/css/operation.css"]').forEach(l => l.remove());
-          const cssLink = document.createElement('link');
-          cssLink.rel = 'stylesheet';
-          cssLink.href = '/css/operation.css?t=' + Date.now();
-          document.head.appendChild(cssLink);
-
-          // HTML 주입 (이미 위에서 mainContent.innerHTML = html 됐지만 보장 차원)
-          // — 위 공통 흐름에서 fetch + innerHTML 이 이미 일어남.
-
-          // 기존 dashboard.js 모두 제거 (버전 query 포함)
-          document.querySelectorAll('script[src^="/js/office/dashboard.js"]').forEach(s => s.remove());
-
-          // dashboard.js — fresh fetch
-          await new Promise((resolve, reject) => {
-            const s = document.createElement('script');
-            s.src = '/js/office/dashboard.js?t=' + Date.now();
-            s.onload = resolve;
-            s.onerror = reject;
-            document.body.appendChild(s);
-          });
-
-          // IIFE 가 자동 부팅하지만 안전 차원 명시 호출
           if (typeof window.bootDashboard === 'function') {
             window.bootDashboard();
           } else if (window.Dashboard) {
@@ -229,130 +247,48 @@ const Sidebar = (function() {
           window.dashboardInitialized = true;
         } catch (error) {
           console.error('Error loading operation team page:', error);
-          const mainContent = document.getElementById('main-content');
-          mainContent.innerHTML = `
-            <div class="error-message">
-              <h3>페이지 로드 중 오류가 발생했습니다</h3>
-              <p>${error.message}</p>
-            </div>
-          `;
+          mainContent.innerHTML = `<div class="error-message"><h3>페이지 로드 중 오류가 발생했습니다</h3><p>${error.message}</p></div>`;
         }
         return;
       }
-  
-      //2. 대외협력팀
-      
 
+      // 2. 대외협력팀
       if (pageId === 'cooperationTeam') {
         try {
-          // CSS — 항상 fresh 보장
-          document.querySelectorAll('link[href^="/css/office_cooperation.css"]').forEach(l => l.remove());
-          const cssLink = document.createElement('link');
-          cssLink.rel = 'stylesheet';
-          cssLink.href = '/css/office_cooperation.css?t=' + Date.now();
-          document.head.appendChild(cssLink);
+          loadTeamCss('/css/office_cooperation.css', pageId);
+          await loadFreshScript('/js/office/cooperation.js', '/js/office/cooperation.js');
 
-          // 기존 cooperation.js 모두 제거 (버전 query 포함)
-          document.querySelectorAll('script[src^="/js/office/cooperation.js"]').forEach(s => s.remove());
-
-          // cooperation.js — fresh fetch
-          await new Promise((resolve, reject) => {
-            const s = document.createElement('script');
-            s.src = '/js/office/cooperation.js?t=' + Date.now();
-            s.onload = resolve;
-            s.onerror = reject;
-            document.body.appendChild(s);
-          });
-
-          // Naver Map API Key 동적 조회 및 SDK 로드
-          console.log('[MapDebug] Fetching Naver Map key from server...');
           const naverResponse = await fetch('/events/naver-key');
           const naverData = await naverResponse.json();
           const naverKey = naverData.naverKey;
 
-          console.log('[MapDebug] Retrieved Naver Key:', { hasNaverKey: !!naverKey });
-
           if (naverKey) {
-            // 기존 스크립트 제거
-            document.querySelectorAll('script[src*="openapi.map.naver.com"]').forEach(s => s.remove());
-            document.querySelectorAll('script[src*="oapi.map.naver.com"]').forEach(s => s.remove());
-
-            // Naver SDK 로드
+            document.querySelectorAll('script[src*="openapi.map.naver.com"], script[src*="oapi.map.naver.com"]').forEach((s) => s.remove());
             const naverScript = document.createElement('script');
             naverScript.type = 'text/javascript';
             naverScript.src = `https://oapi.map.naver.com/openapi/v3/maps.js?ncpKeyId=${naverKey}`;
-
             naverScript.onload = () => {
-              console.log('[MapDebug] naverScript loaded successfully');
-              if (typeof naver !== 'undefined' && naver.maps) {
-                if (window.CooperationMap) {
-                  window.CooperationMap.initialize();
-                } else {
-                  console.error('[MapDebug] window.CooperationMap is undefined!');
-                }
-              } else {
-                console.error('[MapDebug] naver.maps object is missing after load.');
+              if (typeof naver !== 'undefined' && naver.maps && window.CooperationMap) {
+                window.CooperationMap.initialize();
               }
             };
-            
-            naverScript.onerror = (e) => {
-              console.error('[MapDebug] naverScript load failed:', e);
-            };
-
             document.head.appendChild(naverScript);
           } else {
-            console.error('Naver Map API key not found on server.', { naverKey });
             alert('지도 인증 키가 서버 설정에 누락되었습니다. (.env 파일에 NAVER_MAPS_CLIENT_ID 설정 필요)');
           }
         } catch (error) {
           console.error('Error loading cooperation page:', error);
-          const mainContent = document.getElementById('main-content');
-          mainContent.innerHTML = `
-            <div class="error-message">
-              <h3>페이지 로드 중 오류가 발생했습니다</h3>
-              <p>${error.message}</p>
-            </div>
-          `;
+          mainContent.innerHTML = `<div class="error-message"><h3>페이지 로드 중 오류가 발생했습니다</h3><p>${error.message}</p></div>`;
         }
         return;
       }
 
-      // 스크립트 로드 헬퍼 함수 (sidebar.js 최상단에 추가)
-      function loadScript(src) {
-        return new Promise((resolve, reject) => {
-          const script = document.createElement('script');
-          script.src = src;
-          script.onload = resolve;
-          script.onerror = reject;
-          document.head.appendChild(script);
-        });
-      }
-
-      //3. 인사팀
+      // 3. 인사팀
       if (pageId === 'HumanResourceTeam') {
         try {
-          // CSS도 함께 보장
-          if (!document.querySelector('link[href^="/css/hr.css"]')) {
-            const cssLink = document.createElement('link');
-            cssLink.rel = 'stylesheet';
-            cssLink.href = '/css/hr.css?v=' + Date.now();
-            document.head.appendChild(cssLink);
-          }
+          loadTeamCss('/css/hr.css', pageId);
+          await loadFreshScript('/js/office/hr.js', '/js/office/hr.js');
 
-          // 기존 hr.js 스크립트 제거 (버전 query 포함된 것도 포함)
-          document.querySelectorAll('script[src^="/js/office/hr.js"]').forEach(s => s.remove());
-
-          // hr.js 새로 로드 — 항상 fresh
-          await new Promise((resolve, reject) => {
-            const hrScript = document.createElement('script');
-            hrScript.src = '/js/office/hr.js?t=' + Date.now();
-            hrScript.onload = resolve;
-            hrScript.onerror = reject;
-            document.body.appendChild(hrScript);
-          });
-
-          // hr.js는 IIFE로 자동 부팅하지만,
-          // 안전을 위해 노출된 bootHR도 한 번 더 호출 (idempotent하게 동작하도록 DOM 체크 포함됨)
           if (typeof window.bootHR === 'function') {
             window.bootHR();
           } else if (typeof window.loadUsers === 'function') {
@@ -360,87 +296,33 @@ const Sidebar = (function() {
           }
         } catch (error) {
           console.error('Error loading Human Resource page:', error);
-          const mainContent = document.getElementById('main-content');
-          if (mainContent) {
-            mainContent.innerHTML = `
-              <div class="error-message">
-                <h3>인사팀 페이지 로드 중 오류가 발생했습니다</h3>
-                <p>${error.message}</p>
-              </div>
-            `;
-          }
+          mainContent.innerHTML = `<div class="error-message"><h3>인사팀 페이지 로드 중 오류가 발생했습니다</h3><p>${error.message}</p></div>`;
         }
         return;
       }
 
-
-      
-      
-      
-
-       // 홍보부
-      //5. 마케팅팀
+      // 4. 홍보팀 (마케팅팀)
       if (pageId === 'marketingTeam') {
         try {
-          // CSS — 항상 fresh
-          document.querySelectorAll('link[href^="/css/office/marketing.css"]').forEach(l => l.remove());
-          const cssLink = document.createElement('link');
-          cssLink.rel = 'stylesheet';
-          cssLink.href = '/css/office/marketing.css?t=' + Date.now();
-          document.head.appendChild(cssLink);
-
-          // HTML 주입 (fetch + innerHTML)
-          const mainContent = document.getElementById('main-content');
-          const r = await fetch('/office_marketing.html');
-          mainContent.innerHTML = await r.text();
-
-          // 기존 marketing.js 모두 제거 (버전 query 포함)
-          document.querySelectorAll('script[src^="/js/office/marketing.js"]').forEach(s => s.remove());
+          loadTeamCss('/css/office/marketing.css', pageId);
           delete window.MarketingDashboard;
+          await loadFreshScript('/js/office/marketing.js', '/js/office/marketing.js');
 
-          // marketing.js — fresh fetch
-          await new Promise((resolve, reject) => {
-            const s = document.createElement('script');
-            s.src = '/js/office/marketing.js?t=' + Date.now();
-            s.onload = resolve;
-            s.onerror = reject;
-            document.body.appendChild(s);
-          });
-
-          // 초기화
           if (window.MarketingDashboard && typeof window.MarketingDashboard.initialize === 'function') {
             await window.MarketingDashboard.initialize();
           }
         } catch (error) {
           console.error('Error loading marketing team page:', error);
-          const mainContent = document.getElementById('main-content');
-          mainContent.innerHTML = `
-            <div class="error-message">
-              <h3>페이지 로드 중 오류가 발생했습니다</h3>
-              <p>${error.message}</p>
-            </div>
-          `;
+          mainContent.innerHTML = `<div class="error-message"><h3>페이지 로드 중 오류가 발생했습니다</h3><p>${error.message}</p></div>`;
         }
         return;
       }
 
-      //6. 디자인팀
-
-      //7. 영상제작팀
-
-      //기획부
-      //8. 기획팀
-      //10.스태프팀
+      // 5. 기획팀
       if (pageId === 'planningTeam') {
         try {
-          // CSS — 항상 fresh
-          document.querySelectorAll('link[href^="/css/office/planning.css"]').forEach(l => l.remove());
-          const cssLink = document.createElement('link');
-          cssLink.rel = 'stylesheet';
-          cssLink.href = '/css/office/planning.css?t=' + Date.now();
-          document.head.appendChild(cssLink);
+          loadTeamCss('/css/office/planning.css', pageId);
 
-          // Chart.js
           if (!window.Chart) {
             await new Promise((resolve, reject) => {
               const s = document.createElement('script');
@@ -451,163 +333,47 @@ const Sidebar = (function() {
             });
           }
 
-          // HTML 주입 (위에서 mainContent.innerHTML=html 됐어도 명시)
-          const mainContent = document.getElementById('main-content');
-          const r = await fetch('/office_planning.html');
-          mainContent.innerHTML = await r.text();
+          await loadFreshScript('/js/office/planning.js', '/js/office/planning.js');
 
-          // 기존 planning.js 모두 제거 (버전 query 포함)
-          document.querySelectorAll('script[src^="/js/office/planning.js"]').forEach(s => s.remove());
-
-          // planning.js — fresh fetch
-          await new Promise((resolve, reject) => {
-            const s = document.createElement('script');
-            s.src = '/js/office/planning.js?t=' + Date.now();
-            s.onload = resolve;
-            s.onerror = reject;
-            document.body.appendChild(s);
-          });
-
-          // IIFE 자동 부팅 백업으로 명시 호출
           if (typeof window.bootPlanning === 'function') {
             window.bootPlanning();
           }
         } catch (error) {
           console.error('Error loading planning team page:', error);
-          const mainContent = document.getElementById('main-content');
-          mainContent.innerHTML = `
-            <div class="error-message">
-              <h3>기획팀 페이지 로드 중 오류가 발생했습니다</h3>
-              <p>${error.message}</p>
-            </div>
-          `;
+          mainContent.innerHTML = `<div class="error-message"><h3>기획팀 페이지 로드 중 오류가 발생했습니다</h3><p>${error.message}</p></div>`;
         }
         return;
       }
 
-      // 9. 정기모임팀 (운영 가이드 & 체크리스트)
+      // 6. 정기모임팀
       if (pageId === 'regularTeam') {
         try {
-          // CSS — 항상 fresh
-          document.querySelectorAll('link[href*="/css/office/regular.css"], link[href*="regular.css"]').forEach(l => l.remove());
-          const cssLink = document.createElement('link');
-          cssLink.rel = 'stylesheet';
-          cssLink.href = '/css/office/regular.css?t=' + Date.now();
-          document.head.appendChild(cssLink);
-
-          // HTML 주입
-          const mainContent = document.getElementById('main-content');
-          const r = await fetch('/office_regular.html');
-          mainContent.innerHTML = await r.text();
-
-          // 기존 regular.js 모두 제거
-          document.querySelectorAll('script[src*="/js/office/regular.js"], script[src*="regular.js"]').forEach(s => s.remove());
+          loadTeamCss('/css/office/regular.css', pageId);
           delete window.RegularDashboard;
-
-          // regular.js — fresh fetch
-          await new Promise((resolve, reject) => {
-            const s = document.createElement('script');
-            s.src = '/js/office/regular.js?t=' + Date.now();
-            s.onload = resolve;
-            s.onerror = reject;
-            document.body.appendChild(s);
-          });
+          await loadFreshScript('/js/office/regular.js', '/js/office/regular.js');
         } catch (err) {
           console.error('[Sidebar] Error loading regularTeam:', err);
-          const mainContent = document.getElementById('main-content');
-          if (mainContent) {
-            mainContent.innerHTML = `<div style="padding: 24px; color: #ef4444;"><h3>정기모임팀 페이지 로드 중 오류가 발생했습니다</h3><p>${err.message}</p></div>`;
-          }
+          mainContent.innerHTML = `<div class="error-message"><h3>정기모임팀 페이지 로드 중 오류가 발생했습니다</h3><p>${err.message}</p></div>`;
         }
         return;
       }
-      
-      
 
-      // 10. 스태프팀 (기획 가이드 & 스타터-스태프 관리)
+      // 7. 스태프팀
       if (pageId === 'staffTeam') {
         try {
-          // CSS — 항상 fresh
-          document.querySelectorAll('link[href^="/css/office/staff.css"]').forEach(l => l.remove());
-          const cssLink = document.createElement('link');
-          cssLink.rel = 'stylesheet';
-          cssLink.href = '/css/office/staff.css?t=' + Date.now();
-          document.head.appendChild(cssLink);
-
-          // HTML 주입
-          const mainContent = document.getElementById('main-content');
-          const r = await fetch('/office_staff.html');
-          mainContent.innerHTML = await r.text();
-
-          // 기존 staff.js 모두 제거
-          document.querySelectorAll('script[src^="/js/office/staff.js"]').forEach(s => s.remove());
+          loadTeamCss('/css/office/staff.css', pageId);
           delete window.StaffDashboard;
+          await loadFreshScript('/js/office/staff.js', '/js/office/staff.js');
 
-          // staff.js — fresh fetch
-          await new Promise((resolve, reject) => {
-            const s = document.createElement('script');
-            s.src = '/js/office/staff.js?t=' + Date.now();
-            s.onload = resolve;
-            s.onerror = reject;
-            document.body.appendChild(s);
-          });
-
-          // 초기화
           if (window.StaffDashboard && typeof window.StaffDashboard.initialize === 'function') {
             await window.StaffDashboard.initialize();
           }
         } catch (error) {
           console.error('Error loading staff team page:', error);
-          const mainContent = document.getElementById('main-content');
-          mainContent.innerHTML = `
-            <div class="error-message">
-              <h3>스태프팀 페이지 로드 중 오류가 발생했습니다</h3>
-              <p>${error.message}</p>
-            </div>
-          `;
+          mainContent.innerHTML = `<div class="error-message"><h3>스태프팀 페이지 로드 중 오류가 발생했습니다</h3><p>${error.message}</p></div>`;
         }
         return;
       }
-
-      // 11. 정기모임팀 (캘린더)
-      if (pageId === 'regularTeam') {
-        window.calendarInitialized = false;
-
-        // TOAST UI Calendar CSS 로드
-        if (!document.querySelector('link[href*="toastui-calendar.min.css"]')) {
-          const link = document.createElement('link');
-          link.rel = 'stylesheet';
-          link.href = 'https://uicdn.toast.com/calendar/latest/toastui-calendar.min.css';
-          document.head.appendChild(link);
-        }
-
-        // TOAST UI Calendar JS 로드
-        if (!window.tui?.Calendar) {
-          await new Promise((resolve, reject) => {
-            const script = document.createElement('script');
-            script.src = 'https://uicdn.toast.com/calendar/latest/toastui-calendar.min.js';
-            script.onload = resolve;
-            script.onerror = reject;
-            document.body.appendChild(script);
-          });
-        }
-
-        // 기존 calendar.js 스크립트 제거
-        const existingScript = document.querySelector('script[src="/js/calendar.js"]');
-        if (existingScript) {
-          existingScript.remove();
-        }
-
-        //calendar.js 새로 로드
-        await new Promise((resolve, reject) => {
-          const calendarScript = document.createElement('script');
-          calendarScript.src = '/js/calendar.js';
-          calendarScript.onload = resolve;
-          calendarScript.onerror = reject;
-          document.body.appendChild(calendarScript);
-        });
-      }
-
     } catch (error) {
       console.error('Error loading page:', error);
       alert(`페이지 로드 중 오류가 발생했습니다 : ${error.message}`);
@@ -618,32 +384,17 @@ const Sidebar = (function() {
     container.innerHTML = template;
 
     const sidebar = container.querySelector('.org-sidebar');
-    const header = container.querySelector('.org-header h1');
 
-    // 모바일 메뉴 토글 버튼 추가
     const toggleButton = document.createElement('button');
+    toggleButton.type = 'button';
     toggleButton.className = 'mobile-toggle-btn';
-    toggleButton.innerHTML = '☰';
-    toggleButton.style.cssText = `
-      position: fixed;
-      top: 1rem;
-      left: 1rem;
-      z-index: 1001;
-      padding: 0.5rem;
-      font-size: 1.5rem;
-      background: white;
-      border: none;
-      border-radius: 5px;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-      display: none;
-    `;
-
+    toggleButton.setAttribute('aria-label', '운영진 메뉴 열기');
+    toggleButton.innerHTML = ICONS.menu;
     container.appendChild(toggleButton);
 
-    // 모바일 환경 체크 및 이벤트 리스너 추가
     function checkMobile() {
       if (window.innerWidth <= 768) {
-        toggleButton.style.display = 'block';
+        toggleButton.style.display = 'inline-flex';
         sidebar.classList.remove('show');
       } else {
         toggleButton.style.display = 'none';
@@ -651,33 +402,33 @@ const Sidebar = (function() {
       }
     }
 
-    // 토글 버튼 클릭 이벤트
-    toggleButton.addEventListener('click', () => {
+    toggleButton.addEventListener('click', (e) => {
+      e.stopPropagation();
       sidebar.classList.toggle('show');
     });
 
-    // 사이드바 외부 클릭 시 닫기
     document.addEventListener('click', (e) => {
-      if (window.innerWidth <= 768 && 
-          !sidebar.contains(e.target) && 
-          e.target !== toggleButton) {
+      if (window.innerWidth <= 768 && !sidebar.contains(e.target) && !toggleButton.contains(e.target)) {
         sidebar.classList.remove('show');
       }
     });
 
-    // 리사이즈 이벤트
-    window.addEventListener('resize', checkMobile);
-    checkMobile(); // 초기 실행
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && sidebar.classList.contains('show')) {
+        sidebar.classList.remove('show');
+      }
+    });
 
-    // 기존의 팀 메뉴 클릭 이벤트에 모바일 사이드바 닫기 및 활성화 표시 추가
+    window.addEventListener('resize', checkMobile);
+    checkMobile();
+
     container.addEventListener('click', async (e) => {
       const teamLink = e.target.closest('[data-team]');
       if (teamLink) {
         e.preventDefault();
         const teamId = teamLink.dataset.team;
-        
-        // active 클래스 갱신
-        container.querySelectorAll('[data-team]').forEach(link => {
+
+        container.querySelectorAll('[data-team]').forEach((link) => {
           link.classList.remove('active');
         });
         teamLink.classList.add('active');
@@ -690,9 +441,7 @@ const Sidebar = (function() {
     });
   }
 
-  return {
-    init: init
-  };
+  return { init };
 })();
 
 if (typeof window !== 'undefined') {

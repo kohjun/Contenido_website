@@ -1,504 +1,474 @@
-/* public/css/office.css */
-
 /* =========================================================================
-   1. Reset & Global Layout Styles
+   public/css/office.css — Contenido Office Shell & Org Chart
+   Tone-on-Tone Signature Azure (#0A84FE)
    ========================================================================= */
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
-@font-face {
-  font-family: 'GmarketSansMedium';
-  src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_2001@1.1/GmarketSansMedium.woff') format('woff');
-  font-weight: normal;
-  font-style: normal;
-}
 
 :root {
-  --c-bg-page: #f8fafc;
-  --c-card-bg: rgba(255, 255, 255, 0.8);
-  --c-card-border: rgba(226, 232, 240, 0.8);
-  --c-text-primary: #1e293b;
-  --c-text-secondary: #64748b;
-  --c-brand: #3b82f6;
-  
-  /* 부서별 테마 색상 (HSL 기반의 화사하고 정돈된 톤) */
-  --c-pres-accent: #f59e0b;
-  --c-pres-bg: linear-gradient(135deg, #fffbeb, #fef3c7);
-  --c-pres-border: #fde047;
-  
-  --c-oper-accent: #3b82f6;
-  --c-oper-bg: rgba(239, 246, 255, 0.6);
-  --c-oper-border: rgba(191, 219, 254, 0.8);
-  
-  --c-prom-accent: #d946ef;
-  --c-prom-bg: rgba(253, 244, 255, 0.6);
-  --c-prom-border: rgba(245, 208, 254, 0.8);
-  
-  --c-plan-accent: #10b981;
-  --c-plan-bg: rgba(236, 253, 245, 0.6);
-  --c-plan-border: rgba(167, 243, 208, 0.8);
+  --c-bg-page:      var(--c-bg, #F3F7FD);
+  --c-card-bg:      var(--c-surface, #FFFFFF);
+  --c-card-border:  var(--c-border, #DCE7F5);
+  --c-text-primary: var(--c-text, #0C1E38);
+  --c-text-secondary: var(--c-text-muted, #5A708D);
+
+  /* Tone-on-Tone Department Accents */
+  --c-pres-accent:  var(--c-dept-president, #0B2A5B);
+  --c-pres-bg:      linear-gradient(135deg, #EDF5FF 0%, #DFEEFF 100%);
+  --c-pres-border:  var(--brand-300, #87C3FC);
+
+  --c-oper-accent:  var(--c-dept-operation, #0A84FE);
+  --c-prom-accent:  var(--c-dept-promotion, #2B9BFF);
+  --c-plan-accent:  var(--c-dept-planning, #195CD2);
 }
 
 body {
-  font-family: 'GmarketSansMedium', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
-  background-color: var(--c-bg-page);
+  font-family: var(--ff-base, 'GmarketSansMedium', sans-serif);
+  background:
+    radial-gradient(720px 420px at 14% 0%, var(--brand-100, #DEEEFF) 0%, transparent 65%),
+    var(--c-bg-page);
   color: var(--c-text-primary);
-  min-height: 100vh;
+  min-height: 100dvh;
+  margin: 0;
 }
 
-.org-header a {
-  color: inherit;
-  text-decoration: none;
-}
-
+.org-header a,
 .org-header a:visited {
   color: inherit;
   text-decoration: none;
 }
 
-/* =========================================================================
-   2. Sidebar Styles (Modern Floating Glassmorphism)
-   ========================================================================= */
+/* ── 1) Sidebar (Floating Azure Glass) ── */
 .org-sidebar {
-  width: 270px;
-  height: calc(100vh - 24px);
-  background: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border-right: 1px solid rgba(226, 232, 240, 0.8);
+  width: 272px;
+  height: calc(100dvh - 24px);
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border: 1px solid var(--c-border);
   position: fixed;
   left: 12px;
   top: 12px;
-  border-radius: 20px;
+  border-radius: 22px;
   overflow-y: auto;
-  transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.03), 
-              0 1px 3px rgba(0, 0, 0, 0.02);
+  overscroll-behavior: contain;
+  transition: translate 280ms var(--ease), width 280ms var(--ease);
+  box-shadow: var(--sh-md);
   z-index: 100;
-  padding-bottom: 70px;
-  scrollbar-width: none;
-}
-
-.org-sidebar::-webkit-scrollbar {
-  display: none;
-}
-
-.org-sidebar.collapsed {
-  width: 76px;
-  left: 12px;
+  padding-bottom: 24px;
+  scrollbar-width: thin;
 }
 
 .org-header {
-  padding: 24px 20px;
-  border-bottom: 1px solid rgba(226, 232, 240, 0.6);
+  padding: 20px 18px 16px;
+  border-bottom: 1px solid var(--c-border-subtle);
   display: flex;
-  justify-content: center;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+}
+
+.org-header-brand {
+  display: inline-flex;
   align-items: center;
+  gap: 9px;
+}
+
+.org-header-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+  background: linear-gradient(135deg, var(--brand-400), var(--brand-600));
+  box-shadow: 0 2px 6px rgba(10, 132, 254, 0.35);
 }
 
 .org-header h1 {
-  font-size: 1.35rem;
-  font-weight: 800;
-  color: #0f172a;
+  font-size: 1.24rem;
+  font-weight: 700;
+  color: var(--c-brand);
   letter-spacing: 0.05em;
   text-transform: uppercase;
-  transition: all 0.3s ease;
-  position: relative;
-  background: linear-gradient(135deg, #3b82f6, #8b5cf6);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+  margin: 0;
 }
 
-.org-sidebar.collapsed .org-header h1 {
-  font-size: 0.95rem;
-  letter-spacing: 0;
+.org-header-sub {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--c-text-faint);
+  letter-spacing: 0.06em;
+}
+
+.org-quick-links {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  padding: 12px 12px 4px;
+}
+
+.org-quick-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: var(--brand-50);
+  border: 1px solid var(--brand-100);
+  color: var(--brand-700);
+  font-size: 0.74rem;
+  font-weight: 700;
+  text-decoration: none;
+  transition: background-color 150ms ease, color 150ms ease, border-color 150ms ease;
+}
+
+.org-quick-btn:hover {
+  background: var(--c-brand);
+  border-color: var(--c-brand);
+  color: #FFFFFF;
 }
 
 .org-menu {
-  padding: 16px 12px;
+  padding: 10px 12px 16px;
 }
 
 .org-menu-item {
   display: flex;
   align-items: center;
-  padding: 10px 14px;
-  margin-bottom: 4px;
+  padding: 9px 12px;
+  margin-bottom: 3px;
   border-radius: 12px;
-  color: #475569;
+  color: var(--c-text-soft);
   text-decoration: none;
-  font-weight: 500;
-  transition: all 0.2s ease;
+  font-weight: 600;
+  transition: background-color 150ms ease, color 150ms ease, translate 150ms ease;
 }
 
 .org-menu-item:hover {
-  background-color: rgba(241, 245, 249, 0.9);
-  color: #0f172a;
+  background-color: var(--brand-50);
+  color: var(--brand-700);
+}
+
+.org-menu-item.org-dept-heading {
+  cursor: default;
+  margin-top: 8px;
+  color: var(--c-text);
+  background: transparent;
+}
+.org-menu-item.org-dept-heading:hover {
+  background: transparent;
+  color: var(--c-text);
 }
 
 .org-menu-item i {
-  width: 24px;
-  height: 24px;
-  display: flex;
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
+  background: var(--brand-50);
+  color: var(--c-brand);
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.1rem;
-  margin-right: 12px;
-  transition: transform 0.2s ease;
-}
-
-.org-menu-item:hover i {
-  transform: scale(1.15);
+  font-style: normal;
+  margin-right: 10px;
+  flex-shrink: 0;
 }
 
 .org-menu-item-content {
   display: flex;
   flex-direction: column;
   flex-grow: 1;
+  min-width: 0;
 }
 
 .org-menu-item-label {
-  font-size: 0.85rem;
+  font-size: 0.86rem;
   font-weight: 700;
+  line-height: 1.3;
 }
 
 .org-menu-item-description {
-  font-size: 0.72rem;
-  color: #94a3b8;
+  font-size: 0.71rem;
+  color: var(--c-text-faint);
   margin-top: 1px;
-}
-
-.org-sidebar.collapsed .org-menu-item-content {
-  display: none;
-}
-
-.org-sidebar.collapsed .org-menu-item i {
-  margin-right: 0;
-}
-
-.org-sidebar.collapsed .org-menu-item {
-  justify-content: center;
+  line-height: 1.3;
 }
 
 .org-submenu {
-  margin-left: 16px;
+  margin-left: 14px;
   padding-left: 10px;
-  border-left: 1.5px solid rgba(226, 232, 240, 0.8);
-  margin-bottom: 8px;
+  border-left: 1.5px solid var(--brand-100);
+  margin-bottom: 6px;
   display: flex;
   flex-direction: column;
   gap: 2px;
 }
 
-.org-sidebar.collapsed .org-submenu {
-  display: none;
-}
-
 .org-submenu .org-menu-item {
-  padding: 8px 12px;
+  padding: 8px 11px;
   margin-bottom: 0;
-  border-radius: 8px;
+  border-radius: 10px;
 }
 
 .org-submenu .org-menu-item-label {
-  font-weight: 500;
-  font-size: 0.8rem;
+  font-weight: 600;
+  font-size: 0.82rem;
 }
 
 .org-submenu .org-menu-item-description {
-  font-size: 0.68rem;
+  font-size: 0.69rem;
 }
 
 .org-submenu .org-menu-item:hover {
-  background-color: rgba(239, 246, 255, 0.7);
-  color: #2563eb;
+  background-color: var(--brand-50);
+  color: var(--brand-700);
+  translate: 2px 0;
 }
 
 .org-submenu .org-menu-item.active {
-  background-color: #eff6ff;
-  color: #2563eb;
+  background: linear-gradient(135deg, var(--brand-500) 0%, var(--brand-600) 100%);
+  color: #FFFFFF;
+  box-shadow: 0 5px 14px rgba(10, 132, 254, 0.25);
 }
 
-.org-toggle-btn {
-  position: absolute;
-  bottom: 12px;
-  left: 12px;
-  width: calc(100% - 24px);
-  padding: 10px;
-  border-radius: 12px;
-  background: #f1f5f9;
-  border: 1px solid rgba(226, 232, 240, 0.6);
-  cursor: pointer;
-  color: #64748b;
-  font-size: 0.8rem;
-  font-weight: 600;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  transition: all 0.2s ease;
+.org-submenu .org-menu-item.active .org-menu-item-description {
+  color: rgba(255, 255, 255, 0.82);
 }
 
-.org-toggle-btn:hover {
-  background-color: #e2e8f0;
-  color: #0f172a;
-}
-
-/* =========================================================================
-   3. Main Container & Dashboard Grid Layout
-   ========================================================================= */
+/* ── 2) Main Container ── */
 .main-content {
-  margin-left: 294px;
-  padding: 24px 30px;
-  transition: margin-left 0.35s cubic-bezier(0.4, 0, 0.2, 1);
-  min-height: 100vh;
-}
-
-.main-content.sidebar-collapsed {
-  margin-left: 100px;
+  margin-left: 296px;
+  padding: 22px 28px 40px;
+  transition: margin-left 280ms var(--ease);
+  min-height: 100dvh;
 }
 
 .mobile-toggle-btn {
-  background: white !important;
-  border: 1px solid rgba(226, 232, 240, 0.8) !important;
-  color: #0f172a !important;
-  border-radius: 12px !important;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05) !important;
-  transition: all 0.2s ease;
+  position: fixed;
+  top: 12px;
+  left: 12px;
+  z-index: 1001;
+  width: 42px;
+  height: 42px;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.94);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--c-border);
+  color: var(--c-brand);
+  border-radius: 12px;
+  box-shadow: var(--sh-sm);
+  cursor: pointer;
+  transition: background-color 150ms ease, scale 150ms ease;
 }
 
 .mobile-toggle-btn:hover {
-  transform: scale(1.05);
+  background: var(--brand-50);
+  scale: 1.04;
 }
 
 @media (max-width: 768px) {
   .org-sidebar {
-    left: -290px;
-    top: 12px;
-    height: calc(100vh - 24px);
-    width: 270px;
-    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+    left: 0;
+    top: 0;
+    height: 100dvh;
+    border-radius: 0 22px 22px 0;
+    width: min(82vw, 286px);
+    translate: -105% 0;
+    box-shadow: var(--sh-lg);
+    z-index: 1010;
   }
 
   .org-sidebar.show {
-    transform: translateX(302px);
+    translate: 0 0;
   }
 
   .main-content {
     margin-left: 0 !important;
-    padding: 20px 15px;
+    padding: 66px 14px 32px;
     width: 100%;
-    margin-top: 50px;
   }
 }
 
-@supports (padding: max(0px)) {
-  .org-sidebar {
-    padding-bottom: max(70px, env(safe-area-inset-bottom));
-  }
-}
-
-/* =========================================================================
-   4. Organization Chart Styles
-   ========================================================================= */
-.org-chart {
-  padding: 30px;
-  background: #f8fafc;
-  border-radius: 24px;
-  box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.01);
-}
-
-/* Header UI/UX Control Center */
+/* ── 3) Organization Chart ── */
 .header-controls {
-  background: white;
-  margin-bottom: 30px;
-  padding: 24px 32px;
-  border-radius: 20px;
-  border: 1px solid var(--c-card-border);
-  box-shadow: 0 10px 30px -15px rgba(0, 0, 0, 0.05);
+  background: var(--c-surface);
+  margin-bottom: 24px;
+  padding: 24px 28px;
+  border-radius: 22px;
+  border: 1px solid var(--c-border);
+  box-shadow: var(--sh-sm);
   display: flex;
   justify-content: space-between;
   align-items: center;
   flex-wrap: wrap;
-  gap: 20px;
+  gap: 16px;
 }
 
-.header-title-area {
-  text-align: left;
+.header-title-area { text-align: left; }
+
+.header-eyebrow {
+  display: inline-block;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: var(--c-brand);
+  background: var(--brand-50);
+  border: 1px solid var(--brand-100);
+  padding: 3px 10px;
+  border-radius: var(--r-pill);
+  margin-bottom: 8px;
 }
 
 .header-controls h1 {
-  font-size: 1.85rem;
+  font-size: clamp(1.38rem, 2vw + 0.8rem, 1.8rem);
   font-weight: 700;
-  color: #0f172a;
-  letter-spacing: -0.03em;
-  margin-bottom: 4px;
+  color: var(--c-text);
+  letter-spacing: -0.02em;
+  margin: 0 0 4px;
 }
 
 .header-subtitle {
-  font-size: 0.95rem;
-  color: var(--c-text-secondary);
+  font-size: 0.9rem;
+  color: var(--c-text-muted);
+  margin: 0;
 }
 
 .edit-btn, .done-btn, .cancel-btn {
   font-family: inherit;
-  font-weight: 600;
-  padding: 10px 22px;
+  font-weight: 700;
+  padding: 10px 20px;
   border-radius: 12px;
-  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
   font-size: 0.85rem;
   display: inline-flex;
   align-items: center;
   gap: 6px;
+  transition: translate 150ms ease, box-shadow 150ms ease, background-color 150ms ease;
 }
 
 .edit-btn {
-  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
-  color: white;
+  background: linear-gradient(135deg, var(--brand-500), var(--brand-600));
+  color: #FFFFFF;
   border: none;
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
+  box-shadow: var(--sh-brand);
 }
-
-.edit-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 18px rgba(59, 130, 246, 0.35);
-}
+.edit-btn:hover { translate: 0 -1px; box-shadow: 0 10px 22px rgba(10, 132, 254, 0.36); }
 
 .done-btn {
-  background: linear-gradient(135deg, #10b981, #047857);
-  color: white;
+  background: var(--c-ok);
+  color: #FFFFFF;
   border: none;
   margin-right: 8px;
-  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
+  box-shadow: 0 4px 12px rgba(14, 159, 110, 0.24);
 }
-
-.done-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 18px rgba(16, 185, 129, 0.35);
-}
+.done-btn:hover { background: #059669; translate: 0 -1px; }
 
 .cancel-btn {
-  background: #f1f5f9;
-  color: #475569;
-  border: 1px solid #cbd5e1;
+  background: var(--c-surface-2);
+  color: var(--c-text-soft);
+  border: 1px solid var(--c-border);
 }
+.cancel-btn:hover { background: var(--c-surface-3); }
 
-.cancel-btn:hover {
-  background: #e2e8f0;
-}
-
-/* Department Layout */
-.department {
-  background: var(--c-card-bg);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid var(--c-card-border);
-  border-radius: 20px;
+.org-chart {
   padding: 24px;
-  margin-bottom: 30px;
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.02);
-  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s;
+  background: rgba(255, 255, 255, 0.6);
+  border: 1px solid var(--c-border-subtle);
+  border-radius: 24px;
 }
 
-.department:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.05);
+.department {
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  border-radius: 20px;
+  padding: 22px;
+  margin-bottom: 24px;
+  box-shadow: var(--sh-xs);
+  transition: translate 220ms var(--ease), box-shadow 220ms ease;
 }
+.department:hover { translate: 0 -2px; box-shadow: var(--sh-sm); }
 
 .dept-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding-bottom: 12px;
-  margin-bottom: 20px;
-  border-bottom: 2px dashed rgba(226, 232, 240, 0.8);
+  margin-bottom: 18px;
+  border-bottom: 1.5px dashed var(--c-border);
 }
 
 .department h2 {
-  color: #0f172a;
-  font-size: 1.3rem;
+  color: var(--c-text);
+  font-size: 1.22rem;
   font-weight: 700;
   letter-spacing: -0.02em;
   margin: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .dept-tag {
-  font-size: 0.78rem;
-  font-weight: 600;
-  padding: 4px 12px;
-  border-radius: 20px;
-  background: white;
-  border: 1px solid var(--c-card-border);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.01);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  padding: 4px 11px;
+  border-radius: var(--r-pill);
+  background: var(--brand-50);
+  color: var(--brand-700);
+  border: 1px solid var(--brand-200);
 }
 
-/* 회장단 (Presidential Executive) Spec */
+/* President (Deep Cobalt Navy Tone-on-Tone) */
 .president {
   background: var(--c-pres-bg);
-  border: 2px solid var(--c-pres-border);
-  max-width: 480px;
-  margin: 0 auto 35px;
-  box-shadow: 0 10px 25px rgba(245, 158, 11, 0.08);
+  border: 1.5px solid var(--c-pres-border);
+  border-top: 5px solid var(--c-pres-accent);
+  max-width: 540px;
+  margin: 0 auto 28px;
+  box-shadow: var(--sh-sm);
 }
-
 .president .dept-tag {
-  background: #fffbeb;
-  color: #b45309;
-  border-color: #fcd34d;
+  background: var(--c-pres-accent);
+  color: #FFFFFF;
+  border-color: transparent;
 }
-
 .president .member-list {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 15px;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 12px;
 }
 
-/* Departments Grid Layout */
 .departments {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
-  gap: 30px;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 22px;
 }
 
-/* 부서별 스타일 특화 */
 .dept-operation { border-top: 5px solid var(--c-oper-accent); }
-.dept-operation .dept-tag { color: var(--c-oper-accent); background: #eff6ff; }
+.dept-operation .dept-tag { color: var(--brand-700); background: var(--brand-50); border-color: var(--brand-200); }
 
 .dept-promotion { border-top: 5px solid var(--c-prom-accent); }
-.dept-promotion .dept-tag { color: var(--c-prom-accent); background: #fdf4ff; }
+.dept-promotion .dept-tag { color: #0369A1; background: #F0F9FF; border-color: #BAE6FD; }
 
 .dept-planning { border-top: 5px solid var(--c-plan-accent); }
-.dept-planning .dept-tag { color: var(--c-plan-accent); background: #ecfdf5; }
+.dept-planning .dept-tag { color: #1E40AF; background: #EFF6FF; border-color: #BFDBFE; }
 
-/* Teams Layout */
-.teams {
-  display: flex;
-  flex-direction: column;
-  gap: 18px;
-}
+.teams { display: flex; flex-direction: column; gap: 14px; }
 
 .team {
-  background: rgba(255, 255, 255, 0.95);
-  border: 1px solid rgba(226, 232, 240, 0.7);
+  background: var(--c-surface-2);
+  border: 1px solid var(--c-border-subtle);
   border-radius: 16px;
-  padding: 16px;
-  transition: all 0.2s ease;
-}
-
-.team:hover {
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.02);
+  padding: 15px;
 }
 
 .team h3 {
-  color: #334155;
-  font-size: 0.95rem;
+  color: var(--c-text);
+  font-size: 0.92rem;
   font-weight: 700;
-  margin-bottom: 12px;
+  margin: 0 0 11px;
   padding-bottom: 8px;
-  border-bottom: 1px solid #f1f5f9;
+  border-bottom: 1px solid var(--c-border);
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -512,330 +482,208 @@ body {
   border-radius: 12px;
 }
 
-/* =========================================================================
-   5. Member Profile Card Styles (Beautiful UI/UX Improvement)
-   ========================================================================= */
+/* ── 4) Member Profile Cards ── */
 .member {
-  background: white;
-  border: 1px solid #f1f5f9;
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
   border-radius: 14px;
   padding: 12px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.01);
+  box-shadow: var(--sh-xs);
   display: flex;
   flex-direction: column;
   gap: 8px;
-  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-  position: relative;
+  transition: translate 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
 }
 
-/* Hover lift and color glow based on department theme */
 .member:hover {
-  transform: translateY(-3px) scale(1.01);
-  border-color: rgba(203, 213, 225, 0.8);
-  box-shadow: 0 10px 20px -8px rgba(0, 0, 0, 0.06);
+  translate: 0 -2px;
+  border-color: var(--brand-200);
+  box-shadow: var(--sh-sm);
 }
 
-/* 부서별 카드 호버 글로우 효과 */
-.dept-operation .member:hover { box-shadow: 0 10px 20px -8px rgba(59, 130, 246, 0.12); }
-.dept-promotion .member:hover { box-shadow: 0 10px 20px -8px rgba(217, 70, 239, 0.12); }
-.dept-planning .member:hover { box-shadow: 0 10px 20px -8px rgba(16, 185, 129, 0.12); }
+.member-header { display: flex; align-items: center; gap: 11px; }
 
-.member-header {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-/* Avatar styling */
 .member-avatar {
   width: 38px;
   height: 38px;
   border-radius: 50%;
   object-fit: cover;
-  border: 1px solid #e2e8f0;
-  background-color: #f1f5f9;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
-  transition: transform 0.25s ease;
+  border: 1.5px solid var(--brand-100);
+  background-color: var(--brand-50);
+  flex-shrink: 0;
 }
 
-.member:hover .member-avatar {
-  transform: scale(1.08);
-}
-
-.member-info-text {
-  display: flex;
-  flex-direction: column;
-  flex-grow: 1;
-}
-
+.member-info-text { display: flex; flex-direction: column; flex-grow: 1; min-width: 0; }
 .member .name {
-  color: #1e293b;
-  font-weight: 600;
-  font-size: 0.92rem;
+  color: var(--c-text);
+  font-weight: 700;
+  font-size: 0.9rem;
   display: inline-flex;
   align-items: center;
   gap: 6px;
 }
-
 .member .contact {
-  color: var(--c-text-secondary);
-  font-size: 0.78rem;
-  font-weight: 400;
+  color: var(--c-text-muted);
+  font-size: 0.76rem;
+  font-variant-numeric: tabular-nums;
 }
 
-/* Team Leader Badge Style */
+/* Team Leader (Tone-on-Tone Azure Highlight) */
 .member.team-leader {
-  background: linear-gradient(135deg, #ffffff, #fffbeb);
-  border: 1.5px solid #fde047 !important;
-  box-shadow: 0 4px 8px -2px rgba(234, 179, 8, 0.05);
+  background: linear-gradient(135deg, #FFFFFF 0%, var(--brand-50) 100%);
+  border: 1.5px solid var(--brand-300) !important;
 }
-
-.member.team-leader .name {
-  color: #b45309;
-}
+.member.team-leader .name { color: var(--brand-800); }
 
 .leader-badge {
-  font-size: 0.68rem;
+  font-size: 0.66rem;
   font-weight: 700;
-  background: #fef3c7;
-  color: #d97706;
-  border: 1px solid #fde047;
-  padding: 1px 6px;
-  border-radius: 6px;
-  letter-spacing: -0.02em;
+  background: var(--brand-100);
+  color: var(--brand-700);
+  border: 1px solid var(--brand-200);
+  padding: 2px 7px;
+  border-radius: var(--r-pill);
 }
 
 .member-count {
   font-size: 0.72rem;
-  color: #64748b;
-  font-weight: 600;
-  background: #f1f5f9;
-  padding: 2px 8px;
-  border-radius: 20px;
+  color: var(--brand-700);
+  font-weight: 700;
+  background: var(--brand-50);
+  border: 1px solid var(--brand-100);
+  padding: 2px 9px;
+  border-radius: var(--r-pill);
+  font-variant-numeric: tabular-nums;
 }
-
-.member-count::before { content: ""; }
 .member-count::after { content: "명"; }
 
-/* Drag and Drop Styling */
-.member.draggable {
-  cursor: grab;
-}
-
-.member.draggable:active {
-  cursor: grabbing;
-}
-
+/* Drag and Drop */
+.member.draggable { cursor: grab; }
+.member.draggable:active { cursor: grabbing; }
 .member.dragging {
-  opacity: 0.4;
+  opacity: 0.45;
   border: 2px dashed var(--c-brand) !important;
-  background: #eff6ff !important;
-  transform: rotate(-1.5deg) scale(0.96);
-  box-shadow: 0 10px 20px rgba(59, 130, 246, 0.1) !important;
+  background: var(--brand-50) !important;
+  scale: 0.97;
 }
-
 .member-list.droppable {
-  background: rgba(248, 250, 252, 0.8);
-  border: 2px dashed #e2e8f0;
-  transition: all 0.2s ease;
+  background: var(--brand-50);
+  border: 2px dashed var(--brand-200);
+  padding: 6px;
 }
-
 .member-list.droppable.dragover {
-  background: #eff6ff;
+  background: var(--brand-100);
   border-color: var(--c-brand);
-  box-shadow: inset 0 0 10px rgba(59, 130, 246, 0.05);
 }
 
-/* Staff Subteams Styling */
+/* Staff Subteams */
 .staff-subteam {
   margin-bottom: 10px;
-  background: #f8fafc;
+  background: var(--c-surface);
   border-radius: 12px;
   padding: 10px 12px;
-  border: 1px dashed #cbd5e1;
+  border: 1px dashed var(--brand-200);
 }
+.staff-subteam:last-child { margin-bottom: 0; }
+.staff-subteam-title { font-weight: 700; color: var(--c-brand); margin-bottom: 6px; font-size: 0.8rem; }
+.staff-subteam-list { min-height: 20px; display: flex; flex-direction: column; gap: 8px; }
 
-.staff-subteam:last-child {
-  margin-bottom: 0;
-}
-
-.staff-subteam-title {
-  font-weight: 700;
-  color: var(--c-brand);
-  margin-bottom: 6px;
-  font-size: 0.8rem;
-  letter-spacing: 0.03em;
-}
-
-.staff-subteam-list {
-  min-height: 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-/* =========================================================================
-   6. Work Memo Styles (Premium UX Improvement)
-   ========================================================================= */
+/* ── 5) Work Memo (Clean Azure Note) ── */
 .work-memo-section {
-  margin-top: 8px;
+  margin-top: 6px;
   padding-top: 8px;
-  border-top: 1px solid #f1f5f9;
+  border-top: 1px solid var(--c-border-subtle);
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 5px;
 }
 
-/* Memo Speech Bubble */
 .work-memo-display {
-  min-height: 34px;
-  padding: 6px 10px;
-  background-color: #f8fafc;
+  min-height: 32px;
+  padding: 7px 10px;
+  background-color: var(--c-surface-2);
   border-radius: 8px;
   font-size: 0.78rem;
-  line-height: 1.4;
-  color: #475569;
+  line-height: 1.45;
+  color: var(--c-text-soft);
   white-space: pre-wrap;
   word-break: break-word;
-  border: 1px solid #f1f5f9;
-  transition: all 0.2s ease;
+  border: 1px solid var(--c-border-subtle);
 }
+.memo-text { color: var(--c-text); }
+.memo-empty { color: var(--c-text-faint); font-style: italic; }
 
-.member:hover .work-memo-display {
-  background-color: #f1f5f9;
-}
-
-.memo-text {
-  color: #0f172a;
-}
-
-.memo-empty {
-  color: #94a3b8;
-  font-style: italic;
-}
-
-/* Cute Sticky Note Edit Box (Satisfying UX Detail) */
 .work-memo-edit {
   width: 100%;
   min-height: 70px;
-  padding: 8px;
-  border: 1px solid #fde047;
-  border-radius: 8px;
-  font-size: 0.78rem;
+  padding: 9px 11px;
+  border: 1.5px solid var(--brand-300);
+  border-radius: 10px;
+  font-size: 0.8rem;
   font-family: inherit;
   resize: vertical;
-  background-color: #fef9c3; /* Sticky note yellow */
-  color: #78350f;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 
-              0 2px 4px -1px rgba(0, 0, 0, 0.03);
-  transition: transform 0.2s;
-  transform: rotate(-0.5deg);
+  background-color: var(--brand-50);
+  color: var(--c-text);
 }
-
 .work-memo-edit:focus {
   outline: none;
-  transform: rotate(0deg);
-  box-shadow: 0 8px 12px -2px rgba(234, 179, 8, 0.15);
+  border-color: var(--c-brand);
+  background: var(--c-surface);
+  box-shadow: 0 0 0 3px var(--c-focus-ring);
 }
 
-/* Persistent but subtle edit buttons for discoverable UX */
 .work-memo-actions {
   display: flex;
   justify-content: flex-end;
   gap: 6px;
-  opacity: 0.45;
-  transition: opacity 0.2s ease;
+  opacity: 0.7;
+  transition: opacity 160ms ease;
 }
-
-.member:hover .work-memo-actions {
-  opacity: 1;
-}
+.member:hover .work-memo-actions { opacity: 1; }
 
 .btn-edit-memo {
   display: inline-flex;
   align-items: center;
-  gap: 3px;
-  padding: 3px 8px;
-  background-color: white;
-  border: 1px solid #cbd5e1;
-  border-radius: 6px;
-  font-size: 0.7rem;
-  color: #64748b;
-  cursor: pointer;
-  font-weight: 600;
-  transition: all 0.2s;
-}
-
-.btn-edit-memo:hover {
-  background-color: #f1f5f9;
-  border-color: #94a3b8;
-  color: #0f172a;
-}
-
-.btn-edit-memo svg {
-  width: 10px;
-  height: 10px;
-  stroke: currentColor;
-}
-
-.memo-edit-buttons {
-  display: flex;
   gap: 4px;
-}
-
-.btn-save-memo,
-.btn-cancel-memo {
-  padding: 3px 8px;
-  border-radius: 6px;
+  padding: 4px 9px;
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  border-radius: 7px;
   font-size: 0.7rem;
-  font-weight: 600;
+  color: var(--c-text-muted);
   cursor: pointer;
-  transition: all 0.2s;
+  font-weight: 600;
+}
+.btn-edit-memo:hover { background: var(--brand-50); border-color: var(--brand-200); color: var(--brand-700); }
+.btn-edit-memo svg { width: 11px; height: 11px; stroke: currentColor; }
+
+.memo-edit-buttons { display: flex; gap: 5px; }
+.btn-save-memo, .btn-cancel-memo {
+  padding: 4px 10px;
+  border-radius: 7px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+.btn-save-memo { background: var(--c-brand); color: #FFFFFF; border: none; }
+.btn-save-memo:hover { background: var(--c-brand-strong); }
+.btn-cancel-memo { background: var(--c-surface); color: var(--c-text-soft); border: 1px solid var(--c-border); }
+.btn-cancel-memo:hover { background: var(--c-surface-2); }
+
+.hidden { display: none !important; }
+
+.error-message {
+  padding: 28px 22px;
+  background: var(--c-danger-bg);
+  border: 1px solid var(--c-danger-border);
+  border-radius: var(--r-lg);
+  color: #BE123C;
+  text-align: center;
 }
 
-.btn-save-memo {
-  background-color: var(--c-brand);
-  color: white;
-  border: none;
-  box-shadow: 0 2px 5px rgba(59, 130, 246, 0.15);
-}
-
-.btn-save-memo:hover {
-  background-color: #2563eb;
-}
-
-.btn-cancel-memo {
-  background-color: white;
-  color: #475569;
-  border: 1px solid #cbd5e1;
-}
-
-.btn-cancel-memo:hover {
-  background-color: #f1f5f9;
-}
-
-.hidden {
-  display: none !important;
-}
-
-/* =========================================================================
-   7. Responsive adjustments
-   ========================================================================= */
 @media (max-width: 768px) {
-  .org-chart {
-    padding: 20px 10px;
-  }
-  .departments {
-    grid-template-columns: 1fr;
-    gap: 20px;
-  }
-  .header-controls {
-    padding: 20px;
-    flex-direction: column;
-    text-align: center;
-    align-items: center;
-  }
-  .header-title-area {
-    text-align: center;
-  }
+  .org-chart { padding: 14px 10px; }
+  .departments { grid-template-columns: 1fr; gap: 16px; }
+  .header-controls { padding: 18px; flex-direction: column; text-align: center; align-items: center; }
+  .header-title-area { text-align: center; }
 }
